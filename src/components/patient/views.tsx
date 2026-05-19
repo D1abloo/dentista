@@ -28,6 +28,7 @@ import { fmtDate, fmtDateTime, money, statusLabel, todayIso, uid } from '@/lib/f
 import { availableSlots, daySlotMap } from '@/lib/slots';
 import { SlotCalendar } from '@/components/shared/SlotCalendar';
 import { PatientConsentAlert, PatientConsents } from './consents';
+import { PatientIdentity } from './PatientIdentity';
 import { email, phone, required } from '@/lib/validation';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
@@ -49,7 +50,6 @@ import {
   Stepper,
   Textarea
 } from '@/components/ui';
-import { IdBadge } from '@/components/ui/IdBadge';
 export { PatientDocuments, PatientInvoices, PatientPayments, PatientReports } from './records';
 
 const bookSteps = ['Clínica', 'Tratamiento', 'Dentista', 'Fecha y hora', 'Resumen', 'Confirmar'];
@@ -81,15 +81,24 @@ export function PatientDashboard() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="Inicio" subtitle={patient.fullName} />
+      <PageHeader
+        title="Inicio"
+        subtitle={patient.dni ? `${patient.fullName} · DNI ${patient.dni}` : patient.fullName}
+      />
       <PatientConsentAlert />
       {alerts.length ? <div className="banner-alert">{alerts.join(' · ')}</div> : null}
 
       <section className="highlight-panel mb-2">
         <h2>Toda tu información dental en un solo lugar</h2>
         <p>
-          Aunque visites varias clínicas, tu portal agrupa citas, informes, facturas y pagos por tu ID{' '}
-          <strong>{patient.id}</strong>. Solo ves tus propios registros.
+          Aunque visites varias clínicas, tu portal agrupa citas, informes, facturas y pagos a tu nombre
+          {patient.dni ? (
+            <>
+              {' '}
+              (<strong>DNI {patient.dni}</strong>)
+            </>
+          ) : null}
+          . Solo ves tus propios registros.
         </p>
       </section>
 
@@ -119,8 +128,7 @@ export function PatientDashboard() {
       <Card title="Novedades en tu portal">
         <ul className="space-y-2 text-sm">
           {news.map((n) => (
-            <li key={n.id} className="flex flex-wrap items-center gap-2 rounded-xl bg-dental-50 px-3 py-2 font-semibold text-dental-900">
-              <IdBadge id={n.id} kind={n.kind === 'factura' ? 'factura' : n.kind === 'informe' ? 'informe' : n.kind === 'pago' ? 'pago' : 'documento'} />
+            <li key={n.id} className="rounded-xl bg-dental-50 px-3 py-2 text-sm font-semibold text-dental-900">
               {n.label}
             </li>
           ))}
@@ -148,9 +156,9 @@ export function PatientDashboard() {
         </Card>
         <Card title="Resumen clínico">
           <ul className="space-y-2 text-sm text-slate-600">
-            <li>Último informe: {lastReport ? <strong>{lastReport.id} · {lastReport.title}</strong> : '—'}</li>
-            <li>Documentos nuevos: {newDocs.length ? newDocs.map((d) => d.id).join(', ') : '—'}</li>
-            <li>Pago reciente: {recentPay[0] ? `${recentPay[0].id} · ${money(recentPay[0].amount)}` : '—'}</li>
+            <li>Último informe: {lastReport ? <strong>{lastReport.title}</strong> : '—'}</li>
+            <li>Documentos nuevos: {newDocs.length ? newDocs.map((d) => d.title).join(', ') : '—'}</li>
+            <li>Pago reciente: {recentPay[0] ? <strong>{money(recentPay[0].amount)}</strong> : '—'}</li>
           </ul>
         </Card>
         <Card title="Antes de tu cita">
@@ -340,21 +348,21 @@ function AppointmentRow({ a }: { a: Appointment }) {
   const [time, setTime] = useState(a.time);
 
   return (
-    <article className="table-cards__row">
-      <IdBadge id={a.id} kind="cita" />
-      <div>
-        <p className="font-bold text-dental-950">{meta.treatment}</p>
-        <p className="text-sm text-slate-600">{meta.dentist} · {meta.clinic}</p>
-        <p className="text-sm font-semibold text-dental-800">{fmtDateTime(a.date, a.time)} · {money(meta.price)}</p>
-        <p className="text-xs text-slate-500">Gabinete {a.cabinetId ?? '—'}</p>
+    <article className="data-row appt-row">
+      <div className="data-row__main">
+        <p className="data-row__title">{meta.treatment}</p>
+        <p className="data-row__meta">{meta.dentist} · {meta.clinic}</p>
+        <p className="data-row__meta">{fmtDateTime(a.date, a.time)} · {money(meta.price)}</p>
       </div>
-      <Badge status={a.status} label={statusLabel(a.status)} />
+      <div className="data-row__aside">
+        <Badge status={a.status} label={statusLabel(a.status)} />
       {isActiveStatus(a.status) ? (
         <div className="flex flex-wrap gap-2">
           <Button tone="secondary" className="!py-2 !text-xs" onClick={() => setShowCancel(true)}>Cancelar</Button>
           <Button className="!py-2 !text-xs" onClick={() => setShowResched(true)}>Reprogramar</Button>
         </div>
       ) : null}
+      </div>
       <ConfirmModal open={showCancel} title="Cancelar cita" message="¿Seguro que deseas cancelar esta cita?" confirmLabel="Sí, cancelar"
         onConfirm={() => { commit(updateAppointmentStatus(state, a.id, 'cancelada')); setNotice({ type: 'ok', message: 'Cita cancelada.' }); }}
         onClose={() => setShowCancel(false)} />
@@ -462,9 +470,8 @@ export function PatientProfile() {
       <form className="grid gap-4 md:grid-cols-2" onSubmit={save}>
         {errors.general ? <p className="md:col-span-2 text-sm font-bold text-rose-600">{errors.general}</p> : null}
         <Field label="Nombre"><Input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} /></Field>
-        <div className="md:col-span-2 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-bold text-slate-500">ID paciente:</span>
-          <IdBadge id={form.id} kind="paciente" />
+        <div className="md:col-span-2">
+          <PatientIdentity patient={form} size="sm" />
         </div>
         <Field label="DNI"><Input value={form.dni ?? ''} onChange={(e) => setForm({ ...form, dni: e.target.value })} /></Field>
         <Field label="Email"><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>

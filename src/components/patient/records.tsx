@@ -14,7 +14,6 @@ import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { usePatient } from '@/hooks/usePatient';
 import type { Invoice } from '@/types/demo';
-import { IdBadge } from '@/components/ui/IdBadge';
 import { FileActions } from '@/components/shared/FileActions';
 import { Badge, Button, Empty, PageHeader, SearchInput } from '@/components/ui';
 
@@ -42,18 +41,17 @@ export function PatientReports() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Mis informes" subtitle="INF-XXXX · solo informes visibles para ti" />
-      <SearchInput value={q} onChange={setQ} placeholder="Buscar por ID o título…" />
-      <div className="table-cards">
+      <PageHeader title="Mis informes" subtitle="Solo informes visibles para ti" />
+      <SearchInput value={q} onChange={setQ} placeholder="Buscar por título o diagnóstico…" />
+      <div className="data-rows">
         {list.map((r) => (
-          <article key={r.id} className="table-cards__row">
-            <IdBadge id={r.id} kind="informe" />
-            <div>
-              <p className="font-bold">{r.title}</p>
-              <p className="text-sm text-slate-600">{fmtDate(r.createdAt)} · {r.diagnosis ?? r.description.slice(0, 60)}</p>
-              {r.recommendations ? <p className="mt-1 text-xs text-slate-500">{r.recommendations}</p> : null}
+          <article key={r.id} className="data-row">
+            <div className="data-row__main">
+              <p className="data-row__title">{r.title}</p>
+              <p className="data-row__meta">{fmtDate(r.createdAt)} · {r.diagnosis ?? r.description.slice(0, 60)}</p>
+              {r.recommendations ? <p className="data-row__meta">{r.recommendations}</p> : null}
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="data-row__aside">
               {r.fileRef ? (
                 <FileActions fileRef={r.fileRef} fileName={r.fileName} mimeType={r.mimeType} />
               ) : (
@@ -85,7 +83,7 @@ export function PatientDocuments() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Mis documentos" subtitle="DOC-XXXX · consentimientos, radiografías y recibos" />
+      <PageHeader title="Mis documentos" subtitle="Consentimientos, radiografías y recibos" />
       <SearchInput value={q} onChange={setQ} placeholder="Buscar documento o tipo…" />
       <div className="grid gap-4 md:grid-cols-2">
         {list.map((d) => {
@@ -94,7 +92,6 @@ export function PatientDocuments() {
           return (
             <article key={d.id} className="doc-tile">
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <IdBadge id={d.id} kind="documento" />
                 <span className="doc-file-badge">{d.type}</span>
               </div>
               <p className="mt-2 font-bold text-dental-950">{d.title}</p>
@@ -129,24 +126,23 @@ export function PatientInvoices() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Mis facturas" subtitle="FAC-XXXX · descarga PDF y pago demo" />
-      <div className="table-cards">
+      <PageHeader title="Mis facturas" subtitle="Descarga PDF y gestiona el pago" />
+      <div className="data-rows">
         {list.map((i) => (
-          <article key={i.id} className="table-cards__row">
-            <IdBadge id={i.id} kind="factura" />
-            <div>
-              <p className="font-bold">{i.concept}</p>
-              <p className="text-sm text-slate-600">
+          <article key={i.id} className="data-row">
+            <div className="data-row__main">
+              <p className="data-row__title">{i.concept}</p>
+              <p className="data-row__meta">
                 Emisión {fmtDate(i.issuedAt)}
-                {i.dueDate ? ` · Vence ${fmtDate(i.dueDate)}` : ''}
+                {i.dueDate ? ` · Vence ${fmtDate(i.dueDate)}` : ''} · {money(i.amount)}
               </p>
-              <p className="font-bold text-dental-800">{money(i.amount)}</p>
               {i.fileName ? (
-                <p className="mt-1 text-xs font-semibold text-slate-500">
+                <p className="data-row__meta">
                   {isPdfMime(i.mimeType, i.fileName) ? 'PDF' : 'Archivo'}: {i.fileName}
                 </p>
               ) : null}
             </div>
+            <div className="data-row__aside">
             <Badge status={i.status === 'pagada' ? 'completada' : 'pendiente'} label={i.status} />
             <div className="flex flex-wrap gap-2">
               <FileActions fileRef={i.fileRef} fileName={i.fileName ?? `${i.id}.pdf`} mimeType={i.mimeType} />
@@ -171,6 +167,7 @@ export function PatientInvoices() {
                 </Button>
               ) : null}
             </div>
+            </div>
           </article>
         ))}
       </div>
@@ -188,7 +185,7 @@ export function PatientPayments() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Mis pagos" subtitle="PAG-XXXX · vinculados a facturas" />
+      <PageHeader title="Mis pagos" subtitle="Historial vinculado a tus facturas" />
       {totalPending > 0 ? (
         <div className="rounded-2xl bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900 ring-1 ring-amber-200">
           Tienes {pending.length} factura(s) pendiente(s) por {money(totalPending)}.{' '}
@@ -197,17 +194,19 @@ export function PatientPayments() {
           </a>
         </div>
       ) : null}
-      <div className="table-cards">
-        {list.map((p) => (
-          <article key={p.id} className="table-cards__row">
-            <IdBadge id={p.id} kind="pago" />
-            <div>
-              <p className="font-bold">{money(p.amount)}</p>
-              <p className="text-sm text-slate-600">
-                {p.invoiceId ? `Factura ${p.invoiceId}` : 'Sin factura'} · {p.method} ·{' '}
+      <div className="data-rows">
+        {list.map((p) => {
+          const inv = p.invoiceId ? state.invoices.find((i) => i.id === p.invoiceId) : undefined;
+          return (
+          <article key={p.id} className="data-row">
+            <div className="data-row__main">
+              <p className="data-row__title">{money(p.amount)}</p>
+              <p className="data-row__meta">
+                {inv ? inv.concept : 'Pago sin factura'} · {p.method} ·{' '}
                 {p.paidAt ? fmtDate(p.paidAt) : fmtDate(p.createdAt)}
               </p>
             </div>
+            <div className="data-row__aside">
             <Badge status={p.status === 'completado' ? 'completada' : 'pendiente'} label={p.status} />
             <Button
               tone="ghost"
@@ -216,8 +215,10 @@ export function PatientPayments() {
             >
               Descargar recibo demo
             </Button>
+            </div>
           </article>
-        ))}
+          );
+        })}
       </div>
       {!list.length ? <Empty title="Sin pagos" text="" /> : null}
     </div>

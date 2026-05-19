@@ -1,20 +1,22 @@
 import { useMemo, useState } from 'react';
+import type { InformedConsent } from '@/types/demo';
 import { pendingConsentsForPatient, signInformedConsent } from '@/lib/demoStore';
 import { saveDemoFile } from '@/lib/demoFiles';
 import { fmtDate } from '@/lib/format';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { usePatient } from '@/hooks/usePatient';
 import { useNotice } from '@/hooks/useNotice';
-import { SignaturePad } from '@/components/shared/SignaturePad';
+import { SignatureModal } from '@/components/shared/SignatureModal';
+import { PatientIdentity } from './PatientIdentity';
 import { Badge, Button, Card, Empty } from '@/components/ui';
-import { IdBadge } from '@/components/ui/IdBadge';
 
 export function PatientConsents({ compact = false }: { compact?: boolean }) {
   const { state, commit } = useDemoStore();
   const patient = usePatient();
   const { setNotice } = useNotice();
-  const [signingId, setSigningId] = useState<string | null>(null);
+  const [signing, setSigning] = useState<InformedConsent | null>(null);
   const [upload, setUpload] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const mine = useMemo(
     () =>
@@ -30,7 +32,8 @@ export function PatientConsents({ compact = false }: { compact?: boolean }) {
     const signed = mine.filter((c) => c.status === 'firmado').length;
     return (
       <Card title="Consentimientos informados">
-        <p className="text-sm text-[var(--muted)]">
+        <PatientIdentity patient={patient} size="sm" />
+        <p className="mt-2 text-sm text-[var(--muted)]">
           {signed} firmado(s) · {pending.length} pendiente(s)
         </p>
         {pending.length ? (
@@ -46,32 +49,39 @@ export function PatientConsents({ compact = false }: { compact?: boolean }) {
   }
 
   async function submitSignature(consentId: string, dataUrl: string) {
-    const blob = await (await fetch(dataUrl)).blob();
-    const file = new File([blob], `firma-${consentId}.png`, { type: 'image/png' });
-    const fileRef = await saveDemoFile(file);
-    let docRef: string | undefined;
-    if (upload) {
-      docRef = await saveDemoFile(upload);
+    setSaving(true);
+    try {
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], `firma-${consentId}.png`, { type: 'image/png' });
+      await saveDemoFile(file);
+      let docRef: string | undefined;
+      if (upload) {
+        docRef = await saveDemoFile(upload);
+      }
+      commit(signInformedConsent(state, consentId, dataUrl, docRef, upload?.name));
+      setNotice({ type: 'ok', message: 'Consentimiento firmado correctamente.' });
+      setSigning(null);
+      setUpload(null);
+    } finally {
+      setSaving(false);
     }
-    commit(signInformedConsent(state, consentId, dataUrl, docRef, upload?.name));
-    setNotice({ type: 'ok', message: 'Consentimiento firmado correctamente.' });
-    setSigningId(null);
-    setUpload(null);
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 portal-consents">
+      <PatientIdentity patient={patient} size="md" />
+
       {pending.length ? (
         <div className="banner-alert" role="alert">
-          Tienes <strong>{pending.length}</strong> consentimiento(s) pendiente(s). Debes firmarlos para continuar con
-          ciertos tratamientos.
+          Tienes <strong>{pending.length}</strong> consentimiento(s) pendiente(s). Pulsa &quot;Firmar con autofirma&quot; en
+          cada documento.
         </div>
       ) : null}
 
       {mine.map((c) => (
         <Card key={c.id} title={c.title}>
           <p className="text-sm text-[var(--muted)]">
-            <IdBadge id={c.id} kind="documento" /> · {c.treatmentName} · {fmtDate(c.createdAt)}
+            {c.treatmentName} · {fmtDate(c.createdAt)}
           </p>
           <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{c.body}</p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -82,26 +92,10 @@ export function PatientConsents({ compact = false }: { compact?: boolean }) {
             {c.signedAt ? <span className="text-xs font-semibold text-[var(--muted)]">Firmado: {fmtDate(c.signedAt)}</span> : null}
           </div>
           {c.status === 'pendiente' ? (
-            <div className="mt-4 space-y-3">
-              {signingId === c.id ? (
-                <>
-                  <SignaturePad onSave={(dataUrl) => void submitSignature(c.id, dataUrl)} />
-                  <label className="block text-sm font-semibold">
-                    Adjuntar documento firmado (opcional)
-                    <input
-                      type="file"
-                      accept="application/pdf,.pdf,image/*"
-                      className="field-control mt-1"
-                      onChange={(e) => setUpload(e.target.files?.[0] ?? null)}
-                    />
-                  </label>
-                  <Button tone="secondary" onClick={() => setSigningId(null)}>
-                    Cancelar
-                  </Button>
-                </>
-              ) : (
-                <Button onClick={() => setSigningId(c.id)}>Firmar con autofirma</Button>
-              )}
+            <div className="mt-4">
+              <Button type="button" className="w-full sm:w-auto" onClick={() => setSigning(c)}>
+                Firmar con autofirma
+              </Button>
             </div>
           ) : c.signatureRef ? (
             <img src={c.signatureRef} alt="Firma del paciente" className="mt-4 max-h-24 rounded-lg border border-[var(--line)]" />
@@ -112,6 +106,35 @@ export function PatientConsents({ compact = false }: { compact?: boolean }) {
       {!mine.length ? (
         <Empty title="Sin consentimientos" text="La clínica publicará aquí los consentimientos que debas firmar." />
       ) : null}
+
+      <SignatureModal
+        open={Boolean(signing)}
+        title={signing?.title ?? ''}
+        treatmentName={signing?.treatmentName ?? ''}
+        documentBody={signing?.body ?? ''}
+        patient={{ fullName: patient.fullName, dni: patient.dni }}
+        saving={saving}
+        onClose={() => {
+          if (!saving) {
+            setSigning(null);
+            setUpload(null);
+          }
+        }}
+        onSave={(dataUrl) => {
+          if (signing) void submitSignature(signing.id, dataUrl);
+        }}
+        extra={
+          <label className="block text-sm font-semibold">
+            Adjuntar documento firmado (opcional)
+            <input
+              type="file"
+              accept="application/pdf,.pdf,image/*"
+              className="field-control mt-1 w-full"
+              onChange={(e) => setUpload(e.target.files?.[0] ?? null)}
+            />
+          </label>
+        }
+      />
     </div>
   );
 }
@@ -122,11 +145,11 @@ export function PatientConsentAlert() {
   const pending = pendingConsentsForPatient(state, patient.id);
   if (!pending.length) return null;
   return (
-    <div className="banner-alert mb-4 flex flex-wrap items-center justify-between gap-2" role="alert">
+    <div className="banner-alert mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between" role="alert">
       <span>
         Tienes <strong>{pending.length}</strong> consentimiento(s) por firmar antes de tu próxima visita.
       </span>
-      <a href="/paciente/consentimientos" className="btn btn--teal btn--sm">
+      <a href="/paciente/consentimientos" className="btn btn--teal btn--sm w-full sm:w-auto text-center">
         Firmar ahora
       </a>
     </div>

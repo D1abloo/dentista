@@ -6,7 +6,7 @@ import { useLogout } from '@/components/auth/RoleGate';
 import { isClientDemoMode } from '@/lib/appMode';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { usePatient } from '@/hooks/usePatient';
-import { IdBadge } from '@/components/ui/IdBadge';
+import { PatientIdentity } from './PatientIdentity';
 
 export type NavItem = { href: string; label: string; icon: LucideIcon };
 
@@ -20,7 +20,7 @@ function Rail({
 }: {
   nav: NavItem[];
   path: string;
-  patient: { fullName: string; id: string };
+  patient: { fullName: string; dni?: string };
   onNav: () => void;
   onLogout: () => void;
   variant: 'drawer' | 'rail';
@@ -36,8 +36,7 @@ function Rail({
         <span className="font-[family-name:var(--display)] text-[var(--navy)]">Dentista+</span>
       </a>
       <div className="mb-4 rounded-xl bg-[#f0fdfa] p-3">
-        <p className="text-sm font-bold text-[var(--navy)]">{patient.fullName}</p>
-        <IdBadge id={patient.id} kind="paciente" />
+        <PatientIdentity patient={patient} size="sm" />
       </div>
       <nav className="flex-1 overflow-y-auto">
         {nav.map((item) => {
@@ -82,9 +81,9 @@ export function PatientShell({ title, nav, children }: { title: string; nav: Nav
       ) : null}
       <div className="portal-main">
         <header className="portal-top">
-          <div>
+          <div className="portal-top__intro">
             <h1 className="portal-top__title">{title}</h1>
-            <p className="text-xs font-semibold text-[var(--muted)]">{patient.id}</p>
+            <PatientIdentity patient={patient} size="sm" />
           </div>
           <button type="button" className="pub-menu-btn lg:hidden" onClick={() => setOpen(true)} aria-label="Menú">
             <Menu className="h-5 w-5" />

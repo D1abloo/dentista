@@ -1416,13 +1416,16 @@ body {
 .slot-cal__cell--picked { outline: 2px solid var(--teal); outline-offset: 1px; }
 
 .sig-pad__canvas {
+  display: block;
   width: 100%;
-  max-width: 420px;
-  height: 140px;
+  max-width: 100%;
+  height: min(42vh, 200px);
+  min-height: 160px;
   border-radius: 0.75rem;
   border: 1px dashed var(--line);
   background: #fff;
   touch-action: none;
+  cursor: crosshair;
 }
 
 .sig-pad__actions {
@@ -1440,4 +1443,256 @@ body {
   font-size: 0.85rem;
   font-weight: 600;
   color: #9a3412;
+}
+
+/* Identidad paciente (sin PAT-XXXX) */
+.patient-identity__name {
+  margin: 0;
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1.3;
+}
+
+.patient-identity--sm .patient-identity__name {
+  font-size: 0.9rem;
+}
+
+.patient-identity--md .patient-identity__name {
+  font-size: 1rem;
+}
+
+.patient-identity__dni {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Modal autofirma consentimientos */
+body.sig-modal-open {
+  overflow: hidden;
+  touch-action: none;
+}
+
+.sig-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+@media (min-width: 640px) {
+  .sig-modal-backdrop {
+    align-items: center;
+    padding: 1rem;
+  }
+}
+
+.sig-modal {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 32rem;
+  max-height: min(96dvh, 100%);
+  overflow: hidden;
+  border-radius: 1.25rem 1.25rem 0 0;
+  background: #fff;
+  box-shadow: var(--shadow-lg);
+}
+
+@media (min-width: 640px) {
+  .sig-modal {
+    max-height: 90dvh;
+    border-radius: 1.25rem;
+  }
+}
+
+.sig-modal__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.sig-modal__head-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.sig-modal__eyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--teal);
+}
+
+.sig-modal__title {
+  margin: 0.25rem 0 0;
+  font-family: var(--display);
+  font-size: clamp(1rem, 4vw, 1.2rem);
+  font-weight: 600;
+  color: var(--navy);
+  line-height: 1.25;
+}
+
+.sig-modal__close {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  border-radius: 0.65rem;
+  background: #f1f5f9;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.sig-modal__permission {
+  padding: 1.25rem 1rem 1.5rem;
+}
+
+.sig-modal__permission-icon {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin-bottom: 0.75rem;
+  border-radius: 1rem;
+  background: #ecfdf5;
+  color: var(--teal);
+}
+
+.sig-modal__permission-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.sig-modal__permission-actions .btn {
+  width: 100%;
+  min-height: 2.75rem;
+}
+
+.sig-modal__doc,
+.sig-modal__pad,
+.sig-modal__extra {
+  padding: 0 1rem;
+}
+
+.sig-modal__doc {
+  padding-top: 0.75rem;
+}
+
+.sig-modal__doc-label {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.sig-modal__doc-body {
+  max-height: 28vh;
+  overflow-y: auto;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  color: var(--ink);
+  -webkit-overflow-scrolling: touch;
+}
+
+.sig-modal__pad {
+  padding-bottom: 0.5rem;
+}
+
+.sig-modal__foot {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.75rem 1rem 1rem;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+}
+
+.sig-pad__hint {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Responsive portal paciente / admin */
+@media (max-width: 1023px) {
+  .portal-main {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .portal-top {
+    padding: 0.75rem 1rem;
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+  }
+
+  .portal-top__title {
+    font-size: clamp(1.05rem, 4.5vw, 1.25rem);
+  }
+
+  .portal-body {
+    padding: 1rem 1rem max(2rem, env(safe-area-inset-bottom));
+    width: 100%;
+    max-width: none;
+  }
+
+  .portal-rail--drawer {
+    width: min(100vw, 18.5rem);
+    max-width: 100%;
+  }
+
+  .portal-quick-link,
+  .btn,
+  .rail-link {
+    min-height: 2.75rem;
+  }
+
+  .appt-row.data-row {
+    flex-direction: column;
+  }
+
+  .portal-consents .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 639px) {
+  .stat-card,
+  .card,
+  .doc-tile,
+  .patient-card,
+  .data-row {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .slot-cal__grid {
+    grid-template-columns: repeat(auto-fill, minmax(3.75rem, 1fr));
+  }
+
+  .highlight-panel h2 {
+    font-size: 1.1rem;
+  }
 }
