@@ -4,11 +4,14 @@ App lista para abrir en **Codex** y trabajar en **desarrollo local con npm**, si
 
 Repositorio objetivo:
 
-Cualquier cambio, subir a github
+**Cualquier cambio → subir a GitHub** (obligatorio tras cada tarea):
 
 ```bash
-https://github.com/D1abloo/dentista.git
+npm run smoke
+npm run git:save -- "tipo: mensaje claro"
 ```
+
+Repositorio: `https://github.com/D1abloo/dentista.git`
 
 DentalFlow showcase
 
@@ -51,9 +54,18 @@ Abre:
 - `http://localhost:4321/admin/agenda` agenda global.
 - `http://localhost:4321/admin/citas` gestión administrativa de citas.
 
-## Login demo por rol
+## Login (LIVE por defecto en Vercel)
 
-Paciente y clínica tienen **portales separados**. Enlaces recomendados:
+`PUBLIC_DEMO_MODE=false` en producción: sesión por **cookie** (`/api/auth/login`), sin auto-login en `localStorage`.
+
+| Rol | Email por defecto | Contraseña |
+|-----|-------------------|------------|
+| Admin | `admin@clinic.local` | `admin12345` |
+| Paciente | `maria@example.com` | `paciente123` |
+
+Configura `ADMIN_DEMO_*`, `PATIENT_DEMO_*` y `AUTH_SESSION_SECRET` en Vercel. Con `PUBLIC_DEMO_MODE=true` (solo desarrollo demo) vuelve el login por botones y `localStorage`.
+
+Paciente y clínica tienen **portales separados**. Enlaces:
 
 | URL | Destino |
 |-----|---------|
@@ -76,16 +88,17 @@ La sesión se guarda en `localStorage` (`dentista_role`, `dentista_patient_id`, 
 - `docs/MULTI_TENANT.md` — aislamiento por clínica y portal paciente unificado
 - `docs/PRIVACIDAD.md` — cookies, demo y RLS en producción
 
-## Subir cada cambio a GitHub
+## Subir cada cambio a GitHub (obligatorio)
 
-Después de cada cambio importante:
+Después de **cada** cambio relevante, ejecutar siempre:
 
 ```bash
 npm run smoke
+npm run check    # opcional si hay build previo en .vercel/
 npm run git:save -- "feat: describe el cambio"
 ```
 
-El script inicializa Git si hace falta, configura `origin` con `https://github.com/D1abloo/dentista.git`, crea commit y hace push a `main`.
+El script `git:save` configura `origin`, crea commit y hace **push a `main`** en `https://github.com/D1abloo/dentista.git`.
 
 Comandos manuales equivalentes:
 
@@ -95,9 +108,11 @@ git commit -m "feat: describe el cambio"
 git push origin main
 ```
 
-## Modo demo y modo real
+## Modo demo y modo LIVE
 
-El proyecto funciona en **modo demo** sin credenciales reales si `PUBLIC_DEMO_MODE=true`. Los paneles, tablas, calendarios y API responden con datos de muestra.
+**Producción (Vercel):** `PUBLIC_DEMO_MODE=false` — modo **LIVE** (login con email/contraseña, cookie de sesión, sin auto-login paciente).
+
+**Desarrollo demo:** `PUBLIC_DEMO_MODE=true` — botones de acceso rápido y `localStorage` (`dentista_role`, etc.). Los paneles y API siguen usando datos de muestra; con Supabase configurado también se puede persistir en `demo_app_state`.
 
 ### Vinculación admin ↔ paciente (modo demo)
 
