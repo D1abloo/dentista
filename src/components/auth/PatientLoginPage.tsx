@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { ChevronRight, FlaskConical, UserRound } from 'lucide-react';
 import { isClientDemoMode } from '@/lib/appMode';
 import { signInAs } from '@/lib/demoAuth';
-import { DEMO_PATIENT_LOGIN_ID } from '@/data/demoData';
 import { LiveLoginForm } from './LiveLoginForm';
 import { PortalLoginShell } from './PortalLoginShell';
 
@@ -26,7 +25,7 @@ export function PatientLoginPage() {
       title="Tu espacio de salud dental"
       lead={
         demo
-          ? `Accede como ${PATIENT_LABEL} (${DEMO_PATIENT_LOGIN_ID}) y revisa citas, informes y pagos.`
+          ? `Accede como ${PATIENT_LABEL} y revisa citas, informes y pagos.`
           : 'Consulta citas, documentos y facturas de forma segura.'
       }
       footer={
@@ -71,7 +70,7 @@ export function PatientLoginPage() {
               </span>
               <span className="login-portal__option-text">
                 <span className="login-portal__option-title">Entrar con mi cuenta</span>
-                <span className="login-portal__option-meta font-mono">{DEMO_PATIENT_LOGIN_ID}</span>
+                <span className="login-portal__option-meta">DNI 45678912K · datos guardados</span>
               </span>
               <span className="login-portal__option-cta">
                 {loading === 'save' ? 'Entrando…' : 'Continuar'}

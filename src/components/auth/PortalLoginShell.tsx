@@ -37,7 +37,7 @@ export function PortalLoginShell({
       const rect = el.getBoundingClientRect();
       const px = (e.clientX - rect.left) / rect.width - 0.5;
       const py = (e.clientY - rect.top) / rect.height - 0.5;
-      setTilt({ x: px * 14, y: py * 10 });
+      setTilt({ x: px * 12, y: py * 8 });
     };
 
     const onLeave = () => setTilt({ x: 0, y: 0 });
@@ -50,7 +50,7 @@ export function PortalLoginShell({
     };
   }, []);
 
-  const imgTransform = `translate(${tilt.x * -0.6}px, ${tilt.y * -0.6}px) scale(1.02)`;
+  const imgTransform = `translate(${tilt.x * -0.5}px, ${tilt.y * -0.5}px) scale(1.06)`;
 
   return (
     <main
@@ -66,6 +66,9 @@ export function PortalLoginShell({
           loading="eager"
           decoding="async"
         />
+        <div className="login-portal__bg-orb login-portal__bg-orb--1" />
+        <div className="login-portal__bg-orb login-portal__bg-orb--2" />
+        <div className="login-portal__bg-orb login-portal__bg-orb--3" />
         <div className="login-portal__bg-vignette" />
         <div className="login-portal__bg-grain" />
       </div>
@@ -74,9 +77,10 @@ export function PortalLoginShell({
         <article
           className="login-portal__card"
           style={{
-            transform: `perspective(900px) rotateX(${tilt.y * -0.35}deg) rotateY(${tilt.x * 0.35}deg)`
+            transform: `perspective(1000px) rotateX(${tilt.y * -0.3}deg) rotateY(${tilt.x * 0.3}deg)`
           }}
         >
+          <div className="login-portal__card-glow" aria-hidden />
           <header className="login-portal__head">
             <div className="login-portal__logo">
               <LogoMark size={variant === 'admin' ? 48 : 52} />
