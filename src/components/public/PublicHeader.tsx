@@ -5,7 +5,7 @@ import { LogoMark } from '@/components/brand/Logo';
 const links = [
   { href: '/', label: 'Inicio' },
   { href: '/#caracteristicas', label: 'Características' },
-  { href: '/#demo', label: 'Demo' },
+  { href: '/registro-clinica', label: 'Registrar clínica' },
   { href: '/#precios', label: 'Precios' },
   { href: '/contacto', label: 'Contacto' }
 ];

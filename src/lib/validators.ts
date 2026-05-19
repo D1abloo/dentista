@@ -20,9 +20,35 @@ export const availabilityQuerySchema = clinicQuerySchema.extend({
 });
 
 export const loginSchema = z.object({
-  role: z.enum(['patient', 'admin']),
+  role: z.enum(['patient', 'admin', 'super_admin']),
   email: z.string().email(),
   password: z.string().min(6).max(120)
+});
+
+export const clinicRegistrationSchema = z.object({
+  clinic_name: z.string().min(2).max(120),
+  owner_name: z.string().min(2).max(120),
+  email: z.string().email(),
+  phone: z.string().min(6).max(40),
+  address: z.string().max(200).optional(),
+  city: z.string().max(80).optional(),
+  message: z.string().max(2000).optional()
+});
+
+export const registrationReviewSchema = z.object({
+  id: z.string().uuid(),
+  decision: z.enum(['approved', 'rejected']),
+  review_notes: z.string().max(500).optional()
+});
+
+export const clinicStatusSchema = z.object({
+  clinicId: z.string().uuid(),
+  status: z.enum(['pending', 'active', 'suspended', 'rejected'])
+});
+
+export const clinicPlanSchema = z.object({
+  clinicId: z.string().uuid(),
+  plan: z.enum(['essential', 'professional', 'enterprise'])
 });
 
 export const appointmentSchema = z.object({

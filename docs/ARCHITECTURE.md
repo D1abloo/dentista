@@ -98,10 +98,11 @@ Toda entidad operativa contiene `clinic_id`. Las políticas RLS deben impedir ac
 
 ## Estado actual
 
-- UI premium lista en modo demo para portal paciente, reserva y admin.
-- Landing Dentista+ conectada a catálogos, sedes, disponibilidad y creación de citas.
-- APIs demo con contratos reales y validación Zod en payloads/queries.
-- Migraciones SQL listas para Supabase, incluyendo módulos operativos admin.
+- **Producción por defecto** (`PUBLIC_DEMO_MODE=false`): sin semillas demo en UI ni `/api/demo/state`.
+- Panel **Super Admin** en `/platform` (clínicas, registros, soporte).
+- Alta de clínicas en `/registro-clinica` con aprobación manual.
+- Migración `0008_production_platform.sql`: RLS, registros, suscripciones, soporte.
+- Paneles clínica/paciente: estado vacío hasta integración Supabase Auth completa (ver `docs/PRODUCTION.md`).
 - Redis con fallback memoria.
 
 ## Rutas API

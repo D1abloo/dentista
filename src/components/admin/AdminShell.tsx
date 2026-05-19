@@ -103,9 +103,7 @@ export function AdminShell({
       ? syncing
         ? 'Guardando…'
         : 'Supabase'
-      : live
-        ? 'LIVE · servidor'
-        : 'Local';
+      : 'Conectado';
 
   return (
     <div className="portal portal--admin">
@@ -127,7 +125,7 @@ export function AdminShell({
           <div>
             <div className="portal-top__row">
               <h1 className="portal-top__title">{title}</h1>
-              {live ? <span className="live-pill">LIVE</span> : <span className="demo-pill">DEMO</span>}
+              <span className="live-pill">PRODUCCIÓN</span>
             </div>
             {subtitle ? <p className="portal-top__sub">{subtitle}</p> : null}
             <p className="portal-top__meta">

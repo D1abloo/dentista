@@ -8,12 +8,10 @@ import {
   CreditCard,
   FileText,
   LogIn,
-  Play,
   Receipt,
   Shield,
   ShieldCheck,
-  Smartphone,
-  Users
+  Smartphone
 } from 'lucide-react';
 import { PublicFooter } from './PublicFooter';
 import { PublicHeader } from './PublicHeader';
@@ -67,10 +65,10 @@ const steps = [
   }
 ] as const;
 
-const demoStats = [
-  { icon: Building2, value: '3', label: 'Clínicas activas' },
-  { icon: Users, value: '245', label: 'Pacientes registrados' },
-  { icon: ShieldCheck, value: '100%', label: 'Datos seguros' }
+const platformPillars = [
+  { icon: Building2, title: 'Multi-clínica', text: 'Cada centro opera en su entorno aislado.' },
+  { icon: ShieldCheck, title: 'RLS y seguridad', text: 'Aislamiento en base de datos por clínica.' },
+  { icon: Shield, title: 'Roles y permisos', text: 'Admin, dentista, recepción y paciente.' }
 ] as const;
 
 export function LandingPage() {
@@ -276,28 +274,28 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section id="demo" className="lp-section shell">
+        <section id="plataforma" className="lp-section shell">
           <div className="lp-demo">
             <div className="lp-demo__copy">
-              <span className="lp-badge lp-badge--demo">Demo multi-clínica</span>
+              <span className="lp-badge lp-badge--demo">SaaS multi-clínica</span>
               <h2>Una plataforma pensada para crecer contigo</h2>
               <p>
                 Escala de una clínica a varios centros sin perder el control. Cada organización tiene su panel aislado:
                 agenda, dentistas, facturación e informes sincronizados en tiempo real.
               </p>
-              <a href="/login/admin" className="btn btn--primary btn--lg">
-                <Play className="h-5 w-5" aria-hidden />
-                Ver demo
+              <a href="/registro-clinica" className="btn btn--primary btn--lg">
+                <Building2 className="h-5 w-5" aria-hidden />
+                Registrar mi clínica
               </a>
             </div>
             <div className="lp-demo__stats">
-              {demoStats.map((s) => (
-                <article key={s.label} className="lp-stat">
+              {platformPillars.map((s) => (
+                <article key={s.title} className="lp-stat">
                   <span className="lp-stat__icon">
                     <s.icon className="h-5 w-5" aria-hidden />
                   </span>
-                  <p className="lp-stat__value">{s.value}</p>
-                  <p className="lp-stat__label">{s.label}</p>
+                  <p className="lp-stat__value text-base">{s.title}</p>
+                  <p className="lp-stat__label">{s.text}</p>
                 </article>
               ))}
             </div>
@@ -307,13 +305,13 @@ export function LandingPage() {
         <section id="precios" className="lp-section shell">
           <header className="lp-section__head">
             <h2>Planes que se adaptan a tu clínica</h2>
-            <p>Empieza en demo sin compromiso y escala cuando lo necesites</p>
+            <p>Planes flexibles para clínicas en crecimiento</p>
           </header>
           <div className="lp-pricing">
             <article className="lp-price-card">
               <h3>Esencial</h3>
               <p className="lp-price-card__amount">
-                <span>Gratis</span> en demo
+                Desde 0 €
               </p>
               <ul>
                 <li>Agenda y reservas online</li>

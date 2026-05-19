@@ -1,0 +1,7 @@
+---
+import AppLayout from '@/layouts/AppLayout.astro';
+import { PlatformLoginPage } from '@/components/platform/views';
+---
+<AppLayout title="Super Admin · Dentista+" description="Acceso restringido al panel de plataforma Dentista+.">
+  <PlatformLoginPage client:load />
+</AppLayout>

@@ -72,6 +72,10 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!isClientDemoMode()) {
       store.clearDemoSession();
+      setState(store.getInitialState());
+      setDataSource('local');
+      supabaseSyncRef.current = false;
+      return;
     }
     let cancelled = false;
     const isEphemeral = isClientDemoMode() && store.isEphemeralSession();

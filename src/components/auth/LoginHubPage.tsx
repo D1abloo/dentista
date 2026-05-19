@@ -29,7 +29,7 @@ export function LoginHubPage() {
             <span className="login-portal__option-text">
               <span className="login-portal__option-title">Panel clínica</span>
               <span className="login-portal__option-meta">
-                {DEMO_TENANTS.map((t) => t.label).join(' · ')}
+                {demo ? DEMO_TENANTS.map((t) => t.label).join(' · ') : 'Agenda, pacientes y facturación'}
               </span>
             </span>
             <span className="login-portal__option-cta">
@@ -45,7 +45,9 @@ export function LoginHubPage() {
             </span>
             <span className="login-portal__option-text">
               <span className="login-portal__option-title">Portal paciente</span>
-              <span className="login-portal__option-meta">Elena Vidal Romero · DNI 45678912K</span>
+              <span className="login-portal__option-meta">
+                {demo ? 'Elena Vidal Romero · DNI 45678912K' : 'Citas, informes y pagos'}
+              </span>
             </span>
             <span className="login-portal__option-cta">
               Mi cuenta

@@ -1,4 +1,5 @@
 import { demoSeed, DEMO_PATIENT_LOGIN_ID } from '@/data/demoData';
+import { createEmptyDemoState } from '@/lib/emptyState';
 import { isClinicSlotTaken } from '@/lib/appointments';
 import { todayIso } from '@/lib/format';
 import { nextClinicId, nextTenantId } from '@/lib/ids';
@@ -46,8 +47,10 @@ export function isEphemeralSession(): boolean {
 }
 
 export function getInitialState(): DemoState {
-  if (typeof window === 'undefined') return structuredClone(demoSeed);
-  if (!isClientDemoMode()) return structuredClone(demoSeed);
+  if (typeof window === 'undefined') {
+    return isClientDemoMode() ? structuredClone(demoSeed) : createEmptyDemoState();
+  }
+  if (!isClientDemoMode()) return createEmptyDemoState();
   if (isEphemeralSession()) return structuredClone(demoSeed);
   const loaded = loadPersistedState();
   if (!loaded?.tenants?.length) return structuredClone(demoSeed);

@@ -11,7 +11,7 @@ const product = [
 const company = [
   { href: '/contacto', label: 'Contacto' },
   { href: '/documentacion', label: 'Documentación' },
-  { href: '/#demo', label: 'Demo' },
+  { href: '/registro-clinica', label: 'Registrar clínica' },
   { href: '/#precios', label: 'Precios' }
 ];
 

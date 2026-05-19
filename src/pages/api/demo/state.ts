@@ -13,6 +13,9 @@ export const prerender = false;
 
 export const GET: APIRoute = async () => {
   try {
+    if (!isDemoMode()) {
+      return fail('El endpoint de estado demo está deshabilitado en producción.', 403);
+    }
     if (!useSupabaseDemoStorage()) {
       return ok(
         { source: 'local' as const, state: demoSeed },
@@ -40,6 +43,9 @@ export const GET: APIRoute = async () => {
 
 export const PUT: APIRoute = async ({ request }) => {
   try {
+    if (!isDemoMode()) {
+      return fail('El endpoint de estado demo está deshabilitado en producción.', 403);
+    }
     if (!hasSupabaseConfig()) {
       return fail('Supabase no configurado. Añade las variables en Vercel o .env.', 503);
     }
@@ -57,6 +63,9 @@ export const PUT: APIRoute = async ({ request }) => {
 
 export const DELETE: APIRoute = async () => {
   try {
+    if (!isDemoMode()) {
+      return fail('El endpoint de estado demo está deshabilitado en producción.', 403);
+    }
     if (!hasSupabaseConfig()) {
       return fail('Supabase no configurado.', 503);
     }

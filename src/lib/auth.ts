@@ -1,14 +1,16 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import type { UserRole } from './types';
+import { isDemoMode } from '@/lib/supabaseServer';
+import type { PlatformRole } from '@/lib/platform/types';
 import type { LoginInput } from './validators';
 
 export const sessionCookieName = 'df_session';
 
 export interface SessionUser {
-  role: Extract<UserRole, 'patient' | 'admin'>;
+  role: PlatformRole | 'patient' | 'admin';
   email: string;
   name: string;
-  clinicId: string;
+  clinicId?: string;
+  tenantId?: string;
   patientId?: string;
   expiresAt: number;
 }
@@ -17,10 +19,27 @@ interface CookieReader {
   get(name: string): { value?: string } | undefined;
 }
 
+const VALID_ROLES = new Set([
+  'super_admin',
+  'clinic_admin',
+  'admin',
+  'owner',
+  'dentist',
+  'receptionist',
+  'patient'
+]);
+
 const encoder = new TextEncoder();
 
 function secret() {
-  return import.meta.env.AUTH_SESSION_SECRET || 'dentalflow-demo-session-secret';
+  const s = import.meta.env.AUTH_SESSION_SECRET;
+  if (!s || s === 'change-me-local-dev') {
+    if (import.meta.env.PROD) {
+      throw new Error('AUTH_SESSION_SECRET debe configurarse en producción.');
+    }
+    return 'dentalflow-dev-only-secret';
+  }
+  return s;
 }
 
 function toBase64Url(value: string) {
@@ -54,7 +73,7 @@ export function parseSessionToken(token: string | undefined): SessionUser | null
   try {
     const user = JSON.parse(fromBase64Url(payload)) as SessionUser;
     if (!user.expiresAt || user.expiresAt < Date.now()) return null;
-    if (user.role !== 'admin' && user.role !== 'patient') return null;
+    if (!VALID_ROLES.has(user.role)) return null;
     return user;
   } catch {
     return null;
@@ -65,20 +84,49 @@ export function getSessionUser(cookies: CookieReader) {
   return parseSessionToken(cookies.get(sessionCookieName)?.value);
 }
 
+/** Solo disponible con PUBLIC_DEMO_MODE=true */
 export function loginDemoUser(input: LoginInput): Omit<SessionUser, 'expiresAt'> | null {
+  if (!isDemoMode()) return null;
+
   const adminEmail = import.meta.env.ADMIN_DEMO_EMAIL || 'admin@clinic.local';
   const adminPassword = import.meta.env.ADMIN_DEMO_PASSWORD || 'admin12345';
   const patientEmail = import.meta.env.PATIENT_DEMO_EMAIL || 'maria@example.com';
   const patientPassword = import.meta.env.PATIENT_DEMO_PASSWORD || 'paciente123';
 
   if (input.role === 'admin' && input.email === adminEmail && input.password === adminPassword) {
-    return { role: 'admin', email: adminEmail, name: 'Dr. Admin', clinicId: 'demo-clinic' };
+    return { role: 'admin', email: adminEmail, name: 'Administrador demo', clinicId: 'demo-clinic' };
   }
 
   if (input.role === 'patient' && input.email === patientEmail && input.password === patientPassword) {
-    return { role: 'patient', email: patientEmail, name: 'María González', clinicId: 'demo-clinic', patientId: 'p-maria' };
+    return {
+      role: 'patient',
+      email: patientEmail,
+      name: 'Paciente demo',
+      clinicId: 'demo-clinic',
+      patientId: 'p-maria'
+    };
   }
 
+  return null;
+}
+
+export function loginSuperAdmin(input: LoginInput): Omit<SessionUser, 'expiresAt'> | null {
+  const email = import.meta.env.SUPER_ADMIN_EMAIL;
+  const password = import.meta.env.SUPER_ADMIN_PASSWORD;
+  if (!email || !password) return null;
+  if (input.role !== 'super_admin') return null;
+  if (input.email !== email || input.password !== password) return null;
+  return {
+    role: 'super_admin',
+    email,
+    name: import.meta.env.SUPER_ADMIN_NAME || 'Super Admin Dentista+'
+  };
+}
+
+export function loginProductionUser(input: LoginInput): Omit<SessionUser, 'expiresAt'> | null {
+  const superUser = loginSuperAdmin(input);
+  if (superUser) return superUser;
+  // Supabase Auth: integrar auth.signInWithPassword + perfil en profiles (fase siguiente)
   return null;
 }
 
