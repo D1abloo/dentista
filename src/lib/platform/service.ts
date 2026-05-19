@@ -134,7 +134,27 @@ export async function reviewRegistration(
     })
     .eq('id', id);
 
-  return { registration: reg, clinic };
+  const defaultPassword =
+    import.meta.env.CLINIC_DEFAULT_PASSWORD ?? import.meta.env.SUPER_ADMIN_PASSWORD ?? 'ChangeMeNow!';
+  const { data: authUser, error: authErr } = await db.auth.admin.createUser({
+    email: reg.email,
+    password: defaultPassword,
+    email_confirm: true,
+    user_metadata: { full_name: reg.owner_name },
+    app_metadata: { clinic_id: clinic.id, role: 'clinic_admin' }
+  });
+  if (authErr) throw authErr;
+
+  const { error: profileErr } = await db.from('profiles').insert({
+    auth_user_id: authUser.user.id,
+    clinic_id: clinic.id,
+    role: 'clinic_admin',
+    full_name: reg.owner_name,
+    email: reg.email
+  });
+  if (profileErr) throw profileErr;
+
+  return { registration: reg, clinic, adminEmail: reg.email };
 }
 
 export async function setClinicStatus(clinicId: string, status: ClinicStatus) {

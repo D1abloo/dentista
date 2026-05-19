@@ -1,11 +1,15 @@
 import type { DemoRole } from '@/types/demo';
 import { isClientDemoMode } from '@/lib/appMode';
+import { STORAGE_PATIENT_ID, STORAGE_TENANT_ID } from '@/lib/storage/keys';
 import { clearDemoSession, getStoredRole } from '@/lib/demoStore';
 
 export type SessionUser = {
-  role: 'admin' | 'patient';
+  role: 'admin' | 'patient' | 'super_admin';
   email: string;
   name: string;
+  clinicId?: string;
+  tenantId?: string;
+  patientId?: string;
 };
 
 function mapApiRole(role: string): DemoRole | null {
@@ -55,6 +59,8 @@ export async function loginWithCredentials(
   if (!portalRole) {
     return { ok: false, message: 'Rol de sesión no válido.' };
   }
+  if (json.data.tenantId) localStorage.setItem(STORAGE_TENANT_ID, json.data.tenantId);
+  if (json.data.patientId) localStorage.setItem(STORAGE_PATIENT_ID, json.data.patientId);
   return { ok: true, portalRole };
 }
 

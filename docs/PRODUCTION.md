@@ -13,7 +13,8 @@ Con `PUBLIC_DEMO_MODE=false`:
 - No se cargan semillas demo ni `localStorage` de pacientes ficticios.
 - El endpoint `/api/demo/state` responde **403**.
 - Los paneles clínica/paciente arrancan con estado vacío hasta conectar Supabase.
-- El login usa credenciales de producción (Super Admin + futuro Supabase Auth).
+- El login clínica/paciente usa **Supabase Auth** + fila en `profiles` (cookie de sesión HMAC en servidor).
+- Tras login, los paneles cargan datos con `GET /api/clinic/bootstrap`.
 
 ## Super Admin
 
@@ -35,7 +36,7 @@ Con `PUBLIC_DEMO_MODE=false`:
 
 Las clínicas solicitan acceso en `/registro-clinica` → `POST /api/public/clinic-registration`.
 
-Tras aprobar, se crea la fila en `clinics` + `clinic_subscriptions` con plan `essential`.
+Tras aprobar, se crea la fila en `clinics` + `clinic_subscriptions` con plan `essential`, un usuario en **Supabase Auth** y un perfil `clinic_admin` (contraseña inicial: `CLINIC_DEFAULT_PASSWORD` en `.env`).
 
 ## Aislamiento multi-tenant
 
@@ -56,15 +57,25 @@ PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 SUPER_ADMIN_EMAIL=
 SUPER_ADMIN_PASSWORD=
+CLINIC_DEFAULT_PASSWORD=<password-temporal-alta-clinica>
 PUBLIC_APP_URL=https://tu-dominio.com
 ```
 
-## Próximos pasos (integración completa)
+Aplica también la migración `0009_auth_bootstrap.sql` (índices y `profiles.tenant_id`).
 
-- Login clínica/paciente vía Supabase Auth + `profiles` con `clinic_id` en JWT
-- Sincronizar paneles admin/paciente con APIs reales (sin `DemoState` local)
+## Login clínica / paciente (fase 2)
+
+1. Usuario en Supabase Auth vinculado a `profiles.auth_user_id`.
+2. `POST /api/auth/login` valida contraseña, comprueba `clinics.status = active` y guarda sesión.
+3. El cliente llama `GET /api/clinic/bootstrap` para hidratar el estado del panel.
+4. Las APIs de citas exigen sesión y acotan por `clinic_id` (`src/lib/api/guards.ts`).
+
+## Próximos pasos
+
+- Persistir cambios del panel en Supabase (hoy el bootstrap es lectura; mutaciones siguen en memoria/demo store)
 - Webhooks de facturación (Stripe) ligados a `clinic_subscriptions`
 - Cola de notificaciones (email/WhatsApp) en producción
+- JWT de Supabase en cliente para RLS directo (opcional; hoy sesión por cookie)
 
 ## Comprobaciones antes de publicar
 

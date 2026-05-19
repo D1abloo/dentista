@@ -1,17 +1,19 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { isDemoMode } from '@/lib/supabaseServer';
+import { loginWithSupabaseProfile } from '@/lib/auth/productionLogin';
+import { hasSupabaseConfig, isDemoMode } from '@/lib/supabaseServer';
 import type { PlatformRole } from '@/lib/platform/types';
 import type { LoginInput } from './validators';
 
 export const sessionCookieName = 'df_session';
 
 export interface SessionUser {
-  role: PlatformRole | 'patient' | 'admin';
+  role: PlatformRole | 'patient' | 'admin' | 'super_admin';
   email: string;
   name: string;
   clinicId?: string;
   tenantId?: string;
   patientId?: string;
+  staffRole?: string;
   expiresAt: number;
 }
 
@@ -123,11 +125,15 @@ export function loginSuperAdmin(input: LoginInput): Omit<SessionUser, 'expiresAt
   };
 }
 
-export function loginProductionUser(input: LoginInput): Omit<SessionUser, 'expiresAt'> | null {
+export async function loginProductionUser(input: LoginInput): Promise<Omit<SessionUser, 'expiresAt'> | null> {
   const superUser = loginSuperAdmin(input);
   if (superUser) return superUser;
-  // Supabase Auth: integrar auth.signInWithPassword + perfil en profiles (fase siguiente)
-  return null;
+  if (!hasSupabaseConfig()) return null;
+  try {
+    return await loginWithSupabaseProfile(input);
+  } catch {
+    return null;
+  }
 }
 
 export function canAccessRole(user: SessionUser | null, roles: SessionUser['role'][]) {

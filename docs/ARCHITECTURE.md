@@ -39,6 +39,14 @@ Superficies separadas:
 - Fallback demo cuando no hay credenciales.
 - Respuestas JSON homogéneas `{ data, error, meta }`.
 
+### Auth producción (fase 2)
+
+- Login: `POST /api/auth/login` → Supabase `signInWithPassword` + lectura de `profiles` (`src/lib/auth/productionLogin.ts`).
+- Sesión servidor: cookie HMAC `df_session` (`src/lib/auth.ts`).
+- Bootstrap panel: `GET /api/clinic/bootstrap` mapea filas Supabase a `DemoState` (`src/lib/bootstrap/clinicState.ts`).
+- Guards: `src/lib/api/guards.ts` acota APIs por `clinic_id` de la sesión.
+- Migración: `0009_auth_bootstrap.sql` (`profiles.tenant_id`, índices).
+
 ### Datos
 
 Entidades principales:

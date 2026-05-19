@@ -13,7 +13,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const parsed = loginSchema.safeParse(payload);
     if (!parsed.success) return fail('Credenciales inválidas.', 422, parsed.error.flatten());
 
-    const user = isDemoMode() ? loginDemoUser(parsed.data) : loginProductionUser(parsed.data);
+    const user = isDemoMode() ? loginDemoUser(parsed.data) : await loginProductionUser(parsed.data);
     if (!user) return fail('Email, contraseña o tipo de acceso incorrecto.', 401);
 
     cookies.set(sessionCookieName, createSessionToken(user), {

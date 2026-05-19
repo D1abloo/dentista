@@ -22,6 +22,7 @@ function mergeDemoState(partial: DemoState): DemoState {
 }
 import { isClientDemoMode } from '@/lib/appMode';
 import * as store from '@/lib/demoStore';
+import { STORAGE_TENANT_ID } from '@/lib/storage/keys';
 
 type DataSource = 'local' | 'supabase' | 'ephemeral' | 'loading';
 
@@ -70,14 +71,38 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
   const supabaseSyncRef = useRef(false);
 
   useEffect(() => {
+    let cancelled = false;
     if (!isClientDemoMode()) {
       store.clearDemoSession();
-      setState(store.getInitialState());
-      setDataSource('local');
-      supabaseSyncRef.current = false;
-      return;
+      setDataSource('loading');
+      void (async () => {
+        try {
+          const res = await fetch('/api/clinic/bootstrap', { credentials: 'include' });
+          const json = (await res.json()) as {
+            data?: { state?: DemoState; tenantId?: string };
+            error?: { message?: string };
+          };
+          if (!cancelled && res.ok && json.data?.state) {
+            setState(json.data.state);
+            if (json.data.tenantId) {
+              localStorage.setItem(STORAGE_TENANT_ID, json.data.tenantId);
+            }
+            setDataSource('supabase');
+          } else if (!cancelled) {
+            setState(store.getInitialState());
+            setDataSource('local');
+          }
+        } catch {
+          if (!cancelled) {
+            setState(store.getInitialState());
+            setDataSource('local');
+          }
+        }
+      })();
+      return () => {
+        cancelled = true;
+      };
     }
-    let cancelled = false;
     const isEphemeral = isClientDemoMode() && store.isEphemeralSession();
     setEphemeral(isEphemeral);
 

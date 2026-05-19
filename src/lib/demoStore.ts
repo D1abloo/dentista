@@ -76,11 +76,17 @@ export function getStoredRole(): DemoRole | null {
 
 export function getStoredTenantId(): string {
   if (typeof window === 'undefined') return TENANT_CENTRO;
+  if (!isClientDemoMode()) {
+    return localStorage.getItem(STORAGE_TENANT_ID) || '';
+  }
   return localStorage.getItem(STORAGE_TENANT_ID) || TENANT_CENTRO;
 }
 
 export function getStoredPatientId(): string {
   if (typeof window === 'undefined') return DEMO_PATIENT_LOGIN_ID;
+  if (!isClientDemoMode()) {
+    return localStorage.getItem(STORAGE_PATIENT_ID) || '';
+  }
   if (getStoredRole() !== 'paciente') return DEMO_PATIENT_LOGIN_ID;
   return localStorage.getItem(STORAGE_PATIENT_ID) || DEMO_PATIENT_LOGIN_ID;
 }
