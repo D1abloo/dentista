@@ -25,7 +25,8 @@ import {
 } from '@/lib/selectors';
 import { tenantName } from '@/lib/tenant';
 import { fmtDate, fmtDateTime, money, statusLabel, todayIso, uid } from '@/lib/format';
-import { availableSlots, daySlotMap } from '@/lib/slots';
+import { daySlotMap } from '@/lib/slots';
+import { BookingDayCalendar } from '@/components/shared/BookingDayCalendar';
 import { SlotCalendar } from '@/components/shared/SlotCalendar';
 import { PatientConsentAlert, PatientConsents } from './consents';
 import { PatientIdentity } from './PatientIdentity';
@@ -257,7 +258,7 @@ export function PatientBook() {
 
   return (
     <Card>
-      <PageHeader title="Reservar cita" subtitle="Flujo guiado en 7 pasos · CIT-XXXX al confirmar" />
+      <PageHeader title="Reservar cita" subtitle="Elige día en el calendario y después tu hora libre" />
       <Stepper steps={bookSteps} current={step} />
       {step === 1 && (
         <Field label="Clínica" error={errors.clinicId}>
@@ -288,29 +289,37 @@ export function PatientBook() {
           </Select>
         </Field>
       )}
-      {step === 4 && (
-        <div className="space-y-4">
-          <Field label="Fecha" error={errors.date}>
-            <Input
-              type="date"
-              min={todayIso()}
+      {step === 4 && treatmentId && dentistId ? (
+        <div className="space-y-5">
+          <Field label="Elige el día" error={errors.date}>
+            <BookingDayCalendar
+              state={state}
+              clinicId={clinicId}
+              dentistId={dentistId}
+              cabinetId={cabinetId}
+              treatmentId={treatmentId}
               value={date}
-              onChange={(e) => {
-                setDate(e.target.value);
+              onChange={(d) => {
+                setDate(d);
                 setTime('');
               }}
             />
           </Field>
-          {date && treatmentId && dentistId ? (
-            <Field label="Hora (verde = libre, gris = ocupado)" error={errors.time}>
+          {date ? (
+            <Field label={`Horas del ${fmtDate(date)}`} error={errors.time}>
               <SlotCalendar slots={slotCells} value={time} onChange={setTime} />
               {!slots.length ? (
-                <p className="text-xs font-semibold text-amber-700">No hay huecos libres ese día. Prueba otra fecha.</p>
+                <p className="text-xs font-semibold text-amber-700">No hay huecos libres ese día. Elige otro día en el calendario.</p>
               ) : null}
             </Field>
-          ) : null}
+          ) : (
+            <p className="text-sm font-semibold text-[var(--muted)]">Selecciona un día marcado en verde o ámbar en el calendario.</p>
+          )}
         </div>
-      )}
+      ) : null}
+      {step === 4 && (!treatmentId || !dentistId) ? (
+        <p className="text-sm font-semibold text-amber-800">Vuelve atrás y completa tratamiento y dentista antes de elegir fecha.</p>
+      ) : null}
       {step === 5 && treatment && (
         <ul className="space-y-2 rounded-xl bg-slate-50 p-4 text-sm font-semibold text-slate-700">
           <li>Clínica: {clinic?.name}</li>

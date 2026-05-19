@@ -1574,6 +1574,206 @@ body {
 .slot-cal__cell--block { background: #fffbeb; color: #b45309; cursor: not-allowed; }
 .slot-cal__cell--picked { outline: 2px solid var(--teal); outline-offset: 1px; }
 
+/* Calendario mensual — reserva paciente */
+.book-cal {
+  padding: 1rem;
+  border-radius: 1.1rem;
+  background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+  border: 1px solid var(--line);
+}
+
+.book-cal__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.book-cal__month {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--navy);
+  text-align: center;
+  flex: 1;
+}
+
+.book-cal__nav {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: #fff;
+  color: var(--navy);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.book-cal__nav:hover:not(:disabled) {
+  border-color: var(--teal);
+  background: #f0fdfa;
+}
+
+.book-cal__nav:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.book-cal__hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+}
+
+.book-cal__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+  margin-bottom: 0.35rem;
+}
+
+.book-cal__weekday {
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  padding: 0.25rem 0;
+}
+
+.book-cal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.35rem;
+}
+
+.book-cal__day {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.85rem;
+  padding: 0.35rem 0.2rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+  background: #fff;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.book-cal__day-num {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.book-cal__day--muted .book-cal__day-num {
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.book-cal__day--today:not(.book-cal__day--selected) {
+  border-color: rgba(20, 184, 166, 0.45);
+  background: #f0fdfa;
+}
+
+.book-cal__day--open:hover:not(:disabled),
+.book-cal__day--low:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(20, 184, 166, 0.5);
+  box-shadow: 0 6px 16px rgba(20, 184, 166, 0.15);
+}
+
+.book-cal__day--selected {
+  border-color: var(--teal);
+  background: linear-gradient(160deg, #14b8a6, #0d9488);
+  box-shadow: 0 8px 20px rgba(20, 184, 166, 0.35);
+}
+
+.book-cal__day--selected .book-cal__day-num {
+  color: #fff;
+}
+
+.book-cal__day--selected .book-cal__dot {
+  background: #fff !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+.book-cal__day--past,
+.book-cal__day--full {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: #f1f5f9;
+}
+
+.book-cal__day--full:not(.book-cal__day--muted) .book-cal__day-num {
+  text-decoration: line-through;
+  color: #94a3b8;
+}
+
+.book-cal__dot {
+  display: block;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-top: 0.2rem;
+  border-radius: 999px;
+}
+
+.book-cal__dot--open {
+  background: #10b981;
+}
+
+.book-cal__dot--low {
+  background: #f59e0b;
+}
+
+.book-cal__dot--full {
+  background: #cbd5e1;
+}
+
+.book-cal__legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem 1rem;
+  margin: 0.85rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.book-cal__legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+@media (max-width: 380px) {
+  .book-cal__day {
+    min-height: 2.5rem;
+    border-radius: 0.55rem;
+  }
+
+  .book-cal__day-num {
+    font-size: 0.8rem;
+  }
+}
+
 .sig-pad__canvas {
   display: block;
   width: 100%;
