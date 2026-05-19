@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Lock, Mail, ShieldCheck } from 'lucide-react';
+import { Heart, Lock, Mail, ShieldCheck } from 'lucide-react';
 import { loginWithCredentials } from '@/lib/session';
 
 type LiveRole = 'admin' | 'patient';
@@ -21,7 +21,7 @@ export function LiveLoginForm({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const isAdmin = variant === 'admin';
-
+  const isPatient = variant === 'patient';
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -35,22 +35,35 @@ export function LiveLoginForm({
     window.location.href = result.portalRole === 'admin' ? '/admin' : '/paciente';
   }
 
+  const formClass = [
+    'login-form',
+    isAdmin ? 'login-form--admin' : '',
+    isPatient ? 'login-form--patient' : ''
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
-    <form onSubmit={submit} className={`login-form ${isAdmin ? 'login-form--admin' : ''}`}>
+    <form onSubmit={submit} className={formClass}>
       {isAdmin ? (
-        <p className="login-form__badge">
+        <p className="login-form__badge login-form__badge--admin">
           <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
           Sesión segura · modo LIVE
         </p>
+      ) : isPatient ? (
+        <p className="login-form__badge login-form__badge--patient">
+          <Heart className="h-3.5 w-3.5" aria-hidden />
+          Acceso privado a tu historial
+        </p>
       ) : (
-        <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">
+        <p className="login-form__badge login-form__badge--neutral">
           <strong>Modo LIVE</strong> — sin auto-login ni localStorage de demo.
         </p>
       )}
 
       <div className="login-form__field">
         <label className="login-form__label" htmlFor={`${apiRole}-email`}>
-          {isAdmin ? 'Email profesional' : 'Email'}
+          {isAdmin ? 'Email profesional' : 'Tu email'}
         </label>
         <div className="login-form__input-wrap">
           <Mail className="login-form__icon" aria-hidden />
@@ -62,7 +75,7 @@ export function LiveLoginForm({
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="username"
-            placeholder="tu@clinica.com"
+            placeholder={isAdmin ? 'tu@clinica.com' : 'tu@email.com'}
           />
         </div>
       </div>

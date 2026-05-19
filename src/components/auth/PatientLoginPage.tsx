@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { LogoMark } from '@/components/brand/Logo';
+import { ChevronRight, FlaskConical, UserRound } from 'lucide-react';
 import { isClientDemoMode } from '@/lib/appMode';
 import { signInAs } from '@/lib/demoAuth';
 import { DEMO_PATIENT_LOGIN_ID } from '@/data/demoData';
 import { LiveLoginForm } from './LiveLoginForm';
+import { PortalLoginShell } from './PortalLoginShell';
 
-const PATIENT_LABEL = 'María González (PAT-0001)';
+const PATIENT_LABEL = 'María González';
 
 export function PatientLoginPage() {
   const [loading, setLoading] = useState<string | null>(null);
@@ -19,56 +20,69 @@ export function PatientLoginPage() {
   }
 
   return (
-    <main className="grid min-h-screen place-items-center bg-[var(--bg)] px-4 py-12">
-      <div className="w-full max-w-md rounded-2xl border border-[var(--line)] bg-white p-8 shadow-[var(--shadow-lg)]">
-        <div className="flex flex-col items-center text-center">
-          <LogoMark size={52} />
-          <p className="mt-4 text-xs font-bold uppercase tracking-wide text-[var(--teal)]">Portal del paciente</p>
-          <h1 className="mt-2 font-[family-name:var(--display)] text-2xl text-[var(--navy)]">Acceso paciente</h1>
-          <p className="mt-2 text-sm text-[var(--muted)]">
-            {demo ? (
-              <>
-                Usuario demo: <strong>{PATIENT_LABEL}</strong> · <span className="font-mono">{DEMO_PATIENT_LOGIN_ID}</span>
-              </>
-            ) : (
-              'Modo LIVE: inicia sesión con email y contraseña de paciente.'
-            )}
-          </p>
-        </div>
-
-        {demo ? (
-          <div className="mt-6 space-y-3">
+    <PortalLoginShell
+      variant="patient"
+      eyebrow="Portal del paciente · Dentista+"
+      title="Tu espacio de salud dental"
+      lead={
+        demo
+          ? `Accede como ${PATIENT_LABEL} (${DEMO_PATIENT_LOGIN_ID}) y revisa citas, informes y pagos.`
+          : 'Consulta citas, documentos y facturas de forma segura.'
+      }
+      footer={
+        <>
+          <a href="/login/admin">Panel clínica</a>
+          <span aria-hidden>·</span>
+          <a href="/">Inicio</a>
+        </>
+      }
+    >
+      {demo ? (
+        <ul className="login-portal__options">
+          <li>
             <button
               type="button"
-              className="btn btn--teal w-full"
+              className="login-portal__option login-portal__option--patient login-portal__option--highlight"
               disabled={!!loading}
               onClick={() => enterDemo(true)}
             >
-              {loading === 'ephemeral' ? 'Entrando…' : 'Entrar en modo prueba (sin guardar)'}
+              <span className="login-portal__option-icon login-portal__option-icon--teal" aria-hidden>
+                <FlaskConical className="h-5 w-5" />
+              </span>
+              <span className="login-portal__option-text">
+                <span className="login-portal__option-title">Modo prueba</span>
+                <span className="login-portal__option-meta">Explora sin guardar al recargar</span>
+              </span>
+              <span className="login-portal__option-cta">
+                {loading === 'ephemeral' ? 'Entrando…' : 'Probar'}
+                <ChevronRight className="h-4 w-4" />
+              </span>
             </button>
+          </li>
+          <li>
             <button
               type="button"
-              className="btn btn--secondary w-full"
+              className="login-portal__option login-portal__option--patient"
               disabled={!!loading}
               onClick={() => enterDemo(false)}
             >
-              {loading === 'save' ? 'Entrando…' : 'Entrar con datos guardados'}
+              <span className="login-portal__option-icon login-portal__option-icon--teal" aria-hidden>
+                <UserRound className="h-5 w-5" />
+              </span>
+              <span className="login-portal__option-text">
+                <span className="login-portal__option-title">Entrar con mi cuenta</span>
+                <span className="login-portal__option-meta font-mono">{DEMO_PATIENT_LOGIN_ID}</span>
+              </span>
+              <span className="login-portal__option-cta">
+                {loading === 'save' ? 'Entrando…' : 'Continuar'}
+                <ChevronRight className="h-4 w-4" />
+              </span>
             </button>
-          </div>
-        ) : (
-          <LiveLoginForm apiRole="patient" />
-        )}
-
-        <p className="mt-6 text-center text-xs text-[var(--muted)]">
-          <a href="/login/admin" className="font-semibold text-[var(--blue)] underline">
-            Panel administrativo
-          </a>
-          {' · '}
-          <a href="/" className="font-semibold text-[var(--blue)] underline">
-            Inicio
-          </a>
-        </p>
-      </div>
-    </main>
+          </li>
+        </ul>
+      ) : (
+        <LiveLoginForm apiRole="patient" variant="patient" />
+      )}
+    </PortalLoginShell>
   );
 }
