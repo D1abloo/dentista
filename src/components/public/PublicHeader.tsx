@@ -10,7 +10,7 @@ const links = [
   { href: '/contacto', label: 'Contacto' }
 ];
 
-export function PublicHeader() {
+export function PublicHeader({ activeHref }: { activeHref?: string }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -22,7 +22,12 @@ export function PublicHeader() {
         </a>
         <nav className="pub-nav" aria-label="Principal">
           {links.map((l) => (
-            <a key={l.href} href={l.href}>
+            <a
+              key={l.href}
+              href={l.href}
+              className={activeHref && (l.href === activeHref || (activeHref === '/contacto' && l.href === '/contacto')) ? 'pub-nav__link--active' : undefined}
+              aria-current={activeHref === l.href ? 'page' : undefined}
+            >
               {l.label}
             </a>
           ))}
