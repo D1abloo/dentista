@@ -7,6 +7,7 @@ import {
   CreditCard,
   FileStack,
   FileText,
+  FileSignature,
   LayoutDashboard,
   Receipt,
   Scale,
@@ -29,7 +30,8 @@ export type AdminView =
   | 'clinicas'
   | 'reportes'
   | 'normativa'
-  | 'configuracion';
+  | 'configuracion'
+  | 'consentimientos';
 
 export const adminNav: { href: string; label: string; icon: LucideIcon; view: AdminView }[] = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, view: 'dashboard' },
@@ -37,6 +39,7 @@ export const adminNav: { href: string; label: string; icon: LucideIcon; view: Ad
   { href: '/admin/citas', label: 'Citas', icon: Calendar, view: 'citas' },
   { href: '/admin/pacientes', label: 'Pacientes', icon: Users, view: 'pacientes' },
   { href: '/admin/informes', label: 'Informes', icon: FileText, view: 'informes' },
+  { href: '/admin/consentimientos', label: 'Consentimientos', icon: FileSignature, view: 'consentimientos' },
   { href: '/admin/documentos', label: 'Documentos', icon: FileStack, view: 'documentos' },
   { href: '/admin/facturas', label: 'Facturas', icon: Receipt, view: 'facturas' },
   { href: '/admin/pagos', label: 'Pagos', icon: CreditCard, view: 'pagos' },
@@ -62,7 +65,8 @@ export const adminTitles: Record<AdminView, string> = {
   clinicas: 'Clínicas y gabinetes',
   reportes: 'Reportes',
   normativa: 'Normativa',
-  configuracion: 'Configuración'
+  configuracion: 'Configuración',
+  consentimientos: 'Consentimientos informados'
 };
 
 export const adminSubtitles: Record<AdminView, string> = {
@@ -79,5 +83,6 @@ export const adminSubtitles: Record<AdminView, string> = {
   clinicas: 'Sedes y gabinetes',
   reportes: 'Métricas e ingresos',
   normativa: 'Textos legales visibles al paciente',
-  configuracion: 'Datos de contacto y recordatorios'
+  configuracion: 'Datos de contacto y recordatorios',
+  consentimientos: 'Firma obligatoria del paciente en el portal'
 };

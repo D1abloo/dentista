@@ -12,6 +12,7 @@ import { isActiveStatus } from '@/lib/appointments';
 import { isPdfMime, saveDemoFile } from '@/lib/demoFiles';
 import { recordMatchesPatientQuery } from '@/lib/patientSearch';
 import { fmtDate, fmtDateTime, money, statusLabel, todayIso } from '@/lib/format';
+import { reportTitleFromAppointment } from '@/lib/clinical';
 import { patientName, recordsForPatient } from '@/lib/selectors';
 import { positiveAmount, required } from '@/lib/validation';
 import { modeCopy } from '@/lib/appMode';
@@ -37,7 +38,7 @@ import {
   Textarea
 } from '@/components/ui';
 
-function AppointmentOptions({ state, patientId }: { state: ReturnType<typeof useDemoStore>['state']; patientId: string }) {
+export function AppointmentOptions({ state, patientId }: { state: ReturnType<typeof useDemoStore>['state']; patientId: string }) {
   const appts = state.appointments.filter((a) => a.patientId === patientId);
   return (
     <>
@@ -55,7 +56,7 @@ function RecordSection({ title, empty, children }: { title: string; empty: strin
   const has = Array.isArray(children) ? children.length > 0 : Boolean(children);
   return (
     <Card title={title}>
-      {has ? <ul className="table-cards">{children}</ul> : <Empty title={empty} text="" />}
+      {has ? <ul className="data-rows">{children}</ul> : <Empty title={empty} text="" />}
     </Card>
   );
 }
@@ -171,7 +172,7 @@ export function AdminPatientDetail({ patientId }: { patientId: string }) {
 
       <RecordSection title="Historial de citas" empty="Sin citas">
         {rec.appointments.map((a) => (
-          <li key={a.id} className="table-cards__row">
+          <li key={a.id} className="data-row">
             <IdBadge id={a.id} kind="cita" />
             <span className="text-sm font-semibold">{fmtDateTime(a.date, a.time)}</span>
             <Badge status={a.status} label={statusLabel(a.status)} />
@@ -181,7 +182,7 @@ export function AdminPatientDetail({ patientId }: { patientId: string }) {
 
       <RecordSection title="Informes clínicos" empty="Sin informes">
         {rec.reports.map((r) => (
-          <li key={r.id} className="table-cards__row">
+          <li key={r.id} className="data-row">
             <IdBadge id={r.id} kind="informe" />
             <span className="font-semibold">{r.title}</span>
             <span className="text-xs text-slate-500">{r.visibleToPatient ? 'Visible paciente' : 'Solo clínica'}</span>
@@ -192,7 +193,7 @@ export function AdminPatientDetail({ patientId }: { patientId: string }) {
 
       <RecordSection title="Documentos" empty="Sin documentos">
         {rec.documents.map((d) => (
-          <li key={d.id} className="table-cards__row">
+          <li key={d.id} className="data-row">
             <IdBadge id={d.id} kind="documento" />
             <span className="font-semibold">{d.title}</span>
             <span className="doc-file-badge">{d.type}</span>
@@ -245,7 +246,7 @@ export function AdminPatientDetail({ patientId }: { patientId: string }) {
 
       <RecordSection title="Facturas y pagos" empty="Sin movimientos">
         {rec.invoices.map((i) => (
-          <li key={i.id} className="table-cards__row">
+          <li key={i.id} className="data-row">
             <IdBadge id={i.id} kind="factura" />
             <span>{i.concept} · {money(i.amount)}</span>
             <Badge status={i.status === 'pagada' ? 'completada' : 'pendiente'} label={i.status} />
@@ -253,7 +254,7 @@ export function AdminPatientDetail({ patientId }: { patientId: string }) {
           </li>
         ))}
         {rec.payments.map((p) => (
-          <li key={p.id} className="table-cards__row">
+          <li key={p.id} className="data-row">
             <IdBadge id={p.id} kind="pago" />
             <span>{money(p.amount)} · {p.method}</span>
             <Badge status={p.status === 'completado' ? 'completada' : 'pendiente'} label={p.status} />
@@ -359,10 +360,22 @@ export function AdminClinicalReports() {
         <Card title="Nuevo informe">
           <div className="grid gap-3">
             <PatientLookup state={state} patientId={form.patientId} onPatientId={(id) => setForm({ ...form, patientId: id, appointmentId: '' })} />
-            <Field label="Cita (opcional)">
-              <Select value={form.appointmentId} onChange={(e) => setForm({ ...form, appointmentId: e.target.value })}>
+            <Field label="Cita (motivo del informe)">
+              <Select
+                value={form.appointmentId}
+                onChange={(e) => {
+                  const appointmentId = e.target.value;
+                  const autoTitle = appointmentId ? reportTitleFromAppointment(state, appointmentId) : '';
+                  setForm({
+                    ...form,
+                    appointmentId,
+                    title: autoTitle || form.title
+                  });
+                }}
+              >
                 <AppointmentOptions state={state} patientId={form.patientId} />
               </Select>
+              <p className="mt-1 text-xs text-[var(--muted)]">El título se rellena según el tratamiento de la cita (ortodoncia, blanqueamiento…).</p>
             </Field>
             <Field label="Título *"><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></Field>
             <Field label="Descripción *"><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field>
@@ -391,7 +404,7 @@ function ReportRow({ r }: { r: ClinicalReport }) {
   const { state, commit } = useDemoStore();
   const { setNotice } = useNotice();
   return (
-    <div className="table-cards__row">
+    <div className="data-row">
       <IdBadge id={r.id} kind="informe" />
       <div>
         <p className="font-bold">{r.title}</p>

@@ -679,6 +679,11 @@ body {
     grid-template-columns: 1fr auto auto;
     align-items: center;
   }
+
+  .table-cards__row:has(> :nth-child(4)) {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+  }
 }
 
 .chip-grid {
@@ -1268,4 +1273,171 @@ body {
 
 .login-form--patient .login-form__submit:disabled {
   opacity: 0.7;
+}
+
+/* Portal admin/paciente — tipografía compacta y filas sin solapamiento */
+.portal-body .card__title,
+.portal-body h1 {
+  font-size: 1.15rem;
+}
+
+.portal-body .card,
+.portal-body .field-label,
+.portal-body p,
+.portal-body li {
+  font-size: 0.875rem;
+}
+
+.patient-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem;
+  border-radius: 1rem;
+  background: #fafcfd;
+  border: 1px solid var(--line);
+}
+
+@media (min-width: 768px) {
+  .patient-card {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+}
+
+.patient-card__name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+.patient-card__contact,
+.patient-card__stats {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.patient-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.data-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.data-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.9rem;
+  background: #fafcfd;
+  border: 1px solid var(--line);
+}
+
+.data-row__title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.data-row__meta {
+  margin: 0.25rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.data-row__aside {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.slot-cal__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.slot-cal__dot {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  margin-right: 0.25rem;
+  vertical-align: middle;
+}
+
+.slot-cal__dot--free { background: #10b981; }
+.slot-cal__dot--busy { background: #94a3b8; }
+.slot-cal__dot--block { background: #f59e0b; }
+
+.slot-cal__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+  gap: 0.35rem;
+}
+
+.slot-cal__cell {
+  padding: 0.45rem 0.35rem;
+  border-radius: 0.55rem;
+  border: 1px solid var(--line);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  background: #fff;
+}
+
+.slot-cal__cell--free { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+.slot-cal__cell--busy { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+.slot-cal__cell--block { background: #fffbeb; color: #b45309; cursor: not-allowed; }
+.slot-cal__cell--picked { outline: 2px solid var(--teal); outline-offset: 1px; }
+
+.sig-pad__canvas {
+  width: 100%;
+  max-width: 420px;
+  height: 140px;
+  border-radius: 0.75rem;
+  border: 1px dashed var(--line);
+  background: #fff;
+  touch-action: none;
+}
+
+.sig-pad__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.banner-alert {
+  padding: 0.75rem 1rem;
+  border-radius: 0.85rem;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #9a3412;
 }

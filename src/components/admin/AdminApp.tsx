@@ -23,6 +23,7 @@ import {
   AdminReports,
   AdminTreatments
 } from './views';
+import { AdminConsents } from './consents';
 
 function Body({ view, patientId }: { view: AdminView; patientId?: string }) {
   if (patientId && view === 'pacientes') {
@@ -55,6 +56,8 @@ function Body({ view, patientId }: { view: AdminView; patientId?: string }) {
       return <AdminNormativa />;
     case 'configuracion':
       return <AdminConfig />;
+    case 'consentimientos':
+      return <AdminConsents />;
     default:
       return <AdminDashboard />;
   }

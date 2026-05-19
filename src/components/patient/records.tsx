@@ -9,6 +9,7 @@ import {
   visibleDocumentsForPatient,
   visibleReportsForPatient
 } from '@/lib/selectors';
+import { getStoredTenantId, settingsFor } from '@/lib/demoStore';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { usePatient } from '@/hooks/usePatient';
@@ -21,7 +22,8 @@ async function downloadInvoicePdf(state: ReturnType<typeof useDemoStore>['state'
   if (invoice.fileRef && downloadDemoFileRef(invoice.fileRef, invoice.fileName ?? `${invoice.id}.pdf`)) return;
   const patient = getPatientById(state, invoice.patientId);
   if (!patient) return;
-  const gen = await generateInvoicePdfFile(invoice, patient);
+  const settings = settingsFor(state, getStoredTenantId());
+  const gen = await generateInvoicePdfFile(invoice, patient, settings);
   downloadDemoFileRef(gen.fileRef, gen.fileName);
 }
 

@@ -218,6 +218,31 @@ export interface AppSettings {
   appointmentConfirmMessage: string;
   primaryColor?: string;
   accentColor?: string;
+  /** Facturación España */
+  nif?: string;
+  vatRate?: number;
+  invoiceSeries?: string;
+  defaultInvoiceConcept?: string;
+  logoUrl?: string;
+}
+
+export type ConsentStatus = 'pendiente' | 'firmado';
+
+export interface InformedConsent {
+  id: string;
+  tenantId: string;
+  patientId: string;
+  appointmentId?: string;
+  treatmentName: string;
+  title: string;
+  body: string;
+  status: ConsentStatus;
+  requiredForPortal: boolean;
+  fileRef?: string;
+  fileName?: string;
+  signatureRef?: string;
+  signedAt?: string;
+  createdAt: string;
 }
 
 export interface BlockedSlot {
@@ -247,4 +272,5 @@ export interface DemoState {
   settingsByTenant: Record<string, AppSettings>;
   normativeByTenant: Record<string, NormativeText[]>;
   blockedSlots: BlockedSlot[];
+  informedConsents: InformedConsent[];
 }

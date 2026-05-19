@@ -6,7 +6,7 @@ import { DEMO_PATIENT_LOGIN_ID } from '@/data/demoData';
 import { LiveLoginForm } from './LiveLoginForm';
 import { PortalLoginShell } from './PortalLoginShell';
 
-const PATIENT_LABEL = 'María González';
+const PATIENT_LABEL = 'Elena Vidal Romero';
 
 export function PatientLoginPage() {
   const [loading, setLoading] = useState<string | null>(null);

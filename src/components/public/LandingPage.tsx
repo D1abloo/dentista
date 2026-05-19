@@ -102,7 +102,7 @@ export function LandingPage() {
           <div className="shell highlight-panel">
             <h2>Multi-clínica sin mezclar datos</h2>
             <p>
-              Clínica Centro, Norte y Sur operan en paneles aislados. El paciente María (PAT-0001) ve sus citas en
+              Clínica Centro, Norte y Sur operan en paneles aislados. La paciente Elena (PAT-0001) ve sus citas en
               Centro y Norte; ninguna clínica ve los registros de la otra.
             </p>
           </div>

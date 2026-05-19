@@ -365,13 +365,13 @@ export function AdminPatients() {
           const next = rec.appointments.filter((a) => isActiveStatus(a.status)).sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`))[0];
           const pending = pendingInvoicesForPatient(state, p.id).length;
           return (
-            <article key={p.id} className="table-cards__row">
-              <div>
-                <p className="flex flex-wrap items-center gap-2 font-bold"><IdBadge id={p.id} kind="paciente" /> {p.fullName}</p>
-                <p className="text-sm text-slate-600">{p.email} · {p.phone}{p.dni ? ` · DNI ${p.dni}` : ''}</p>
-                <p className="text-xs text-slate-500">Próxima: {next ? fmtDateTime(next.date, next.time) : '—'} · Facturas pend.: {pending} · Informes: {rec.reports.length}</p>
+            <article key={p.id} className="patient-card">
+              <div className="patient-card__main">
+                <p className="patient-card__name"><IdBadge id={p.id} kind="paciente" /> {p.fullName}</p>
+                <p className="patient-card__contact">{p.email} · {p.phone}{p.dni ? ` · DNI ${p.dni}` : ''}</p>
+                <p className="patient-card__stats">Próxima: {next ? fmtDateTime(next.date, next.time) : '—'} · Facturas pend.: {pending} · Informes: {rec.reports.length}</p>
               </div>
-              <div className="flex flex-wrap gap-1">
+              <div className="patient-card__actions">
                 <a href={`/admin/pacientes/${p.id}`}><Button tone="secondary" className="!text-xs">Ver ficha</Button></a>
                 <Button tone="ghost" className="!text-xs" onClick={() => setEditing(p)}>Editar</Button>
                 <a href="/admin/citas"><Button tone="ghost" className="!text-xs">Cita</Button></a>
@@ -537,6 +537,12 @@ export function AdminConfig() {
         <Field label="Intervalo (min)"><Input type="number" value={s.slotIntervalMinutes} onChange={(e) => setS({ ...s, slotIntervalMinutes: Number(e.target.value) })} /></Field>
         <Field label="Mensaje bienvenida"><Textarea value={s.welcomeMessage} onChange={(e) => setS({ ...s, welcomeMessage: e.target.value })} /></Field>
         <Field label="Mensaje confirmación cita"><Textarea value={s.appointmentConfirmMessage} onChange={(e) => setS({ ...s, appointmentConfirmMessage: e.target.value })} /></Field>
+        <Field label="Razón social (facturas)"><Input value={s.legalName} onChange={(e) => setS({ ...s, legalName: e.target.value })} /></Field>
+        <Field label="NIF / CIF"><Input value={s.nif ?? ''} onChange={(e) => setS({ ...s, nif: e.target.value })} /></Field>
+        <Field label="IVA (%)"><Input type="number" min={0} max={100} value={s.vatRate ?? 21} onChange={(e) => setS({ ...s, vatRate: Number(e.target.value) })} /></Field>
+        <Field label="Serie factura"><Input value={s.invoiceSeries ?? 'FAC'} onChange={(e) => setS({ ...s, invoiceSeries: e.target.value })} /></Field>
+        <Field label="Concepto factura por defecto"><Input value={s.defaultInvoiceConcept ?? ''} onChange={(e) => setS({ ...s, defaultInvoiceConcept: e.target.value })} /></Field>
+        <Field label="URL logo (factura PDF)"><Input value={s.logoUrl ?? ''} onChange={(e) => setS({ ...s, logoUrl: e.target.value })} placeholder="https://…" /></Field>
         <label className="flex items-center gap-2 text-sm font-bold md:col-span-2">
           <input type="checkbox" checked={s.remindersEnabled} onChange={(e) => setS({ ...s, remindersEnabled: e.target.checked })} /> Recordatorios activos
         </label>

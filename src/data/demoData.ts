@@ -1,9 +1,8 @@
 import type { AppSettings, DemoState, NormativeText } from '@/types/demo';
 import { TENANT_CENTRO, TENANT_NORTE, TENANT_SUR } from '@/lib/tenantIds';
 
-const MARIA = 'PAT-0001';
-const INES = 'PAT-0002';
-const JOSE = 'PAT-0003';
+/** Paciente real ficticio único (demo/LIVE). */
+const PATIENT = 'PAT-0001';
 
 const CLI_CENTRO = 'CLI-0001';
 const CLI_NORTE = 'CLI-0002';
@@ -44,7 +43,12 @@ function settings(name: string, address: string, phone: string, email: string): 
     welcomeMessage: 'Bienvenido a tu portal Dentista+',
     appointmentConfirmMessage: 'Cita registrada correctamente.',
     primaryColor: '#0F2742',
-    accentColor: '#14B8A6'
+    accentColor: '#14B8A6',
+    nif: 'B12345678',
+    vatRate: 21,
+    invoiceSeries: 'FAC',
+    defaultInvoiceConcept: 'Servicios odontológicos',
+    logoUrl: '/brand/dentista-logo.svg'
   };
 }
 
@@ -86,51 +90,21 @@ export const demoSeed: DemoState = {
   ],
   patients: [
     {
-      id: MARIA,
-      fullName: 'María González',
+      id: PATIENT,
+      fullName: 'Elena Vidal Romero',
       email: 'maria@example.com',
-      phone: '+34 600 111 222',
-      dni: '12345678A',
-      birthDate: '1990-04-12',
-      allergies: 'Sin alergias conocidas',
-      medication: 'Ninguna',
+      phone: '+34 612 345 678',
+      dni: '45678912K',
+      birthDate: '1988-07-14',
+      allergies: 'Sin alergias declaradas',
+      medication: 'Ninguna habitual',
       reminderChannels: ['email', 'whatsapp'],
       primaryDentistId: 'DEN-0001',
       preferredClinicId: CLI_CENTRO,
-      emergencyContactName: 'Pedro González',
-      emergencyContactPhone: '+34 600 999 111',
-      notes: 'Paciente demo multi-clínica.',
-      createdAt: '2026-05-01'
-    },
-    {
-      id: INES,
-      fullName: 'Inés Ruiz',
-      email: 'ines@example.com',
-      phone: '+34 600 222 111',
-      dni: '87654321B',
-      birthDate: '1995-02-18',
-      allergies: 'Ninguna',
-      medication: 'Ninguna',
-      reminderChannels: ['whatsapp'],
-      preferredClinicId: CLI_NORTE,
-      emergencyContactName: 'Ana Ruiz',
-      emergencyContactPhone: '+34 600 888 222',
-      createdAt: '2026-05-03'
-    },
-    {
-      id: JOSE,
-      fullName: 'José López',
-      email: 'jose@example.com',
-      phone: '+34 600 333 444',
-      dni: '11223344C',
-      birthDate: '1986-09-21',
-      allergies: 'Penicilina',
-      medication: 'Antihistamínico ocasional',
-      reminderChannels: ['email'],
-      preferredClinicId: CLI_SUR,
-      emergencyContactName: 'Carmen López',
-      emergencyContactPhone: '+34 600 777 333',
-      createdAt: '2026-05-05'
+      emergencyContactName: 'Miguel Vidal',
+      emergencyContactPhone: '+34 612 111 222',
+      notes: 'Paciente principal · historial en Clínica Centro.',
+      createdAt: '2024-03-10'
     }
   ],
   dentists: [
@@ -232,7 +206,7 @@ export const demoSeed: DemoState = {
     {
       id: 'CIT-0001',
       tenantId: TENANT_CENTRO,
-      patientId: MARIA,
+      patientId: PATIENT,
       dentistId: 'DEN-0001',
       clinicId: CLI_CENTRO,
       cabinetId: 'g-c2',
@@ -245,7 +219,7 @@ export const demoSeed: DemoState = {
     {
       id: 'CIT-0002',
       tenantId: TENANT_NORTE,
-      patientId: MARIA,
+      patientId: PATIENT,
       dentistId: 'DEN-0002',
       clinicId: CLI_NORTE,
       cabinetId: 'g-n1',
@@ -258,7 +232,7 @@ export const demoSeed: DemoState = {
     {
       id: 'CIT-0003',
       tenantId: TENANT_SUR,
-      patientId: JOSE,
+      patientId: PATIENT,
       dentistId: 'DEN-0003',
       clinicId: CLI_SUR,
       cabinetId: 'g-s1',
@@ -271,7 +245,7 @@ export const demoSeed: DemoState = {
     {
       id: 'CIT-0004',
       tenantId: TENANT_NORTE,
-      patientId: INES,
+      patientId: PATIENT,
       dentistId: 'DEN-0002',
       clinicId: CLI_NORTE,
       cabinetId: 'g-n1',
@@ -286,7 +260,7 @@ export const demoSeed: DemoState = {
     {
       id: 'INF-0001',
       tenantId: TENANT_CENTRO,
-      patientId: MARIA,
+      patientId: PATIENT,
       appointmentId: 'CIT-0001',
       title: 'Informe ortodoncia',
       description: 'Control de alineación.',
@@ -299,7 +273,7 @@ export const demoSeed: DemoState = {
     {
       id: 'INF-0002',
       tenantId: TENANT_NORTE,
-      patientId: MARIA,
+      patientId: PATIENT,
       appointmentId: 'CIT-0002',
       title: 'Informe revisión Norte',
       description: 'Valoración multi-clínica.',
@@ -312,7 +286,7 @@ export const demoSeed: DemoState = {
     {
       id: 'INF-0003',
       tenantId: TENANT_SUR,
-      patientId: JOSE,
+      patientId: PATIENT,
       title: 'Estudio blanqueamiento',
       description: 'Solo clínica Sur.',
       uploadedBy: 'Dra. Elena Martín',
@@ -324,7 +298,7 @@ export const demoSeed: DemoState = {
     {
       id: 'FAC-0001',
       tenantId: TENANT_CENTRO,
-      patientId: MARIA,
+      patientId: PATIENT,
       appointmentId: 'CIT-0001',
       amount: 120,
       concept: 'Ortodoncia · sesión',
@@ -335,7 +309,7 @@ export const demoSeed: DemoState = {
     {
       id: 'FAC-0002',
       tenantId: TENANT_NORTE,
-      patientId: MARIA,
+      patientId: PATIENT,
       amount: 55,
       concept: 'Revisión Clínica Norte',
       status: 'pendiente',
@@ -345,7 +319,7 @@ export const demoSeed: DemoState = {
     {
       id: 'FAC-0003',
       tenantId: TENANT_SUR,
-      patientId: JOSE,
+      patientId: PATIENT,
       appointmentId: 'CIT-0003',
       amount: 250,
       concept: 'Blanqueamiento',
@@ -358,7 +332,7 @@ export const demoSeed: DemoState = {
     {
       id: 'PAG-0001',
       tenantId: TENANT_CENTRO,
-      patientId: MARIA,
+      patientId: PATIENT,
       invoiceId: 'FAC-0001',
       amount: 120,
       method: 'tarjeta',
@@ -371,7 +345,7 @@ export const demoSeed: DemoState = {
     {
       id: 'DOC-0001',
       tenantId: TENANT_CENTRO,
-      patientId: MARIA,
+      patientId: PATIENT,
       type: 'consentimiento',
       title: 'Consentimiento ortodoncia',
       visibility: 'paciente',
@@ -380,7 +354,7 @@ export const demoSeed: DemoState = {
     {
       id: 'DOC-0002',
       tenantId: TENANT_NORTE,
-      patientId: MARIA,
+      patientId: PATIENT,
       type: 'radiografia',
       title: 'Radiografía panorámica Norte',
       visibility: 'paciente',
@@ -389,7 +363,7 @@ export const demoSeed: DemoState = {
     {
       id: 'DOC-0003',
       tenantId: TENANT_SUR,
-      patientId: JOSE,
+      patientId: PATIENT,
       type: 'otro',
       title: 'Nota interna Sur',
       visibility: 'admin',
@@ -400,7 +374,7 @@ export const demoSeed: DemoState = {
     {
       id: 'NOT-0001',
       tenantId: TENANT_CENTRO,
-      patientId: MARIA,
+      patientId: PATIENT,
       body: 'Prefiere recordatorios por WhatsApp.',
       createdAt: '2026-05-10',
       createdBy: 'Recepción Centro'
@@ -410,7 +384,7 @@ export const demoSeed: DemoState = {
     {
       id: 'MSG-0001',
       tenantId: TENANT_CENTRO,
-      patientId: MARIA,
+      patientId: PATIENT,
       subject: 'Recordatorio de cita',
       body: 'Tu cita CIT-0001 en Clínica Centro está confirmada.',
       channel: 'whatsapp',
@@ -421,7 +395,7 @@ export const demoSeed: DemoState = {
     {
       id: 'MSG-0002',
       tenantId: TENANT_NORTE,
-      patientId: MARIA,
+      patientId: PATIENT,
       subject: 'Nueva factura',
       body: 'Tienes la factura FAC-0002 pendiente de Clínica Norte.',
       channel: 'app',
@@ -440,8 +414,35 @@ export const demoSeed: DemoState = {
     [TENANT_NORTE]: defaultNormative(),
     [TENANT_SUR]: defaultNormative()
   },
-  blockedSlots: []
+  blockedSlots: [],
+  informedConsents: [
+    {
+      id: 'CON-0001',
+      tenantId: TENANT_CENTRO,
+      patientId: PATIENT,
+      appointmentId: 'CIT-0001',
+      treatmentName: 'Ortodoncia',
+      title: 'Consentimiento informado · Ortodoncia',
+      body: 'Autorizo el plan de ortodoncia, revisiones periódicas y radiografías necesarias para el seguimiento del tratamiento.',
+      status: 'firmado',
+      requiredForPortal: true,
+      signedAt: '2026-05-10T10:00:00',
+      createdAt: '2026-05-10'
+    },
+    {
+      id: 'CON-0002',
+      tenantId: TENANT_SUR,
+      patientId: PATIENT,
+      appointmentId: 'CIT-0003',
+      treatmentName: 'Blanqueamiento',
+      title: 'Consentimiento informado · Blanqueamiento dental',
+      body: 'He sido informada de riesgos, cuidados posteriores y alternativas del tratamiento de blanqueamiento. Autorizo su realización.',
+      status: 'pendiente',
+      requiredForPortal: true,
+      createdAt: '2026-05-18'
+    }
+  ]
 };
 
-export const DEMO_PATIENT_LOGIN_ID = MARIA;
+export const DEMO_PATIENT_LOGIN_ID = PATIENT;
 export const demoState = demoSeed;

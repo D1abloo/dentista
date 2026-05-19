@@ -2,6 +2,7 @@ import { demoSeed, DEMO_PATIENT_LOGIN_ID } from '@/data/demoData';
 import { todayIso } from '@/lib/format';
 import {
   nextAppointmentId,
+  nextConsentId,
   nextDocumentId,
   nextDentistId,
   nextInvoiceId,
@@ -385,6 +386,58 @@ export function addBlockedSlot(
 
 export function removeBlockedSlot(state: DemoState, id: string): DemoState {
   return { ...state, blockedSlots: state.blockedSlots.filter((b) => b.id !== id) };
+}
+
+export function saveInformedConsent(state: DemoState, consent: import('@/types/demo').InformedConsent): DemoState {
+  const exists = state.informedConsents.some((c) => c.id === consent.id);
+  return {
+    ...state,
+    informedConsents: exists
+      ? state.informedConsents.map((c) => (c.id === consent.id ? consent : c))
+      : [...state.informedConsents, consent]
+  };
+}
+
+export function createInformedConsent(
+  state: DemoState,
+  data: Omit<import('@/types/demo').InformedConsent, 'id' | 'createdAt' | 'tenantId' | 'status'> & {
+    tenantId?: string;
+    status?: import('@/types/demo').ConsentStatus;
+  }
+): DemoState {
+  const consent: import('@/types/demo').InformedConsent = {
+    ...data,
+    tenantId: data.tenantId ?? getStoredTenantId(),
+    status: data.status ?? 'pendiente',
+    id: nextConsentId(state),
+    createdAt: todayIso()
+  };
+  return saveInformedConsent(state, consent);
+}
+
+export function signInformedConsent(
+  state: DemoState,
+  id: string,
+  signatureRef: string,
+  fileRef?: string,
+  fileName?: string
+): DemoState {
+  const c = state.informedConsents.find((x) => x.id === id);
+  if (!c) return state;
+  return saveInformedConsent(state, {
+    ...c,
+    status: 'firmado',
+    signatureRef,
+    fileRef: fileRef ?? c.fileRef,
+    fileName: fileName ?? c.fileName,
+    signedAt: new Date().toISOString()
+  });
+}
+
+export function pendingConsentsForPatient(state: DemoState, patientId: string) {
+  return state.informedConsents.filter(
+    (c) => c.patientId === patientId && c.requiredForPortal && c.status === 'pendiente'
+  );
 }
 
 export function exportCsv(rows: Record<string, string | number>[], filename: string) {

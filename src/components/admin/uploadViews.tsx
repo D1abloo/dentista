@@ -8,7 +8,9 @@ import {
 } from '@/lib/demoStore';
 import { isImageMime, isPdfMime, saveDemoFile } from '@/lib/demoFiles';
 import { nextInvoiceId } from '@/lib/ids';
+import { invoiceConceptFromAppointment } from '@/lib/clinical';
 import { generateInvoicePdfFile } from '@/lib/pdfInvoice';
+import { settingsFor } from '@/lib/demoStore';
 import { recordMatchesPatientQuery } from '@/lib/patientSearch';
 import { fmtDate, money, todayIso } from '@/lib/format';
 import { getPatientById, patientName } from '@/lib/selectors';
@@ -204,10 +206,12 @@ export function AdminInvoices() {
   const [patientQ, setPatientQ] = useState('');
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [autoPdf, setAutoPdf] = useState(true);
+  const tenantId = getStoredTenantId();
+  const clinicSettings = settingsFor(state, tenantId);
   const [form, setForm] = useState({
     patientId: state.patients[0]?.id ?? '',
     appointmentId: '',
-    concept: '',
+    concept: clinicSettings.defaultInvoiceConcept ?? 'Servicios odontológicos',
     amount: 80,
     status: 'pendiente' as Invoice['status'],
     issuedAt: todayIso(),
@@ -273,7 +277,7 @@ export function AdminInvoices() {
           issuedAt: form.issuedAt,
           dueDate: form.dueDate || undefined
         };
-        const gen = await generateInvoicePdfFile(draft, patient);
+        const gen = await generateInvoicePdfFile(draft, patient, clinicSettings);
         fileRef = gen.fileRef;
         fileName = gen.fileName;
       } catch (e) {
@@ -360,11 +364,37 @@ export function AdminInvoices() {
           <div className="grid gap-3">
             <PatientLookup state={state} patientId={form.patientId} onPatientId={(id) => setForm({ ...form, patientId: id, appointmentId: '' })} />
             <Field label="Cita (opcional)">
-              <Select value={form.appointmentId} onChange={(e) => setForm({ ...form, appointmentId: e.target.value })}>
+              <Select
+                value={form.appointmentId}
+                onChange={(e) => {
+                  const appointmentId = e.target.value;
+                  const concept = appointmentId
+                    ? invoiceConceptFromAppointment(
+                        state,
+                        appointmentId,
+                        clinicSettings.defaultInvoiceConcept ?? 'Servicios odontológicos'
+                      )
+                    : clinicSettings.defaultInvoiceConcept ?? 'Servicios odontológicos';
+                  const appt = state.appointments.find((a) => a.id === appointmentId);
+                  setForm({
+                    ...form,
+                    appointmentId,
+                    concept,
+                    amount: appt
+                      ? state.treatments.find((t) => t.id === appt.treatmentId)?.price ?? form.amount
+                      : form.amount
+                  });
+                }}
+              >
                 <AppointmentOptions state={state} patientId={form.patientId} />
               </Select>
             </Field>
-            <Field label="Concepto *"><Input value={form.concept} onChange={(e) => setForm({ ...form, concept: e.target.value })} /></Field>
+            <Field label="Concepto factura *">
+              <Input value={form.concept} onChange={(e) => setForm({ ...form, concept: e.target.value })} />
+              <p className="mt-1 text-xs text-[var(--muted)]">
+                Nombre por defecto: {clinicSettings.defaultInvoiceConcept ?? 'Servicios odontológicos'}
+              </p>
+            </Field>
             <Field label="Importe *"><Input type="number" min={0} step={0.01} value={form.amount} onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })} /></Field>
             <Field label="Emisión"><Input type="date" value={form.issuedAt} onChange={(e) => setForm({ ...form, issuedAt: e.target.value })} /></Field>
             <Field label="Vencimiento"><Input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} /></Field>

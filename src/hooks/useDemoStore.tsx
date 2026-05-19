@@ -9,9 +9,19 @@ import {
   type ReactNode
 } from 'react';
 import { demoSeed } from '@/data/demoData';
+import type { DemoState } from '@/types/demo';
+
+function mergeDemoState(partial: DemoState): DemoState {
+  const seed = demoSeed;
+  return {
+    ...seed,
+    ...partial,
+    informedConsents: partial.informedConsents?.length ? partial.informedConsents : seed.informedConsents,
+    settingsByTenant: { ...seed.settingsByTenant, ...partial.settingsByTenant }
+  };
+}
 import { isClientDemoMode } from '@/lib/appMode';
 import * as store from '@/lib/demoStore';
-import type { DemoState } from '@/types/demo';
 
 type DataSource = 'local' | 'supabase' | 'ephemeral' | 'loading';
 
@@ -53,7 +63,7 @@ async function resetRemoteState() {
 
 export function DemoStoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<DemoState>(() => store.getInitialState());
-  const [dataSource, setDataSource] = useState<DataSource>('loading');
+  const [dataSource, setDataSource] = useState<DataSource>('local');
   const [syncing, setSyncing] = useState(false);
   const [ephemeral, setEphemeral] = useState(() => store.isEphemeralSession());
   const syncRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -79,14 +89,14 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
       try {
         const remote = await fetchRemoteState();
         if (cancelled) return;
-        setState(remote.state);
-        store.persistState(remote.state);
+        const merged = mergeDemoState(remote.state);
+        setState(merged);
+        store.persistState(merged);
         setDataSource(remote.source);
         supabaseSyncRef.current = remote.source === 'supabase';
       } catch {
         if (!cancelled) {
-          const local = store.getInitialState();
-          setState(local);
+          setState(mergeDemoState(store.getInitialState()));
           setDataSource('local');
           supabaseSyncRef.current = false;
         }
@@ -146,14 +156,6 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
     () => ({ state, dataSource, syncing, ephemeral, setState, commit, reset }),
     [state, dataSource, syncing, ephemeral, commit, reset]
   );
-
-  if (dataSource === 'loading') {
-    return (
-      <main className="grid min-h-[40vh] place-items-center text-sm font-semibold text-[var(--muted)]">
-        Cargando datos…
-      </main>
-    );
-  }
 
   return <DemoStoreContext.Provider value={value}>{children}</DemoStoreContext.Provider>;
 }

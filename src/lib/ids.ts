@@ -1,6 +1,6 @@
 import type { DemoState } from '@/types/demo';
 
-type IdPrefix = 'PAT' | 'CIT' | 'INF' | 'FAC' | 'PAG' | 'DOC' | 'MSG' | 'NOT' | 'TEN' | 'DEN' | 'CLI' | 'TRA';
+type IdPrefix = 'PAT' | 'CIT' | 'INF' | 'FAC' | 'PAG' | 'DOC' | 'MSG' | 'NOT' | 'TEN' | 'DEN' | 'CLI' | 'TRA' | 'CON';
 
 export function nextId(prefix: IdPrefix, existingIds: string[]) {
   const nums = existingIds
@@ -33,6 +33,10 @@ export function nextPaymentId(state: DemoState) {
 
 export function nextDocumentId(state: DemoState) {
   return nextId('DOC', state.patientDocuments.map((d) => d.id));
+}
+
+export function nextConsentId(state: DemoState) {
+  return nextId('CON', state.informedConsents.map((c) => c.id));
 }
 
 export function nextDentistId(state: DemoState) {

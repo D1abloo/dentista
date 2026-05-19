@@ -1,24 +1,53 @@
-import type { Invoice, Patient } from '@/types/demo';
+import type { AppSettings, Invoice, Patient } from '@/types/demo';
 import { money } from '@/lib/format';
 import { saveDemoFile } from '@/lib/demoFiles';
+import { defaultInvoiceFileName } from '@/lib/clinical';
 
-/** Genera un PDF mínimo válido (demo) y lo guarda en el almacén local */
-export async function generateInvoicePdfFile(invoice: Invoice, patient: Patient): Promise<{ fileRef: string; fileName: string }> {
+/** Genera factura PDF en formato español (IVA, NIF, datos clínica). */
+export async function generateInvoicePdfFile(
+  invoice: Invoice,
+  patient: Patient,
+  settings: AppSettings
+): Promise<{ fileRef: string; fileName: string }> {
+  const vatRate = settings.vatRate ?? 21;
+  const base = invoice.amount / (1 + vatRate / 100);
+  const vat = invoice.amount - base;
+  const series = settings.invoiceSeries ?? 'FAC';
+  const nif = settings.nif ?? 'B00000000';
+  const legal = settings.legalName ?? settings.clinicName;
+
   const lines = [
-    'Dentista+ · Factura clinica',
-    `Factura: ${invoice.id}`,
-    `Paciente: ${patient.fullName} (${patient.id})`,
-    patient.dni ? `DNI: ${patient.dni}` : '',
-    `Concepto: ${invoice.concept}`,
-    `Importe: ${money(invoice.amount)}`,
+    legal.toUpperCase(),
+    `NIF: ${nif}`,
+    settings.address ? `${settings.address}, ${settings.city ?? ''}` : '',
+    settings.phone ? `Tel: ${settings.phone}` : '',
+    settings.email ? `Email: ${settings.email}` : '',
+    '',
+    `FACTURA ${series} ${invoice.id}`,
+    `Fecha emision: ${invoice.issuedAt}`,
+    invoice.dueDate ? `Vencimiento: ${invoice.dueDate}` : '',
+    '',
+    'DATOS DEL PACIENTE',
+    `${patient.fullName}`,
+    patient.dni ? `NIF/DNI: ${patient.dni}` : '',
+    `ID paciente: ${patient.id}`,
+    '',
+    'CONCEPTO',
+    invoice.concept,
+    '',
+    'DESGLOSE (EUR)',
+    `Base imponible: ${money(base)}`,
+    `IVA (${vatRate}%): ${money(vat)}`,
+    `TOTAL: ${money(invoice.amount)}`,
+    '',
     `Estado: ${invoice.status}`,
-    `Emision: ${invoice.issuedAt}`,
-    invoice.dueDate ? `Vencimiento: ${invoice.dueDate}` : ''
+    '',
+    'Documento generado por Dentista+ · Valido como factura simplificada demo.'
   ].filter(Boolean);
 
   const pdfBytes = buildMinimalPdf(lines);
   const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
-  const fileName = `${invoice.id}.pdf`;
+  const fileName = defaultInvoiceFileName(series, invoice.id, patient.fullName);
   const file = new File([blob], fileName, { type: 'application/pdf' });
   const fileRef = await saveDemoFile(file);
   return { fileRef, fileName };
@@ -29,8 +58,8 @@ function escapePdfText(text: string) {
 }
 
 function buildMinimalPdf(lines: string[]): Uint8Array {
-  const contentLines = lines.map((line, i) => `1 0 0 1 50 ${740 - i * 18} Tm (${escapePdfText(line)}) Tj`);
-  const stream = ['BT', '/F1 11 Tf', ...contentLines, 'ET'].join('\n');
+  const contentLines = lines.map((line, i) => `1 0 0 1 50 ${740 - i * 16} Tm (${escapePdfText(line)}) Tj`);
+  const stream = ['BT', '/F1 10 Tf', ...contentLines, 'ET'].join('\n');
   const streamLen = new TextEncoder().encode(stream).length;
 
   const objects = [

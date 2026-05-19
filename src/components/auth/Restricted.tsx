@@ -71,7 +71,7 @@ export function Restricted({
         </p>
         {!live ? (
           <p className="mt-3 rounded-xl bg-[#f0fdfa] px-3 py-2 text-sm font-semibold text-dental-900">
-            Usuario demo: María González · <span className="font-mono">{DEMO_PATIENT_LOGIN_ID}</span>
+            Usuario demo: Elena Vidal Romero · <span className="font-mono">{DEMO_PATIENT_LOGIN_ID}</span>
           </p>
         ) : null}
         <div className="mt-6 flex flex-wrap gap-2">

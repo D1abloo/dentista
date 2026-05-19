@@ -34,7 +34,7 @@ export function LoginPage() {
           className="mt-8 flex flex-col rounded-2xl border border-teal-200 bg-teal-50 p-5 no-underline transition hover:border-teal-300"
         >
           <span className="text-xs font-bold uppercase tracking-wide text-teal-800">Portal paciente</span>
-          <span className="mt-1 font-[family-name:var(--display)] text-lg text-[var(--navy)]">María González</span>
+          <span className="mt-1 font-[family-name:var(--display)] text-lg text-[var(--navy)]">Elena Vidal Romero</span>
           <span className="mt-1 font-mono text-xs text-teal-900">{DEMO_PATIENT_LOGIN_ID}</span>
           <span className="mt-3 text-sm font-semibold text-teal-800">Continuar como paciente →</span>
         </a>

@@ -2,6 +2,7 @@ import {
   Calendar,
   CalendarPlus,
   CreditCard,
+  FileSignature,
   FileStack,
   FileText,
   HelpCircle,
@@ -30,6 +31,7 @@ import {
   PatientProfile,
   PatientReports
 } from './views';
+import { PatientConsents } from './consents';
 
 export type PatientView =
   | 'dashboard'
@@ -42,7 +44,8 @@ export type PatientView =
   | 'perfil'
   | 'pagos'
   | 'mensajes'
-  | 'ayuda';
+  | 'ayuda'
+  | 'consentimientos';
 
 const titles: Record<PatientView, string> = {
   dashboard: 'Inicio',
@@ -55,7 +58,8 @@ const titles: Record<PatientView, string> = {
   perfil: 'Mi perfil',
   pagos: 'Mis pagos',
   mensajes: 'Mensajes',
-  ayuda: 'Ayuda'
+  ayuda: 'Ayuda',
+  consentimientos: 'Consentimientos'
 };
 
 const nav = [
@@ -68,6 +72,7 @@ const nav = [
   { href: '/paciente/pagos', label: 'Pagos', icon: CreditCard },
   { href: '/paciente/historial', label: 'Historial', icon: History },
   { href: '/paciente/mensajes', label: 'Mensajes', icon: MessageSquare },
+  { href: '/paciente/consentimientos', label: 'Consentimientos', icon: FileSignature },
   { href: '/paciente/perfil', label: 'Perfil', icon: User },
   { href: '/paciente/ayuda', label: 'Ayuda', icon: HelpCircle }
 ];
@@ -86,6 +91,8 @@ function Body({ view }: { view: PatientView }) {
       return <PatientDocuments />;
     case 'facturas':
       return <PatientInvoices />;
+    case 'consentimientos':
+      return <PatientConsents />;
     case 'perfil':
       return <PatientProfile />;
     case 'pagos':

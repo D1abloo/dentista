@@ -1,0 +1,7 @@
+---
+import AppLayout from '@/layouts/AppLayout.astro';
+import { PatientApp } from '@/components/DentistaApp';
+---
+<AppLayout title="Consentimientos · Portal paciente">
+  <PatientApp view="consentimientos" client:load />
+</AppLayout>

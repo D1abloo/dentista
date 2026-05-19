@@ -25,7 +25,9 @@ import {
 } from '@/lib/selectors';
 import { tenantName } from '@/lib/tenant';
 import { fmtDate, fmtDateTime, money, statusLabel, todayIso, uid } from '@/lib/format';
-import { availableSlots } from '@/lib/slots';
+import { availableSlots, daySlotMap } from '@/lib/slots';
+import { SlotCalendar } from '@/components/shared/SlotCalendar';
+import { PatientConsentAlert, PatientConsents } from './consents';
 import { email, phone, required } from '@/lib/validation';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
@@ -50,7 +52,7 @@ import {
 import { IdBadge } from '@/components/ui/IdBadge';
 export { PatientDocuments, PatientInvoices, PatientPayments, PatientReports } from './records';
 
-const bookSteps = ['Clínica', 'Tratamiento', 'Dentista', 'Fecha', 'Hora', 'Resumen', 'Confirmar'];
+const bookSteps = ['Clínica', 'Tratamiento', 'Dentista', 'Fecha y hora', 'Resumen', 'Confirmar'];
 
 function useApptMeta(state: ReturnType<typeof useDemoStore>['state'], a: Appointment) {
   const t = state.treatments.find((x) => x.id === a.treatmentId);
@@ -80,6 +82,7 @@ export function PatientDashboard() {
   return (
     <div className="space-y-5">
       <PageHeader title="Inicio" subtitle={patient.fullName} />
+      <PatientConsentAlert />
       {alerts.length ? <div className="banner-alert">{alerts.join(' · ')}</div> : null}
 
       <section className="highlight-panel mb-2">
@@ -191,9 +194,16 @@ export function PatientBook() {
   const clinic = state.clinics.find((c) => c.id === clinicId);
   const treatment = state.treatments.find((t) => t.id === treatmentId);
   const dentists = dentistsForClinic(state, clinicId);
-  const slots = useMemo(
-    () => (date && treatmentId && dentistId ? availableSlots(state, { clinicId, dentistId, cabinetId, date, treatmentId }) : []),
+  const slotCells = useMemo(
+    () =>
+      date && treatmentId && dentistId
+        ? daySlotMap(state, { clinicId, dentistId, cabinetId, date, treatmentId })
+        : [],
     [state, clinicId, dentistId, cabinetId, date, treatmentId]
+  );
+  const slots = useMemo(
+    () => slotCells.filter((s) => s.selectable).map((s) => s.time),
+    [slotCells]
   );
 
   function validateStep() {
@@ -201,8 +211,12 @@ export function PatientBook() {
     if (step === 1) { const err = required(clinicId, 'Clínica'); if (err) e.clinicId = err; }
     if (step === 2) { const err = required(treatmentId, 'Tratamiento'); if (err) e.treatmentId = err; }
     if (step === 3) { const err = required(dentistId, 'Dentista'); if (err) e.dentistId = err; }
-    if (step === 4) { const err = required(date, 'Fecha'); if (err) e.date = err; }
-    if (step === 5) { const err = required(time, 'Hora'); if (err) e.time = err; }
+    if (step === 4) {
+      const errD = required(date, 'Fecha');
+      const errT = required(time, 'Hora');
+      if (errD) e.date = errD;
+      if (errT) e.time = errT;
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -267,22 +281,29 @@ export function PatientBook() {
         </Field>
       )}
       {step === 4 && (
-        <Field label="Fecha" error={errors.date}>
-          <Input type="date" min={todayIso()} value={date} onChange={(e) => setDate(e.target.value)} />
-        </Field>
+        <div className="space-y-4">
+          <Field label="Fecha" error={errors.date}>
+            <Input
+              type="date"
+              min={todayIso()}
+              value={date}
+              onChange={(e) => {
+                setDate(e.target.value);
+                setTime('');
+              }}
+            />
+          </Field>
+          {date && treatmentId && dentistId ? (
+            <Field label="Hora (verde = libre, gris = ocupado)" error={errors.time}>
+              <SlotCalendar slots={slotCells} value={time} onChange={setTime} />
+              {!slots.length ? (
+                <p className="text-xs font-semibold text-amber-700">No hay huecos libres ese día. Prueba otra fecha.</p>
+              ) : null}
+            </Field>
+          ) : null}
+        </div>
       )}
-      {step === 5 && (
-        <Field label="Hora disponible" error={errors.time}>
-          <Select value={time} onChange={(e) => setTime(e.target.value)}>
-            <option value="">Selecciona…</option>
-            {slots.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </Select>
-          {!slots.length ? <p className="text-xs font-semibold text-amber-700">No hay huecos ese día. Prueba otra fecha.</p> : null}
-        </Field>
-      )}
-      {step === 6 && treatment && (
+      {step === 5 && treatment && (
         <ul className="space-y-2 rounded-xl bg-slate-50 p-4 text-sm font-semibold text-slate-700">
           <li>Clínica: {clinic?.name}</li>
           <li>Tratamiento: {treatment.name} ({money(treatment.price)})</li>
@@ -291,7 +312,7 @@ export function PatientBook() {
           <li>Duración: {treatment.durationMinutes} min</li>
         </ul>
       )}
-      {step === 7 && (
+      {step === 6 && (
         <div className="space-y-3">
           <p className="text-sm text-slate-600">Confirma tu reserva. Podrás cancelar o reprogramar desde Mis citas.</p>
           <Field label="Notas (opcional)"><Textarea value={notes} onChange={(e) => setNotes(e.target.value)} /></Field>
@@ -299,7 +320,7 @@ export function PatientBook() {
       )}
       <div className="mt-6 flex flex-wrap gap-2">
         {step > 1 ? <Button tone="secondary" onClick={() => setStep((s) => s - 1)}>Atrás</Button> : null}
-        {step < 7 ? (
+        {step < 6 ? (
           <Button onClick={() => { if (validateStep()) setStep((s) => s + 1); }}>Continuar</Button>
         ) : (
           <Button onClick={confirm}>Confirmar cita</Button>
@@ -481,6 +502,7 @@ export function PatientProfile() {
         <Button type="submit">Guardar cambios</Button>
       </form>
     </Card>
+      <PatientConsents compact />
     </div>
   );
 }
