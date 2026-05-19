@@ -1,13 +1,15 @@
 import { useState, type ReactNode } from 'react';
 import { LogOut, Menu, Shield } from 'lucide-react';
 import { LogoMark } from '@/components/brand/Logo';
+import { AdminStaffSetup } from '@/components/auth/AdminStaffSetup';
 import { useLogout } from '@/components/auth/RoleGate';
-import { isClientLiveMode } from '@/lib/appMode';
+import { isClientDemoMode, isClientLiveMode } from '@/lib/appMode';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useTenant } from '@/hooks/useTenant';
+import { getStaffProfile, organizationDisplayName, organizationSubtitle } from '@/lib/organization';
 import { GlobalIdSearch } from '@/components/shared/GlobalIdSearch';
-import { IdBadge } from '@/components/ui/IdBadge';
 import { adminNav } from './nav';
+import { TenantSwitcher } from './TenantSwitcher';
 
 function AdminRail({
   path,
@@ -17,7 +19,7 @@ function AdminRail({
   variant
 }: {
   path: string;
-  tenant: { id: string; name: string };
+  tenant: { id: string; name: string; subtitle: string };
   onNav: () => void;
   onLogout: () => void;
   variant: 'drawer' | 'rail';
@@ -35,10 +37,10 @@ function AdminRail({
       <div className="mb-4 rounded-xl bg-white/10 p-3 text-white">
         <div className="flex items-center gap-2">
           <Shield className="h-5 w-5 text-[var(--warn)]" />
-          <p className="text-sm font-bold">{tenant.name}</p>
+          <p className="text-sm font-bold leading-tight">{tenant.name}</p>
         </div>
-        <IdBadge id={tenant.id} kind="tenant" />
-        <p className="mt-2 text-[0.65rem] text-white/60">Solo datos de esta clínica</p>
+        <p className="mt-1 text-xs text-white/75">{tenant.subtitle}</p>
+        <p className="mt-2 text-[0.65rem] text-white/60">Panel aislado por organización</p>
       </div>
       <nav className="flex-1 overflow-y-auto">
         {adminNav.map((item) => {
@@ -79,10 +81,22 @@ export function AdminShell({
   const path = typeof window !== 'undefined' ? window.location.pathname : '';
   const logout = useLogout();
   const scope = useTenant();
-  const { dataSource, syncing } = useDemoStore();
-  const tenant = scope.tenant ?? { id: scope.tenantId, name: 'Clínica' };
+  const { state, dataSource, syncing } = useDemoStore();
+  const orgName = organizationDisplayName(state, scope.tenantId);
+  const tenant = {
+    id: scope.tenantId,
+    name: orgName,
+    subtitle: organizationSubtitle(state, scope.tenantId)
+  };
+  const [staffReady, setStaffReady] = useState(
+    () => !isClientDemoMode() || Boolean(getStaffProfile(scope.tenantId))
+  );
   const close = () => setOpen(false);
   const live = isClientLiveMode();
+
+  if (!staffReady) {
+    return <AdminStaffSetup onDone={() => setStaffReady(true)} />;
+  }
 
   const dataLabel =
     dataSource === 'supabase'
@@ -117,11 +131,14 @@ export function AdminShell({
             </div>
             {subtitle ? <p className="portal-top__sub">{subtitle}</p> : null}
             <p className="portal-top__meta">
-              {tenant.name} · <IdBadge id={tenant.id} kind="tenant" />
+              {tenant.subtitle} · {tenant.name}
               <span className="portal-top__data">{dataLabel}</span>
             </p>
           </div>
           <div className="portal-top__actions">
+            <div className="hidden lg:block">
+              <TenantSwitcher />
+            </div>
             <div className="hidden md:block">
               <GlobalIdSearch />
             </div>

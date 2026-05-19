@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { dentistsForClinic, PRIMARY_CLINIC_ID } from '@/lib/clinic';
+import { dentistsForClinic, getPrimaryClinic } from '@/lib/clinic';
 import {
   appointmentsInRange,
   filterAppointments,
@@ -10,7 +10,9 @@ import {
 } from '@/lib/appointments';
 import {
   addBlockedSlot,
-  createAppointment,
+  tryCreateAppointment,
+  registerOrganization,
+  setDemoSession,
   createDentist,
   createPatient,
   createTreatment,
@@ -144,7 +146,8 @@ export function AdminAgenda() {
   const { setNotice } = useNotice();
   const [mode, setMode] = useState<'dia' | 'semana' | 'mes'>('dia');
   const [date, setDate] = useState(todayIso());
-  const [clinicId, setClinicId] = useState(PRIMARY_CLINIC_ID);
+  const primaryClinic = getPrimaryClinic(state, scope.tenantId);
+  const [clinicId, setClinicId] = useState(primaryClinic.id);
   const [dentistId, setDentistId] = useState('');
   const [cabinetId, setCabinetId] = useState('');
   const [blockTime, setBlockTime] = useState('13:00');
@@ -173,7 +176,7 @@ export function AdminAgenda() {
         ))}
         <Input type="date" className="field-control !w-auto" value={date} onChange={(e) => setDate(e.target.value)} />
         <Select className="field-control !w-auto" value={clinicId} onChange={(e) => setClinicId(e.target.value)}>
-          {state.clinics.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          {scope.clinics.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </Select>
         <Select className="field-control !w-auto" value={dentistId} onChange={(e) => setDentistId(e.target.value)}>
           <option value="">Todos dentistas</option>
@@ -201,7 +204,7 @@ export function AdminAgenda() {
           </div>
         </div>
         <ul className="mt-3 space-y-1 text-sm">
-          {state.blockedSlots.map((b) => (
+          {scope.blockedSlots.filter((b) => b.clinicId === clinicId).map((b) => (
             <li key={b.id} className="flex justify-between rounded-lg bg-rose-50 px-3 py-2">
               <span>{fmtDate(b.date)} {b.time} — {b.reason}</span>
               <button type="button" className="font-bold text-rose-700" onClick={() => commit(removeBlockedSlot(state, b.id))}>Quitar</button>
@@ -243,12 +246,13 @@ export function AdminAppointments() {
   const [q, setQ] = useState('');
   const [status, setStatus] = useState('todos');
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const clinic = getPrimaryClinic(state, scope.tenantId);
   const list = filterAppointments(state, scope.appointments, { q, status });
   const [form, setForm] = useState({
     patientId: state.patients[0]?.id ?? '',
     dentistId: scope.dentists[0]?.id ?? '',
     treatmentId: scope.treatments[0]?.id ?? '',
-    cabinetId: 'g-1',
+    cabinetId: clinic.cabinets[0]?.id ?? 'g-1',
     date: todayIso(),
     time: '10:00'
   });
@@ -264,19 +268,22 @@ export function AdminAppointments() {
       setNotice({ type: 'error', message: err });
       return;
     }
-    commit(
-      createAppointment(state, {
-        patientId: form.patientId,
-        dentistId: form.dentistId,
-        clinicId: PRIMARY_CLINIC_ID,
-        cabinetId: form.cabinetId,
-        treatmentId: form.treatmentId,
-        date: form.date,
-        time: form.time,
-        notes: '',
-        status: 'pendiente'
-      })
-    );
+    const result = tryCreateAppointment(state, {
+      patientId: form.patientId,
+      dentistId: form.dentistId,
+      clinicId: clinic.id,
+      cabinetId: form.cabinetId,
+      treatmentId: form.treatmentId,
+      date: form.date,
+      time: form.time,
+      notes: '',
+      status: 'pendiente'
+    });
+    if (!result.ok) {
+      setNotice({ type: 'error', message: result.message ?? 'Horario ocupado.' });
+      return;
+    }
+    commit(result.state);
     setNotice({ type: 'ok', message: 'Cita creada.' });
   }
 
@@ -346,7 +353,7 @@ export function AdminPatients() {
         medication: 'Ninguna',
         reminderChannels: ['email'],
         primaryDentistId: scope.dentists[0]?.id ?? '',
-        preferredClinicId: PRIMARY_CLINIC_ID,
+        preferredClinicId: getPrimaryClinic(state, scope.tenantId).id,
         emergencyContactName: '',
         emergencyContactPhone: '',
         notes: ''
@@ -408,7 +415,17 @@ export function AdminPatients() {
 export function AdminDentists() {
   const { state, commit } = useDemoStore();
   const scope = useTenant();
-  const [form, setForm] = useState<Dentist>({ ...state.dentists[0], id: uid('d'), active: true });
+  const emptyDentist: Dentist = {
+    id: uid('d'),
+    tenantId: scope.tenantId,
+    fullName: '',
+    specialty: '',
+    email: '',
+    phone: '',
+    schedule: 'Lun–Vie 09:00–17:00',
+    active: true
+  };
+  const [form, setForm] = useState<Dentist>(scope.dentists[0] ?? emptyDentist);
   return (
     <Card title="Dentistas">
       <ul className="mb-4 space-y-2">{scope.dentists.map((d) => (
@@ -451,26 +468,71 @@ export function AdminTreatments() {
 
 export function AdminClinics() {
   const { state, commit } = useDemoStore();
-  const clinic = state.clinics[0];
+  const scope = useTenant();
+  const { setNotice } = useNotice();
+  const clinic = getPrimaryClinic(state, scope.tenantId);
   const [cabinetName, setCabinetName] = useState('');
+  const [newOrg, setNewOrg] = useState({
+    centerName: '',
+    ownerName: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: 'Madrid'
+  });
+
+  function registerCenter() {
+    const err =
+      required(newOrg.centerName, 'Nombre del centro') ||
+      required(newOrg.ownerName, 'Responsable') ||
+      required(newOrg.email, 'Email') ||
+      required(newOrg.phone, 'Teléfono');
+    if (err) {
+      setNotice({ type: 'error', message: err });
+      return;
+    }
+    const { state: next, tenantId } = registerOrganization(state, newOrg);
+    commit(next);
+    setDemoSession({ role: 'admin', tenantId });
+    setNotice({ type: 'ok', message: `Centro «${newOrg.centerName}» registrado. Cambiando de organización…` });
+    window.location.href = '/admin/clinicas';
+  }
+
   return (
-    <Card title="Clínicas y gabinetes">
-      <Field label="Nombre"><Input value={clinic.name} onChange={(e) => commit(saveClinic(state, { ...clinic, name: e.target.value, active: clinic.active }))} /></Field>
-      <Field label="Horarios"><Input value={clinic.openingHours} onChange={(e) => commit(saveClinic(state, { ...clinic, openingHours: e.target.value }))} /></Field>
-      <label className="mt-2 flex items-center gap-2 text-sm font-bold">
-        <input type="checkbox" checked={clinic.active} onChange={(e) => commit(saveClinic(state, { ...clinic, active: e.target.checked }))} /> Clínica activa
-      </label>
-      <ul className="mt-4 space-y-2">{clinic.cabinets.map((g) => (
-        <li key={g.id} className="flex justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
-          <span>{g.name}</span>
-          <button type="button" className="font-bold" onClick={() => commit(saveCabinet(state, clinic.id, { ...g, active: !g.active }))}>{g.active ? 'Desactivar' : 'Activar'}</button>
-        </li>
-      ))}</ul>
-      <div className="mt-3 flex gap-2">
-        <Input placeholder="Nuevo gabinete" value={cabinetName} onChange={(e) => setCabinetName(e.target.value)} />
-        <Button onClick={() => { if (!cabinetName.trim()) return; commit(saveCabinet(state, clinic.id, { id: uid('g'), name: cabinetName, equipment: 'General', active: true })); setCabinetName(''); }}>Añadir</Button>
-      </div>
-    </Card>
+    <div className="space-y-4">
+      <Card title={`Tu centro · ${clinic.name}`}>
+        <Field label="Nombre"><Input value={clinic.name} onChange={(e) => commit(saveClinic(state, { ...clinic, name: e.target.value, active: clinic.active }))} /></Field>
+        <Field label="Horarios"><Input value={clinic.openingHours} onChange={(e) => commit(saveClinic(state, { ...clinic, openingHours: e.target.value }))} /></Field>
+        <label className="mt-2 flex items-center gap-2 text-sm font-bold">
+          <input type="checkbox" checked={clinic.active} onChange={(e) => commit(saveClinic(state, { ...clinic, active: e.target.checked }))} /> Centro activo
+        </label>
+        <ul className="mt-4 space-y-2">{clinic.cabinets.map((g) => (
+          <li key={g.id} className="flex justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
+            <span>{g.name}</span>
+            <button type="button" className="font-bold" onClick={() => commit(saveCabinet(state, clinic.id, { ...g, active: !g.active }))}>{g.active ? 'Desactivar' : 'Activar'}</button>
+          </li>
+        ))}</ul>
+        <div className="mt-3 flex gap-2">
+          <Input placeholder="Nuevo gabinete" value={cabinetName} onChange={(e) => setCabinetName(e.target.value)} />
+          <Button onClick={() => { if (!cabinetName.trim()) return; commit(saveCabinet(state, clinic.id, { id: uid('g'), name: cabinetName, equipment: 'General', active: true })); setCabinetName(''); }}>Añadir</Button>
+        </div>
+      </Card>
+
+      <Card title="Registrar nuevo centro clínico">
+        <p className="mb-3 text-sm text-[var(--muted)]">
+          Cada centro tiene su propio panel: agenda, dentistas, facturación e informes. Los huecos de cita se sincronizan por clínica.
+        </p>
+        <div className="grid gap-3 md:grid-cols-2">
+          <Field label="Nombre del centro"><Input value={newOrg.centerName} onChange={(e) => setNewOrg({ ...newOrg, centerName: e.target.value })} /></Field>
+          <Field label="Responsable"><Input value={newOrg.ownerName} onChange={(e) => setNewOrg({ ...newOrg, ownerName: e.target.value })} /></Field>
+          <Field label="Email"><Input type="email" value={newOrg.email} onChange={(e) => setNewOrg({ ...newOrg, email: e.target.value })} /></Field>
+          <Field label="Teléfono"><Input value={newOrg.phone} onChange={(e) => setNewOrg({ ...newOrg, phone: e.target.value })} /></Field>
+          <Field label="Dirección"><Input value={newOrg.address} onChange={(e) => setNewOrg({ ...newOrg, address: e.target.value })} /></Field>
+          <Field label="Ciudad"><Input value={newOrg.city} onChange={(e) => setNewOrg({ ...newOrg, city: e.target.value })} /></Field>
+          <Button className="md:col-span-2" onClick={registerCenter}>Registrar y abrir panel</Button>
+        </div>
+      </Card>
+    </div>
   );
 }
 
@@ -479,7 +541,7 @@ export function AdminReports() {
   const scope = useTenant();
   const byStatus = ['pendiente', 'confirmada', 'completada', 'cancelada', 'no_asistio'] as const;
   const max = Math.max(1, ...byStatus.map((s) => scope.appointments.filter((a) => a.status === s).length));
-  const top = [...state.treatments].map((t) => ({
+  const top = [...scope.treatments].map((t) => ({
     t,
     n: scope.appointments.filter((a) => a.treatmentId === t.id).length
   })).sort((a, b) => b.n - a.n).slice(0, 3);

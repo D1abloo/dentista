@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import { useDemoStore } from '@/hooks/useDemoStore';
+import { useTenant } from '@/hooks/useTenant';
 import { findPatientIdByQuery } from '@/lib/patientSearch';
+import { patientsForTenant } from '@/lib/tenant';
 import { IdBadge } from '@/components/ui/IdBadge';
 import { Input } from '@/components/ui';
 
@@ -9,31 +11,39 @@ type Hit = { id: string; kind: 'paciente' | 'cita' | 'informe' | 'documento' | '
 
 export function GlobalIdSearch() {
   const { state } = useDemoStore();
+  const scope = useTenant();
   const [q, setQ] = useState('');
 
   const hits = useMemo((): Hit[] => {
     const s = q.trim().toUpperCase();
     if (s.length < 3) return [];
     const out: Hit[] = [];
+    const tenantIds = new Set([scope.tenantId]);
+    const scopePatientIds = new Set(patientsForTenant(state, scope.tenantId));
+    const scopeInvoiceIds = new Set(scope.invoices.map((i) => i.id));
 
     for (const p of state.patients) {
+      if (!scopePatientIds.has(p.id)) continue;
       if (p.id.includes(s) || p.dni?.toUpperCase().includes(s)) {
         out.push({ id: p.id, kind: 'paciente', href: `/admin/pacientes/${p.id}`, label: p.fullName });
       }
     }
-    for (const a of state.appointments) {
+    for (const a of scope.appointments) {
       if (a.id.includes(s)) out.push({ id: a.id, kind: 'cita', href: '/admin/citas', label: `Cita · ${a.id}` });
     }
     for (const r of state.clinicalReports) {
+      if (!tenantIds.has(r.tenantId)) continue;
       if (r.id.includes(s)) out.push({ id: r.id, kind: 'informe', href: '/admin/informes', label: r.title });
     }
     for (const d of state.patientDocuments) {
+      if (!tenantIds.has(d.tenantId)) continue;
       if (d.id.includes(s)) out.push({ id: d.id, kind: 'documento', href: '/admin/documentos', label: d.title });
     }
-    for (const i of state.invoices) {
+    for (const i of scope.invoices) {
       if (i.id.includes(s)) out.push({ id: i.id, kind: 'factura', href: '/admin/facturas', label: i.concept });
     }
     for (const p of state.payments) {
+      if (!p.invoiceId || !scopeInvoiceIds.has(p.invoiceId)) continue;
       if (p.id.includes(s)) out.push({ id: p.id, kind: 'pago', href: '/admin/pagos', label: `Pago ${p.id}` });
     }
 
@@ -44,7 +54,7 @@ export function GlobalIdSearch() {
     }
 
     return out.slice(0, 8);
-  }, [state, q]);
+  }, [state, scope, q]);
 
   return (
     <div className="id-search">

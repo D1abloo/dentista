@@ -46,3 +46,11 @@ export function nextDentistId(state: DemoState) {
 export function nextTreatmentId(state: DemoState) {
   return nextId('TRA', state.treatments.map((t) => t.id));
 }
+
+export function nextTenantId(state: DemoState) {
+  return nextId('TEN', state.tenants.map((t) => t.id));
+}
+
+export function nextClinicId(state: DemoState) {
+  return nextId('CLI', state.clinics.map((c) => c.id));
+}

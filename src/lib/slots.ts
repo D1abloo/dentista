@@ -1,4 +1,5 @@
 import type { DemoState } from '@/types/demo';
+import { isActiveStatus } from '@/lib/appointments';
 import { clinicTenantId } from '@/lib/clinic';
 
 export type SlotStatus = 'libre' | 'ocupado' | 'bloqueado';
@@ -32,10 +33,9 @@ function slotContext(
     state.appointments
       .filter(
         (a) =>
-          a.dentistId === opts.dentistId &&
+          a.clinicId === opts.clinicId &&
           a.date === opts.date &&
-          a.status !== 'cancelada' &&
-          a.cabinetId === opts.cabinetId
+          isActiveStatus(a.status)
       )
       .map((a) => a.time)
   );
@@ -43,6 +43,7 @@ function slotContext(
     state.blockedSlots
       .filter(
         (b) =>
+          b.clinicId === opts.clinicId &&
           b.dentistId === opts.dentistId &&
           b.date === opts.date &&
           (b.cabinetId === opts.cabinetId || !b.cabinetId)

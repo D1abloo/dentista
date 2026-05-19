@@ -17,6 +17,7 @@ import { getPatientById, patientName } from '@/lib/selectors';
 import { positiveAmount, required } from '@/lib/validation';
 import { modeCopy } from '@/lib/appMode';
 import { useDemoStore } from '@/hooks/useDemoStore';
+import { useTenant } from '@/hooks/useTenant';
 import { useNotice } from '@/hooks/useNotice';
 import type { Invoice, PatientDocument } from '@/types/demo';
 import { IdBadge } from '@/components/ui/IdBadge';
@@ -35,8 +36,14 @@ import {
   Textarea
 } from '@/components/ui';
 
-function AppointmentOptions({ state, patientId }: { state: ReturnType<typeof useDemoStore>['state']; patientId: string }) {
-  const appts = state.appointments.filter((a) => a.patientId === patientId);
+function AppointmentOptions({
+  appointments,
+  patientId
+}: {
+  appointments: ReturnType<typeof useDemoStore>['state']['appointments'];
+  patientId: string;
+}) {
+  const appts = appointments.filter((a) => a.patientId === patientId);
   return (
     <>
       <option value="">Sin cita vinculada</option>
@@ -51,6 +58,7 @@ function AppointmentOptions({ state, patientId }: { state: ReturnType<typeof use
 
 export function AdminDocuments() {
   const { state, commit } = useDemoStore();
+  const scope = useTenant();
   const { setNotice } = useNotice();
   const [q, setQ] = useState('');
   const [patientQ, setPatientQ] = useState('');
@@ -71,7 +79,7 @@ export function AdminDocuments() {
     : 'application/pdf,.pdf,image/jpeg,image/png';
 
   const list = useMemo(() => {
-    let d = [...state.patientDocuments];
+    let d = state.patientDocuments.filter((x) => x.tenantId === scope.tenantId);
     if (patientQ.trim()) d = d.filter((x) => recordMatchesPatientQuery(state, x.patientId, patientQ));
     if (q.trim()) {
       const s = q.toLowerCase();
@@ -83,7 +91,7 @@ export function AdminDocuments() {
       );
     }
     return d.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  }, [state, q, patientQ]);
+  }, [state, scope.tenantId, q, patientQ]);
 
   async function save() {
     const err = required(form.patientId, 'Paciente') || required(form.title, 'Título');
@@ -201,6 +209,7 @@ export function AdminDocuments() {
 
 export function AdminInvoices() {
   const { state, commit } = useDemoStore();
+  const scope = useTenant();
   const { setNotice } = useNotice();
   const [q, setQ] = useState('');
   const [patientQ, setPatientQ] = useState('');
@@ -219,7 +228,7 @@ export function AdminInvoices() {
   });
 
   const list = useMemo(() => {
-    let inv = [...state.invoices];
+    let inv = [...scope.invoices];
     if (patientQ.trim()) inv = inv.filter((x) => recordMatchesPatientQuery(state, x.patientId, patientQ));
     if (q.trim()) {
       const s = q.toLowerCase();
@@ -231,7 +240,7 @@ export function AdminInvoices() {
       );
     }
     return inv.sort((a, b) => b.issuedAt.localeCompare(a.issuedAt));
-  }, [state, q, patientQ]);
+  }, [state, scope.invoices, q, patientQ]);
 
   async function save() {
     const err =
@@ -386,7 +395,7 @@ export function AdminInvoices() {
                   });
                 }}
               >
-                <AppointmentOptions state={state} patientId={form.patientId} />
+                <AppointmentOptions appointments={scope.appointments} patientId={form.patientId} />
               </Select>
             </Field>
             <Field label="Concepto factura *">

@@ -1,14 +1,15 @@
 import { useMemo, useState } from 'react';
 import { CalendarPlus, CreditCard, MessageSquare, Sparkles } from 'lucide-react';
-import { dentistsForClinic, PRIMARY_CLINIC_ID } from '@/lib/clinic';
+import { dentistsForClinic, getPrimaryClinic } from '@/lib/clinic';
+import { treatmentsForClinic } from '@/lib/clinic';
 import {
   appointmentPrice,
   filterAppointments,
-  hasSlotConflict,
-  isActiveStatus
+  isActiveStatus,
+  isClinicSlotTaken
 } from '@/lib/appointments';
 import {
-  createAppointment,
+  tryCreateAppointment,
   downloadDemoFile,
   normativeFor,
   rescheduleAppointment,
@@ -191,10 +192,18 @@ export function PatientBook() {
   const patient = usePatient();
   const { setNotice } = useNotice();
   const [step, setStep] = useState(1);
-  const [clinicId, setClinicId] = useState(patient.preferredClinicId || PRIMARY_CLINIC_ID);
+  const defaultClinic = patient.preferredClinicId
+    ? (state.clinics.find((c) => c.id === patient.preferredClinicId) ??
+        getPrimaryClinic(state, clinicTenantId(state, patient.preferredClinicId)))
+    : getPrimaryClinic(state);
+  const [clinicId, setClinicId] = useState(patient.preferredClinicId || defaultClinic.id);
   const [treatmentId, setTreatmentId] = useState('');
   const [dentistId, setDentistId] = useState('');
-  const [cabinetId, setCabinetId] = useState('g-1');
+  const initialCabinet =
+    state.clinics.find((c) => c.id === (patient.preferredClinicId || defaultClinic.id))?.cabinets.find((g) => g.active)?.id ??
+    defaultClinic.cabinets[0]?.id ??
+    'g-1';
+  const [cabinetId, setCabinetId] = useState(initialCabinet);
   const [date, setDate] = useState(todayIso());
   const [time, setTime] = useState('');
   const [notes, setNotes] = useState('');
@@ -231,25 +240,24 @@ export function PatientBook() {
   }
 
   function confirm() {
-    if (hasSlotConflict(state, { dentistId, cabinetId, date, time })) {
-      setNotice({ type: 'error', message: 'Ese horario ya no está disponible. Elige otra hora.' });
-      setStep(5);
+    const result = tryCreateAppointment(state, {
+      patientId: patient.id,
+      tenantId: clinicTenantId(state, clinicId),
+      dentistId,
+      clinicId,
+      cabinetId,
+      treatmentId,
+      date,
+      time,
+      notes,
+      status: 'pendiente'
+    });
+    if (!result.ok) {
+      setNotice({ type: 'error', message: result.message ?? 'Horario no disponible.' });
+      setStep(4);
       return;
     }
-    commit(
-      createAppointment(state, {
-        patientId: patient.id,
-        tenantId: clinicTenantId(state, clinicId),
-        dentistId,
-        clinicId,
-        cabinetId,
-        treatmentId,
-        date,
-        time,
-        notes,
-        status: 'pendiente'
-      })
-    );
+    commit(result.state);
     setNotice({ type: 'ok', message: settingsFor(state).appointmentConfirmMessage });
     window.location.href = '/paciente/citas';
   }
@@ -262,7 +270,15 @@ export function PatientBook() {
       <Stepper steps={bookSteps} current={step} />
       {step === 1 && (
         <Field label="Clínica" error={errors.clinicId}>
-          <Select value={clinicId} onChange={(e) => setClinicId(e.target.value)}>
+          <Select
+            value={clinicId}
+            onChange={(e) => {
+              const id = e.target.value;
+              setClinicId(id);
+              const c = state.clinics.find((x) => x.id === id);
+              setCabinetId(c?.cabinets.find((g) => g.active)?.id ?? c?.cabinets[0]?.id ?? 'g-1');
+            }}
+          >
             {state.clinics.filter((c) => c.active).map((c) => (
               <option key={c.id} value={c.id}>{c.name} — {tenantName(state, c.tenantId)}</option>
             ))}
@@ -273,7 +289,7 @@ export function PatientBook() {
         <Field label="Tratamiento" error={errors.treatmentId}>
           <Select value={treatmentId} onChange={(e) => setTreatmentId(e.target.value)}>
             <option value="">Selecciona…</option>
-            {state.treatments.filter((t) => t.active).map((t) => (
+            {treatmentsForClinic(state, clinicId).map((t) => (
               <option key={t.id} value={t.id}>{t.name} · {money(t.price)} · {t.durationMinutes} min</option>
             ))}
           </Select>
@@ -377,7 +393,7 @@ function AppointmentRow({ a }: { a: Appointment }) {
         onClose={() => setShowCancel(false)} />
       <ConfirmModal open={showResched} title="Reprogramar cita" message="Indica nueva fecha y hora en el formulario al cerrar." confirmLabel="Guardar"
         onConfirm={() => {
-          if (hasSlotConflict(state, { dentistId: a.dentistId, cabinetId: a.cabinetId ?? 'g-1', date, time, excludeId: a.id })) {
+          if (isClinicSlotTaken(state, { clinicId: a.clinicId, date, time, excludeId: a.id })) {
             setNotice({ type: 'error', message: 'Horario no disponible.' });
             return;
           }

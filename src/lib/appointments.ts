@@ -12,6 +12,7 @@ export function appointmentPrice(state: DemoState, treatmentId: string) {
 export function hasSlotConflict(
   state: DemoState,
   opts: {
+    clinicId: string;
     dentistId: string;
     cabinetId: string;
     date: string;
@@ -23,8 +24,24 @@ export function hasSlotConflict(
     (a) =>
       a.id !== opts.excludeId &&
       isActiveStatus(a.status) &&
+      a.clinicId === opts.clinicId &&
       a.dentistId === opts.dentistId &&
       a.cabinetId === opts.cabinetId &&
+      a.date === opts.date &&
+      a.time === opts.time
+  );
+}
+
+/** Hueco ocupado en la clínica (misma fecha y hora, cualquier gabinete o dentista). */
+export function isClinicSlotTaken(
+  state: DemoState,
+  opts: { clinicId: string; date: string; time: string; excludeId?: string }
+) {
+  return state.appointments.some(
+    (a) =>
+      a.id !== opts.excludeId &&
+      isActiveStatus(a.status) &&
+      a.clinicId === opts.clinicId &&
       a.date === opts.date &&
       a.time === opts.time
   );

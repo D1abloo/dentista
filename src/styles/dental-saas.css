@@ -2055,3 +2055,74 @@ body.sig-modal-open {
     font-size: 1.1rem;
   }
 }
+
+/* Multi-centro: selector y bienvenida admin */
+.tenant-switch {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 11rem;
+}
+
+.tenant-switch__label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.tenant-switch__select {
+  min-width: 10rem;
+  font-size: 0.85rem;
+}
+
+.staff-setup {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: linear-gradient(160deg, #0f172a 0%, #1e3a5f 45%, #0f766e 100%);
+}
+
+.staff-setup__card {
+  width: 100%;
+  max-width: 26rem;
+  padding: 2rem;
+  border-radius: 1.25rem;
+  background: #fff;
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.25);
+}
+
+.staff-setup__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin-bottom: 1rem;
+  border-radius: 1rem;
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--dental-700);
+}
+
+.staff-setup__title {
+  font-family: var(--display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem;
+}
+
+.staff-setup__lead {
+  margin: 0 0 1.25rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.staff-setup__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}

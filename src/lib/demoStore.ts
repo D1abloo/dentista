@@ -1,5 +1,7 @@
 import { demoSeed, DEMO_PATIENT_LOGIN_ID } from '@/data/demoData';
+import { isClinicSlotTaken } from '@/lib/appointments';
 import { todayIso } from '@/lib/format';
+import { nextClinicId, nextTenantId } from '@/lib/ids';
 import {
   nextAppointmentId,
   nextConsentId,
@@ -34,6 +36,7 @@ import type {
   PatientDocument,
   Payment,
   Treatment,
+  Tenant,
   AdminNote
 } from '@/types/demo';
 
@@ -145,6 +148,97 @@ export function createAppointment(
     createdAt: todayIso()
   };
   return { ...state, appointments: [...state.appointments, appointment] };
+}
+
+export function tryCreateAppointment(
+  state: DemoState,
+  input: Omit<Appointment, 'id' | 'createdAt' | 'tenantId'> & { status?: AppointmentStatus; tenantId?: string }
+): { state: DemoState; ok: boolean; message?: string } {
+  if (isClinicSlotTaken(state, { clinicId: input.clinicId, date: input.date, time: input.time })) {
+    return {
+      state,
+      ok: false,
+      message: 'Ese horario ya está reservado en esta clínica. Elige otra hora o día.'
+    };
+  }
+  return { state: createAppointment(state, input), ok: true };
+}
+
+export function registerOrganization(
+  state: DemoState,
+  input: {
+    centerName: string;
+    ownerName: string;
+    email: string;
+    phone: string;
+    address: string;
+    city?: string;
+  }
+): { state: DemoState; tenantId: string; clinicId: string } {
+  const tenantId = nextTenantId(state);
+  const clinicId = nextClinicId(state);
+  const centerName = input.centerName.trim();
+  const tenant: Tenant = {
+    id: tenantId,
+    name: centerName,
+    type: 'clinica',
+    ownerName: input.ownerName.trim(),
+    email: input.email.trim(),
+    phone: input.phone.trim(),
+    address: input.address.trim(),
+    active: true,
+    createdAt: todayIso()
+  };
+  const clinic: Clinic = {
+    id: clinicId,
+    tenantId,
+    name: centerName,
+    address: input.address.trim(),
+    city: input.city?.trim() || 'Madrid',
+    phone: input.phone.trim(),
+    email: input.email.trim(),
+    whatsapp: input.phone.trim(),
+    openingHours: 'Lun–Vie 09:00–20:00',
+    active: true,
+    cabinets: [{ id: `g-${clinicId.slice(-4)}`, name: 'Gabinete 1', equipment: 'General', active: true }]
+  };
+  const appSettings: AppSettings = {
+    clinicName: centerName,
+    tagline: 'Gestión dental premium',
+    legalName: `${centerName} S.L.`,
+    phone: input.phone.trim(),
+    email: input.email.trim(),
+    whatsapp: input.phone.trim(),
+    address: input.address.trim(),
+    city: input.city?.trim() || 'Madrid',
+    generalHours: 'Lun–Vie 09:00–20:00',
+    defaultDuration: 45,
+    slotIntervalMinutes: 15,
+    minCancelHours: 24,
+    remindersEnabled: true,
+    welcomeMessage: `Bienvenido a ${centerName}`,
+    appointmentConfirmMessage: 'Cita registrada correctamente.',
+    primaryColor: '#0F2742',
+    accentColor: '#14B8A6',
+    nif: 'B00000000',
+    vatRate: 21,
+    invoiceSeries: 'FAC',
+    defaultInvoiceConcept: 'Servicios odontológicos',
+    logoUrl: '/brand/dentista-logo.svg',
+    imageUrl: '/brand/dentista-logo.svg'
+  };
+  const normative: NormativeText[] = normativeFor(state, TENANT_CENTRO).length
+    ? structuredClone(normativeFor(state, TENANT_CENTRO))
+    : [];
+
+  const next: DemoState = {
+    ...state,
+    tenants: [...state.tenants, tenant],
+    clinics: [...state.clinics, clinic],
+    settingsByTenant: { ...state.settingsByTenant, [tenantId]: appSettings },
+    normativeByTenant: { ...state.normativeByTenant, [tenantId]: normative }
+  };
+  return { state: next, tenantId, clinicId };
 }
 
 export function updateAppointmentStatus(
