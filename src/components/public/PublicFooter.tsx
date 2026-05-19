@@ -1,44 +1,74 @@
+import { Facebook, Instagram, Linkedin } from 'lucide-react';
 import { LogoMark } from '@/components/brand/Logo';
-import { isClientDemoMode } from '@/lib/appMode';
+
+const product = [
+  { href: '/#caracteristicas', label: 'Características' },
+  { href: '/reserva', label: 'Reservar cita' },
+  { href: '/login/paciente', label: 'Portal paciente' },
+  { href: '/login/admin', label: 'Panel clínica' }
+];
+
+const company = [
+  { href: '/contacto', label: 'Contacto' },
+  { href: '/documentacion', label: 'Documentación' },
+  { href: '/#demo', label: 'Demo' },
+  { href: '/#precios', label: 'Precios' }
+];
+
+const legal = [
+  { href: '/privacidad', label: 'Privacidad' },
+  { href: '/terminos', label: 'Términos' },
+  { href: '/cookies', label: 'Cookies' }
+];
 
 export function PublicFooter() {
   return (
-    <footer className="pub-footer">
-      <div className="shell pub-footer__grid">
-        <div>
-          <a href="/" className="inline-flex items-center gap-2 text-white no-underline">
+    <footer className="lp-footer">
+      <div className="shell lp-footer__grid">
+        <div className="lp-footer__brand">
+          <a href="/" className="lp-footer__logo">
             <LogoMark size={32} />
-            <span className="font-[family-name:var(--display)] text-lg">Dentista+</span>
+            <span className="font-[family-name:var(--display)] text-lg text-[var(--ink)]">Dentista+</span>
           </a>
-          <p className="mt-3 max-w-xs text-sm leading-relaxed">
-            Plataforma premium para gestión de citas, informes, facturas y pagos dentales multi-clínica.
-          </p>
+          <p>La plataforma dental que conecta pacientes y clínicas con seguridad, diseño premium y gestión integral.</p>
+          <div className="lp-footer__social">
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+              <Facebook className="h-4 w-4" />
+            </a>
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <Instagram className="h-4 w-4" />
+            </a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+              <Linkedin className="h-4 w-4" />
+            </a>
+          </div>
         </div>
         <div>
-          <h4>Servicios</h4>
-          <a href="/#servicios">Citas online</a>
-          <a href="/#portal">Portal paciente</a>
-          <a href="/#admin">Panel clínica</a>
+          <h4>Producto</h4>
+          {product.map((l) => (
+            <a key={l.href} href={l.href}>
+              {l.label}
+            </a>
+          ))}
         </div>
         <div>
-          <h4>Portales</h4>
-          <a href="/login/paciente">Acceso paciente</a>
-          <a href="/login/admin">Acceso administración</a>
-          <a href="/reserva">Reserva pública</a>
+          <h4>Compañía</h4>
+          {company.map((l) => (
+            <a key={l.href} href={l.href}>
+              {l.label}
+            </a>
+          ))}
         </div>
         <div>
           <h4>Legal</h4>
-          <a href="/cookies">Cookies</a>
-          <a href="/privacidad">Privacidad</a>
-          <a href="/terminos">Términos</a>
-          <a href="/documentacion">Documentación</a>
-          <a href="/contacto">Contacto</a>
+          {legal.map((l) => (
+            <a key={l.href} href={l.href}>
+              {l.label}
+            </a>
+          ))}
         </div>
       </div>
-      <div className="shell mt-10 border-t border-white/10 pt-6 text-center text-xs">
-        © {new Date().getFullYear()} Dentista+.
-        {isClientDemoMode() ? ' Modo demo con localStorage.' : ' Modo LIVE · sesión segura por cookie.'}
-      </div>
+      <div className="shell lp-footer__copy">© {new Date().getFullYear()} Dentista+. Todos los derechos reservados.</div>
     </footer>
   );
 }

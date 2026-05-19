@@ -4,10 +4,9 @@ import { LogoMark } from '@/components/brand/Logo';
 
 const links = [
   { href: '/', label: 'Inicio' },
-  { href: '/login/paciente', label: 'Portal paciente' },
-  { href: '/login/admin', label: 'Panel admin' },
-  { href: '/#servicios', label: 'Servicios' },
-  { href: '/documentacion', label: 'Documentación' },
+  { href: '/#caracteristicas', label: 'Características' },
+  { href: '/#demo', label: 'Demo' },
+  { href: '/#precios', label: 'Precios' },
   { href: '/contacto', label: 'Contacto' }
 ];
 
@@ -17,7 +16,7 @@ export function PublicHeader() {
   return (
     <header className="pub-header">
       <div className="shell pub-header__inner">
-        <a href="/" className="flex items-center gap-2 font-bold text-[var(--navy)] no-underline">
+        <a href="/" className="pub-header__brand">
           <LogoMark size={36} />
           <span className="font-[family-name:var(--display)] text-lg">Dentista+</span>
         </a>
@@ -29,7 +28,7 @@ export function PublicHeader() {
           ))}
         </nav>
         <div className="pub-actions">
-          <a href="/login" className="btn btn--ghost btn--sm hidden sm:inline-flex">
+          <a href="/login" className="btn btn--outline btn--sm hidden sm:inline-flex">
             Iniciar sesión
           </a>
           <a href="/reserva" className="btn btn--primary btn--sm">
@@ -47,7 +46,7 @@ export function PublicHeader() {
               {l.label}
             </a>
           ))}
-          <a href="/login" className="mt-2" onClick={() => setOpen(false)}>
+          <a href="/login" className="mt-2 block" onClick={() => setOpen(false)}>
             Iniciar sesión
           </a>
         </nav>
