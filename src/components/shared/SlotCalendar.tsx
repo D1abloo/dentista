@@ -20,7 +20,7 @@ export function SlotCalendar({
     <div className="slot-cal">
       <div className="slot-cal__legend">
         <span><i className="slot-cal__dot slot-cal__dot--free" /> Libre ({free})</span>
-        <span><i className="slot-cal__dot slot-cal__dot--busy" /> Ocupado ({busy})</span>
+        <span><i className="slot-cal__dot slot-cal__dot--busy" /> Reservado ({busy})</span>
         <span><i className="slot-cal__dot slot-cal__dot--block" /> Bloqueado</span>
       </div>
       <div className="slot-cal__grid" role="listbox" aria-label="Horas disponibles">
@@ -31,6 +31,14 @@ export function SlotCalendar({
             role="option"
             aria-selected={value === s.time}
             disabled={!s.selectable}
+            title={s.status === 'ocupado' ? 'Hora ya reservada en esta clínica' : s.status === 'bloqueado' ? 'Horario bloqueado' : undefined}
+            aria-label={
+              s.status === 'ocupado'
+                ? `${s.time}, reservado`
+                : s.status === 'bloqueado'
+                  ? `${s.time}, bloqueado`
+                  : `${s.time}, disponible`
+            }
             className={`slot-cal__cell slot-cal__cell--${s.status} ${value === s.time ? 'slot-cal__cell--picked' : ''}`}
             onClick={() => onChange(s.time)}
           >

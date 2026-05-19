@@ -1549,7 +1549,7 @@ body {
 }
 
 .slot-cal__dot--free { background: #10b981; }
-.slot-cal__dot--busy { background: #94a3b8; }
+.slot-cal__dot--busy { background: #ef4444; }
 .slot-cal__dot--block { background: #f59e0b; }
 
 .slot-cal__grid {
@@ -1570,9 +1570,18 @@ body {
 }
 
 .slot-cal__cell--free { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
-.slot-cal__cell--busy { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+.slot-cal__cell--busy {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+  cursor: not-allowed;
+  font-weight: 800;
+}
 .slot-cal__cell--block { background: #fffbeb; color: #b45309; cursor: not-allowed; }
 .slot-cal__cell--picked { outline: 2px solid var(--teal); outline-offset: 1px; }
+.slot-cal__cell--busy.slot-cal__cell--picked {
+  outline-color: #b91c1c;
+}
 
 /* Calendario mensual — reserva paciente */
 .book-cal {
@@ -1721,7 +1730,7 @@ body {
 
 .book-cal__day--full:not(.book-cal__day--muted) .book-cal__day-num {
   text-decoration: line-through;
-  color: #94a3b8;
+  color: #b91c1c;
 }
 
 .book-cal__dot {
@@ -1741,7 +1750,7 @@ body {
 }
 
 .book-cal__dot--full {
-  background: #cbd5e1;
+  background: #ef4444;
 }
 
 .book-cal__legend {
