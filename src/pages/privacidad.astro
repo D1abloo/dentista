@@ -1,0 +1,14 @@
+---
+import AppLayout from '@/layouts/AppLayout.astro';
+import { LegalPage } from '@/components/public/LegalPage';
+---
+<AppLayout title="Privacidad · Dentista+">
+  <LegalPage title="Política de privacidad" client:load>
+    <p>
+      Tratamos datos de contacto y clínicos únicamente para gestionar citas, informes, facturas y comunicaciones
+      relacionadas con tu atención dental.
+    </p>
+    <p>En producción, el acceso se restringe con Supabase Row Level Security por clínica (tenant) y por paciente.</p>
+    <p>Para ejercer derechos de acceso o supresión, contacta con tu clínica en la sección de contacto.</p>
+  </LegalPage>
+</AppLayout>

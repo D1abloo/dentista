@@ -1,0 +1,14 @@
+---
+import AppLayout from '@/layouts/AppLayout.astro';
+import { LegalPage } from '@/components/public/LegalPage';
+---
+<AppLayout title="Contacto · Dentista+">
+  <LegalPage title="Contacto" client:load>
+    <p>¿Necesitas ayuda con la plataforma? Escríbenos:</p>
+    <ul class="mt-4 space-y-2 text-[var(--ink)]">
+      <li><strong>Email:</strong> hola@dentista.demo</li>
+      <li><strong>Teléfono:</strong> +34 910 000 000</li>
+      <li><strong>Horario:</strong> Lun–Vie 09:00–18:00</li>
+    </ul>
+  </LegalPage>
+</AppLayout>

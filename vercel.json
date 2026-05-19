@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run vercel-build",
+  "installCommand": "npm install",
+  "env": {
+    "PUBLIC_DEMO_MODE": "false",
+    "WHATSAPP_PROVIDER": "mock",
+    "EMAIL_PROVIDER": "mock",
+    "SMS_PROVIDER": "mock"
+  }
+}

@@ -1,0 +1,7 @@
+---
+import AppLayout from '@/layouts/AppLayout.astro';
+import { PatientApp } from '@/components/DentistaApp';
+---
+<AppLayout title="Mis facturas · Dentista+">
+  <PatientApp view="facturas" client:load />
+</AppLayout>

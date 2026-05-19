@@ -1,0 +1,7 @@
+---
+import AppLayout from '@/layouts/AppLayout.astro';
+import { PatientApp } from '@/components/DentistaApp';
+---
+<AppLayout title="Mi perfil · Dentista+">
+  <PatientApp view="perfil" client:load />
+</AppLayout>

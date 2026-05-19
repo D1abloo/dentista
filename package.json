@@ -1,0 +1,48 @@
+{
+  "name": "dentista",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "DentalFlow: app premium responsive en desarrollo para gestión de citas dentales con Astro, React, Supabase y Redis cache opcional.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "vercel-build": "astro build && node scripts/verify-vercel-output.mjs && node scripts/sync-dist-for-vercel.mjs",
+    "preview": "astro preview --host 0.0.0.0",
+    "check": "astro check && npm run lint:light",
+    "lint:light": "node scripts/lint-light.mjs",
+    "smoke": "node scripts/smoke-test.mjs",
+    "seed:sql": "node scripts/print-seed.mjs",
+    "codex:bootstrap": "bash scripts/codex-bootstrap.sh",
+    "git:save": "bash scripts/git-save.sh",
+    "github:save": "bash scripts/git-save.sh"
+  },
+  "dependencies": {
+    "@astrojs/react": "^4.2.0",
+    "@astrojs/tailwind": "^6.0.2",
+    "@astrojs/vercel": "^8.2.11",
+    "@supabase/supabase-js": "^2.49.1",
+    "astro": "^5.5.0",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "ioredis": "^5.6.0",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^2.15.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@types/node": "^22.10.7",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=20.11.0"
+  }
+}

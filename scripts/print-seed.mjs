@@ -1,0 +1,1 @@
+console.log(`Orden recomendado Supabase:\n1) supabase/migrations/0001_schema.sql\n2) supabase/migrations/0002_seed.sql\n3) supabase/migrations/0003_operations.sql\n4) supabase/migrations/0004_seed_operations.sql\n\nDespués configura .env y cambia PUBLIC_DEMO_MODE=false.`);

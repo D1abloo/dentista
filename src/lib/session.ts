@@ -1,0 +1,64 @@
+import type { DemoRole } from '@/types/demo';
+import { isClientDemoMode } from '@/lib/appMode';
+import { clearDemoSession, getStoredRole } from '@/lib/demoStore';
+
+export type SessionUser = {
+  role: 'admin' | 'patient';
+  email: string;
+  name: string;
+};
+
+function mapApiRole(role: string): DemoRole | null {
+  if (role === 'admin') return 'admin';
+  if (role === 'patient') return 'paciente';
+  return null;
+}
+
+/** En LIVE ignora localStorage y usa cookie de sesión (/api/auth/me). */
+export async function resolvePortalRole(): Promise<DemoRole | null> {
+  if (isClientDemoMode()) {
+    return getStoredRole();
+  }
+
+  clearDemoSession();
+
+  try {
+    const res = await fetch('/api/auth/me', { credentials: 'include' });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { data?: SessionUser };
+    return json.data?.role ? mapApiRole(json.data.role) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function loginWithCredentials(
+  role: 'admin' | 'patient',
+  email: string,
+  password: string
+): Promise<{ ok: true; portalRole: DemoRole } | { ok: false; message: string }> {
+  clearDemoSession();
+  const res = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ role, email, password })
+  });
+  const json = (await res.json()) as {
+    data?: SessionUser;
+    error?: { message?: string };
+  };
+  if (!res.ok || !json.data?.role) {
+    return { ok: false, message: json.error?.message ?? 'Credenciales incorrectas.' };
+  }
+  const portalRole = mapApiRole(json.data.role);
+  if (!portalRole) {
+    return { ok: false, message: 'Rol de sesión no válido.' };
+  }
+  return { ok: true, portalRole };
+}
+
+export async function logoutSession(): Promise<void> {
+  clearDemoSession();
+  await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+}

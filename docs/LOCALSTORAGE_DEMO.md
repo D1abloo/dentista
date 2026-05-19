@@ -1,0 +1,63 @@
+# Persistencia demo en localStorage
+
+## Claves
+
+| Clave | Contenido |
+|-------|-----------|
+| `dentista_demo_v4` | Estado JSON completo (`DemoState`) |
+| `dentista_role` | `"paciente"` \| `"admin"` |
+| `dentista_patient_id` | Ej. `PAT-0001` |
+| `dentista_tenant_id` | Ej. `TEN-0001` (solo admin) |
+| `dentista_cookies` | `"accepted"` \| `"rejected"` \| `"configured"` |
+
+Definidas en `src/lib/storage/keys.ts`.
+
+## Sesión tras login
+
+```json
+{
+  "role": "paciente",
+  "patientId": "PAT-0001"
+}
+```
+
+```json
+{
+  "role": "admin",
+  "tenantId": "TEN-0001"
+}
+```
+
+`setDemoSession()` en `src/lib/demoStore.ts` escribe las claves anteriores.
+
+## Semilla inicial
+
+`src/data/demoData.ts` exporta `demoState` con:
+
+- 3 tenants (Centro, Norte, Sur)
+- Paciente **PAT-0001** con historial en Centro y Norte
+- Citas, informes, facturas y pagos cruzados para probar el portal paciente
+
+Al primer arranque se hidrata desde la semilla si no hay estado guardado.
+
+## Crear registros
+
+Las funciones `createAppointment`, `createTreatment`, `createDentist`, etc. en `demoStore.ts` asignan:
+
+- `tenantId` desde `getStoredTenantId()` (admin activo)
+- IDs secuenciales (`CIT-0004`, `FAC-0003`, …)
+
+## Resetear demo
+
+En el navegador: DevTools → Application → Local Storage → borrar claves `dentista_*` y recargar.
+
+O desde consola:
+
+```javascript
+Object.keys(localStorage).filter(k => k.startsWith('dentista_')).forEach(k => localStorage.removeItem(k));
+location.reload();
+```
+
+## Migración de versión
+
+Si cambia la estructura, actualiza `STORAGE_STATE` en `demoData.ts` (actualmente `dentista_demo_v4`) para forzar nueva semilla en clientes antiguos.

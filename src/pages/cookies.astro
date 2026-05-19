@@ -1,0 +1,18 @@
+---
+import AppLayout from '@/layouts/AppLayout.astro';
+import { LegalPage } from '@/components/public/LegalPage';
+---
+<AppLayout title="Cookies · Dentista+">
+  <LegalPage title="Política de cookies" client:load>
+    <p>
+      Dentista+ utiliza cookies y almacenamiento local (localStorage) en modo demo para recordar tu sesión, rol de
+      acceso y preferencias de cookies.
+    </p>
+    <h2 class="mt-8 text-lg font-bold text-[var(--navy)]">Tipos</h2>
+    <ul class="list-disc pl-5">
+      <li>Esenciales: sesión demo y persistencia de datos clínicos de prueba.</li>
+      <li>Preferencias: elección aceptar/rechazar en el banner.</li>
+    </ul>
+    <p class="mt-4">Puedes eliminar los datos desde las herramientas de desarrollo del navegador.</p>
+  </LegalPage>
+</AppLayout>

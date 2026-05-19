@@ -1,0 +1,13 @@
+---
+import AppLayout from '@/layouts/AppLayout.astro';
+import { AdminApp } from '@/components/DentistaApp';
+
+export function getStaticPaths() {
+  return ['PAT-0001', 'PAT-0002', 'PAT-0003'].map((id) => ({ params: { id } }));
+}
+
+const { id } = Astro.params;
+---
+<AppLayout title={`Paciente ${id} · Dentista+`}>
+  <AdminApp view="pacientes" patientId={id} client:load />
+</AppLayout>
