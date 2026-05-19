@@ -4,7 +4,7 @@ import { RoleGate } from '@/components/auth/RoleGate';
 import { Toast } from '@/components/ui';
 import { useNotice } from '@/hooks/useNotice';
 import type { AdminView } from './nav';
-import { adminTitles } from './nav';
+import { adminSubtitles, adminTitles } from './nav';
 import { AdminShell } from './AdminShell';
 import {
   AdminAgenda,
@@ -63,8 +63,9 @@ function Body({ view, patientId }: { view: AdminView; patientId?: string }) {
 function AdminInner({ view, patientId }: { view: AdminView; patientId?: string }) {
   const { notice, clear } = useNotice();
   const title = patientId && view === 'pacientes' ? `Ficha ${patientId}` : adminTitles[view];
+  const subtitle = patientId && view === 'pacientes' ? undefined : adminSubtitles[view];
   return (
-    <AdminShell title={title}>
+    <AdminShell title={title} subtitle={subtitle}>
       <Toast notice={notice} onClose={clear} />
       <Body view={view} patientId={patientId} />
     </AdminShell>

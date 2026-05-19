@@ -13,6 +13,7 @@ import { recordMatchesPatientQuery } from '@/lib/patientSearch';
 import { fmtDate, money, todayIso } from '@/lib/format';
 import { getPatientById, patientName } from '@/lib/selectors';
 import { positiveAmount, required } from '@/lib/validation';
+import { modeCopy } from '@/lib/appMode';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import type { Invoice, PatientDocument } from '@/types/demo';
@@ -27,7 +28,6 @@ import {
   Field,
   FileUpload,
   Input,
-  PageHeader,
   SearchInput,
   Select,
   Textarea
@@ -131,7 +131,6 @@ export function AdminDocuments() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Documentos del paciente" subtitle="Subida real en demo · radiografías obligatorias" />
       <div className="admin-search-bar">
         <SearchInput value={patientQ} onChange={setPatientQ} placeholder="Buscar por DNI o PAT-XXXX…" />
         <SearchInput value={q} onChange={setQ} placeholder="ID documento, tipo o título…" />
@@ -308,7 +307,6 @@ export function AdminInvoices() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Facturas PDF" subtitle="FAC-XXXX · solo formato PDF" />
       <div className="admin-search-bar">
         <SearchInput value={patientQ} onChange={setPatientQ} placeholder="Buscar por DNI o PAT-XXXX…" />
         <SearchInput value={q} onChange={setQ} placeholder="ID factura o concepto…" />
@@ -329,7 +327,7 @@ export function AdminInvoices() {
           )
         }
       >
-        Exportar CSV demo
+        {modeCopy('Exportar CSV demo', 'Exportar CSV')}
       </Button>
       <div className="grid gap-4 xl:grid-cols-[1fr_400px]">
         <Card title="Listado">

@@ -7,7 +7,7 @@ import {
   saveDemoStateToSupabase,
   useSupabaseDemoStorage
 } from '@/lib/supabaseDemo';
-import { hasSupabaseConfig } from '@/lib/supabaseServer';
+import { hasSupabaseConfig, isDemoMode } from '@/lib/supabaseServer';
 
 export const prerender = false;
 
@@ -16,11 +16,18 @@ export const GET: APIRoute = async () => {
     if (!useSupabaseDemoStorage()) {
       return ok(
         { source: 'local' as const, state: demoSeed },
-        { message: 'Modo demo local: configura Supabase en el servidor para datos compartidos.' }
+        {
+          message: isDemoMode()
+            ? 'Modo demo local: configura Supabase en el servidor para datos compartidos.'
+            : 'Modo LIVE: datos en memoria del servidor. Configura Supabase para persistencia.'
+        }
       );
     }
     const state = await ensureDemoStateInSupabase();
-    return ok({ source: 'supabase' as const, state }, { message: 'Datos demo cargados desde Supabase.' });
+    return ok(
+      { source: 'supabase' as const, state },
+      { message: isDemoMode() ? 'Datos demo cargados desde Supabase.' : 'Datos LIVE cargados desde Supabase.' }
+    );
   } catch (error) {
     const details = error instanceof Error ? error.message : error;
     return fail(

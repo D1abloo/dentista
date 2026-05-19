@@ -100,7 +100,7 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
   const commit = useCallback(
     (next: DemoState) => {
       setState(next);
-      if (store.isEphemeralSession()) return;
+      if (!isClientDemoMode() || store.isEphemeralSession()) return;
 
       store.persistState(next);
 

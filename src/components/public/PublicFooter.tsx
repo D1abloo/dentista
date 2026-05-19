@@ -1,4 +1,5 @@
 import { LogoMark } from '@/components/brand/Logo';
+import { isClientDemoMode } from '@/lib/appMode';
 
 export function PublicFooter() {
   return (
@@ -35,7 +36,8 @@ export function PublicFooter() {
         </div>
       </div>
       <div className="shell mt-10 border-t border-white/10 pt-6 text-center text-xs">
-        © {new Date().getFullYear()} Dentista+. Modo demo con localStorage.
+        © {new Date().getFullYear()} Dentista+.
+        {isClientDemoMode() ? ' Modo demo con localStorage.' : ' Modo LIVE · sesión segura por cookie.'}
       </div>
     </footer>
   );

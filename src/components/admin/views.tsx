@@ -36,6 +36,7 @@ import { findPatientsByQuery } from '@/lib/patientSearch';
 import { patientName, pendingInvoicesForPatient, recordsForPatient } from '@/lib/selectors';
 import { recentPatientActivity } from '@/lib/selectors';
 import { email, phone, required } from '@/lib/validation';
+import { modeCopy } from '@/lib/appMode';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import type { Appointment, AppointmentStatus, Dentist, Patient, Treatment } from '@/types/demo';
@@ -57,7 +58,6 @@ import {
   Field,
   FilterTabs,
   Input,
-  PageHeader,
   SearchInput,
   Select,
   StatCard,
@@ -81,15 +81,14 @@ export function AdminDashboard() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="Panel" subtitle={scope.tenant?.name ?? scope.tenantId} />
-
-      <section className="highlight-panel">
-        <h2>Datos aislados por clínica</h2>
-        <p>
-          Este panel solo muestra registros con <strong>{scope.tenantId}</strong>. Otras clínicas no pueden ver estos
-          datos. El paciente sigue viendo sus documentos en /paciente por su PAT-XXXX.
-        </p>
-      </section>
+      <p className="admin-intro">
+        {modeCopy(
+          'Vista demo: datos aislados por clínica en este navegador.',
+          'Modo LIVE: sesión por cookie. Registros de'
+        )}{' '}
+        <strong>{scope.tenantId}</strong>
+        {modeCopy('', ' · con Supabase los cambios se guardan en servidor.')}
+      </p>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Citas hoy" value={appts.filter((a) => a.date === today).length} tone="accent" />
@@ -100,8 +99,8 @@ export function AdminDashboard() {
         <StatCard label="Documentos subidos" value={scope.documents.length} />
         <StatCard label="Facturas pendientes" value={scope.invoices.filter((i) => i.status === 'pendiente').length} tone="warn" />
         <StatCard label="Pagos completados" value={scope.payments.filter((p) => p.status === 'completado').length} />
-        <StatCard label="Ingresos demo" value={money(income)} />
-        <StatCard label="Ocupación agenda hoy" value={`${occupancy}%`} hint="estimación demo" />
+        <StatCard label={modeCopy('Ingresos demo', 'Ingresos')} value={money(income)} />
+        <StatCard label="Ocupación agenda hoy" value={`${occupancy}%`} hint={modeCopy('estimación demo', 'hoy')} />
         <StatCard label="Alertas" value={scope.invoices.filter((i) => i.status === 'vencida').length} tone="warn" hint="facturas vencidas" />
       </div>
 
@@ -166,7 +165,6 @@ export function AdminAgenda() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Agenda" subtitle="Vista día, semana o mes" />
       <div className="flex flex-wrap gap-2">
         {(['dia', 'semana', 'mes'] as const).map((m) => (
           <Button key={m} tone={mode === m ? 'primary' : 'secondary'} onClick={() => setMode(m)}>
@@ -285,7 +283,6 @@ export function AdminAppointments() {
   return (
     <div className="grid gap-4 xl:grid-cols-[1fr_320px]">
       <div className="space-y-4">
-        <PageHeader title="Gestión de citas" subtitle="CIT-XXXX vinculadas a paciente" />
         <SearchInput value={q} onChange={setQ} placeholder="Buscar ID, paciente o fecha…" />
         <FilterTabs value={status as 'todos'} onChange={setStatus} options={[
           { id: 'todos', label: 'Todas' },
@@ -310,7 +307,7 @@ export function AdminAppointments() {
             </div>
           ))}
         </div>
-        <ConfirmModal open={Boolean(deleteId)} title="Eliminar cita" message="¿Eliminar esta cita del modo demo?" confirmLabel="Eliminar"
+        <ConfirmModal open={Boolean(deleteId)} title="Eliminar cita" message={modeCopy('¿Eliminar esta cita del modo demo?', '¿Eliminar esta cita?')} confirmLabel="Eliminar"
           onConfirm={() => { if (deleteId) commit(deleteAppointment(state, deleteId)); setNotice({ type: 'ok', message: 'Cita eliminada.' }); }}
           onClose={() => setDeleteId(null)} />
       </div>
@@ -360,7 +357,6 @@ export function AdminPatients() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Pacientes" subtitle="Módulo principal · PAT-XXXX conecta citas, informes, facturas y documentos" />
 <SearchInput value={q} onChange={setQ} placeholder="Buscar por DNI, PAT-XXXX, nombre o email…" />
       <Button onClick={newPatient}>Crear paciente</Button>
       <div className="table-cards">
@@ -491,7 +487,6 @@ export function AdminReports() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Reportes" subtitle="Métricas demo" />
       <Card title="Citas por estado">
         <div className="bar-chart">
           {byStatus.map((s) => {
@@ -510,7 +505,7 @@ export function AdminReports() {
           <li key={t.id} className="flex justify-between text-sm font-semibold"><span>{t.name}</span><span>{n} citas</span></li>
         ))}</ul>
       </Card>
-      <StatCard label="Ingresos demo" value={money(income)} />
+      <StatCard label={modeCopy('Ingresos demo', 'Ingresos')} value={money(income)} />
     </div>
   );
 }

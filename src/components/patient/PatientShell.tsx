@@ -3,6 +3,7 @@ import type { LucideIcon } from 'lucide-react';
 import { LogOut, Menu } from 'lucide-react';
 import { LogoMark } from '@/components/brand/Logo';
 import { useLogout } from '@/components/auth/RoleGate';
+import { isClientDemoMode } from '@/lib/appMode';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { usePatient } from '@/hooks/usePatient';
 import { IdBadge } from '@/components/ui/IdBadge';
@@ -90,7 +91,7 @@ export function PatientShell({ title, nav, children }: { title: string; nav: Nav
           </button>
         </header>
         <main className="portal-body">
-          {ephemeral ? (
+          {isClientDemoMode() && ephemeral ? (
             <p className="banner-alert mb-4 text-sm" role="status">
               Modo prueba: puedes reservar y gestionar citas en pantalla, pero <strong>nada se guarda</strong> al
               recargar.

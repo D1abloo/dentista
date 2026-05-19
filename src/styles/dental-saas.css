@@ -395,19 +395,64 @@ body {
   top: 0;
   z-index: 30;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
   padding: 0.85rem 1.25rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);
+}
+
+.portal-top--admin {
+  box-shadow: none;
+}
+
+.portal-top__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.portal-top__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .portal-top__title {
   font-family: var(--display);
   font-size: 1.35rem;
   font-weight: 500;
+  margin: 0;
+}
+
+.portal-top__sub {
+  margin: 0.25rem 0 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.portal-top__meta {
+  margin: 0.35rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.portal-top__data {
+  margin-left: auto;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--teal);
 }
 
 .portal-body {
@@ -416,21 +461,53 @@ body {
   max-width: 90rem;
 }
 
-.tenant-banner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 0.75rem 1rem;
-  border-radius: 0.85rem;
-  background: linear-gradient(90deg, rgba(37, 99, 235, 0.08), rgba(20, 184, 166, 0.06));
-  border: 1px solid rgba(37, 99, 235, 0.12);
-  font-size: 0.82rem;
-  font-weight: 600;
+.portal-body--admin {
+  padding-top: 1rem;
 }
 
-.tenant-banner--admin {
-  background: rgba(15, 39, 66, 0.06);
+.portal-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.portal-rail--drawer {
+  display: flex;
+  height: 100%;
+  max-width: var(--rail);
+}
+
+.live-pill,
+.demo-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.live-pill {
+  background: rgba(20, 184, 166, 0.15);
+  color: #0f766e;
+}
+
+.demo-pill {
+  background: rgba(249, 115, 22, 0.15);
+  color: #c2410c;
+}
+
+.admin-intro {
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.admin-intro strong {
+  color: var(--navy);
 }
 
 .highlight-panel {
@@ -678,6 +755,10 @@ body {
   padding: 0.7rem 0.85rem;
   border-radius: 0.75rem;
   background: #f8fafc;
+}
+
+.ph {
+  margin-bottom: 1rem;
 }
 
 .ph__title {

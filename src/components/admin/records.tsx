@@ -14,6 +14,7 @@ import { recordMatchesPatientQuery } from '@/lib/patientSearch';
 import { fmtDate, fmtDateTime, money, statusLabel, todayIso } from '@/lib/format';
 import { patientName, recordsForPatient } from '@/lib/selectors';
 import { positiveAmount, required } from '@/lib/validation';
+import { modeCopy } from '@/lib/appMode';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import type { ClinicalReport, Payment } from '@/types/demo';
@@ -30,7 +31,6 @@ import {
   FileUpload,
   FilterTabs,
   Input,
-  PageHeader,
   SearchInput,
   Select,
   StatCard,
@@ -81,7 +81,12 @@ export function AdminPatientDetail({ patientId }: { patientId: string }) {
   }, [rec]);
 
   if (!patient || !rec) {
-    return <Empty title="Paciente no encontrado" text={`No existe ${patientId} en el modo demo.`} />;
+    return (
+      <Empty
+        title="Paciente no encontrado"
+        text={modeCopy(`No existe ${patientId} en el modo demo.`, `No existe ${patientId} en la clínica.`)}
+      />
+    );
   }
 
   const nextAppt = [...rec.appointments]
@@ -196,7 +201,7 @@ export function AdminPatientDetail({ patientId }: { patientId: string }) {
         ))}
       </RecordSection>
 
-      <Card title="Mensajes al paciente (demo)">
+      <Card title={modeCopy('Mensajes al paciente (demo)', 'Mensajes al paciente')}>
         <div className="grid gap-3">
           <Field label="Asunto"><Input value={msgSubject} onChange={(e) => setMsgSubject(e.target.value)} placeholder="Recordatorio de cita…" /></Field>
           <Field label="Mensaje"><Textarea value={msgBody} onChange={(e) => setMsgBody(e.target.value)} /></Field>
@@ -219,10 +224,13 @@ export function AdminPatientDetail({ patientId }: { patientId: string }) {
               );
               setMsgSubject('');
               setMsgBody('');
-              setNotice({ type: 'ok', message: 'Mensaje demo enviado al portal del paciente.' });
+              setNotice({
+                type: 'ok',
+                message: modeCopy('Mensaje demo enviado al portal del paciente.', 'Mensaje enviado al portal del paciente.')
+              });
             }}
           >
-            Enviar mensaje demo
+            {modeCopy('Enviar mensaje demo', 'Enviar mensaje')}
           </Button>
         </div>
         <ul className="mt-4 space-y-2 text-sm">
@@ -335,7 +343,6 @@ export function AdminClinicalReports() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Informes clínicos" subtitle="Sube PDF · busca por DNI o PAT-XXXX" />
       <div className="admin-search-bar">
         <SearchInput value={patientQ} onChange={setPatientQ} placeholder="Filtrar por DNI o ID paciente…" />
         <SearchInput value={q} onChange={setQ} placeholder="Buscar informe por ID o título…" />
@@ -463,7 +470,6 @@ export function AdminPayments() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Pagos" subtitle="PAG-XXXX · búsqueda por DNI o ID paciente" />
       <div className="admin-search-bar">
         <SearchInput value={patientQ} onChange={setPatientQ} placeholder="Filtrar por DNI o PAT-XXXX…" />
         <SearchInput value={q} onChange={setQ} placeholder="ID pago, factura…" />

@@ -64,3 +64,20 @@ export const adminTitles: Record<AdminView, string> = {
   normativa: 'Normativa',
   configuracion: 'Configuración'
 };
+
+export const adminSubtitles: Record<AdminView, string> = {
+  dashboard: 'Resumen de actividad de tu clínica',
+  agenda: 'Vista día, semana o mes',
+  citas: 'CIT-XXXX vinculadas a paciente',
+  pacientes: 'PAT-XXXX conecta citas, informes, facturas y documentos',
+  informes: 'Sube PDF · busca por DNI o PAT-XXXX',
+  documentos: 'Radiografías y archivos del paciente',
+  facturas: 'FAC-XXXX · solo formato PDF',
+  pagos: 'PAG-XXXX · búsqueda por DNI o ID paciente',
+  dentistas: 'Equipo clínico de la sede',
+  tratamientos: 'Catálogo y precios',
+  clinicas: 'Sedes y gabinetes',
+  reportes: 'Métricas e ingresos',
+  normativa: 'Textos legales visibles al paciente',
+  configuracion: 'Datos de contacto y recordatorios'
+};

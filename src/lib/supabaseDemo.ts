@@ -1,13 +1,16 @@
 import { demoSeed } from '@/data/demoData';
 import type { DemoState } from '@/types/demo';
-import { getSupabaseAdmin, hasSupabaseConfig, isDemoMode } from '@/lib/supabaseServer';
+import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
 
 export const DEMO_STATE_SCOPE = 'global';
 
-/** Demo UI + datos en Supabase (JSON) cuando hay credenciales. */
+/** Datos de app en Supabase (tabla demo_app_state) cuando hay credenciales — demo y LIVE. */
 export function useSupabaseDemoStorage(): boolean {
-  return isDemoMode() && hasSupabaseConfig();
+  return hasSupabaseConfig();
 }
+
+/** @deprecated Usa useSupabaseDemoStorage */
+export const useSupabaseAppStorage = useSupabaseDemoStorage;
 
 export function isDemoStatePayload(value: unknown): value is DemoState {
   if (!value || typeof value !== 'object') return false;

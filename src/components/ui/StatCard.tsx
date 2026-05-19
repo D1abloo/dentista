@@ -26,7 +26,7 @@ export function StatCard({
         <div>
           <p className="kpi__label">{label}</p>
           <p className="kpi__value">{value}</p>
-          {hint ? <p className="mt-1 text-xs font-semibold text-[var(--app-muted)]">{hint}</p> : null}
+          {hint ? <p className="mt-1 text-xs font-semibold text-[var(--muted)]">{hint}</p> : null}
         </div>
         {Icon ? (
           <span className="grid h-9 w-9 place-items-center rounded-lg bg-[var(--app-teal-soft)] text-[var(--app-teal)]" aria-hidden>

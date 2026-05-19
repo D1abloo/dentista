@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { LogOut, Menu, Shield } from 'lucide-react';
 import { LogoMark } from '@/components/brand/Logo';
 import { useLogout } from '@/components/auth/RoleGate';
+import { isClientLiveMode } from '@/lib/appMode';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useTenant } from '@/hooks/useTenant';
 import { GlobalIdSearch } from '@/components/shared/GlobalIdSearch';
@@ -23,7 +24,7 @@ function AdminRail({
 }) {
   const cls =
     variant === 'drawer'
-      ? 'portal-rail portal-rail--admin fixed z-50 flex lg:hidden'
+      ? 'portal-rail portal-rail--admin portal-rail--drawer'
       : 'portal-rail portal-rail--admin';
   return (
     <aside className={cls}>
@@ -65,7 +66,15 @@ function AdminRail({
   );
 }
 
-export function AdminShell({ title, children }: { title: string; children: ReactNode }) {
+export function AdminShell({
+  title,
+  subtitle,
+  children
+}: {
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+}) {
   const [open, setOpen] = useState(false);
   const path = typeof window !== 'undefined' ? window.location.pathname : '';
   const logout = useLogout();
@@ -73,24 +82,46 @@ export function AdminShell({ title, children }: { title: string; children: React
   const { dataSource, syncing } = useDemoStore();
   const tenant = scope.tenant ?? { id: scope.tenantId, name: 'Clínica' };
   const close = () => setOpen(false);
+  const live = isClientLiveMode();
+
+  const dataLabel =
+    dataSource === 'supabase'
+      ? syncing
+        ? 'Guardando…'
+        : 'Supabase'
+      : live
+        ? 'LIVE · servidor'
+        : 'Local';
 
   return (
     <div className="portal portal--admin">
       <AdminRail path={path} tenant={tenant} onNav={close} onLogout={logout} variant="rail" />
       {open ? (
-        <div className="fixed inset-0 z-50 bg-black/40 lg:hidden" onClick={close}>
+        <div
+          className="portal-drawer-backdrop lg:hidden"
+          role="presentation"
+          onClick={close}
+          onKeyDown={(e) => e.key === 'Escape' && close()}
+        >
           <div onClick={(e) => e.stopPropagation()}>
             <AdminRail path={path} tenant={tenant} onNav={close} onLogout={logout} variant="drawer" />
           </div>
         </div>
       ) : null}
       <div className="portal-main">
-        <header className="portal-top">
+        <header className="portal-top portal-top--admin">
           <div>
-            <h1 className="portal-top__title">{title}</h1>
-            <p className="text-xs font-semibold text-[var(--muted)]">{tenant.name}</p>
+            <div className="portal-top__row">
+              <h1 className="portal-top__title">{title}</h1>
+              {live ? <span className="live-pill">LIVE</span> : <span className="demo-pill">DEMO</span>}
+            </div>
+            {subtitle ? <p className="portal-top__sub">{subtitle}</p> : null}
+            <p className="portal-top__meta">
+              {tenant.name} · <IdBadge id={tenant.id} kind="tenant" />
+              <span className="portal-top__data">{dataLabel}</span>
+            </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="portal-top__actions">
             <div className="hidden md:block">
               <GlobalIdSearch />
             </div>
@@ -99,19 +130,7 @@ export function AdminShell({ title, children }: { title: string; children: React
             </button>
           </div>
         </header>
-        <main className="portal-body">
-          <div className="tenant-banner tenant-banner--admin mb-5 flex flex-wrap items-center gap-2">
-            <span>Estás gestionando únicamente</span>
-            <strong>{tenant.name}</strong>
-            <IdBadge id={tenant.id} kind="tenant" />
-            {dataSource === 'supabase' ? (
-              <span className="ml-auto text-xs font-semibold text-teal-700">
-                {syncing ? 'Guardando en Supabase…' : 'Datos en Supabase'}
-              </span>
-            ) : null}
-          </div>
-          {children}
-        </main>
+        <main className="portal-body portal-body--admin">{children}</main>
       </div>
     </div>
   );
