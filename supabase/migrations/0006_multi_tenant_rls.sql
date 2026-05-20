@@ -32,7 +32,9 @@ create table if not exists public.patients (
   created_at timestamptz not null default now()
 );
 
--- Mensajes clínica ↔ paciente
+-- Mensajes clínica ↔ paciente (reemplaza modelo de 0001_schema con clinic_id)
+drop table if exists public.messages cascade;
+
 create table if not exists public.messages (
   id uuid primary key default uuid_generate_v4(),
   tenant_id uuid not null references public.tenants(id) on delete cascade,
