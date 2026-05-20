@@ -86,9 +86,20 @@ Espacio privado para que el paciente consulte y gestione sus citas según permis
 - **Login falla**: validar usuario en Supabase Auth y vínculo `profiles.auth_user_id`.
 - **Panel vacío en LIVE**: revisar `GET /api/clinic/bootstrap` y datos base de la clínica.
 
+## Fase 4 (sincronización LIVE)
+
+- Tras guardar en admin/paciente, el panel recarga datos desde Supabase.
+- Citas: crear y cambiar estado persisten en servidor.
+- Facturas/pagos: APIs `/api/billing/invoice` y `/api/billing/payment`.
+- Recordatorios: cola `notification_jobs` procesada automáticamente al enviar.
+- Stripe: webhook en `/api/billing/stripe-webhook`.
+
+Ver `docs/SUPABASE_APPLY.md` para aplicar migraciones `0010` y `0011`.
+
 ## Referencias técnicas
 
 - `docs/PRODUCTION.md`
+- `docs/SUPABASE_APPLY.md`
 - `docs/ARCHITECTURE.md`
 - `src/lib/auth/productionLogin.ts`
 - `src/lib/api/guards.ts`

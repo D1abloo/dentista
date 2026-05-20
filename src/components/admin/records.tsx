@@ -62,7 +62,7 @@ function RecordSection({ title, empty, children }: { title: string; empty: strin
 }
 
 export function AdminPatientDetail({ patientId }: { patientId: string }) {
-  const { state, commit } = useDemoStore();
+  const { state, commit, refresh } = useDemoStore();
   const { setNotice } = useNotice();
   const patient = state.patients.find((p) => p.id === patientId);
   const rec = patient ? recordsForPatient(state, patientId) : null;
@@ -207,13 +207,13 @@ export function AdminPatientDetail({ patientId }: { patientId: string }) {
           <Field label="Asunto"><Input value={msgSubject} onChange={(e) => setMsgSubject(e.target.value)} placeholder="Recordatorio de cita…" /></Field>
           <Field label="Mensaje"><Textarea value={msgBody} onChange={(e) => setMsgBody(e.target.value)} /></Field>
           <Button
-            onClick={() => {
+            onClick={async () => {
               if (!msgSubject.trim() || !msgBody.trim()) {
                 setNotice({ type: 'error', message: 'Completa asunto y mensaje.' });
                 return;
               }
               if (!isClientDemoMode()) {
-                void fetch('/api/records/message', {
+                await fetch('/api/records/message', {
                   method: 'POST',
                   credentials: 'include',
                   headers: { 'content-type': 'application/json' },
@@ -238,6 +238,7 @@ export function AdminPatientDetail({ patientId }: { patientId: string }) {
                   sentAt: todayIso()
                 })
               );
+              if (!isClientDemoMode()) await refresh();
               setMsgSubject('');
               setMsgBody('');
               setNotice({
@@ -282,7 +283,7 @@ export function AdminPatientDetail({ patientId }: { patientId: string }) {
 }
 
 export function AdminClinicalReports() {
-  const { state, commit } = useDemoStore();
+  const { state, commit, refresh } = useDemoStore();
   const { setNotice } = useNotice();
   const [q, setQ] = useState('');
   const [patientQ, setPatientQ] = useState('');
@@ -362,6 +363,7 @@ export function AdminClinicalReports() {
       }
     }
     commit(createClinicalReport(state, reportInput));
+    if (!isClientDemoMode()) await refresh();
     setNotice({ type: 'ok', message: 'Informe creado y vinculado al paciente.' });
     setForm({ ...form, title: '', description: '', diagnosis: '', recommendations: '' });
     setReportFile(null);
@@ -466,7 +468,7 @@ function ReportRow({ r }: { r: ClinicalReport }) {
 export { AdminDocuments, AdminInvoices } from './uploadViews';
 
 export function AdminPayments() {
-  const { state, commit } = useDemoStore();
+  const { state, commit, refresh } = useDemoStore();
   const { setNotice } = useNotice();
   const [filter, setFilter] = useState('todos');
   const [q, setQ] = useState('');
@@ -496,10 +498,31 @@ export function AdminPayments() {
     return p.sort((a, b) => (b.paidAt ?? b.createdAt).localeCompare(a.paidAt ?? a.createdAt));
   }, [state, filter, q, patientQ]);
 
-  function save() {
+  async function save() {
     const err = required(form.patientId, 'Paciente') || positiveAmount(form.amount);
     if (err) {
       setNotice({ type: 'error', message: err });
+      return;
+    }
+    if (!isClientDemoMode()) {
+      const clinicId = state.patients.find((p) => p.id === form.patientId)?.preferredClinicId;
+      if (clinicId) {
+        await fetch('/api/billing/payment', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            clinicId,
+            patientId: form.patientId,
+            invoiceId: form.invoiceId || undefined,
+            amount: form.amount,
+            provider: form.method,
+            status: form.status
+          })
+        });
+      }
+      await refresh();
+      setNotice({ type: 'ok', message: 'Pago registrado en Supabase.' });
       return;
     }
     commit(

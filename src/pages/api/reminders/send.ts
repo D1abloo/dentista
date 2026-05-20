@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSessionUser } from '@/lib/auth';
 import { ok, fail } from '@/lib/http';
+import { processNotificationQueue } from '@/lib/notifications/queue';
 import { getSupabaseAdmin, hasSupabaseConfig, isDemoMode } from '@/lib/supabaseServer';
 import { reminderSchema } from '@/lib/validators';
 
@@ -31,6 +32,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       }));
       const { error } = await db.from('notification_jobs').insert(rows);
       if (error) throw error;
+      void processNotificationQueue(Math.min(parsed.data.appointmentIds.length, 15)).catch(() => undefined);
     }
 
     return ok({

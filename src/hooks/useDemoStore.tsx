@@ -21,6 +21,7 @@ function mergeDemoState(partial: DemoState): DemoState {
   };
 }
 import { isClientDemoMode } from '@/lib/appMode';
+import { fetchClinicBootstrap } from '@/lib/clinicApi';
 import * as store from '@/lib/demoStore';
 import { STORAGE_TENANT_ID } from '@/lib/storage/keys';
 
@@ -34,6 +35,7 @@ type Ctx = {
   setState: (updater: DemoState | ((prev: DemoState) => DemoState)) => void;
   commit: (next: DemoState) => void;
   reset: () => void;
+  refresh: () => Promise<void>;
 };
 
 const DemoStoreContext = createContext<Ctx | null>(null);
@@ -156,6 +158,27 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
     []
   );
 
+  const refresh = useCallback(async () => {
+    if (!isClientDemoMode()) {
+      const remote = await fetchClinicBootstrap();
+      if (remote?.state) {
+        setState(remote.state);
+        if (remote.tenantId) localStorage.setItem(STORAGE_TENANT_ID, remote.tenantId);
+        setDataSource('supabase');
+      }
+      return;
+    }
+    try {
+      const remote = await fetchRemoteState();
+      const merged = mergeDemoState(remote.state);
+      setState(merged);
+      store.persistState(merged);
+      setDataSource(remote.source);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const reset = useCallback(() => {
     const run = async () => {
       if (store.isEphemeralSession()) {
@@ -182,8 +205,8 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ state, dataSource, syncing, ephemeral, setState, commit, reset }),
-    [state, dataSource, syncing, ephemeral, commit, reset]
+    () => ({ state, dataSource, syncing, ephemeral, setState, commit, reset, refresh }),
+    [state, dataSource, syncing, ephemeral, commit, reset, refresh]
   );
 
   return <DemoStoreContext.Provider value={value}>{children}</DemoStoreContext.Provider>;
@@ -199,7 +222,8 @@ export function useDemoStore() {
       ephemeral: false,
       setState: () => undefined,
       commit: () => undefined,
-      reset: () => undefined
+      reset: () => undefined,
+      refresh: async () => undefined
     };
   }
   return ctx;

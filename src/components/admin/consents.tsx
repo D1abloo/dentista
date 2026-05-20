@@ -15,7 +15,7 @@ import { IdBadge } from '@/components/ui/IdBadge';
 import { FileActions } from '@/components/shared/FileActions';
 
 export function AdminConsents() {
-  const { state, commit } = useDemoStore();
+  const { state, commit, refresh } = useDemoStore();
   const { setNotice } = useNotice();
   const [q, setQ] = useState('');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
@@ -92,6 +92,7 @@ export function AdminConsents() {
         tenantId: getStoredTenantId()
       })
     );
+    if (!isClientDemoMode()) await refresh();
     setNotice({ type: 'ok', message: 'Consentimiento publicado. El paciente debe firmarlo en su perfil.' });
     setForm({ ...form, title: '', body: '', treatmentName: '', appointmentId: '' });
     setUploadFile(null);

@@ -38,7 +38,8 @@ import { findPatientsByQuery } from '@/lib/patientSearch';
 import { patientName, pendingInvoicesForPatient, recordsForPatient } from '@/lib/selectors';
 import { recentPatientActivity } from '@/lib/selectors';
 import { email, phone, required } from '@/lib/validation';
-import { modeCopy } from '@/lib/appMode';
+import { isClientDemoMode, modeCopy } from '@/lib/appMode';
+import { createAppointmentLive, patchAppointmentLive } from '@/lib/clinicApi';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import type { Appointment, AppointmentStatus, Dentist, Patient, Treatment } from '@/types/demo';
@@ -217,9 +218,24 @@ export function AdminAgenda() {
 }
 
 function AgendaRow({ a, onAction }: { a: Appointment; onAction: (m: string) => void }) {
-  const { state, commit } = useDemoStore();
-  const setStatus = (status: AppointmentStatus) => {
+  const { state, commit, refresh } = useDemoStore();
+  const { setNotice } = useNotice();
+  const setStatus = async (status: AppointmentStatus) => {
     commit(updateAppointmentStatus(state, a.id, status));
+    if (!isClientDemoMode()) {
+      const live = await patchAppointmentLive({
+        clinicId: a.clinicId,
+        appointmentId: a.id,
+        status,
+        date: a.date,
+        time: a.time
+      });
+      if (!live.ok) {
+        setNotice({ type: 'error', message: live.message });
+        return;
+      }
+      await refresh();
+    }
     onAction(`Cita ${statusLabel(status).toLowerCase()}.`);
   };
   return (
@@ -240,7 +256,7 @@ function AgendaRow({ a, onAction }: { a: Appointment; onAction: (m: string) => v
 }
 
 export function AdminAppointments() {
-  const { state, commit } = useDemoStore();
+  const { state, commit, refresh } = useDemoStore();
   const scope = useTenant();
   const { setNotice } = useNotice();
   const [q, setQ] = useState('');
@@ -257,7 +273,7 @@ export function AdminAppointments() {
     time: '10:00'
   });
 
-  function create() {
+  async function create() {
     const err =
       required(form.patientId, 'Paciente') ||
       required(form.dentistId, 'Dentista') ||
@@ -266,6 +282,28 @@ export function AdminAppointments() {
       required(form.time, 'Hora');
     if (err) {
       setNotice({ type: 'error', message: err });
+      return;
+    }
+    const patient = state.patients.find((p) => p.id === form.patientId);
+    if (!isClientDemoMode()) {
+      const live = await createAppointmentLive({
+        clinicId: clinic.id,
+        patientId: form.patientId,
+        patientName: patient?.fullName ?? 'Paciente',
+        patientEmail: patient?.email,
+        patientPhone: patient?.phone,
+        dentistId: form.dentistId,
+        treatmentId: form.treatmentId,
+        roomName: clinic.cabinets.find((c) => c.id === form.cabinetId)?.name ?? 'Gabinete 1',
+        date: form.date,
+        time: form.time
+      });
+      if (!live.ok) {
+        setNotice({ type: 'error', message: live.message });
+        return;
+      }
+      await refresh();
+      setNotice({ type: 'ok', message: 'Cita creada en Supabase.' });
       return;
     }
     const result = tryCreateAppointment(state, {

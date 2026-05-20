@@ -70,13 +70,6 @@ Aplica también la migración `0009_auth_bootstrap.sql` (índices y `profiles.te
 3. El cliente llama `GET /api/clinic/bootstrap` para hidratar el estado del panel.
 4. Las APIs de citas exigen sesión y acotan por `clinic_id` (`src/lib/api/guards.ts`).
 
-## Próximos pasos
-
-- Persistir cambios del panel en Supabase (hoy el bootstrap es lectura; mutaciones siguen en memoria/demo store)
-- Webhooks de facturación (Stripe) ligados a `clinic_subscriptions`
-- Cola de notificaciones (email/WhatsApp) en producción
-- JWT de Supabase en cliente para RLS directo (opcional; hoy sesión por cookie)
-
 ## Fase 3 aplicada
 
 - Endpoints nuevos de persistencia:
@@ -90,6 +83,16 @@ Aplica también la migración `0009_auth_bootstrap.sql` (índices y `profiles.te
 - Cola de recordatorios:
   - `POST /api/reminders/send` ahora encola en `notification_jobs`.
 - Migración: `0010_phase3_records_billing.sql`
+
+## Fase 4 aplicada
+
+- Sincronización LIVE del panel: tras guardar, `refresh()` recarga `GET /api/clinic/bootstrap`.
+- Citas en LIVE: crear/actualizar vía `/api/appointments`.
+- Facturación LIVE: `POST /api/billing/invoice`, `POST /api/billing/payment`.
+- Cola real: `POST /api/notifications/process` y auto-proceso al encolar recordatorios.
+- Stripe webhook: `POST /api/billing/stripe-webhook` (marca factura/pago como pagados).
+- Migración: `0011_phase4_ops.sql` (FK a `profiles`, columnas factura/pago).
+- Guía de aplicación SQL: `docs/SUPABASE_APPLY.md`.
 
 ## Comprobaciones antes de publicar
 

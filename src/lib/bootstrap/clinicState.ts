@@ -185,7 +185,7 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
       patientId: i.patient_id,
       appointmentId: i.appointment_id ?? undefined,
       amount: Math.round((i.amount_cents ?? 0) / 100),
-      concept: 'Servicios odontológicos',
+      concept: i.concept ?? 'Servicios odontológicos',
       status: mapInvoiceStatus(i.status),
       issuedAt: String(i.created_at ?? '').slice(0, 10),
       dueDate: i.due_at ? String(i.due_at).slice(0, 10) : undefined

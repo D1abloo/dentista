@@ -12,7 +12,7 @@ import { PatientIdentity } from './PatientIdentity';
 import { Badge, Button, Card, Empty } from '@/components/ui';
 
 export function PatientConsents({ compact = false }: { compact?: boolean }) {
-  const { state, commit } = useDemoStore();
+  const { state, commit, refresh } = useDemoStore();
   const patient = usePatient();
   const { setNotice } = useNotice();
   const [signing, setSigning] = useState<InformedConsent | null>(null);
@@ -74,6 +74,7 @@ export function PatientConsents({ compact = false }: { compact?: boolean }) {
         });
       }
       commit(signInformedConsent(state, consentId, dataUrl, docRef, upload?.name));
+      if (!isClientDemoMode()) await refresh();
       setNotice({ type: 'ok', message: 'Consentimiento firmado correctamente.' });
       setSigning(null);
       setUpload(null);

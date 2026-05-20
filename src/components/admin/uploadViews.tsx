@@ -58,7 +58,7 @@ function AppointmentOptions({
 }
 
 export function AdminDocuments() {
-  const { state, commit } = useDemoStore();
+  const { state, commit, refresh } = useDemoStore();
   const scope = useTenant();
   const { setNotice } = useNotice();
   const [q, setQ] = useState('');
@@ -144,6 +144,7 @@ export function AdminDocuments() {
       }
     }
     commit(createPatientDocument(state, payload));
+    if (!isClientDemoMode()) await refresh();
     setNotice({ type: 'ok', message: 'Documento subido y vinculado al paciente.' });
     setForm({ ...form, title: '', description: '' });
     setDocFile(null);
@@ -219,7 +220,7 @@ export function AdminDocuments() {
 }
 
 export function AdminInvoices() {
-  const { state, commit } = useDemoStore();
+  const { state, commit, refresh } = useDemoStore();
   const scope = useTenant();
   const { setNotice } = useNotice();
   const [q, setQ] = useState('');
@@ -322,6 +323,30 @@ export function AdminInvoices() {
       fileName,
       mimeType
     };
+    if (!isClientDemoMode()) {
+      const clinicId = state.patients.find((p) => p.id === form.patientId)?.preferredClinicId;
+      if (clinicId) {
+        await fetch('/api/billing/invoice', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            clinicId,
+            patientId: form.patientId,
+            appointmentId: form.appointmentId || undefined,
+            amount: form.amount,
+            concept: form.concept,
+            status: form.status,
+            dueDate: form.dueDate || undefined
+          })
+        });
+      }
+      await refresh();
+      setNotice({ type: 'ok', message: 'Factura guardada en Supabase.' });
+      setForm({ ...form, concept: clinicSettings.defaultInvoiceConcept ?? 'Servicios odontológicos' });
+      setPdfFile(null);
+      return;
+    }
     commit(createInvoice(state, payload));
     setNotice({ type: 'ok', message: 'Factura PDF creada.' });
     setForm({ ...form, concept: '' });
