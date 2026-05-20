@@ -27,11 +27,11 @@ export function AdminLoginPage() {
           : 'Inicia sesión para gestionar citas, pacientes y facturación.'
       }
       footer={
-        <>
+        <div className="login-portal__foot-grid login-portal__foot-grid--compact">
+          <a href="/login">← Elegir portal</a>
           <a href="/login/paciente">Portal paciente</a>
-          <span aria-hidden>·</span>
           <a href="/">Inicio</a>
-        </>
+        </div>
       }
     >
       {demo ? (

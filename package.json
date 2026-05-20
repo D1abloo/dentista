@@ -13,6 +13,9 @@
     "lint:light": "node scripts/lint-light.mjs",
     "smoke": "node scripts/smoke-test.mjs",
     "seed:sql": "node scripts/print-seed.mjs",
+    "users": "node scripts/manage-users.mjs",
+    "users:list": "node scripts/manage-users.mjs list",
+    "users:clinics": "node scripts/manage-users.mjs clinics",
     "codex:bootstrap": "bash scripts/codex-bootstrap.sh",
     "git:save": "bash scripts/git-save.sh",
     "github:save": "bash scripts/git-save.sh"

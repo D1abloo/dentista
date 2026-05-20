@@ -110,6 +110,10 @@ export function LiveLoginForm({
       <button type="submit" className="login-form__submit btn btn--primary w-full" disabled={loading}>
         {loading ? 'Entrando…' : 'Iniciar sesión'}
       </button>
+
+      <p className="login-form__back">
+        <a href="/login">← Volver a elegir portal</a>
+      </p>
     </form>
   );
 }

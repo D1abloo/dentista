@@ -3,7 +3,7 @@ import { LogoMark } from '@/components/brand/Logo';
 
 const HERO_IMAGE = '/images/login-dentista-paciente.jpg';
 
-export type PortalLoginVariant = 'admin' | 'patient';
+export type PortalLoginVariant = 'admin' | 'patient' | 'hub';
 
 export function PortalLoginShell({
   variant,
@@ -83,7 +83,7 @@ export function PortalLoginShell({
           <div className="login-portal__card-glow" aria-hidden />
           <header className="login-portal__head">
             <div className="login-portal__logo">
-              <LogoMark size={variant === 'admin' ? 48 : 52} />
+              <LogoMark size={variant === 'admin' ? 48 : variant === 'hub' ? 56 : 52} />
             </div>
             <div>
               <p className="login-portal__eyebrow">{eyebrow}</p>

@@ -27,6 +27,28 @@ function toPortalSession(profile: ProfileRow): Omit<SessionUser, 'expiresAt'> {
   };
 }
 
+async function loginPlatformAdmin(
+  admin: ReturnType<typeof getSupabaseAdmin>,
+  authUserId: string,
+  fallbackEmail: string
+): Promise<Omit<SessionUser, 'expiresAt'> | null> {
+  const { data: row } = await admin
+    .from('platform_admins')
+    .select('email, full_name, active')
+    .eq('auth_user_id', authUserId)
+    .eq('active', true)
+    .maybeSingle();
+  if (!row) return null;
+  await admin.auth.admin.updateUserById(authUserId, {
+    app_metadata: { role: 'super_admin' }
+  });
+  return {
+    role: 'super_admin',
+    email: row.email ?? fallbackEmail,
+    name: row.full_name ?? 'Super Admin'
+  };
+}
+
 export async function loginWithSupabaseProfile(
   input: LoginInput
 ): Promise<Omit<SessionUser, 'expiresAt'> | null> {
@@ -34,6 +56,10 @@ export async function loginWithSupabaseProfile(
   if (error || !authData.user) return null;
 
   const admin = getSupabaseAdmin();
+
+  if (input.role === 'super_admin') {
+    return loginPlatformAdmin(admin, authData.user.id, input.email);
+  }
   const { data: profile, error: profileError } = await admin
     .from('profiles')
     .select('id, clinic_id, tenant_id, role, full_name, email')

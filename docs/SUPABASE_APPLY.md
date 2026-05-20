@@ -78,10 +78,40 @@ En Supabase → **Table Editor**, deberías ver tablas como:
 ## Tras aplicar SQL
 
 1. Reinicia la app: `npm run dev`
-2. Super Admin: `/platform/login` (credenciales de `.env`)
+2. Super Admin: `/platform/login` (credenciales de `.env` o usuario en `platform_admins`)
 3. Alta de clínica: `/registro-clinica` → aprobar en `/platform/registros`
 4. Login clínica: `/login` (usuario creado al aprobar + `CLINIC_DEFAULT_PASSWORD`)
 5. Comprueba que el panel carga datos: `/admin` y `/paciente`
+
+## CLI de usuarios (`npm run users`)
+
+Script: `scripts/manage-users.mjs` (requiere `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` en `.env`).
+
+| Comando | Descripción |
+|---------|-------------|
+| `npm run users:list` | Lista usuarios Auth, perfiles y super admins |
+| `npm run users:clinics` | Muestra IDs de clínicas |
+| `npm run users -- add ...` | Crea usuario con accesos y permisos |
+
+**Accesos (`--access`):**
+
+- `platform` — Super Admin en `/platform`
+- `clinic` — Panel de clínica en `/admin`
+- `public` — Portal paciente en `/paciente`
+
+**Permisos (`--permission`):** `read`, `write` o `execute` (tabla `role_permissions`).
+
+Ejemplos:
+
+```bash
+npm run users:list
+npm run users:clinics
+npm run users -- add --email super@tu-dominio.com --password 'TuClave123!' --name "Super Admin" \
+  --access platform --permission execute
+npm run users -- add --email admin@clinica.com --password 'TuClave123!' --name "Admin Sede" \
+  --access clinic --clinic-id <UUID> --role clinic_admin --permission execute
+npm run users -- permissions --email admin@clinica.com --clinic-id <UUID> --role admin --level write
+```
 
 ## Webhook Stripe (opcional)
 
