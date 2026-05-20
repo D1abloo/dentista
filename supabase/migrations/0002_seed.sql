@@ -6,8 +6,8 @@ with clinic as (
   returning id
 ), profiles_seed as (
   insert into public.profiles (clinic_id, role, full_name, email, phone)
-  select id, 'patient', 'María González', 'maria@example.com', '+34 600 111 222' from clinic
-  union all select id, 'admin', 'Dr. Admin', 'admin@clinic.local', '+34 600 000 000' from clinic
+  select id, 'patient'::public.user_role, 'María González', 'maria@example.com', '+34 600 111 222' from clinic
+  union all select id, 'admin'::public.user_role, 'Dr. Admin', 'admin@clinic.local', '+34 600 000 000' from clinic
   on conflict (clinic_id, email) do update set full_name = excluded.full_name
   returning id, clinic_id, full_name, email
 ), dentists_seed as (

@@ -7,7 +7,7 @@ with clinic as (
 ), first_room as (
   select id, clinic_id from public.rooms where clinic_id = (select id from clinic) order by created_at limit 1
 ), first_patient as (
-  select id, clinic_id from public.profiles where clinic_id = (select id from clinic) and role = 'patient' order by created_at limit 1
+  select id, clinic_id from public.profiles where clinic_id = (select id from clinic) and role = 'patient'::public.user_role order by created_at limit 1
 )
 insert into public.availability_rules (clinic_id, dentist_id, room_id, weekday, starts_at, ends_at, slot_minutes)
 select clinic.id, first_dentist.id, first_room.id, weekday.value, '09:00'::time, '14:00'::time, 30
@@ -17,7 +17,7 @@ on conflict do nothing;
 with clinic as (
   select id from public.clinics where slug = 'dentalflow-madrid' limit 1
 ), first_patient as (
-  select id, clinic_id from public.profiles where clinic_id = (select id from clinic) and role = 'patient' order by created_at limit 1
+  select id, clinic_id from public.profiles where clinic_id = (select id from clinic) and role = 'patient'::public.user_role order by created_at limit 1
 ), first_dentist as (
   select id, clinic_id from public.dentists where clinic_id = (select id from clinic) order by created_at limit 1
 )
@@ -38,11 +38,11 @@ with clinic as (
   select id from public.clinics where slug = 'dentalflow-madrid' limit 1
 )
 insert into public.role_permissions (clinic_id, role, permission, enabled)
-select id, 'owner', 'admin:*', true from clinic
-union all select id, 'admin', 'clinic:manage', true from clinic
-union all select id, 'receptionist', 'appointments:write', true from clinic
-union all select id, 'dentist', 'clinical_notes:write', true from clinic
-union all select id, 'patient', 'portal:read', true from clinic
+select id, 'owner'::public.user_role, 'admin:*', true from clinic
+union all select id, 'admin'::public.user_role, 'clinic:manage', true from clinic
+union all select id, 'receptionist'::public.user_role, 'appointments:write', true from clinic
+union all select id, 'dentist'::public.user_role, 'clinical_notes:write', true from clinic
+union all select id, 'patient'::public.user_role, 'portal:read', true from clinic
 on conflict (clinic_id, role, permission) do update set enabled = excluded.enabled;
 
 with clinic as (

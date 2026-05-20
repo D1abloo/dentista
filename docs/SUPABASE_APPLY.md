@@ -7,9 +7,9 @@ Si en Supabase **no has ejecutado ninguna migración**, sigue este orden en el *
 | # | Archivo | ¿Obligatorio? | Qué hace |
 |---|---------|---------------|----------|
 | 1 | `0001_schema.sql` | **Sí** | Tablas base: clínicas, perfiles, citas, facturas, pagos, RLS inicial |
-| 2 | `0002_seed.sql` | Recomendado | Datos demo (clínica Madrid, pacientes, dentistas) para pruebas |
+| 2 | `0002_seed.sql` | Solo si quieres datos demo en BD | Clínica Madrid de prueba. En **PRO** puedes **saltarlo** |
 | 3 | `0003_operations.sql` | **Sí** | Disponibilidad, campañas, reseñas, permisos, integraciones |
-| 4 | `0004_seed_operations.sql` | Recomendado | Semillas de módulos operativos |
+| 4 | `0004_seed_operations.sql` | Solo con `0002` | Semillas operativas (requiere clínica `dentalflow-madrid`). En **PRO** **saltar** |
 | 5 | `0005_patient_records.sql` | **No ejecutar** | Legacy (IDs texto); choca con `0006`. **Saltar.** |
 | 6 | `0006_multi_tenant_rls.sql` | **Sí** | Tenants, pacientes UUID, informes, documentos, mensajes, RLS |
 | 7 | `0007_demo_app_state.sql` | Opcional | Tabla JSON para modo demo remoto (`PUBLIC_DEMO_MODE=true`) |
@@ -18,15 +18,25 @@ Si en Supabase **no has ejecutado ninguna migración**, sigue este orden en el *
 | 10 | `0010_phase3_records_billing.sql` | **Sí** | Consentimientos, cola de notificaciones, checkout Stripe |
 | 11 | `0011_phase4_ops.sql` | **Sí** | FK a `profiles`, columnas factura/pago, webhook Stripe |
 
-### Resumen rápido
+### Resumen rápido — modo PRO (`PUBLIC_DEMO_MODE=false`)
 
-Ejecuta **10 archivos** en este orden:
+Ejecuta **7 archivos** (sin semillas demo):
+
+```
+0001 → 0003 → 0006 → 0008 → 0009 → 0010 → 0011
+```
+
+Opcional: `0007_demo_app_state.sql` (solo demo remoto).
+
+**No ejecutes:** `0005` (legacy). En PRO también **salta `0002` y `0004`** (los usuarios reales se crean al aprobar clínicas en `/platform`).
+
+### Resumen — con datos demo en Supabase (opcional)
 
 ```
 0001 → 0002 → 0003 → 0004 → 0006 → 0007 → 0008 → 0009 → 0010 → 0011
 ```
 
-**No ejecutes** `0005_patient_records.sql` en una instalación nueva.
+> `0002_seed.sql` requiere cast del enum `user_role` (ya corregido en el repo).
 
 ## Alternativa con CLI
 
