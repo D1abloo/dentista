@@ -1,14 +1,8 @@
 import { useState, type ReactNode } from 'react';
-import { Building2, ClipboardList, LayoutDashboard, LifeBuoy, LogOut, Menu, Shield } from 'lucide-react';
+import { LogOut, Menu, Shield } from 'lucide-react';
 import { LogoMark } from '@/components/brand/Logo';
 import { useLogout } from '@/components/auth/RoleGate';
-
-const nav = [
-  { href: '/platform', label: 'Resumen', icon: LayoutDashboard },
-  { href: '/platform/clinicas', label: 'Clínicas', icon: Building2 },
-  { href: '/platform/registros', label: 'Registros', icon: ClipboardList },
-  { href: '/platform/soporte', label: 'Soporte', icon: LifeBuoy }
-];
+import { platformNavSections } from './nav';
 
 export function PlatformShell({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -26,25 +20,34 @@ export function PlatformShell({ title, subtitle, children }: { title: string; su
           <Shield className="h-5 w-5 text-[var(--warn)]" />
           <div>
             <p className="text-sm font-bold">Super Admin</p>
-            <p className="text-xs text-white/70">Plataforma global</p>
+            <p className="text-xs text-white/70">Plataforma · multi-tenant</p>
           </div>
         </div>
+        <p className="mt-2 text-[0.65rem] leading-snug text-white/55">
+          Cada clínica aprobada opera en su propio panel. Sin contacto cruzado entre organizaciones.
+        </p>
       </div>
       <nav className="flex-1 overflow-y-auto">
-        {nav.map((item) => {
-          const active = path === item.href;
-          return (
-            <a
-              key={item.href}
-              href={item.href}
-              onClick={() => setOpen(false)}
-              className={`rail-link rail-link--admin ${active ? 'rail-link--active' : ''}`}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </a>
-          );
-        })}
+        {platformNavSections.map((section) => (
+          <div key={section.id} className="mb-3">
+            <p className="mb-1 px-3 text-[0.65rem] font-bold uppercase tracking-wider text-white/40">{section.title}</p>
+            {section.items.map((item) => {
+              const active = path === item.href || (item.href !== '/platform' && path.startsWith(item.href));
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  title={item.description}
+                  className={`rail-link rail-link--admin ${active ? 'rail-link--active' : ''}`}
+                >
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{item.label}</span>
+                </a>
+              );
+            })}
+          </div>
+        ))}
       </nav>
       <a href="/" className="rail-link rail-link--admin text-white/50">
         ← Sitio público
@@ -68,7 +71,7 @@ export function PlatformShell({ title, subtitle, children }: { title: string; su
           <div>
             <div className="portal-top__row">
               <h1 className="portal-top__title">{title}</h1>
-              <span className="live-pill">PRODUCCIÓN</span>
+              <span className="live-pill">PLATAFORMA</span>
             </div>
             {subtitle ? <p className="portal-top__sub">{subtitle}</p> : null}
           </div>

@@ -56,6 +56,68 @@ export interface PlatformOverview {
   clinicsTotal: number;
   clinicsActive: number;
   clinicsPending: number;
+  clinicsSuspended: number;
   registrationsPending: number;
   supportOpen: number;
+  staffUsers: number;
+  tenantsLinked: number;
+}
+
+export interface PlatformClinicUser {
+  id: string;
+  clinic_id: string;
+  clinic_name: string;
+  clinic_slug: string;
+  clinic_status: ClinicStatus;
+  role: PlatformRole;
+  full_name: string;
+  email: string;
+  tenant_id: string | null;
+  created_at: string;
+}
+
+export interface PlatformSubscription {
+  id: string;
+  clinic_id: string;
+  clinic_name: string;
+  clinic_slug: string;
+  plan: SubscriptionPlan;
+  status: 'trialing' | 'active' | 'past_due' | 'canceled';
+  seats: number;
+  renews_at: string | null;
+  created_at: string;
+}
+
+export interface PlatformIsolationClinic {
+  id: string;
+  name: string;
+  slug: string;
+  status: ClinicStatus;
+  tenant_id: string | null;
+  staff_count: number;
+  patient_profiles: number;
+  has_tenant: boolean;
+}
+
+export interface PlatformIsolationReport {
+  policy: string[];
+  clinicsWithTenant: number;
+  clinicsWithoutTenant: number;
+  totalStaff: number;
+  clinics: PlatformIsolationClinic[];
+}
+
+export interface PlatformSettingRow {
+  key: string;
+  value: Record<string, unknown>;
+  updated_at: string;
+}
+
+export interface PlatformUsageRow {
+  clinic_id: string;
+  clinic_name: string;
+  day: string;
+  appointments_count: number;
+  patients_count: number;
+  invoices_count: number;
 }

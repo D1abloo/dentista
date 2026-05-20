@@ -11,7 +11,13 @@ Esta guía explica las funciones principales de los paneles y cómo operar el si
 
 ## Panel Super Admin (`/platform`)
 
-Este panel sirve para operar el SaaS a nivel global.
+Este panel sirve para operar el SaaS a nivel global. El sidebar está organizado por secciones: **General**, **Clínicas y tenants**, **Altas**, **Operaciones** y **Sistema**.
+
+### Aislamiento entre clínicas
+
+- Cada clínica aprobada recibe un `tenant_id` único y accede solo a su panel `/admin`.
+- Pacientes, citas, facturas y mensajes están acotados por `clinic_id` y RLS; no hay contacto ni listados cruzados entre organizaciones.
+- Revisa el estado en `/platform/aislamiento` y la documentación en `/platform/seguridad`.
 
 ### Módulo de clínicas (`/platform/clinicas`)
 
@@ -19,20 +25,37 @@ Este panel sirve para operar el SaaS a nivel global.
 - Cambiar plan de suscripción.
 - Activar o suspender clínicas.
 
-### Módulo de registros (`/platform/registros`)
+### Usuarios (`/platform/usuarios`)
 
-- Revisar solicitudes recibidas desde `/registro-clinica`.
-- Aprobar o rechazar altas con notas de revisión.
+- Listado de personal (`clinic_admin`, dentistas, recepción) agrupado por clínica.
+- Buscador por nombre, email o centro.
+
+### Registros (`/platform/registros` y `/platform/historial`)
+
+- **Pendientes**: solicitudes desde `/registro-clinica` por aprobar o rechazar.
+- **Historial**: altas ya procesadas (aprobadas o rechazadas).
 - Al aprobar una clínica:
-  - Se crea la clínica.
+  - Se crea un **tenant** aislado.
+  - Se crea la clínica vinculada al tenant.
   - Se crea su suscripción inicial (`essential`).
-  - Se crea un usuario en Supabase Auth.
+  - Se crea un usuario en Supabase Auth con `clinic_id` y `tenant_id` en metadata.
   - Se crea un perfil `clinic_admin` en `profiles`.
 
-### Módulo de soporte (`/platform/soporte`)
+### Suscripciones (`/platform/suscripciones`)
 
-- Revisar tickets abiertos o en progreso.
-- Dar seguimiento operativo a incidencias de clínicas.
+- Planes SaaS, asientos y estado de facturación por clínica.
+
+### Soporte (`/platform/soporte`)
+
+- Revisar tickets y cambiar estado (`open`, `in_progress`, `resolved`, `closed`).
+
+### Métricas (`/platform/metricas`)
+
+- Contadores agregados por día y clínica (sin datos clínicos sensibles).
+
+### Configuración (`/platform/configuracion`)
+
+- Branding global y reglas de registro de nuevas clínicas.
 
 ## Panel de clínica (`/admin`)
 

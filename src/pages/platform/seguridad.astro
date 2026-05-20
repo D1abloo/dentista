@@ -1,0 +1,10 @@
+---
+import AppLayout from '@/layouts/AppLayout.astro';
+import { PlatformSecurity } from '@/components/platform/views';
+import { PlatformGate } from '@/components/platform/PlatformGate';
+---
+<AppLayout title="Seguridad · Plataforma Dentista+">
+  <PlatformGate client:load>
+    <PlatformSecurity client:load />
+  </PlatformGate>
+</AppLayout>

@@ -51,6 +51,20 @@ export const clinicPlanSchema = z.object({
   plan: z.enum(['essential', 'professional', 'enterprise'])
 });
 
+export const platformUsersQuerySchema = z.object({
+  clinicId: z.string().uuid().optional()
+});
+
+export const platformSettingsPatchSchema = z.object({
+  key: z.enum(['branding', 'registration']),
+  value: z.record(z.unknown())
+});
+
+export const supportStatusSchema = z.object({
+  id: z.string().uuid(),
+  status: z.enum(['open', 'in_progress', 'resolved', 'closed'])
+});
+
 export const appointmentSchema = z.object({
   clinicId: z.string().min(1).default('demo-clinic'),
   patientId: z.string().min(1),
