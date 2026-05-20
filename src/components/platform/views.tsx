@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  ArrowRight,
   Building2,
   CheckCircle2,
   ClipboardList,
@@ -11,7 +10,6 @@ import {
   Users
 } from 'lucide-react';
 import { Button, Card, Empty, Field, Input, Select, Textarea } from '@/components/ui';
-import { email, required } from '@/lib/validation';
 import type {
   ClinicRegistration,
   PlatformClinic,
@@ -615,89 +613,3 @@ export function PlatformSecurity() {
   );
 }
 
-export function ClinicRegistrationPage() {
-  const [form, setForm] = useState({
-    clinic_name: '',
-    owner_name: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    message: ''
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [sent, setSent] = useState(false);
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    const next: Record<string, string> = {};
-    const e1 = required(form.clinic_name, 'Nombre del centro');
-    const e2 = required(form.owner_name, 'Responsable');
-    const e3 = email(form.email);
-    const e4 = required(form.phone, 'Teléfono');
-    if (e1) next.clinic_name = e1;
-    if (e2) next.owner_name = e2;
-    if (e3) next.email = e3;
-    if (e4) next.phone = e4;
-    setErrors(next);
-    if (Object.keys(next).length) return;
-
-    const res = await fetch('/api/public/clinic-registration', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(form)
-    });
-    const json = (await res.json()) as { error?: { message?: string } };
-    if (!res.ok) {
-      setErrors({ form: json.error?.message ?? 'No se pudo enviar.' });
-      return;
-    }
-    setSent(true);
-  }
-
-  return (
-    <main className="cp shell py-12">
-      <Card className="mx-auto max-w-xl p-8">
-        <p className="text-xs font-bold uppercase tracking-widest text-[var(--teal)]">Alta de clínica</p>
-        <h1 className="mt-2 font-[family-name:var(--display)] text-2xl font-semibold">Registra tu centro</h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">
-          Solicita acceso a Dentista+. Revisamos cada alta manualmente para garantizar aislamiento y seguridad.
-        </p>
-        {sent ? (
-          <p className="mt-6 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900">
-            Solicitud enviada. Te contactaremos en menos de 24 horas.
-          </p>
-        ) : (
-          <form onSubmit={submit} className="mt-6 grid gap-3">
-            <Field label="Nombre del centro" error={errors.clinic_name}>
-              <Input value={form.clinic_name} onChange={(e) => setForm({ ...form, clinic_name: e.target.value })} />
-            </Field>
-            <Field label="Responsable" error={errors.owner_name}>
-              <Input value={form.owner_name} onChange={(e) => setForm({ ...form, owner_name: e.target.value })} />
-            </Field>
-            <Field label="Email" error={errors.email}>
-              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-            </Field>
-            <Field label="Teléfono" error={errors.phone}>
-              <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-            </Field>
-            <Field label="Dirección">
-              <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-            </Field>
-            <Field label="Ciudad">
-              <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
-            </Field>
-            <Field label="Mensaje">
-              <Textarea rows={4} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
-            </Field>
-            {errors.form ? <p className="text-sm font-bold text-rose-600">{errors.form}</p> : null}
-            <Button type="submit" className="w-full">
-              Enviar solicitud
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </form>
-        )}
-      </Card>
-    </main>
-  );
-}

@@ -25,7 +25,7 @@ export function PublicHeader({ activeHref }: { activeHref?: string }) {
             <a
               key={l.href}
               href={l.href}
-              className={activeHref && (l.href === activeHref || (activeHref === '/contacto' && l.href === '/contacto')) ? 'pub-nav__link--active' : undefined}
+              className={activeHref && l.href === activeHref ? 'pub-nav__link--active' : undefined}
               aria-current={activeHref === l.href ? 'page' : undefined}
             >
               {l.label}

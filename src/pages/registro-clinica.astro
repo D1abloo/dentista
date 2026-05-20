@@ -1,13 +1,10 @@
 ---
 import AppLayout from '@/layouts/AppLayout.astro';
-import { PublicHeader } from '@/components/public/PublicHeader';
-import { PublicFooter } from '@/components/public/PublicFooter';
-import { CookieBanner } from '@/components/public/CookieBanner';
-import { ClinicRegistrationPage } from '@/components/platform/views';
+import { ClinicRegistrationPage } from '@/components/public/ClinicRegistrationPage';
 ---
-<AppLayout title="Registrar clínica · Dentista+" description="Solicita el alta de tu clínica en Dentista+.">
-  <PublicHeader client:load />
+<AppLayout
+  title="Registrar clínica · Dentista+"
+  description="Solicita el alta de tu clínica en Dentista+ en modo producción. Panel aislado, revisión manual y acceso LIVE tras aprobación."
+>
   <ClinicRegistrationPage client:load />
-  <PublicFooter client:load />
-  <CookieBanner client:load />
 </AppLayout>

@@ -1,11 +1,19 @@
 import type { APIRoute } from 'astro';
 import { createRegistration } from '@/lib/platform/service';
-import { created, fail } from '@/lib/http';
+import { created, fail, ok } from '@/lib/http';
 import { logError } from '@/lib/logger';
 import { clinicRegistrationSchema } from '@/lib/validators';
 import { hasSupabaseConfig } from '@/lib/supabaseServer';
 
 export const prerender = false;
+
+export const GET: APIRoute = async () => {
+  return ok({
+    live: hasSupabaseConfig(),
+    mode: 'production',
+    endpoint: '/api/public/clinic-registration'
+  });
+};
 
 export const POST: APIRoute = async ({ request }) => {
   if (!hasSupabaseConfig()) {
@@ -22,6 +30,10 @@ export const POST: APIRoute = async ({ request }) => {
     );
   } catch (error) {
     logError('public.clinic-registration', error);
+    const code = error && typeof error === 'object' && 'code' in error ? String((error as { code: string }).code) : '';
+    if (code === '23505') {
+      return fail('Ya existe una solicitud pendiente con este email.', 409);
+    }
     return fail('No se pudo enviar la solicitud.', 500);
   }
 };

@@ -120,7 +120,7 @@ const faqs = [
   },
   {
     q: '¿Cómo funciona el portal clínica?',
-    a: 'Cada centro tiene su panel aislado: agenda, pacientes, informes, facturación y dentistas. Registra tu organización y empieza en modo demo.'
+    a: 'Cada centro tiene su panel aislado: agenda, pacientes, informes, facturación y dentistas. Solicita el alta en registro de clínica y accede tras la aprobación en producción.'
   },
   {
     q: '¿Puedo acceder a mis documentos?',
