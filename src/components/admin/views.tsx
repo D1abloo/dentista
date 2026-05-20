@@ -87,7 +87,7 @@ export function AdminDashboard() {
       <p className="admin-intro">
         {modeCopy(
           'Vista demo: datos aislados por clínica en este navegador.',
-          'Modo LIVE: sesión por cookie. Registros de'
+          'Sesión por cookie. Registros de'
         )}{' '}
         <strong>{scope.tenantId}</strong>
         {modeCopy('', ' · con Supabase los cambios se guardan en servidor.')}

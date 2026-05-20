@@ -50,7 +50,7 @@ export function LiveLoginForm({
       {isAdmin ? (
         <p className="login-form__badge login-form__badge--admin">
           <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
-          Sesión segura · modo LIVE
+          Sesión segura · acceso con credenciales
         </p>
       ) : isPatient ? (
         <p className="login-form__badge login-form__badge--patient">

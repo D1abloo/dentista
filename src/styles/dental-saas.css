@@ -867,6 +867,145 @@ body {
   color: var(--muted);
 }
 
+.legal-page__intro {
+  max-width: 42rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.legal-doc__meta {
+  padding: 0.85rem 1rem;
+  border-radius: 0.75rem;
+  background: rgba(37, 99, 235, 0.06);
+  border: 1px solid rgba(37, 99, 235, 0.12);
+  font-size: 0.85rem;
+  color: var(--navy);
+}
+
+.legal-doc__toc {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border-radius: 1rem;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+
+.legal-doc__toc-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--blue);
+}
+
+.legal-doc__toc ol {
+  margin: 0;
+  padding-left: 1.25rem;
+  columns: 1;
+}
+
+@media (min-width: 640px) {
+  .legal-doc__toc ol {
+    columns: 2;
+    column-gap: 2rem;
+  }
+}
+
+.legal-doc__toc a {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--navy);
+  text-decoration: none;
+}
+
+.legal-doc__toc a:hover {
+  color: var(--blue);
+  text-decoration: underline;
+}
+
+.legal-doc__section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.legal-doc__section h2 {
+  font-family: var(--display);
+  font-size: 1.2rem;
+  color: var(--navy);
+  margin: 0 0 0.5rem;
+}
+
+.legal-doc__section ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.legal-doc__contact {
+  margin-top: 2.5rem;
+  padding: 1.25rem;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #0f2742, #1e3a5f);
+  color: #fff;
+}
+
+.legal-doc__contact h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.legal-doc__contact a {
+  color: #99f6e4;
+  font-weight: 700;
+}
+
+.lp-cookie__title {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--navy);
+}
+
+.lp-cookie__inner {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .lp-cookie__inner {
+    flex-direction: row;
+    align-items: flex-end;
+  }
+}
+
+.lp-cookie__main {
+  flex: 1;
+}
+
+.lp-cookie__detail {
+  margin-top: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.lp-cookie__detail p {
+  margin: 0.25rem 0 0;
+}
+
+.lp-cookie__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: flex-end;
+}
+
 .space-y-5 > * + * {
   margin-top: 1.25rem;
 }
@@ -3885,14 +4024,14 @@ a.cp-channel:hover {
   padding-bottom: 5rem;
 }
 
-/* —— Registro clínica (LIVE) —— */
+/* —— Registro clínica —— */
 .cr-hero .cp-badge.cr-badge {
   background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(20, 184, 166, 0.14));
   color: #0f4c81;
   border: 1px solid rgba(20, 184, 166, 0.25);
 }
 
-.cr-live-pill {
+.cr-status-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -3908,7 +4047,7 @@ a.cp-channel:hover {
   border: 1px solid rgba(16, 185, 129, 0.35);
 }
 
-.cr-live-pill__dot {
+.cr-status-pill__dot {
   width: 0.45rem;
   height: 0.45rem;
   border-radius: 50%;

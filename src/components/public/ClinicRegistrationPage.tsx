@@ -14,7 +14,6 @@ import {
   UserRound
 } from 'lucide-react';
 import { Button, Field, Input, Textarea } from '@/components/ui';
-import { isClientDemoMode, isClientLiveMode } from '@/lib/appMode';
 import { email, required } from '@/lib/validation';
 import { PublicFooter } from './PublicFooter';
 import { PublicHeader } from './PublicHeader';
@@ -35,7 +34,7 @@ const BENEFITS = [
 const FAQS = [
   {
     q: '¿Cuánto tarda la activación?',
-    a: 'Revisamos cada solicitud manualmente. En producción suele resolverse en menos de 24 horas. Recibirás email con acceso al panel.'
+    a: 'Revisamos cada solicitud manualmente. Suele resolverse en menos de 24 horas. Recibirás un email con acceso al panel.'
   },
   {
     q: '¿Necesito tarjeta para registrarme?',
@@ -74,8 +73,6 @@ const initialForm: FormState = {
 };
 
 export function ClinicRegistrationPage() {
-  const live = isClientLiveMode();
-  const demo = isClientDemoMode();
   const [form, setForm] = useState<FormState>(initialForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sent, setSent] = useState(false);
@@ -87,13 +84,13 @@ export function ClinicRegistrationPage() {
   useEffect(() => {
     void fetch('/api/public/clinic-registration')
       .then(async (res) => {
-        const json = (await res.json()) as { data?: { live?: boolean } };
-        setApiReady(Boolean(json.data?.live));
+        const json = (await res.json()) as { data?: { available?: boolean } };
+        setApiReady(Boolean(json.data?.available));
       })
       .catch(() => setApiReady(false));
   }, []);
 
-  const canSubmit = live && apiReady && !demo;
+  const canSubmit = apiReady !== false;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -155,11 +152,11 @@ export function ClinicRegistrationPage() {
             <div className="cp-hero__copy">
               <span className="cp-badge cr-badge">
                 <Building2 className="h-3.5 w-3.5" aria-hidden />
-                Alta de clínica · LIVE
+                Alta de clínica
               </span>
               <h1>Registra tu centro en Dentista+</h1>
               <p className="cp-hero__lead">
-                Solicita acceso al SaaS dental en producción. Cada clínica aprobada obtiene su panel{' '}
+                Solicita acceso al SaaS dental para tu organización. Cada clínica aprobada obtiene su panel{' '}
                 <strong>/admin</strong> aislado: sin contacto ni datos compartidos con otras organizaciones.
               </p>
               <ul className="cp-trust-row">
@@ -204,32 +201,21 @@ export function ClinicRegistrationPage() {
                 />
               </div>
               <article className="cp-float cr-float">
-                <p className="cp-float__title">Producción activa</p>
+                <p className="cp-float__title">Revisión por el equipo</p>
                 <p className="cp-float__text">
-                  Tu solicitud se guarda en Supabase y el equipo de plataforma la revisa en{' '}
-                  <strong>/platform/registros</strong>.
+                  Tu solicitud queda registrada de forma segura. El equipo de plataforma la revisa en el panel de
+                  registros antes de activar tu acceso.
                 </p>
-                <span className="cr-live-pill">
-                  <i className="cr-live-pill__dot" aria-hidden />
-                  Modo LIVE
+                <span className="cr-status-pill">
+                  <i className="cr-status-pill__dot" aria-hidden />
+                  Alta verificada
                 </span>
               </article>
             </div>
           </div>
         </section>
 
-        {!live || demo ? (
-          <section className="shell cr-alert-section">
-            <div className="cr-alert" role="alert">
-              <p className="cr-alert__title">Registro solo en modo LIVE</p>
-              <p className="cr-alert__text">
-                {demo
-                  ? 'Desactiva PUBLIC_DEMO_MODE en el entorno de despliegue para habilitar altas reales.'
-                  : 'Configura Supabase en el servidor para recibir solicitudes.'}
-              </p>
-            </div>
-          </section>
-        ) : apiReady === false ? (
+        {apiReady === false ? (
           <section className="shell cr-alert-section">
             <div className="cr-alert cr-alert--warn" role="alert">
               <p className="cr-alert__title">Servicio temporalmente no disponible</p>
@@ -274,8 +260,8 @@ export function ClinicRegistrationPage() {
             <div className="cp-form-panel__form">
               <h2>Solicitud de alta</h2>
               <p className="cr-form-intro">
-                Completa los datos. En producción la solicitud queda en estado <strong>pending</strong> hasta
-                aprobación.
+                Completa los datos. La solicitud queda en estado <strong>pendiente</strong> hasta que el equipo la
+                apruebe.
               </p>
 
               {sent ? (
@@ -283,7 +269,7 @@ export function ClinicRegistrationPage() {
                   <CheckCircle2 className="h-10 w-10 text-emerald-600" aria-hidden />
                   <p className="cp-form-success__title">Solicitud enviada</p>
                   <p>
-                    Hemos registrado tu alta en producción. Te contactaremos en menos de 24 horas con el acceso
+                    Hemos registrado tu alta correctamente. Te contactaremos en menos de 24 horas con el acceso
                     al panel de tu clínica.
                   </p>
                   {requestId ? (
@@ -424,7 +410,7 @@ export function ClinicRegistrationPage() {
                   ) : null}
 
                   <Button type="submit" className="w-full" disabled={!canSubmit || loading}>
-                    {loading ? 'Enviando solicitud…' : 'Enviar solicitud LIVE'}
+                    {loading ? 'Enviando solicitud…' : 'Enviar solicitud'}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
 

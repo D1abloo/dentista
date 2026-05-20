@@ -22,14 +22,14 @@ export const GET: APIRoute = async () => {
         {
           message: isDemoMode()
             ? 'Modo demo local: configura Supabase en el servidor para datos compartidos.'
-            : 'Modo LIVE: datos en memoria del servidor. Configura Supabase para persistencia.'
+            : 'Datos en memoria del servidor. Configura Supabase para persistencia.'
         }
       );
     }
     const state = await ensureDemoStateInSupabase();
     return ok(
       { source: 'supabase' as const, state },
-      { message: isDemoMode() ? 'Datos demo cargados desde Supabase.' : 'Datos LIVE cargados desde Supabase.' }
+      { message: isDemoMode() ? 'Datos demo cargados desde Supabase.' : 'Datos cargados desde Supabase.' }
     );
   } catch (error) {
     const details = error instanceof Error ? error.message : error;

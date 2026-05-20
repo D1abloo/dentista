@@ -1,0 +1,102 @@
+import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
+import { sendMail, notifyInbox } from '@/lib/email/send';
+import type { SupportRequest } from '@/lib/platform/types';
+
+const CATEGORY_MAP = {
+  paciente: 'patient',
+  clinica: 'clinic',
+  facturacion: 'billing',
+  tecnico: 'technical',
+  otro: 'general'
+} as const;
+
+export type ContactFormInput = {
+  name: string;
+  email: string;
+  clinic?: string;
+  type: keyof typeof CATEGORY_MAP;
+  message: string;
+};
+
+export async function submitContactForm(input: ContactFormInput) {
+  const category = CATEGORY_MAP[input.type] ?? 'general';
+  const subject = `Contacto web: ${input.type} — ${input.name}`;
+  const bodyParts = [
+    `Nombre: ${input.name}`,
+    `Email: ${input.email}`,
+    input.clinic ? `Clínica: ${input.clinic}` : null,
+    `Tipo: ${input.type}`,
+    '',
+    input.message
+  ].filter(Boolean);
+  const body = bodyParts.join('\n');
+
+  let ticket: SupportRequest | null = null;
+  if (hasSupabaseConfig()) {
+    const db = getSupabaseAdmin();
+    const { data, error } = await db
+      .from('support_requests')
+      .insert({
+        requester_name: input.name,
+        requester_email: input.email,
+        subject,
+        body,
+        category,
+        status: 'open'
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    ticket = data as SupportRequest;
+  }
+
+  const inbox = notifyInbox();
+  await sendMail({
+    to: inbox,
+    replyTo: input.email,
+    subject: `[Dentista+] ${subject}`,
+    text: body
+  });
+
+  await sendMail({
+    to: input.email,
+    subject: 'Hemos recibido tu mensaje — Dentista+',
+    text: `Hola ${input.name},\n\nGracias por contactar con Dentista+. Hemos registrado tu consulta y te responderemos en menos de 24 horas laborables.\n\nUn saludo,\nEquipo Dentista+ / Estructura Web`
+  });
+
+  return { ticketId: ticket?.id ?? null };
+}
+
+export async function notifyClinicRegistration(input: {
+  clinic_name: string;
+  owner_name: string;
+  email: string;
+  phone: string;
+  registrationId: string;
+}) {
+  const inbox = notifyInbox();
+  const text = [
+    'Nueva solicitud de alta de clínica',
+    '',
+    `Centro: ${input.clinic_name}`,
+    `Responsable: ${input.owner_name}`,
+    `Email: ${input.email}`,
+    `Teléfono: ${input.phone}`,
+    `ID solicitud: ${input.registrationId}`,
+    '',
+    'Revisar en panel: /platform/registros'
+  ].join('\n');
+
+  await sendMail({
+    to: inbox,
+    replyTo: input.email,
+    subject: `[Dentista+] Nueva alta: ${input.clinic_name}`,
+    text
+  });
+
+  await sendMail({
+    to: input.email,
+    subject: 'Solicitud de alta recibida — Dentista+',
+    text: `Hola ${input.owner_name},\n\nHemos recibido la solicitud de alta para «${input.clinic_name}». La revisaremos manualmente y te contactaremos en menos de 24 horas laborables con los siguientes pasos.\n\nReferencia: ${input.registrationId}\n\nUn saludo,\nEquipo Dentista+`
+  });
+}

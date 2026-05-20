@@ -1,22 +1,13 @@
 ---
 import AppLayout from '@/layouts/AppLayout.astro';
 import { LegalPage } from '@/components/public/LegalPage';
+import { documentationSections } from '@/lib/legal/content';
 ---
 <AppLayout title="Documentación · Dentista+">
-  <LegalPage title="Documentación" client:load>
-    <p>Guía rápida del producto Dentista+ en modo demo.</p>
-    <h2 class="mt-6 text-lg font-bold text-[var(--navy)]">Portales</h2>
-    <ul class="list-disc pl-5">
-      <li><strong>Paciente:</strong> citas, informes, documentos, facturas y pagos por PAT-XXXX.</li>
-      <li><strong>Admin:</strong> gestión aislada por TEN-XXXX (Clínica Centro, Norte o Sur).</li>
-    </ul>
-    <h2 class="mt-6 text-lg font-bold text-[var(--navy)]">Pruebas recomendadas</h2>
-    <ul class="list-disc pl-5">
-      <li>Inicia como PAT-0001 y revisa registros de Centro y Norte.</li>
-      <li>Inicia como admin de Centro y confirma que no ves datos de Norte.</li>
-    </ul>
-    <p class="mt-4">
-      Documentación técnica completa en <code>docs/FRONTEND.md</code> y <code>docs/MULTI_TENANT.md</code>.
-    </p>
-  </LegalPage>
+  <LegalPage
+    client:load
+    title="Documentación"
+    intro="Guía de uso de los portales Dentista+, registro de clínicas y canales de soporte."
+    sections={documentationSections}
+  />
 </AppLayout>

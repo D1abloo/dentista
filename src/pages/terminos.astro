@@ -1,11 +1,16 @@
 ---
 import AppLayout from '@/layouts/AppLayout.astro';
 import { LegalPage } from '@/components/public/LegalPage';
+import { termsSections } from '@/lib/legal/content';
 ---
-<AppLayout title="Términos · Dentista+">
-  <LegalPage title="Términos de uso" client:load>
-    <p>El uso de Dentista+ implica la aceptación de estas condiciones en el ámbito de la gestión de citas dentales.</p>
-    <p>La plataforma no sustituye el juicio clínico ni la urgencia presencial. Los contenidos demo son ficticios.</p>
-    <p>Cada clínica es responsable de la veracidad de los datos que publica a sus pacientes.</p>
-  </LegalPage>
+<AppLayout
+  title="Términos de uso · Dentista+"
+  description="Condiciones generales de uso de la plataforma Dentista+ para clínicas, pacientes y equipo de Estructura Web."
+>
+  <LegalPage
+    client:load
+    title="Términos de uso"
+    intro="Condiciones que regulan el acceso a Dentista+, los paneles de clínica y paciente, el alta de organizaciones y las obligaciones de cada parte."
+    sections={termsSections}
+  />
 </AppLayout>

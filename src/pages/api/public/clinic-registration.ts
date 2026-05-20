@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { notifyClinicRegistration } from '@/lib/platform/contact';
 import { createRegistration } from '@/lib/platform/service';
 import { created, fail, ok } from '@/lib/http';
 import { logError } from '@/lib/logger';
@@ -9,8 +10,7 @@ export const prerender = false;
 
 export const GET: APIRoute = async () => {
   return ok({
-    live: hasSupabaseConfig(),
-    mode: 'production',
+    available: hasSupabaseConfig(),
     endpoint: '/api/public/clinic-registration'
   });
 };
@@ -24,6 +24,17 @@ export const POST: APIRoute = async ({ request }) => {
     const parsed = clinicRegistrationSchema.safeParse(body);
     if (!parsed.success) return fail('Revisa los datos del formulario.', 422, parsed.error.flatten());
     const row = await createRegistration(parsed.data);
+    try {
+      await notifyClinicRegistration({
+        clinic_name: parsed.data.clinic_name,
+        owner_name: parsed.data.owner_name,
+        email: parsed.data.email,
+        phone: parsed.data.phone,
+        registrationId: row.id
+      });
+    } catch (mailErr) {
+      logError('public.clinic-registration.email', mailErr);
+    }
     return created(
       { id: row.id, status: row.status },
       { message: 'Solicitud recibida. Te contactaremos en menos de 24 horas.' }

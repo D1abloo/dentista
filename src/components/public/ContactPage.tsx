@@ -79,8 +79,9 @@ const contactChannels: ContactChannel[] = [
     icon: Mail,
     tone: 'blue',
     title: 'Correo electrónico',
-    value: 'hola@dentista.demo',
-    sub: 'Soporte general'
+    value: 'info@estructuraweb.es',
+    sub: 'Soporte general',
+    href: 'mailto:info@estructuraweb.es'
   },
   {
     icon: Phone,
@@ -137,16 +138,18 @@ const teamAvatars = ['LS', 'AM', 'CR'];
 export function ContactPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [form, setForm] = useState({
     name: '',
     email: '',
     clinic: '',
     type: 'paciente',
-    message: ''
+    message: '',
+    accept_terms: false
   });
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     const next: Record<string, string> = {};
     const errName = required(form.name, 'Nombre');
@@ -155,9 +158,36 @@ export function ContactPage() {
     if (errName) next.name = errName;
     if (errEmail) next.email = errEmail;
     if (errMsg) next.message = errMsg;
+    if (!form.accept_terms) next.accept_terms = 'Debes aceptar la política de privacidad.';
     setErrors(next);
     if (Object.keys(next).length) return;
-    setSent(true);
+
+    setLoading(true);
+    setErrors({});
+    try {
+      const res = await fetch('/api/public/contact', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          clinic: form.clinic.trim() || undefined,
+          type: form.type,
+          message: form.message.trim(),
+          accept_terms: true
+        })
+      });
+      const json = (await res.json()) as { error?: { message?: string } };
+      if (!res.ok) {
+        setErrors({ form: json.error?.message ?? 'No se pudo enviar el mensaje.' });
+        return;
+      }
+      setSent(true);
+    } catch {
+      setErrors({ form: 'Error de conexión. Escríbenos a info@estructuraweb.es.' });
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -296,8 +326,33 @@ export function ContactPage() {
                       placeholder="Cuéntanos en qué podemos ayudarte…"
                     />
                   </Field>
-                  <button type="submit" className="btn btn--primary btn--lg btn--block">
-                    Enviar mensaje
+                  <label className={`cr-check ${errors.accept_terms ? 'cr-check--error' : ''}`}>
+                    <input
+                      type="checkbox"
+                      checked={form.accept_terms}
+                      onChange={(e) => setForm({ ...form, accept_terms: e.target.checked })}
+                      disabled={loading}
+                    />
+                    <span>
+                      He leído y acepto la{' '}
+                      <a href="/privacidad" target="_blank" rel="noopener noreferrer">
+                        política de privacidad
+                      </a>
+                      .
+                    </span>
+                  </label>
+                  {errors.accept_terms ? (
+                    <p className="cr-field-error" role="alert">
+                      {errors.accept_terms}
+                    </p>
+                  ) : null}
+                  {errors.form ? (
+                    <p className="login-form__error" role="alert">
+                      {errors.form}
+                    </p>
+                  ) : null}
+                  <button type="submit" className="btn btn--primary btn--lg btn--block" disabled={loading}>
+                    {loading ? 'Enviando…' : 'Enviar mensaje'}
                     <ArrowRight className="h-5 w-5" aria-hidden />
                   </button>
                   <p className="cp-form__note">

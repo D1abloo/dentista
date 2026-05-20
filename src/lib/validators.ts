@@ -25,6 +25,17 @@ export const loginSchema = z.object({
   password: z.string().min(6).max(120)
 });
 
+export const contactFormSchema = z.object({
+  name: z.string().min(2).max(120),
+  email: z.string().email(),
+  clinic: z.string().max(120).optional(),
+  type: z.enum(['paciente', 'clinica', 'facturacion', 'tecnico', 'otro']),
+  message: z.string().min(10).max(4000),
+  accept_terms: z.literal(true, {
+    errorMap: () => ({ message: 'Debes aceptar la política de privacidad.' })
+  })
+});
+
 export const clinicRegistrationSchema = z.object({
   clinic_name: z.string().min(2).max(120),
   owner_name: z.string().min(2).max(120),

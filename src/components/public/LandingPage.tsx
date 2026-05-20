@@ -345,7 +345,7 @@ export function LandingPage() {
               <ul>
                 <li>Integraciones API</li>
                 <li>SLA y formación</li>
-                <li>Redis y Supabase LIVE</li>
+                <li>Redis y Supabase en producción</li>
               </ul>
               <a href="/contacto" className="btn btn--outline btn--block">
                 Contactar ventas
