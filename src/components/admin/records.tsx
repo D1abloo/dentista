@@ -15,7 +15,7 @@ import { fmtDate, fmtDateTime, money, statusLabel, todayIso } from '@/lib/format
 import { reportTitleFromAppointment } from '@/lib/clinical';
 import { patientName, recordsForPatient } from '@/lib/selectors';
 import { positiveAmount, required } from '@/lib/validation';
-import { modeCopy } from '@/lib/appMode';
+import { isClientDemoMode, modeCopy } from '@/lib/appMode';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import type { ClinicalReport, Payment } from '@/types/demo';
@@ -212,6 +212,21 @@ export function AdminPatientDetail({ patientId }: { patientId: string }) {
                 setNotice({ type: 'error', message: 'Completa asunto y mensaje.' });
                 return;
               }
+              if (!isClientDemoMode()) {
+                void fetch('/api/records/message', {
+                  method: 'POST',
+                  credentials: 'include',
+                  headers: { 'content-type': 'application/json' },
+                  body: JSON.stringify({
+                    clinicId: patient.preferredClinicId,
+                    patientId,
+                    subject: msgSubject,
+                    body: msgBody,
+                    type: 'clinica',
+                    channel: 'app'
+                  })
+                });
+              }
               commit(
                 addMessage(state, {
                   patientId,
@@ -322,21 +337,31 @@ export function AdminClinicalReports() {
         return;
       }
     }
-    commit(
-      createClinicalReport(state, {
-        patientId: form.patientId,
-        appointmentId: form.appointmentId || undefined,
-        title: form.title,
-        description: form.description,
-        diagnosis: form.diagnosis || undefined,
-        recommendations: form.recommendations || undefined,
-        fileName,
-        fileRef,
-        mimeType,
-        uploadedBy: form.uploadedBy,
-        visibleToPatient: form.visibleToPatient
-      })
-    );
+    const reportInput = {
+      patientId: form.patientId,
+      appointmentId: form.appointmentId || undefined,
+      title: form.title,
+      description: form.description,
+      diagnosis: form.diagnosis || undefined,
+      recommendations: form.recommendations || undefined,
+      fileName,
+      fileRef,
+      mimeType,
+      uploadedBy: form.uploadedBy,
+      visibleToPatient: form.visibleToPatient
+    };
+    if (!isClientDemoMode()) {
+      const clinicId = state.patients.find((p) => p.id === form.patientId)?.preferredClinicId;
+      if (clinicId) {
+        await fetch('/api/records/report', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ clinicId, ...reportInput })
+        });
+      }
+    }
+    commit(createClinicalReport(state, reportInput));
     setNotice({ type: 'ok', message: 'Informe creado y vinculado al paciente.' });
     setForm({ ...form, title: '', description: '', diagnosis: '', recommendations: '' });
     setReportFile(null);
@@ -416,6 +441,17 @@ function ReportRow({ r }: { r: ClinicalReport }) {
           tone="ghost"
           className="!text-xs"
           onClick={() => {
+            if (!isClientDemoMode()) {
+              const clinicId = state.patients.find((p) => p.id === r.patientId)?.preferredClinicId;
+              if (clinicId) {
+                void fetch('/api/records/report', {
+                  method: 'PATCH',
+                  credentials: 'include',
+                  headers: { 'content-type': 'application/json' },
+                  body: JSON.stringify({ clinicId, id: r.id, visibleToPatient: !r.visibleToPatient })
+                });
+              }
+            }
             commit(saveClinicalReport(state, { ...r, visibleToPatient: !r.visibleToPatient }));
             setNotice({ type: 'ok', message: 'Visibilidad actualizada.' });
           }}

@@ -30,6 +30,7 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
 
   const db = getSupabaseAdmin();
   const clinicId = user.clinicId;
+  const tenantHint = user.tenantId ?? clinicId;
 
   const [
     { data: clinic },
@@ -38,7 +39,12 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
     { data: treatments },
     { data: profiles },
     { data: appointments },
-    { data: invoices }
+    { data: invoices },
+    { data: payments },
+    { data: reports },
+    { data: documents },
+    { data: messages },
+    { data: consents }
   ] = await Promise.all([
     db.from('clinics').select('*').eq('id', clinicId).single(),
     db.from('rooms').select('*').eq('clinic_id', clinicId),
@@ -46,7 +52,12 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
     db.from('treatments').select('*').eq('clinic_id', clinicId),
     db.from('profiles').select('*').eq('clinic_id', clinicId),
     db.from('appointments_view').select('*').eq('clinic_id', clinicId).order('starts_at'),
-    db.from('invoices').select('*').eq('clinic_id', clinicId).order('created_at', { ascending: false })
+    db.from('invoices').select('*').eq('clinic_id', clinicId).order('created_at', { ascending: false }),
+    db.from('payments').select('*').eq('clinic_id', clinicId).order('created_at', { ascending: false }),
+    db.from('clinical_reports').select('*').eq('tenant_id', tenantHint).order('created_at', { ascending: false }),
+    db.from('patient_documents').select('*').eq('tenant_id', tenantHint).order('created_at', { ascending: false }),
+    db.from('messages').select('*').eq('tenant_id', tenantHint).order('created_at', { ascending: false }),
+    db.from('informed_consents').select('*').eq('tenant_id', tenantHint).order('created_at', { ascending: false })
   ]);
 
   if (!clinic) return createEmptyDemoState();
@@ -178,6 +189,89 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
       status: mapInvoiceStatus(i.status),
       issuedAt: String(i.created_at ?? '').slice(0, 10),
       dueDate: i.due_at ? String(i.due_at).slice(0, 10) : undefined
+    }));
+
+  state.payments = (payments ?? [])
+    .filter((p) => user.role !== 'patient' || p.patient_id === user.patientId)
+    .map((p) => ({
+      id: p.id,
+      tenantId,
+      patientId: p.patient_id,
+      invoiceId: p.invoice_id ?? undefined,
+      amount: Math.round((p.amount_cents ?? 0) / 100),
+      method: p.provider === 'stripe' ? 'tarjeta' : 'otro',
+      status: p.status === 'paid' ? 'completado' : p.status === 'pending' ? 'pendiente' : 'fallido',
+      paidAt: p.created_at ? String(p.created_at).slice(0, 10) : undefined,
+      createdAt: String(p.created_at ?? '').slice(0, 10)
+    }));
+
+  state.clinicalReports = (reports ?? [])
+    .filter((r) => user.role !== 'patient' || (r.patient_id === user.patientId && r.visible_to_patient))
+    .map((r) => ({
+      id: r.id,
+      tenantId,
+      patientId: r.patient_id,
+      appointmentId: r.appointment_id ?? undefined,
+      title: r.title,
+      description: r.description ?? '',
+      diagnosis: r.diagnosis ?? undefined,
+      recommendations: r.recommendations ?? undefined,
+      fileName: r.file_name ?? undefined,
+      fileRef: r.file_url ?? undefined,
+      mimeType: r.mime_type ?? undefined,
+      uploadedBy: r.uploaded_by ?? 'Admin clínica',
+      visibleToPatient: Boolean(r.visible_to_patient),
+      createdAt: String(r.created_at ?? '').slice(0, 10)
+    }));
+
+  state.patientDocuments = (documents ?? [])
+    .filter((d) => user.role !== 'patient' || (d.patient_id === user.patientId && d.visibility === 'paciente'))
+    .map((d) => ({
+      id: d.id,
+      tenantId,
+      patientId: d.patient_id,
+      appointmentId: d.appointment_id ?? undefined,
+      type: d.type,
+      title: d.title,
+      description: d.description ?? undefined,
+      fileName: d.file_name ?? undefined,
+      fileRef: d.file_url ?? undefined,
+      mimeType: d.mime_type ?? undefined,
+      visibility: d.visibility,
+      createdAt: String(d.created_at ?? '').slice(0, 10)
+    }));
+
+  state.messages = (messages ?? [])
+    .filter((m) => user.role !== 'patient' || m.patient_id === user.patientId)
+    .map((m) => ({
+      id: m.id,
+      tenantId,
+      patientId: m.patient_id,
+      subject: m.subject,
+      body: m.body,
+      channel: m.channel ?? 'app',
+      type: m.type ?? 'clinica',
+      read: Boolean(m.read),
+      sentAt: String(m.created_at ?? '').slice(0, 10)
+    }));
+
+  state.informedConsents = (consents ?? [])
+    .filter((c) => user.role !== 'patient' || c.patient_id === user.patientId)
+    .map((c) => ({
+      id: c.id,
+      tenantId,
+      patientId: c.patient_id,
+      appointmentId: c.appointment_id ?? undefined,
+      treatmentName: c.treatment_name,
+      title: c.title,
+      body: c.body,
+      status: c.status === 'firmado' ? 'firmado' : 'pendiente',
+      requiredForPortal: Boolean(c.required_for_portal),
+      fileRef: c.file_url ?? undefined,
+      fileName: c.file_name ?? undefined,
+      signatureRef: c.signature_ref ?? undefined,
+      signedAt: c.signed_at ? String(c.signed_at).slice(0, 10) : undefined,
+      createdAt: String(c.created_at ?? '').slice(0, 10)
     }));
 
   state.settingsByTenant = {

@@ -7,6 +7,7 @@ import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { required } from '@/lib/validation';
 import { saveDemoFile } from '@/lib/demoFiles';
+import { isClientDemoMode } from '@/lib/appMode';
 import { PatientLookup } from './PatientLookup';
 import { AppointmentOptions } from './records';
 import { Badge, Button, Card, Empty, Field, Input, SearchInput, Select, Textarea } from '@/components/ui';
@@ -56,6 +57,27 @@ export function AdminConsents() {
     if (uploadFile) {
       fileRef = await saveDemoFile(uploadFile);
       fileName = uploadFile.name;
+    }
+    if (!isClientDemoMode()) {
+      const clinicId = state.patients.find((p) => p.id === form.patientId)?.preferredClinicId;
+      if (clinicId) {
+        await fetch('/api/records/consent', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            clinicId,
+            patientId: form.patientId,
+            appointmentId: form.appointmentId || undefined,
+            treatmentName: form.treatmentName,
+            title: form.title,
+            body: form.body,
+            requiredForPortal: form.requiredForPortal,
+            fileRef,
+            fileName
+          })
+        });
+      }
     }
     commit(
       createInformedConsent(state, {

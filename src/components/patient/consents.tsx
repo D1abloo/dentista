@@ -3,6 +3,7 @@ import type { InformedConsent } from '@/types/demo';
 import { pendingConsentsForPatient, signInformedConsent } from '@/lib/demoStore';
 import { saveDemoFile } from '@/lib/demoFiles';
 import { fmtDate } from '@/lib/format';
+import { isClientDemoMode } from '@/lib/appMode';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { usePatient } from '@/hooks/usePatient';
 import { useNotice } from '@/hooks/useNotice';
@@ -57,6 +58,20 @@ export function PatientConsents({ compact = false }: { compact?: boolean }) {
       let docRef: string | undefined;
       if (upload) {
         docRef = await saveDemoFile(upload);
+      }
+      if (!isClientDemoMode()) {
+        await fetch('/api/records/consent', {
+          method: 'PATCH',
+          credentials: 'include',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            clinicId: patient.preferredClinicId,
+            consentId,
+            signatureRef: dataUrl,
+            fileRef: docRef,
+            fileName: upload?.name
+          })
+        });
       }
       commit(signInformedConsent(state, consentId, dataUrl, docRef, upload?.name));
       setNotice({ type: 'ok', message: 'Consentimiento firmado correctamente.' });

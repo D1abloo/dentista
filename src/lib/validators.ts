@@ -118,6 +118,79 @@ export const appointmentNotificationSchema = z.object({
   }
 });
 
+export const reportCreateSchema = z.object({
+  clinicId: z.string().uuid(),
+  patientId: z.string().uuid(),
+  appointmentId: z.string().uuid().optional(),
+  title: z.string().min(2).max(160),
+  description: z.string().min(3).max(8000),
+  diagnosis: z.string().max(5000).optional(),
+  recommendations: z.string().max(5000).optional(),
+  fileName: z.string().max(255).optional(),
+  fileRef: z.string().max(20000).optional(),
+  mimeType: z.string().max(120).optional(),
+  uploadedBy: z.string().min(2).max(120).default('Admin clínica'),
+  visibleToPatient: z.boolean().default(true)
+});
+
+export const reportVisibilitySchema = z.object({
+  clinicId: z.string().uuid(),
+  id: z.string().uuid(),
+  visibleToPatient: z.boolean()
+});
+
+export const documentCreateSchema = z.object({
+  clinicId: z.string().uuid(),
+  patientId: z.string().uuid(),
+  appointmentId: z.string().uuid().optional(),
+  type: z.enum(['informe', 'factura', 'recibo', 'consentimiento', 'radiografia', 'otro']),
+  title: z.string().min(2).max(160),
+  description: z.string().max(4000).optional(),
+  fileName: z.string().max(255).optional(),
+  fileRef: z.string().max(20000).optional(),
+  mimeType: z.string().max(120).optional(),
+  visibility: z.enum(['paciente', 'admin'])
+});
+
+export const messageCreateSchema = z.object({
+  clinicId: z.string().uuid(),
+  patientId: z.string().uuid(),
+  subject: z.string().min(2).max(160),
+  body: z.string().min(2).max(8000),
+  channel: z.enum(['app', 'email', 'whatsapp', 'sms']).default('app'),
+  type: z.enum(['recordatorio', 'confirmacion', 'clinica', 'general']).default('clinica')
+});
+
+export const consentCreateSchema = z.object({
+  clinicId: z.string().uuid(),
+  patientId: z.string().uuid(),
+  appointmentId: z.string().uuid().optional(),
+  treatmentName: z.string().min(2).max(160),
+  title: z.string().min(2).max(180),
+  body: z.string().min(10).max(12000),
+  requiredForPortal: z.boolean().default(true),
+  fileRef: z.string().max(20000).optional(),
+  fileName: z.string().max(255).optional()
+});
+
+export const consentSignSchema = z.object({
+  clinicId: z.string().uuid(),
+  consentId: z.string().uuid(),
+  signatureRef: z.string().min(10),
+  fileRef: z.string().max(20000).optional(),
+  fileName: z.string().max(255).optional()
+});
+
+export const stripeCheckoutSchema = z.object({
+  clinicId: z.string().uuid(),
+  patientId: z.string().uuid(),
+  invoiceId: z.string().uuid().optional(),
+  amount: z.number().positive(),
+  concept: z.string().min(2).max(200),
+  successUrl: z.string().url().optional(),
+  cancelUrl: z.string().url().optional()
+});
+
 export type ClinicQuery = z.infer<typeof clinicQuerySchema>;
 export type PatientQuery = z.infer<typeof patientQuerySchema>;
 export type AvailabilityQuery = z.infer<typeof availabilityQuerySchema>;
@@ -126,3 +199,10 @@ export type AppointmentInput = z.infer<typeof appointmentSchema>;
 export type AppointmentActionInput = z.infer<typeof appointmentActionSchema>;
 export type ReminderInput = z.infer<typeof reminderSchema>;
 export type AppointmentNotificationInput = z.infer<typeof appointmentNotificationSchema>;
+export type ReportCreateInput = z.infer<typeof reportCreateSchema>;
+export type ReportVisibilityInput = z.infer<typeof reportVisibilitySchema>;
+export type DocumentCreateInput = z.infer<typeof documentCreateSchema>;
+export type MessageCreateInput = z.infer<typeof messageCreateSchema>;
+export type ConsentCreateInput = z.infer<typeof consentCreateSchema>;
+export type ConsentSignInput = z.infer<typeof consentSignSchema>;
+export type StripeCheckoutInput = z.infer<typeof stripeCheckoutSchema>;

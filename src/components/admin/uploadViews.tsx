@@ -16,6 +16,7 @@ import { fmtDate, money, todayIso } from '@/lib/format';
 import { getPatientById, patientName } from '@/lib/selectors';
 import { positiveAmount, required } from '@/lib/validation';
 import { modeCopy } from '@/lib/appMode';
+import { isClientDemoMode } from '@/lib/appMode';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useTenant } from '@/hooks/useTenant';
 import { useNotice } from '@/hooks/useNotice';
@@ -120,19 +121,29 @@ export function AdminDocuments() {
         return;
       }
     }
-    commit(
-      createPatientDocument(state, {
-        patientId: form.patientId,
-        appointmentId: form.appointmentId || undefined,
-        type: form.type,
-        title: form.title,
-        description: form.description || undefined,
-        fileName,
-        fileRef,
-        mimeType,
-        visibility: form.visibility
-      })
-    );
+    const payload = {
+      patientId: form.patientId,
+      appointmentId: form.appointmentId || undefined,
+      type: form.type,
+      title: form.title,
+      description: form.description || undefined,
+      fileName,
+      fileRef,
+      mimeType,
+      visibility: form.visibility
+    };
+    if (!isClientDemoMode()) {
+      const clinicId = state.patients.find((p) => p.id === form.patientId)?.preferredClinicId;
+      if (clinicId) {
+        await fetch('/api/records/document', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ clinicId, ...payload })
+        });
+      }
+    }
+    commit(createPatientDocument(state, payload));
     setNotice({ type: 'ok', message: 'Documento subido y vinculado al paciente.' });
     setForm({ ...form, title: '', description: '' });
     setDocFile(null);
@@ -298,21 +309,20 @@ export function AdminInvoices() {
       return;
     }
 
-    commit(
-      createInvoice(state, {
-        id,
-        patientId: form.patientId,
-        appointmentId: form.appointmentId || undefined,
-        amount: form.amount,
-        concept: form.concept,
-        status: form.status,
-        issuedAt: form.issuedAt,
-        dueDate: form.dueDate || undefined,
-        fileRef,
-        fileName,
-        mimeType
-      })
-    );
+    const payload = {
+      id,
+      patientId: form.patientId,
+      appointmentId: form.appointmentId || undefined,
+      amount: form.amount,
+      concept: form.concept,
+      status: form.status,
+      issuedAt: form.issuedAt,
+      dueDate: form.dueDate || undefined,
+      fileRef,
+      fileName,
+      mimeType
+    };
+    commit(createInvoice(state, payload));
     setNotice({ type: 'ok', message: 'Factura PDF creada.' });
     setForm({ ...form, concept: '' });
     setPdfFile(null);

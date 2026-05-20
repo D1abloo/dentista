@@ -77,6 +77,20 @@ Aplica también la migración `0009_auth_bootstrap.sql` (índices y `profiles.te
 - Cola de notificaciones (email/WhatsApp) en producción
 - JWT de Supabase en cliente para RLS directo (opcional; hoy sesión por cookie)
 
+## Fase 3 aplicada
+
+- Endpoints nuevos de persistencia:
+  - `POST/PATCH /api/records/report`
+  - `POST /api/records/document`
+  - `POST /api/records/message`
+  - `POST/PATCH /api/records/consent`
+- Checkout Stripe:
+  - `POST /api/billing/stripe-checkout`
+  - Usa `STRIPE_SECRET_KEY` (si falta, fallback mock).
+- Cola de recordatorios:
+  - `POST /api/reminders/send` ahora encola en `notification_jobs`.
+- Migración: `0010_phase3_records_billing.sql`
+
 ## Comprobaciones antes de publicar
 
 ```bash

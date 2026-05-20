@@ -13,6 +13,7 @@ import { getStoredTenantId, settingsFor } from '@/lib/demoStore';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { usePatient } from '@/hooks/usePatient';
+import { isClientDemoMode } from '@/lib/appMode';
 import type { Invoice } from '@/types/demo';
 import { FileActions } from '@/components/shared/FileActions';
 import { Badge, Button, Empty, PageHeader, SearchInput } from '@/components/ui';
@@ -149,7 +150,28 @@ export function PatientInvoices() {
               {i.status === 'pendiente' || i.status === 'vencida' ? (
                 <Button
                   className="!text-xs"
-                  onClick={() => {
+                  onClick={async () => {
+                    if (!isClientDemoMode()) {
+                      const res = await fetch('/api/billing/stripe-checkout', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: { 'content-type': 'application/json' },
+                        body: JSON.stringify({
+                          clinicId: patient.preferredClinicId,
+                          patientId: patient.id,
+                          invoiceId: i.id,
+                          amount: i.amount,
+                          concept: i.concept
+                        })
+                      });
+                      const json = (await res.json()) as { data?: { checkoutUrl?: string }; error?: { message?: string } };
+                      if (res.ok && json.data?.checkoutUrl) {
+                        window.location.href = json.data.checkoutUrl;
+                        return;
+                      }
+                      setNotice({ type: 'error', message: json.error?.message ?? 'No se pudo iniciar Stripe checkout.' });
+                      return;
+                    }
                     commit(
                       createPayment(state, {
                         patientId: patient.id,
@@ -163,7 +185,7 @@ export function PatientInvoices() {
                     setNotice({ type: 'ok', message: 'Pago demo registrado. Factura marcada como pagada.' });
                   }}
                 >
-                  Pagar demo
+                  {isClientDemoMode() ? 'Pagar demo' : 'Pagar con Stripe'}
                 </Button>
               ) : null}
             </div>
