@@ -209,6 +209,7 @@ export function registerOrganization(
     whatsapp: input.phone.trim(),
     openingHours: 'Lun–Vie 09:00–20:00',
     active: true,
+    isMainBranch: true,
     cabinets: [{ id: `g-${clinicId.slice(-4)}`, name: 'Gabinete 1', equipment: 'General', active: true }]
   };
   const appSettings: AppSettings = {
@@ -248,6 +249,36 @@ export function registerOrganization(
     normativeByTenant: { ...state.normativeByTenant, [tenantId]: normative }
   };
   return { state: next, tenantId, clinicId };
+}
+
+/** Añade una sede a la organización (tenant) activa sin crear un nuevo tenant. */
+export function addBranchToOrganization(
+  state: DemoState,
+  tenantId: string,
+  input: {
+    name: string;
+    address?: string;
+    city?: string;
+    phone?: string;
+    email?: string;
+  }
+): { state: DemoState; clinicId: string } {
+  const clinicId = nextClinicId(state);
+  const clinic: Clinic = {
+    id: clinicId,
+    tenantId,
+    name: input.name.trim(),
+    address: input.address?.trim() ?? '',
+    city: input.city?.trim() || 'Madrid',
+    phone: input.phone?.trim() ?? '',
+    email: input.email?.trim() ?? '',
+    whatsapp: input.phone?.trim() ?? '',
+    openingHours: 'Lun–Vie 09:00–20:00',
+    active: true,
+    isMainBranch: false,
+    cabinets: [{ id: `g-${clinicId.slice(-4)}`, name: 'Gabinete 1', equipment: 'General', active: true }]
+  };
+  return { state: { ...state, clinics: [...state.clinics, clinic] }, clinicId };
 }
 
 export function updateAppointmentStatus(

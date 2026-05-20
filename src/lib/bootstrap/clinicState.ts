@@ -29,11 +29,21 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
   if (!user.clinicId) return createEmptyDemoState();
 
   const db = getSupabaseAdmin();
-  const clinicId = user.clinicId;
-  const tenantHint = user.tenantId ?? clinicId;
+  const { data: anchorClinic } = await db.from('clinics').select('*').eq('id', user.clinicId).single();
+  if (!anchorClinic) return createEmptyDemoState();
+
+  const tenantId = user.tenantId ?? anchorClinic.tenant_id ?? user.clinicId;
+  const tenantHint = tenantId;
+
+  const { data: allClinics } = anchorClinic.tenant_id
+    ? await db.from('clinics').select('*').eq('tenant_id', anchorClinic.tenant_id).order('is_main_branch', { ascending: false })
+    : { data: [anchorClinic] };
+
+  const clinicRows = allClinics ?? [anchorClinic];
+  const clinicIds = clinicRows.map((c) => c.id);
+  if (!clinicIds.length) return createEmptyDemoState();
 
   const [
-    { data: clinic },
     { data: rooms },
     { data: dentists },
     { data: treatments },
@@ -46,29 +56,26 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
     { data: messages },
     { data: consents }
   ] = await Promise.all([
-    db.from('clinics').select('*').eq('id', clinicId).single(),
-    db.from('rooms').select('*').eq('clinic_id', clinicId),
-    db.from('dentists').select('*').eq('clinic_id', clinicId),
-    db.from('treatments').select('*').eq('clinic_id', clinicId),
-    db.from('profiles').select('*').eq('clinic_id', clinicId),
-    db.from('appointments_view').select('*').eq('clinic_id', clinicId).order('starts_at'),
-    db.from('invoices').select('*').eq('clinic_id', clinicId).order('created_at', { ascending: false }),
-    db.from('payments').select('*').eq('clinic_id', clinicId).order('created_at', { ascending: false }),
+    db.from('rooms').select('*').in('clinic_id', clinicIds),
+    db.from('dentists').select('*').in('clinic_id', clinicIds),
+    db.from('treatments').select('*').in('clinic_id', clinicIds),
+    db.from('profiles').select('*').in('clinic_id', clinicIds),
+    db.from('appointments_view').select('*').in('clinic_id', clinicIds).order('starts_at'),
+    db.from('invoices').select('*').in('clinic_id', clinicIds).order('created_at', { ascending: false }),
+    db.from('payments').select('*').in('clinic_id', clinicIds).order('created_at', { ascending: false }),
     db.from('clinical_reports').select('*').eq('tenant_id', tenantHint).order('created_at', { ascending: false }),
     db.from('patient_documents').select('*').eq('tenant_id', tenantHint).order('created_at', { ascending: false }),
     db.from('messages').select('*').eq('tenant_id', tenantHint).order('created_at', { ascending: false }),
     db.from('informed_consents').select('*').eq('tenant_id', tenantHint).order('created_at', { ascending: false })
   ]);
 
-  if (!clinic) return createEmptyDemoState();
-
   let tenantRow: Record<string, unknown> | null = null;
-  if (clinic.tenant_id) {
-    const { data } = await db.from('tenants').select('*').eq('id', clinic.tenant_id).maybeSingle();
+  if (anchorClinic.tenant_id) {
+    const { data } = await db.from('tenants').select('*').eq('id', anchorClinic.tenant_id).maybeSingle();
     tenantRow = data;
   }
 
-  const tenantId = user.tenantId ?? clinic.tenant_id ?? clinicId;
+  const mainClinic = clinicRows.find((c) => c.is_main_branch) ?? clinicRows[0];
 
   const state = createEmptyDemoState();
 
@@ -76,12 +83,12 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
     ? [
         {
           id: String(tenantRow.id),
-          name: String(tenantRow.name ?? clinic.name),
+          name: String(tenantRow.name ?? mainClinic.name),
           type: (tenantRow.type as 'dentista' | 'clinica') ?? 'clinica',
-          ownerName: String(tenantRow.owner_name ?? clinic.name),
-          email: String(tenantRow.email ?? clinic.email ?? ''),
-          phone: String(tenantRow.phone ?? clinic.phone ?? ''),
-          address: String(tenantRow.address ?? clinic.address ?? ''),
+          ownerName: String(tenantRow.owner_name ?? mainClinic.name),
+          email: String(tenantRow.email ?? mainClinic.email ?? ''),
+          phone: String(tenantRow.phone ?? mainClinic.phone ?? ''),
+          address: String(tenantRow.address ?? mainClinic.address ?? ''),
           active: Boolean(tenantRow.active ?? true),
           createdAt: String(tenantRow.created_at ?? new Date().toISOString()).slice(0, 10)
         }
@@ -89,37 +96,43 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
     : [
         {
           id: tenantId,
-          name: clinic.name,
+          name: mainClinic.name,
           type: 'clinica',
-          ownerName: clinic.name,
-          email: clinic.email ?? '',
-          phone: clinic.phone ?? '',
-          address: clinic.address ?? '',
-          active: clinic.status === 'active',
-          createdAt: String(clinic.created_at ?? '').slice(0, 10)
+          ownerName: mainClinic.name,
+          email: mainClinic.email ?? '',
+          phone: mainClinic.phone ?? '',
+          address: mainClinic.address ?? '',
+          active: mainClinic.status === 'active',
+          createdAt: String(mainClinic.created_at ?? '').slice(0, 10)
         }
       ];
 
-  state.clinics = [
-    {
-      id: clinic.id,
-      tenantId,
-      name: clinic.name,
-      address: clinic.address ?? '',
-      city: 'Madrid',
-      phone: clinic.phone ?? '',
-      email: clinic.email ?? '',
-      whatsapp: clinic.phone ?? '',
-      openingHours: 'Lun–Vie 09:00–20:00',
-      active: clinic.status === 'active',
-      cabinets: (rooms ?? []).map((r) => ({
-        id: r.id,
-        name: r.name,
-        equipment: 'General',
-        active: r.active
-      }))
-    }
-  ];
+  const roomsByClinic = new Map<string, typeof rooms>();
+  for (const r of rooms ?? []) {
+    const list = roomsByClinic.get(r.clinic_id) ?? [];
+    list.push(r);
+    roomsByClinic.set(r.clinic_id, list);
+  }
+
+  state.clinics = clinicRows.map((clinic) => ({
+    id: clinic.id,
+    tenantId,
+    name: clinic.name,
+    address: clinic.address ?? '',
+    city: clinic.city ?? 'Madrid',
+    phone: clinic.phone ?? '',
+    email: clinic.email ?? '',
+    whatsapp: clinic.phone ?? '',
+    openingHours: 'Lun–Vie 09:00–20:00',
+    active: clinic.status === 'active',
+    isMainBranch: Boolean(clinic.is_main_branch),
+    cabinets: (roomsByClinic.get(clinic.id) ?? []).map((r) => ({
+      id: r.id,
+      name: r.name,
+      equipment: 'General',
+      active: r.active
+    }))
+  }));
 
   state.dentists = (dentists ?? []).map((d) => ({
     id: d.id,
@@ -127,7 +140,7 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
     fullName: d.name,
     specialty: d.specialty,
     email: `${d.id.slice(0, 8)}@clinic.local`,
-    phone: clinic.phone ?? '',
+    phone: mainClinic.phone ?? '',
     schedule: 'Lun–Vie 09:00–17:00',
     active: d.active
   }));
@@ -148,7 +161,7 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
     fullName: p.full_name,
     email: p.email,
     phone: p.phone ?? '',
-    preferredClinicId: clinicId,
+    preferredClinicId: p.clinic_id ?? mainClinic.id,
     createdAt: String(p.created_at ?? '').slice(0, 10)
   }));
 
@@ -276,21 +289,21 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
 
   state.settingsByTenant = {
     [tenantId]: {
-      clinicName: clinic.name,
+      clinicName: mainClinic.name,
       tagline: 'Gestión dental premium',
-      legalName: clinic.name,
-      phone: clinic.phone ?? '',
-      email: clinic.email ?? '',
-      whatsapp: clinic.phone ?? '',
-      address: clinic.address ?? '',
-      city: 'Madrid',
+      legalName: mainClinic.name,
+      phone: mainClinic.phone ?? '',
+      email: mainClinic.email ?? '',
+      whatsapp: mainClinic.phone ?? '',
+      address: mainClinic.address ?? '',
+      city: mainClinic.city ?? 'Madrid',
       imageUrl: '/brand/dentista-logo.svg',
       generalHours: 'Lun–Vie 09:00–20:00',
       defaultDuration: 45,
       slotIntervalMinutes: 15,
       minCancelHours: 24,
       remindersEnabled: true,
-      welcomeMessage: `Bienvenido a ${clinic.name}`,
+      welcomeMessage: `Bienvenido a ${mainClinic.name}`,
       appointmentConfirmMessage: 'Cita registrada correctamente.',
       primaryColor: '#2563EB',
       accentColor: '#14B8A6',

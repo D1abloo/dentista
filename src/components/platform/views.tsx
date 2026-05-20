@@ -15,6 +15,7 @@ import type {
   PlatformClinic,
   PlatformClinicUser,
   PlatformIsolationReport,
+  PlatformOrganization,
   PlatformOverview,
   PlatformSettingRow,
   PlatformSubscription,
@@ -168,7 +169,7 @@ export function PlatformClinics() {
   }
 
   return (
-    <PlatformShell title="Clínicas registradas" subtitle="Cada fila es un tenant independiente con panel /admin propio">
+    <PlatformShell title="Clínicas registradas" subtitle="Todas las sedes; agrupa por organización en Organizaciones">
       {msg ? <p className="mb-4 text-sm font-bold text-emerald-700">{msg}</p> : null}
       <div className="table-cards">
         {list.map((c) => (
@@ -179,9 +180,9 @@ export function PlatformClinics() {
                 <p className="text-sm text-[var(--muted)]">{c.email ?? '—'} · {c.slug}</p>
                 <p className="mt-1 text-xs font-bold uppercase text-[var(--blue)]">{c.status} · plan {c.subscription_plan}</p>
                 <p className="mt-1 text-xs text-[var(--muted)]">
-                  Tenant: {c.tenant_id ? <span className="font-mono">{c.tenant_id.slice(0, 8)}…</span> : 'sin vincular'}
-                  {' · '}
-                  Panel aislado: <span className="font-semibold">/admin</span>
+                  {c.city ? `${c.city} · ` : ''}
+                  {c.is_main_branch ? 'Sede principal · ' : 'Sede · '}
+                  Tenant {c.tenant_id ? c.tenant_id.slice(0, 8) + '…' : '—'}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -609,6 +610,175 @@ export function PlatformSecurity() {
           Ver informe de aislamiento
         </a>
       </Card>
+    </PlatformShell>
+  );
+}
+
+type BranchDraft = { name: string; address: string; city: string };
+
+export function PlatformOrganizations() {
+  const [orgs, setOrgs] = useState<PlatformOrganization[]>([]);
+  const [msg, setMsg] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    organizationName: '',
+    ownerName: '',
+    email: '',
+    phone: '',
+    address: ''
+  });
+  const [branches, setBranches] = useState<BranchDraft[]>([
+    { name: 'Sede principal', address: '', city: 'Madrid' }
+  ]);
+  const [addBranch, setAddBranch] = useState<BranchDraft>({ name: '', address: '', city: '' });
+  const [addTenantId, setAddTenantId] = useState('');
+
+  async function load() {
+    setOrgs(await api<PlatformOrganization[]>('/api/platform/organizations'));
+  }
+
+  useEffect(() => {
+    void load().catch(() => setMsg('No se pudieron cargar las organizaciones.'));
+  }, []);
+
+  async function createOrganization() {
+    setLoading(true);
+    setMsg('');
+    try {
+      await api('/api/platform/organizations', {
+        method: 'POST',
+        body: JSON.stringify({ ...form, branches })
+      });
+      setMsg('Organización creada con todas sus sedes.');
+      setForm({ organizationName: '', ownerName: '', email: '', phone: '', address: '' });
+      setBranches([{ name: 'Sede principal', address: '', city: 'Madrid' }]);
+      await load();
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : 'Error al crear.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function addSedeToOrg() {
+    if (!addTenantId || !addBranch.name.trim()) return;
+    setLoading(true);
+    try {
+      await api('/api/platform/organizations', {
+        method: 'POST',
+        body: JSON.stringify({ tenantId: addTenantId, ...addBranch })
+      });
+      setAddBranch({ name: '', address: '', city: '' });
+      setMsg('Sede añadida.');
+      await load();
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : 'Error.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <PlatformShell title="Organizaciones multi-sede" subtitle="Una organización (tenant) con varias clínicas bajo el mismo panel /admin">
+      {msg ? <p className="mb-4 text-sm font-bold text-emerald-700">{msg}</p> : null}
+
+      <Card className="mb-6 p-6" title="Crear organización con sedes">
+        <p className="mb-4 text-sm text-[var(--muted)]">
+          Define la organización y al menos una sede. Se crea un tenant compartido, credenciales de administrador y suscripción por sede.
+        </p>
+        <div className="grid gap-3 md:grid-cols-2">
+          <Field label="Nombre organización">
+            <Input value={form.organizationName} onChange={(e) => setForm({ ...form, organizationName: e.target.value })} />
+          </Field>
+          <Field label="Responsable">
+            <Input value={form.ownerName} onChange={(e) => setForm({ ...form, ownerName: e.target.value })} />
+          </Field>
+          <Field label="Email admin">
+            <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          </Field>
+          <Field label="Teléfono">
+            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          </Field>
+          <Field label="Dirección fiscal" className="md:col-span-2">
+            <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+          </Field>
+        </div>
+        <p className="mt-4 text-sm font-bold text-[var(--navy)]">Sedes iniciales</p>
+        <ul className="mt-2 space-y-2">
+          {branches.map((b, i) => (
+            <li key={i} className="grid gap-2 rounded-xl border border-[var(--line)] p-3 md:grid-cols-3">
+              <Input placeholder="Nombre sede" value={b.name} onChange={(e) => setBranches(branches.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} />
+              <Input placeholder="Dirección" value={b.address} onChange={(e) => setBranches(branches.map((x, j) => (j === i ? { ...x, address: e.target.value } : x)))} />
+              <Input placeholder="Ciudad" value={b.city} onChange={(e) => setBranches(branches.map((x, j) => (j === i ? { ...x, city: e.target.value } : x)))} />
+            </li>
+          ))}
+        </ul>
+        <Button tone="secondary" className="mt-2" onClick={() => setBranches([...branches, { name: `Sede ${branches.length + 1}`, address: '', city: '' }])}>
+          + Añadir otra sede al formulario
+        </Button>
+        <Button className="mt-4" disabled={loading} onClick={() => void createOrganization()}>
+          Crear organización
+        </Button>
+      </Card>
+
+      <div className="space-y-4">
+        {orgs.map((org) => (
+          <Card key={org.tenant_id} className="p-4">
+            <div className="flex flex-wrap justify-between gap-2">
+              <div>
+                <h3 className="font-bold text-[var(--ink)]">{org.tenant_name}</h3>
+                <p className="text-sm text-[var(--muted)]">
+                  {org.branch_count} sede{org.branch_count === 1 ? '' : 's'}
+                  {org.tenant_code ? ` · ${org.tenant_code}` : ''}
+                </p>
+              </div>
+            </div>
+            <ul className="org-branch-list mt-3">
+              {org.branches.map((b) => (
+                <li key={b.id} className="org-branch-list__item">
+                  <div className="org-branch-list__btn" style={{ cursor: 'default' }}>
+                    <span className="font-semibold">{b.name}</span>
+                    {b.is_main_branch ? <span className="org-branch-list__badge">Principal</span> : null}
+                    <span className="text-xs text-[var(--muted)]">
+                      {b.city ?? '—'} · {b.status}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        ))}
+        {!orgs.length ? <Empty title="Sin organizaciones" text="Crea la primera organización con el formulario superior." /> : null}
+      </div>
+
+      {orgs.length ? (
+        <Card className="mt-6 p-6" title="Añadir sede a organización existente">
+          <div className="grid gap-3 md:grid-cols-2">
+            <Field label="Organización">
+              <Select value={addTenantId} onChange={(e) => setAddTenantId(e.target.value)}>
+                <option value="">Selecciona…</option>
+                {orgs.filter((o) => !o.tenant_id.startsWith('orphan-')).map((o) => (
+                  <option key={o.tenant_id} value={o.tenant_id}>
+                    {o.tenant_name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Nombre sede">
+              <Input value={addBranch.name} onChange={(e) => setAddBranch({ ...addBranch, name: e.target.value })} />
+            </Field>
+            <Field label="Ciudad">
+              <Input value={addBranch.city} onChange={(e) => setAddBranch({ ...addBranch, city: e.target.value })} />
+            </Field>
+            <Field label="Dirección">
+              <Input value={addBranch.address} onChange={(e) => setAddBranch({ ...addBranch, address: e.target.value })} />
+            </Field>
+          </div>
+          <Button className="mt-3" tone="secondary" disabled={loading || !addTenantId} onClick={() => void addSedeToOrg()}>
+            Añadir sede
+          </Button>
+        </Card>
+      ) : null}
     </PlatformShell>
   );
 }

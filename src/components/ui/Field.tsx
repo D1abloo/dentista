@@ -3,14 +3,16 @@ import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTML
 export function Field({
   label,
   error,
+  className,
   children
 }: {
   label: string;
   error?: string;
+  className?: string;
   children: ReactNode;
 }) {
   return (
-    <label className="grid gap-1.5 text-sm font-semibold text-slate-700">
+    <label className={['grid gap-1.5 text-sm font-semibold text-slate-700', className].filter(Boolean).join(' ')}>
       {label}
       {children}
       {error ? <span className="text-xs font-bold text-rose-600">{error}</span> : null}

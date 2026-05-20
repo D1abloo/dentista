@@ -10,6 +10,7 @@ import { getStaffProfile, organizationDisplayName, organizationSubtitle } from '
 import { GlobalIdSearch } from '@/components/shared/GlobalIdSearch';
 import { adminNav } from './nav';
 import { TenantSwitcher } from './TenantSwitcher';
+import { ClinicBranchSwitcher } from './ClinicBranchSwitcher';
 
 function AdminRail({
   path,
@@ -40,7 +41,7 @@ function AdminRail({
           <p className="text-sm font-bold leading-tight">{tenant.name}</p>
         </div>
         <p className="mt-1 text-xs text-white/75">{tenant.subtitle}</p>
-        <p className="mt-2 text-[0.65rem] text-white/60">Panel aislado por organización</p>
+        <p className="mt-2 text-[0.65rem] text-white/60">Organización · varias sedes</p>
       </div>
       <nav className="flex-1 overflow-y-auto">
         {adminNav.map((item) => {
@@ -134,8 +135,9 @@ export function AdminShell({
             </p>
           </div>
           <div className="portal-top__actions">
-            <div className="hidden lg:block">
+            <div className="hidden lg:flex lg:flex-wrap lg:items-center lg:gap-2">
               <TenantSwitcher />
+              <ClinicBranchSwitcher />
             </div>
             <div className="hidden md:block">
               <GlobalIdSearch />

@@ -85,6 +85,7 @@ export interface Clinic {
   openingHours: string;
   imageUrl?: string;
   active: boolean;
+  isMainBranch?: boolean;
   cabinets: Cabinet[];
 }
 

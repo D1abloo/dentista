@@ -5,6 +5,7 @@ export const PRIMARY_CLINIC_ID = 'CLI-0001';
 
 export function getPrimaryClinic(state: DemoState, tenantId = TENANT_CENTRO): Clinic {
   return (
+    state.clinics.find((c) => c.tenantId === tenantId && c.isMainBranch) ??
     state.clinics.find((c) => c.tenantId === tenantId && c.active) ??
     state.clinics.find((c) => c.tenantId === tenantId) ??
     state.clinics[0]

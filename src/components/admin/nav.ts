@@ -80,7 +80,7 @@ export const adminSubtitles: Record<AdminView, string> = {
   pagos: 'PAG-XXXX · búsqueda por DNI o ID paciente',
   dentistas: 'Equipo clínico de la sede',
   tratamientos: 'Catálogo y precios',
-  clinicas: 'Sedes y gabinetes',
+  clinicas: 'Organización y sedes',
   reportes: 'Métricas e ingresos',
   normativa: 'Textos legales visibles al paciente',
   configuracion: 'Datos de contacto y recordatorios',

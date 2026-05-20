@@ -3,6 +3,7 @@ import type {
   ClinicRegistration,
   ClinicStatus,
   PlatformClinic,
+  PlatformOrganization,
   PlatformClinicUser,
   PlatformIsolationReport,
   PlatformOverview,
@@ -67,11 +68,37 @@ export async function fetchPlatformOverview(): Promise<PlatformOverview> {
   };
 }
 
+export async function listOrganizations(): Promise<PlatformOrganization[]> {
+  const clinics = await listClinics();
+  const db = getSupabaseAdmin();
+  const tenantIds = [...new Set(clinics.map((c) => c.tenant_id).filter(Boolean))] as string[];
+  const tenantMap = new Map<string, { name: string; code: string | null }>();
+  if (tenantIds.length) {
+    const { data: tenants } = await db.from('tenants').select('id, name, code').in('id', tenantIds);
+    for (const t of tenants ?? []) {
+      tenantMap.set(t.id, { name: t.name, code: t.code });
+    }
+  }
+  const grouped = new Map<string, PlatformClinic[]>();
+  for (const c of clinics) {
+    const key = c.tenant_id ?? `orphan-${c.id}`;
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key)!.push(c);
+  }
+  return [...grouped.entries()].map(([tenantId, branches]) => ({
+    tenant_id: tenantId.startsWith('orphan-') ? tenantId : tenantId,
+    tenant_name: tenantMap.get(tenantId)?.name ?? branches[0]?.name ?? 'Sin organización',
+    tenant_code: tenantMap.get(tenantId)?.code ?? null,
+    branches: branches.sort((a, b) => Number(b.is_main_branch) - Number(a.is_main_branch)),
+    branch_count: branches.length
+  }));
+}
+
 export async function listClinics(): Promise<PlatformClinic[]> {
   const db = getSupabaseAdmin();
   const { data, error } = await db
     .from('clinics')
-    .select('id, name, slug, email, phone, address, status, subscription_plan, tenant_id, created_at, approved_at')
+    .select('id, name, slug, email, phone, address, city, status, subscription_plan, tenant_id, is_main_branch, created_at, approved_at')
     .order('created_at', { ascending: false });
   if (error) throw error;
   return (data ?? []) as PlatformClinic[];
@@ -158,6 +185,7 @@ export async function reviewRegistration(
       status: 'active',
       subscription_plan: 'essential',
       tenant_id: tenant.id,
+      is_main_branch: true,
       approved_at: new Date().toISOString()
     })
     .select()

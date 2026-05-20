@@ -71,6 +71,52 @@ export const platformSettingsPatchSchema = z.object({
   value: z.record(z.unknown())
 });
 
+export const branchCreateSchema = z.object({
+  name: z.string().min(2).max(120),
+  address: z.string().max(200).optional(),
+  city: z.string().max(80).optional(),
+  phone: z.string().min(6).max(40).optional(),
+  email: z.string().email().optional(),
+  isMainBranch: z.boolean().optional()
+});
+
+export const branchPatchSchema = z.object({
+  clinicId: z.string().uuid(),
+  name: z.string().min(2).max(120).optional(),
+  address: z.string().max(200).optional(),
+  city: z.string().max(80).optional(),
+  phone: z.string().min(6).max(40).optional(),
+  email: z.string().email().optional(),
+  isMainBranch: z.boolean().optional(),
+  status: z.enum(['pending', 'active', 'suspended', 'rejected']).optional()
+});
+
+export const organizationCreateSchema = z.object({
+  organizationName: z.string().min(2).max(120),
+  ownerName: z.string().min(2).max(120),
+  email: z.string().email(),
+  phone: z.string().min(6).max(40),
+  address: z.string().max(200).optional(),
+  branches: z
+    .array(
+      z.object({
+        name: z.string().min(2).max(120),
+        address: z.string().max(200).optional(),
+        city: z.string().max(80).optional(),
+        phone: z.string().min(6).max(40).optional(),
+        email: z.string().email().optional()
+      })
+    )
+    .min(1)
+    .max(20),
+  createAdmin: z.boolean().optional(),
+  adminPassword: z.string().min(6).max(120).optional()
+});
+
+export const platformBranchCreateSchema = branchCreateSchema.extend({
+  tenantId: z.string().uuid()
+});
+
 export const supportStatusSchema = z.object({
   id: z.string().uuid(),
   status: z.enum(['open', 'in_progress', 'resolved', 'closed'])

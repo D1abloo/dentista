@@ -42,7 +42,7 @@ const FAQS = [
   },
   {
     q: '¿Puedo tener varias sedes?',
-    a: 'Cada solicitud crea una organización con su panel. Para multi-sede, indícalo en el mensaje y te asesoramos.'
+    a: 'Sí. Tras aprobar tu organización puedes añadir sedes desde el panel /admin → Clínicas, o solicitar varias sedes en el mensaje del formulario.'
   },
   {
     q: '¿Mis datos están separados de otras clínicas?',

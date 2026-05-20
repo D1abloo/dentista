@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
+import { getActiveClinicId, setActiveClinicId } from '@/lib/activeClinic';
 import { dentistsForClinic, getPrimaryClinic } from '@/lib/clinic';
+import { isClientLiveMode } from '@/lib/appMode';
 import {
   appointmentsInRange,
   filterAppointments,
@@ -11,6 +13,7 @@ import {
 import {
   addBlockedSlot,
   tryCreateAppointment,
+  addBranchToOrganization,
   registerOrganization,
   setDemoSession,
   createDentist,
@@ -505,11 +508,16 @@ export function AdminTreatments() {
 }
 
 export function AdminClinics() {
-  const { state, commit } = useDemoStore();
+  const { state, commit, refresh } = useDemoStore();
   const scope = useTenant();
   const { setNotice } = useNotice();
-  const clinic = getPrimaryClinic(state, scope.tenantId);
+  const live = isClientLiveMode();
+  const activeClinicId = getActiveClinicId(state, scope.tenantId);
+  const clinic = state.clinics.find((c) => c.id === activeClinicId) ?? getPrimaryClinic(state, scope.tenantId);
+  const branches = scope.clinics;
+  const orgName = scope.tenant?.name ?? clinic.name;
   const [cabinetName, setCabinetName] = useState('');
+  const [newBranch, setNewBranch] = useState({ name: '', address: '', city: 'Madrid', phone: '', email: '' });
   const [newOrg, setNewOrg] = useState({
     centerName: '',
     ownerName: '',
@@ -519,7 +527,50 @@ export function AdminClinics() {
     city: 'Madrid'
   });
 
+  async function addBranch() {
+    const err = required(newBranch.name, 'Nombre de la sede');
+    if (err) {
+      setNotice({ type: 'error', message: err });
+      return;
+    }
+    if (live) {
+      const res = await fetch('/api/clinic/branches', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          name: newBranch.name.trim(),
+          address: newBranch.address.trim() || undefined,
+          city: newBranch.city.trim() || undefined,
+          phone: newBranch.phone.trim() || undefined,
+          email: newBranch.email.trim() || undefined
+        })
+      });
+      const json = (await res.json()) as { error?: { message?: string }; data?: { id?: string } };
+      if (!res.ok) {
+        setNotice({ type: 'error', message: json.error?.message ?? 'No se pudo crear la sede.' });
+        return;
+      }
+      const branchLabel = newBranch.name.trim();
+      if (json.data?.id) setActiveClinicId(json.data.id);
+      await refresh();
+      setNewBranch({ name: '', address: '', city: 'Madrid', phone: '', email: '' });
+      setNotice({ type: 'ok', message: `Sede «${branchLabel}» añadida a tu organización.` });
+      return;
+    }
+    const branchLabel = newBranch.name.trim();
+    const { state: next, clinicId } = addBranchToOrganization(state, scope.tenantId, newBranch);
+    commit(next);
+    setActiveClinicId(clinicId);
+    setNewBranch({ name: '', address: '', city: 'Madrid', phone: '', email: '' });
+    setNotice({ type: 'ok', message: `Sede «${branchLabel}» añadida.` });
+  }
+
   function registerCenter() {
+    if (live) {
+      setNotice({ type: 'error', message: 'En producción solicita una nueva organización desde registro de clínica o contacto.' });
+      return;
+    }
     const err =
       required(newOrg.centerName, 'Nombre del centro') ||
       required(newOrg.ownerName, 'Responsable') ||
@@ -532,44 +583,112 @@ export function AdminClinics() {
     const { state: next, tenantId } = registerOrganization(state, newOrg);
     commit(next);
     setDemoSession({ role: 'admin', tenantId });
-    setNotice({ type: 'ok', message: `Centro «${newOrg.centerName}» registrado. Cambiando de organización…` });
+    setNotice({ type: 'ok', message: `Organización «${newOrg.centerName}» registrada.` });
     window.location.href = '/admin/clinicas';
   }
 
   return (
     <div className="space-y-4">
-      <Card title={`Tu centro · ${clinic.name}`}>
-        <Field label="Nombre"><Input value={clinic.name} onChange={(e) => commit(saveClinic(state, { ...clinic, name: e.target.value, active: clinic.active }))} /></Field>
-        <Field label="Horarios"><Input value={clinic.openingHours} onChange={(e) => commit(saveClinic(state, { ...clinic, openingHours: e.target.value }))} /></Field>
+      <Card title={`Organización · ${orgName}`}>
+        <p className="text-sm text-[var(--muted)]">
+          Tu cuenta gestiona <strong>{branches.length}</strong> sede{branches.length === 1 ? '' : 's'} bajo la misma
+          organización. Pacientes e informes compartidos por tenant; citas y gabinetes por sede.
+        </p>
+        <ul className="org-branch-list mt-4">
+          {branches.map((b) => (
+            <li key={b.id} className={b.id === activeClinicId ? 'org-branch-list__item org-branch-list__item--active' : 'org-branch-list__item'}>
+              <button type="button" className="org-branch-list__btn" onClick={() => { setActiveClinicId(b.id); if (live) void refresh(); else window.location.reload(); }}>
+                <span className="font-bold">{b.name}</span>
+                {b.isMainBranch ? <span className="org-branch-list__badge">Principal</span> : null}
+                <span className="text-xs text-[var(--muted)]">{b.city} · {b.address || 'Sin dirección'}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </Card>
+
+      <Card title={`Sede activa · ${clinic.name}`}>
+        <Field label="Nombre de la sede">
+          <Input value={clinic.name} onChange={(e) => commit(saveClinic(state, { ...clinic, name: e.target.value, active: clinic.active }))} />
+        </Field>
+        <Field label="Horarios">
+          <Input value={clinic.openingHours} onChange={(e) => commit(saveClinic(state, { ...clinic, openingHours: e.target.value }))} />
+        </Field>
         <label className="mt-2 flex items-center gap-2 text-sm font-bold">
-          <input type="checkbox" checked={clinic.active} onChange={(e) => commit(saveClinic(state, { ...clinic, active: e.target.checked }))} /> Centro activo
+          <input type="checkbox" checked={clinic.active} onChange={(e) => commit(saveClinic(state, { ...clinic, active: e.target.checked }))} /> Sede activa
         </label>
-        <ul className="mt-4 space-y-2">{clinic.cabinets.map((g) => (
-          <li key={g.id} className="flex justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
-            <span>{g.name}</span>
-            <button type="button" className="font-bold" onClick={() => commit(saveCabinet(state, clinic.id, { ...g, active: !g.active }))}>{g.active ? 'Desactivar' : 'Activar'}</button>
-          </li>
-        ))}</ul>
+        <ul className="mt-4 space-y-2">
+          {clinic.cabinets.map((g) => (
+            <li key={g.id} className="flex justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
+              <span>{g.name}</span>
+              <button type="button" className="font-bold" onClick={() => commit(saveCabinet(state, clinic.id, { ...g, active: !g.active }))}>
+                {g.active ? 'Desactivar' : 'Activar'}
+              </button>
+            </li>
+          ))}
+        </ul>
         <div className="mt-3 flex gap-2">
           <Input placeholder="Nuevo gabinete" value={cabinetName} onChange={(e) => setCabinetName(e.target.value)} />
-          <Button onClick={() => { if (!cabinetName.trim()) return; commit(saveCabinet(state, clinic.id, { id: uid('g'), name: cabinetName, equipment: 'General', active: true })); setCabinetName(''); }}>Añadir</Button>
+          <Button
+            onClick={() => {
+              if (!cabinetName.trim()) return;
+              commit(saveCabinet(state, clinic.id, { id: uid('g'), name: cabinetName, equipment: 'General', active: true }));
+              setCabinetName('');
+            }}
+          >
+            Añadir gabinete
+          </Button>
         </div>
       </Card>
 
-      <Card title="Registrar nuevo centro clínico">
+      <Card title="Añadir nueva sede">
         <p className="mb-3 text-sm text-[var(--muted)]">
-          Cada centro tiene su propio panel: agenda, dentistas, facturación e informes. Los huecos de cita se sincronizan por clínica.
+          Crea otra ubicación de la misma organización (mismo tenant). Comparte pacientes e informes; agenda y gabinetes por sede.
         </p>
         <div className="grid gap-3 md:grid-cols-2">
-          <Field label="Nombre del centro"><Input value={newOrg.centerName} onChange={(e) => setNewOrg({ ...newOrg, centerName: e.target.value })} /></Field>
-          <Field label="Responsable"><Input value={newOrg.ownerName} onChange={(e) => setNewOrg({ ...newOrg, ownerName: e.target.value })} /></Field>
-          <Field label="Email"><Input type="email" value={newOrg.email} onChange={(e) => setNewOrg({ ...newOrg, email: e.target.value })} /></Field>
-          <Field label="Teléfono"><Input value={newOrg.phone} onChange={(e) => setNewOrg({ ...newOrg, phone: e.target.value })} /></Field>
-          <Field label="Dirección"><Input value={newOrg.address} onChange={(e) => setNewOrg({ ...newOrg, address: e.target.value })} /></Field>
-          <Field label="Ciudad"><Input value={newOrg.city} onChange={(e) => setNewOrg({ ...newOrg, city: e.target.value })} /></Field>
-          <Button className="md:col-span-2" onClick={registerCenter}>Registrar y abrir panel</Button>
+          <Field label="Nombre de la sede">
+            <Input value={newBranch.name} onChange={(e) => setNewBranch({ ...newBranch, name: e.target.value })} placeholder="Ej. Sede Norte" />
+          </Field>
+          <Field label="Ciudad">
+            <Input value={newBranch.city} onChange={(e) => setNewBranch({ ...newBranch, city: e.target.value })} />
+          </Field>
+          <Field label="Dirección">
+            <Input value={newBranch.address} onChange={(e) => setNewBranch({ ...newBranch, address: e.target.value })} />
+          </Field>
+          <Field label="Teléfono">
+            <Input value={newBranch.phone} onChange={(e) => setNewBranch({ ...newBranch, phone: e.target.value })} />
+          </Field>
+          <Field label="Email sede" className="md:col-span-2">
+            <Input type="email" value={newBranch.email} onChange={(e) => setNewBranch({ ...newBranch, email: e.target.value })} />
+          </Field>
+          <Button className="md:col-span-2" onClick={() => void addBranch()}>
+            Añadir sede a la organización
+          </Button>
         </div>
       </Card>
+
+      {!live ? (
+        <Card title="Nueva organización (solo demo)">
+          <p className="mb-3 text-sm text-[var(--muted)]">En demo puedes simular otra organización independiente con su propio tenant.</p>
+          <div className="grid gap-3 md:grid-cols-2">
+            <Field label="Nombre organización">
+              <Input value={newOrg.centerName} onChange={(e) => setNewOrg({ ...newOrg, centerName: e.target.value })} />
+            </Field>
+            <Field label="Responsable">
+              <Input value={newOrg.ownerName} onChange={(e) => setNewOrg({ ...newOrg, ownerName: e.target.value })} />
+            </Field>
+            <Field label="Email">
+              <Input type="email" value={newOrg.email} onChange={(e) => setNewOrg({ ...newOrg, email: e.target.value })} />
+            </Field>
+            <Field label="Teléfono">
+              <Input value={newOrg.phone} onChange={(e) => setNewOrg({ ...newOrg, phone: e.target.value })} />
+            </Field>
+            <Button className="md:col-span-2" onClick={registerCenter}>
+              Registrar organización demo
+            </Button>
+          </div>
+        </Card>
+      ) : null}
     </div>
   );
 }

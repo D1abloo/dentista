@@ -18,11 +18,21 @@ export interface PlatformClinic {
   email: string | null;
   phone: string | null;
   address: string | null;
+  city: string | null;
   status: ClinicStatus;
   subscription_plan: SubscriptionPlan;
   tenant_id: string | null;
+  is_main_branch: boolean;
   created_at: string;
   approved_at: string | null;
+}
+
+export interface PlatformOrganization {
+  tenant_id: string;
+  tenant_name: string;
+  tenant_code: string | null;
+  branches: PlatformClinic[];
+  branch_count: number;
 }
 
 export interface ClinicRegistration {

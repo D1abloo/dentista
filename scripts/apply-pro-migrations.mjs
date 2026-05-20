@@ -13,7 +13,8 @@ const PRO_MIGRATIONS = [
   '0008_production_platform.sql',
   '0009_auth_bootstrap.sql',
   '0010_phase3_records_billing.sql',
-  '0011_phase4_ops.sql'
+  '0011_phase4_ops.sql',
+  '0012_organization_branches.sql'
 ];
 
 const url = process.env.DATABASE_URL;
