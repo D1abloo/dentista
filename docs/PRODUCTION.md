@@ -86,3 +86,7 @@ npm run build
 ```
 
 Verificar manualmente: `/`, `/contacto`, `/registro-clinica`, `/platform/login`, `/login`, `/admin` (vacío sin datos hasta Supabase).
+
+## Ayuda funcional de paneles
+
+Para operación diaria del producto, consultar `docs/PANEL_HELP.md`.
