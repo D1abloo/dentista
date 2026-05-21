@@ -1,19 +1,20 @@
 import { useEffect, useState } from 'react';
 import { STORAGE_PATIENT_ID } from '@/lib/storage/keys';
 import { Button, Card, Field, Input } from '@/components/ui';
-import { useNotice } from '@/hooks/useNotice';
 
 export function PortalAccessEntry({ initialToken }: { initialToken?: string }) {
-  const { setNotice } = useNotice();
   const [token, setToken] = useState(initialToken ?? '');
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialToken) void activate(initialToken);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al montar con token en URL
   }, [initialToken]);
 
   async function activate(raw: string) {
     setBusy(true);
+    setError(null);
     try {
       const res = await fetch('/api/portal-access/exchange', {
         method: 'POST',
@@ -29,7 +30,7 @@ export function PortalAccessEntry({ initialToken }: { initialToken?: string }) {
       if (json.data?.patientId) localStorage.setItem(STORAGE_PATIENT_ID, json.data.patientId);
       window.location.href = json.data?.redirectTo ?? '/paciente';
     } catch (e) {
-      setNotice({ type: 'error', message: e instanceof Error ? e.message : 'No se pudo validar el token.' });
+      setError(e instanceof Error ? e.message : 'No se pudo validar el token.');
     } finally {
       setBusy(false);
     }
@@ -43,6 +44,11 @@ export function PortalAccessEntry({ initialToken }: { initialToken?: string }) {
       <Field label="Token">
         <Input value={token} onChange={(e) => setToken(e.target.value)} disabled={busy} />
       </Field>
+      {error ? (
+        <p className="mt-3 text-sm font-semibold text-rose-600" role="alert">
+          {error}
+        </p>
+      ) : null}
       <Button className="mt-3" disabled={busy} onClick={() => void activate(token)}>
         {busy ? 'Validando…' : 'Entrar'}
       </Button>
