@@ -214,9 +214,19 @@ export function AdminShell({
       <div className="portal-main">
         <header className="portal-top portal-top--admin admin-topbar">
           <div className="admin-topbar__brand">
-            <h1 className="admin-topbar__title">{title}</h1>
+            <div className="admin-topbar__title-wrap">
+              <span className="admin-topbar__accent" aria-hidden />
+              <h1 className="admin-topbar__title">{title}</h1>
+            </div>
             <p className="admin-topbar__meta">
-              {subtitle ? <span className="admin-topbar__subtitle">{subtitle}</span> : null}
+              {subtitle ? (
+                <>
+                  <span className="admin-topbar__subtitle">{subtitle}</span>
+                  <span className="admin-topbar__sep" aria-hidden>
+                    ·
+                  </span>
+                </>
+              ) : null}
               <span className="admin-topbar__org">
                 {tenant.subtitle} · {tenant.name}
               </span>

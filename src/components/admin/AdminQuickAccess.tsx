@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ExternalLink, LayoutDashboard, UserRound } from 'lucide-react';
 import { useNotice } from '@/hooks/useNotice';
 import { usePortalAccess } from '@/hooks/usePortalAccess';
@@ -54,12 +54,20 @@ export function AdminQuickAccess() {
     }
   }
 
+  const [onDashboard, setOnDashboard] = useState(false);
+  useEffect(() => {
+    const path = window.location.pathname.replace(/\/$/, '') || '/';
+    setOnDashboard(path === '/admin');
+  }, []);
+
   return (
     <div className="admin-quick-access" role="navigation" aria-label="Accesos rápidos">
-      <a href="/admin" className="admin-quick-access__btn">
-        <LayoutDashboard className="h-4 w-4" aria-hidden />
-        <span>Panel admin</span>
-      </a>
+      {!onDashboard ? (
+        <a href="/admin" className="admin-quick-access__btn">
+          <LayoutDashboard className="h-4 w-4" aria-hidden />
+          <span>Panel</span>
+        </a>
+      ) : null}
       <button
         type="button"
         className="admin-quick-access__btn admin-quick-access__btn--primary"
