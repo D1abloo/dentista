@@ -1,0 +1,111 @@
+---
+import '@/styles/dental-saas.css';
+import '@/styles/app-ui.css';
+import '@/styles/portal-premium.css';
+import { GuideScreenshotStudio } from '@/components/guide/GuideScreenshotStudio';
+
+const scene = Astro.url.searchParams.get('scene') ?? 'pdp-inicio';
+const titles: Record<string, string> = {
+  'pdp-inicio': 'Inicio',
+  'pdp-citas': 'Mis citas',
+  'pdp-informes': 'Informes',
+  'pdp-documentos': 'Documentos',
+  'pdp-facturas': 'Facturas',
+  'pdp-pagos': 'Pagos',
+  'admin-dashboard': 'Dashboard',
+  'admin-agenda': 'Agenda',
+  'admin-pacientes': 'Pacientes',
+  'admin-facturas': 'Facturas',
+  'admin-acceso': 'Acceso PdP'
+};
+const title = titles[scene] ?? 'Vista';
+---
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Captura guía · {scene}</title>
+  </head>
+  <body>
+    <div class="guide-phone-stage">
+      <div class="guide-phone-frame">
+        <div class="guide-phone-frame__status" aria-hidden>
+          <span>9:41</span>
+          <span class="guide-phone-frame__signal"></span>
+        </div>
+        <div class="guide-phone-frame__screen">
+          <header class="guide-shot-top">
+            <span class="guide-shot-top__logo" aria-hidden></span>
+            <strong>{title}</strong>
+          </header>
+          <GuideScreenshotStudio client:load scene={scene} />
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+
+<style is:global>
+  body { margin: 0; background: #0f172a; }
+  .guide-phone-stage {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .guide-phone-frame {
+    width: 390px;
+    border-radius: 2.25rem;
+    border: 10px solid #1e293b;
+    background: #0f172a;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+  }
+  .guide-phone-frame__status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.45rem 1.25rem 0.2rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #e2e8f0;
+    background: #0f172a;
+  }
+  .guide-phone-frame__signal {
+    width: 3.5rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #38bdf8, #2dd4bf);
+  }
+  .guide-phone-frame__screen {
+    min-height: 720px;
+    overflow: hidden;
+    background: var(--bg, #f8fafc);
+  }
+  .guide-shot-top {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1rem;
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.9rem;
+    color: #0f172a;
+  }
+  .guide-shot-top__logo {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0ea5e9, #14b8a6);
+  }
+  .guide-shot-portal .portal-rail { display: none !important; }
+  .guide-shot-portal .portal-main { margin: 0 !important; width: 100% !important; }
+  .guide-shot-body {
+    padding: 0.75rem !important;
+    max-height: 640px;
+    overflow-y: auto;
+    font-size: 0.82rem;
+  }
+</style>

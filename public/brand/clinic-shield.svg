@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Dentista+ Clínica">
+  <defs>
+    <linearGradient id="cs-ring" x1="6" y1="4" x2="58" y2="60">
+      <stop stop-color="#67e8f9"/>
+      <stop offset="0.4" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#2dd4bf"/>
+    </linearGradient>
+    <radialGradient id="cs-glow" cx="32" cy="24" r="22">
+      <stop stop-color="#fff" stop-opacity="0.65"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="32" cy="32" r="30" fill="#0c1929"/>
+  <circle cx="32" cy="32" r="28" fill="none" stroke="url(#cs-ring)" stroke-width="3.5"/>
+  <circle cx="32" cy="32" r="22" fill="url(#cs-glow)"/>
+  <path
+    d="M32 14c6.2 0 11.5 4.8 11.5 11.2 0 4.8-2.2 9.2-5.8 12.2-1.8 1.6-3.2 3.6-4 5.8-.4 1.2-.9 2.3-1.7 2.3s-1.3-1.1-1.7-2.3c-.8-2.2-2.2-4.2-4-5.8-3.6-3-5.8-7.4-5.8-12.2C20.5 18.8 25.8 14 32 14z"
+    fill="#f8fafc"
+  />
+  <path d="M28 38h8v12h-8z" fill="#f8fafc" opacity="0.95"/>
+  <circle cx="44" cy="44" r="7" fill="#0ea5e9"/>
+  <path d="M44 41.5v5M41.5 44h5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+</svg>

@@ -18,7 +18,8 @@
     "users:clinics": "node scripts/manage-users.mjs clinics",
     "codex:bootstrap": "bash scripts/codex-bootstrap.sh",
     "git:save": "bash scripts/git-save.sh",
-    "github:save": "bash scripts/git-save.sh"
+    "github:save": "bash scripts/git-save.sh",
+    "guides:capture": "node scripts/capture-guide-screenshots.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^4.2.0",
@@ -43,6 +44,7 @@
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
     "autoprefixer": "^10.4.20",
+    "playwright": "^1.52.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.3"

@@ -26,7 +26,7 @@ type Ctx = {
   refresh: () => Promise<void>;
 };
 
-const DemoStoreContext = createContext<Ctx | null>(null);
+export const DemoStoreContext = createContext<Ctx | null>(null);
 
 export function DemoStoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<DemoState>(() => createEmptyDemoState());

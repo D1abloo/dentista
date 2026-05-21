@@ -96,12 +96,12 @@ export function HelpCenterPage() {
         <section className="shell help-center__body">
           {tab === 'paciente' ? (
             <GuideViewer
-              intro="Guía para pacientes: acceso, citas de ejemplo, informes clínicos, documentos y pagos."
+              intro="Guía detallada con capturas reales del portal en móvil: acceso, citas, informes, documentos, facturas y consentimientos."
               sections={patientGuideSections}
             />
           ) : (
             <GuideViewer
-              intro="Guía para el equipo de la clínica: agenda, pacientes, informes, facturación y acceso supervisado al PdP."
+              intro="Manual del panel administrativo con capturas en formato móvil: dashboard, agenda, pacientes, facturación y acceso auditado al portal del paciente."
               sections={adminGuideSections}
             />
           )}

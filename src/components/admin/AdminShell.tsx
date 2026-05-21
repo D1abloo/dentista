@@ -9,6 +9,7 @@ import { settingsFor } from '@/lib/demoStore';
 import { GlobalIdSearch } from '@/components/shared/GlobalIdSearch';
 import { adminNav } from './nav';
 import { ClinicBranchSwitcher } from './ClinicBranchSwitcher';
+import { AdminQuickAccess } from './AdminQuickAccess';
 
 function logInspectNav(href: string, label: string) {
   void fetch('/api/platform/inspect', {
@@ -45,7 +46,9 @@ function AdminRail({
   return (
     <aside className={cls}>
       <a href="/admin" className="admin-brand mb-6 px-2 no-underline" onClick={onNav}>
-        <img src={clinicLogoUrl} alt="" className="admin-brand__clinic-logo" width={56} height={56} />
+        <span className="clinic-brand-logo-shine admin-brand__clinic-logo-wrap">
+          <img src={clinicLogoUrl} alt="" className="admin-brand__clinic-logo clinic-brand-logo-shine__img" width={56} height={56} />
+        </span>
         <span className="admin-brand__label">Dentista+</span>
       </a>
       <div className="admin-org-card mb-4">
@@ -99,7 +102,7 @@ export function AdminShell({
   const [sessionName, setSessionName] = useState('');
   const [platformInspect, setPlatformInspect] = useState(false);
   const orgName = organizationDisplayName(state, scope.tenantId);
-  const clinicLogoUrl = settingsFor(state, scope.tenantId).logoUrl ?? '/brand/dentista-logo.svg';
+  const clinicLogoUrl = settingsFor(state, scope.tenantId).logoUrl ?? '/brand/clinic-shield.svg';
   const tenant = {
     id: scope.tenantId,
     name: orgName,
@@ -176,6 +179,7 @@ export function AdminShell({
             </p>
           </div>
           <div className="portal-top__actions">
+            <AdminQuickAccess />
             <div className="hidden lg:flex lg:flex-wrap lg:items-center lg:gap-2">
               <ClinicBranchSwitcher />
             </div>

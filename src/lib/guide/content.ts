@@ -1,136 +1,398 @@
+export type GuideScreenshot = {
+  src: string;
+  alt: string;
+  caption: string;
+};
+
+export type GuideStep = {
+  title: string;
+  detail: string;
+};
+
 export type GuideSection = {
   id: string;
   title: string;
   summary: string;
-  image?: string;
-  imageAlt?: string;
-  steps: string[];
+  goal: string;
+  audience: string;
+  prerequisites?: string[];
+  screenshots: GuideScreenshot[];
+  steps: GuideStep[];
   tips?: string[];
+  warnings?: string[];
+  related?: { label: string; href: string }[];
 };
+
+const mobile = (name: string) => `/images/guides/mobile/${name}.png`;
 
 export const patientGuideSections: GuideSection[] = [
   {
     id: 'acceso',
-    title: 'Acceso al portal del paciente (PdP)',
-    summary: 'Tras recibir tus credenciales por correo, entra con un solo formulario en /login.',
-    image: '/images/login-dentista-paciente.jpg',
-    imageAlt: 'Paciente en recepción de clínica dental',
-    steps: [
-      'Abre Iniciar sesión en la web e introduce email y contraseña.',
-      'El sistema detecta que eres paciente y abre tu portal personal.',
-      'Si es tu primer acceso, cambia la contraseña temporal cuando se solicite.'
+    title: 'Acceso al portal del paciente',
+    summary: 'Entra con el email que te dio la clínica; el sistema te reconoce y abre tu espacio personal.',
+    goal: 'Iniciar sesión de forma segura y llegar al inicio del portal sin confusiones entre paciente y personal.',
+    audience: 'Pacientes con cuenta activada por la clínica.',
+    prerequisites: ['Email y contraseña facilitados por recepción o correo de bienvenida.', 'Navegador actualizado en móvil o ordenador.'],
+    screenshots: [
+      {
+        src: mobile('pdp-inicio'),
+        alt: 'Inicio del portal del paciente en móvil',
+        caption: 'Tras el login verás el inicio con la próxima cita, avisos y accesos rápidos.'
+      }
     ],
-    tips: ['No compartas tu contraseña. Cierra sesión en dispositivos compartidos.']
+    steps: [
+      {
+        title: 'Abre Iniciar sesión',
+        detail: 'Desde la web pública pulsa Iniciar sesión e introduce tu email y contraseña. No necesitas elegir tipo de usuario.'
+      },
+      {
+        title: 'Completa el primer acceso',
+        detail: 'Si la clínica te envió una contraseña temporal, el sistema te pedirá cambiarla antes de continuar.'
+      },
+      {
+        title: 'Revisa el inicio',
+        detail: 'En Inicio aparecen citas próximas, facturas pendientes, informes recientes y mensajes sin leer.'
+      }
+    ],
+    tips: ['Guarda la web en la pantalla de inicio del móvil para abrirla como una app.', 'Cierra sesión en tablets compartidas de la clínica.'],
+    related: [{ label: 'Reservar cita sin cuenta', href: '/reserva' }]
   },
   {
     id: 'citas',
-    title: 'Citas ficticias de ejemplo',
-    summary: 'En el PdP verás citas con referencia CIT-XXXX: fecha, profesional, gabinete y estado.',
-    image: '/images/guides/pdp-citas.svg',
-    imageAlt: 'Vista de citas del paciente',
+    title: 'Mis citas y reservas',
+    summary: 'Consulta CIT-XXXX, estados (confirmada, pendiente, cancelada) y pide nuevos huecos.',
+    goal: 'Saber en todo momento cuándo es tu próxima visita y qué puedes hacer si necesitas cambiarla.',
+    audience: 'Pacientes que ya tienen al menos una cita registrada.',
+    screenshots: [
+      {
+        src: mobile('pdp-citas'),
+        alt: 'Listado de citas en móvil',
+        caption: 'Cada tarjeta muestra fecha, hora, profesional, tratamiento y sede.'
+      },
+      {
+        src: mobile('pdp-inicio'),
+        alt: 'Resumen de próxima cita',
+        caption: 'Desde Inicio accedes rápido a la siguiente cita confirmada.'
+      }
+    ],
     steps: [
-      'Menú Citas: próximas confirmadas, pendientes de confirmar y historial.',
-      'Cada tarjeta muestra tratamiento, dentista y sede.',
-      'Desde Reservar cita (web pública) puedes pedir hueco en clínicas adheridas.'
-    ]
+      {
+        title: 'Abre Mis citas',
+        detail: 'En el menú inferior o lateral entra en Mis citas. Las próximas aparecen primero; el historial queda al final.'
+      },
+      {
+        title: 'Interpreta el estado',
+        detail: 'Confirmada: asiste en la hora indicada. Pendiente: espera confirmación de la clínica. Cancelada: ya no está activa.'
+      },
+      {
+        title: 'Reserva un nuevo hueco',
+        detail: 'Usa Reservar en el menú para elegir clínica, tratamiento, dentista y franja libre en el calendario.'
+      }
+    ],
+    warnings: ['La cancelación online puede tener plazo mínimo (p. ej. 24 h); revisa la normativa de tu clínica.']
   },
   {
     id: 'informes',
-    title: 'Informes y documentos clínicos',
-    summary: 'Radiografías, informes PDF y consentimientos que tu clínica haya compartido contigo.',
-    image: '/images/guides/pdp-informes.svg',
-    imageAlt: 'Informes clínicos en el portal',
+    title: 'Informes clínicos',
+    summary: 'PDFs compartidos por tu dentista: resultados, planes de tratamiento y notas de evolución.',
+    goal: 'Localizar y abrir informes autorizados sin depender de papel o email suelto.',
+    audience: 'Pacientes con informes publicados por la clínica.',
+    screenshots: [
+      {
+        src: mobile('pdp-informes'),
+        alt: 'Informes clínicos en móvil',
+        caption: 'Listado con fecha, tipo y botón para ver el PDF.'
+      }
+    ],
     steps: [
-      'Informes: listado con fecha y tipo; abre el PDF en vista previa.',
-      'Documentos: archivos adjuntos (RX, fotografías) filtrados por paciente.',
-      'Consentimientos: firma los pendientes antes de ciertos tratamientos.'
+      {
+        title: 'Entra en Informes',
+        detail: 'Solo verás documentos que tu clínica haya marcado como visibles para ti.'
+      },
+      {
+        title: 'Abre la vista previa',
+        detail: 'Pulsa el informe para leerlo en el navegador o descargarlo según tu dispositivo.'
+      },
+      {
+        title: 'Consulta el historial',
+        detail: 'Los más recientes aparecen arriba; usa la búsqueda si tienes muchos registros.'
+      }
+    ],
+    tips: ['Descarga copias importantes para tu archivo personal si lo necesitas.']
+  },
+  {
+    id: 'documentos',
+    title: 'Documentos e imágenes',
+    summary: 'Radiografías, fotografías intraorales y archivos adjuntos a tu ficha.',
+    goal: 'Acceder a material diagnóstico que la clínica ha subido a tu expediente digital.',
+    audience: 'Pacientes con documentos publicados en el portal.',
+    screenshots: [
+      {
+        src: mobile('pdp-documentos'),
+        alt: 'Documentos del paciente en móvil',
+        caption: 'Miniaturas y tipo de archivo (RX, foto, otro).'
+      }
+    ],
+    steps: [
+      {
+        title: 'Abre Documentos',
+        detail: 'Filtra mentalmente por tipo: las RX suelen ir en categoría radiografía.'
+      },
+      {
+        title: 'Visualiza el archivo',
+        detail: 'Toca el documento para ampliar. En móvil puedes compartir o guardar con las opciones del sistema.'
+      },
+      {
+        title: 'Revisa novedades desde Inicio',
+        detail: 'El panel de inicio avisa cuando hay documentos nuevos desde tu última visita.'
+      }
     ]
   },
   {
     id: 'facturas',
     title: 'Facturas y pagos',
-    summary: 'Consulta FAC-XXXX, descarga PDF y realiza el pago cuando esté habilitado.',
-    image: '/images/guides/pdp-facturas.svg',
-    imageAlt: 'Facturas del paciente',
+    summary: 'Facturas FAC-XXXX, estados de cobro y recibos PAG-XXXX en un solo flujo.',
+    goal: 'Controlar qué debes, qué está pagado y descargar justificantes oficiales.',
+    audience: 'Pacientes con facturación activa en la clínica.',
+    screenshots: [
+      {
+        src: mobile('pdp-facturas'),
+        alt: 'Facturas del paciente en móvil',
+        caption: 'Importe, estado y enlace al PDF de cada factura.'
+      },
+      {
+        src: mobile('pdp-pagos'),
+        alt: 'Historial de pagos en móvil',
+        caption: 'Pagos vinculados a facturas con referencia PAG-XXXX.'
+      }
+    ],
     steps: [
-      'Facturas: estado pendiente, pagada o vencida con importe desglosado.',
-      'Pagos: historial PAG-XXXX vinculado a cada factura.',
-      'Descarga el PDF oficial para tu gestión personal.'
-    ]
+      {
+        title: 'Revisa Facturas',
+        detail: 'Pendiente: aún no cobrada. Pagada: liquidada. Vencida: requiere atención; contacta con recepción.'
+      },
+      {
+        title: 'Descarga el PDF',
+        detail: 'Cada factura incluye datos fiscales de la clínica y desglose de conceptos.'
+      },
+      {
+        title: 'Consulta Pagos',
+        detail: 'En Pagos verás el historial de cobros y su relación con la factura correspondiente.'
+      }
+    ],
+    warnings: ['Los pagos online solo aparecen si tu clínica los tiene activados.']
+  },
+  {
+    id: 'consentimientos',
+    title: 'Consentimientos informados',
+    summary: 'Firma digital de documentos obligatorios antes de ciertos tratamientos.',
+    goal: 'Completar consentimientos pendientes sin ir físicamente a recepción.',
+    audience: 'Pacientes con consentimientos asignados por la clínica.',
+    screenshots: [
+      {
+        src: mobile('pdp-inicio'),
+        alt: 'Aviso de consentimiento pendiente',
+        caption: 'El inicio puede mostrar alertas de documentos por firmar.'
+      }
+    ],
+    steps: [
+      {
+        title: 'Entra en Consentimientos',
+        detail: 'Los pendientes se destacan; léelos completos antes de aceptar.'
+      },
+      {
+        title: 'Firma o rechaza',
+        detail: 'Tu decisión queda registrada con fecha y hora. Si tienes dudas, contacta con la clínica antes de firmar.'
+      }
+    ],
+    tips: ['Puedes descargar una copia del consentimiento firmado si la clínica lo habilita.']
   }
 ];
 
 export const adminGuideSections: GuideSection[] = [
   {
     id: 'panel',
-    title: 'Panel administrativo de clínica',
-    summary: 'Vista general con citas del día, ingresos y accesos rápidos a módulos.',
-    image: '/images/guides/admin-dashboard.svg',
-    imageAlt: 'Dashboard administrativo',
+    title: 'Panel administrativo',
+    summary: 'Vista general con KPIs, citas del día y actividad reciente de la organización.',
+    goal: 'Tener una foto instantánea de la operativa diaria antes de entrar en cada módulo.',
+    audience: 'Administradores, recepción y dirección de clínica.',
+    prerequisites: ['Sesión de personal con rol admin, recepción o dentista autorizado.', 'Sede seleccionada si hay multi-centro.'],
+    screenshots: [
+      {
+        src: mobile('admin-dashboard'),
+        alt: 'Dashboard administrativo en móvil',
+        caption: 'KPIs de citas, ingresos, ocupación y listados rápidos.'
+      }
+    ],
     steps: [
-      'Dashboard: KPIs de la sede activa y ocupación de agenda.',
-      'Usa el selector de sede si tu organización tiene varias clínicas.',
-      'La guía (este apartado) permanece en el menú lateral para consultarla cuando quieras.'
-    ]
+      {
+        title: 'Revisa los indicadores',
+        detail: 'Citas hoy, pendientes de confirmar, facturas vencidas y ocupación estimada de la agenda.'
+      },
+      {
+        title: 'Usa accesos rápidos',
+        detail: 'Desde la barra superior entra al portal del paciente o vuelve al panel sin cerrar sesión.'
+      },
+      {
+        title: 'Cambia de sede',
+        detail: 'Si gestionas varias clínicas, el selector de sede filtra citas, pacientes y facturación.'
+      }
+    ],
+    related: [{ label: 'Centro de ayuda completo', href: '/ayuda#panel-admin' }]
   },
   {
     id: 'agenda-citas',
     title: 'Agenda y citas',
-    summary: 'Gestiona huecos, estados y vinculación paciente–tratamiento–profesional.',
-    image: '/images/guides/admin-agenda.svg',
-    imageAlt: 'Agenda de citas',
+    summary: 'Planificación día/semana/mes y gestión de estados CIT-XXXX.',
+    goal: 'Organizar la agenda clínica y modificar citas sin solapamientos.',
+    audience: 'Recepción y coordinadores de agenda.',
+    screenshots: [
+      {
+        src: mobile('admin-agenda'),
+        alt: 'Agenda clínica en móvil',
+        caption: 'Vista día con huecos, bloqueos y colores por estado.'
+      }
+    ],
     steps: [
-      'Agenda: vista día, semana o mes con colores por estado.',
-      'Citas: alta manual, cambio de estado y búsqueda por ID CIT-XXXX o paciente.',
-      'Recordatorios: activa avisos por email o WhatsApp en Configuración.'
-    ]
+      {
+        title: 'Selecciona vista y fecha',
+        detail: 'Agenda permite día, semana o mes. Filtra por dentista o gabinete si es necesario.'
+      },
+      {
+        title: 'Crea o mueve citas',
+        detail: 'En Citas das de alta manualmente o cambias estado (confirmada, pendiente, cancelada).'
+      },
+      {
+        title: 'Bloquea huecos',
+        detail: 'Marca franjas no disponibles (comidas, mantenimiento) para que no se reserven online.'
+      }
+    ],
+    tips: ['Los recordatorios automáticos se configuran en Configuración → Notificaciones.']
   },
   {
     id: 'pacientes-informes',
     title: 'Pacientes, informes y documentos',
-    summary: 'Ficha PAT-XXXX con informes clínicos, RX y mensajes internos.',
-    image: '/images/guides/admin-pacientes.svg',
-    imageAlt: 'Ficha de paciente',
+    summary: 'Ficha PAT-XXXX unificada con historial, RX e informes PDF.',
+    goal: 'Gestionar el expediente completo y decidir qué es visible en el portal del paciente.',
+    audience: 'Personal clínico y administración.',
+    screenshots: [
+      {
+        src: mobile('admin-pacientes'),
+        alt: 'Listado de pacientes en móvil',
+        caption: 'Búsqueda por nombre, DNI o ID PAT-XXXX.'
+      },
+      {
+        src: mobile('pdp-informes'),
+        alt: 'Vista paciente de informes',
+        caption: 'Lo que publiques aquí será lo que el paciente ve en su móvil.'
+      }
+    ],
     steps: [
-      'Pacientes: busca por nombre, DNI o ID; abre la ficha completa.',
-      'Informes: sube PDF, asigna paciente y categoría.',
-      'Documentos y consentimientos: control de lo visible en el PdP.'
-    ]
+      {
+        title: 'Busca al paciente',
+        detail: 'En Pacientes localiza la ficha y abre el detalle con citas, informes y documentos vinculados.'
+      },
+      {
+        title: 'Sube informes PDF',
+        detail: 'Informes → nuevo: asigna paciente, categoría y comprueba la vista previa antes de guardar.'
+      },
+      {
+        title: 'Controla visibilidad',
+        detail: 'Documentos y consentimientos tienen interruptor de publicación al PdP; solo lo activo es visible fuera.'
+      }
+    ],
+    warnings: ['No subas datos de otro paciente: el sistema aísla por clínica pero la revisión humana es obligatoria.']
   },
   {
     id: 'facturacion',
     title: 'Facturas, pagos y reportes',
     summary: 'Emisión FAC-XXXX, cobros PAG-XXXX y métricas de ingresos.',
-    image: '/images/guides/admin-facturas.svg',
-    imageAlt: 'Facturación clínica',
+    goal: 'Facturar tratamientos, registrar cobros y analizar ingresos por periodo.',
+    audience: 'Administración y recepción con permiso de facturación.',
+    screenshots: [
+      {
+        src: mobile('admin-facturas'),
+        alt: 'Facturas en panel admin móvil',
+        caption: 'Listado con estado, importe y acciones de PDF.'
+      }
+    ],
     steps: [
-      'Facturas: serie configurable, IVA y logo de tu clínica en el PDF.',
-      'Pagos: registra cobros y concilia con facturas pendientes.',
-      'Reportes: ingresos por periodo y tratamientos más reservados.'
-    ]
+      {
+        title: 'Emite facturas',
+        detail: 'Vincula paciente y conceptos; la serie FAC-XXXX es configurable en Configuración.'
+      },
+      {
+        title: 'Registra pagos',
+        detail: 'En Pagos asocia cada cobro a su factura; el estado pasa a pagada automáticamente.'
+      },
+      {
+        title: 'Consulta reportes',
+        detail: 'Reportes muestra ingresos por rango de fechas y tratamientos más demandados.'
+      }
+    ],
+    tips: ['El logo de clínica en facturas PDF se toma de Configuración → Logo.']
   },
   {
     id: 'portal-acceso',
-    title: 'Acceso al PdP (doctor en portal paciente)',
-    summary: 'Genera tokens temporales para que el equipo vea el portal como el paciente, con auditoría.',
-    image: '/images/login-dentista-paciente.jpg',
-    imageAlt: 'Acceso supervisado al portal paciente',
+    title: 'Acceso al portal del paciente (PdP)',
+    summary: 'Entra al PdP como el paciente con token auditado o acceso rápido desde el panel.',
+    goal: 'Revisar lo que ve el paciente (informes, citas, facturas) con trazabilidad legal.',
+    audience: 'Dentistas y administradores autorizados.',
+    screenshots: [
+      {
+        src: mobile('admin-acceso'),
+        alt: 'Pantalla de tokens de acceso al PdP',
+        caption: 'Generación de tokens, caducidad y registro de auditoría.'
+      },
+      {
+        src: mobile('pdp-inicio'),
+        alt: 'Portal paciente tras acceso autorizado',
+        caption: 'Banner ámbar indicando acceso clínico supervisado.'
+      }
+    ],
     steps: [
-      'Acceso PdP: crea enlace/token con caducidad para soporte o revisión clínica.',
-      'Todas las acciones quedan registradas en el historial de auditoría.',
-      'El paciente sigue usando su propio login habitual; esto es solo para personal autorizado.'
-    ]
+      {
+        title: 'Acceso rápido',
+        detail: 'En la barra superior pulsa Portal del paciente: se crea sesión autorizada y abres /paciente al instante.'
+      },
+      {
+        title: 'Token para otro profesional',
+        detail: 'Acceso PdP → elige paciente y profesional → genera token con caducidad. Compártelo solo por canal seguro.'
+      },
+      {
+        title: 'Vuelve al panel',
+        detail: 'Usa Panel administrativo en el banner del PdP o en la barra superior para regresar sin cerrar la sesión de clínica.'
+      }
+    ],
+    warnings: ['Todas las acciones en PdP con acceso autorizado quedan en el registro de auditoría.'],
+    related: [{ label: 'Guía portal paciente', href: '/ayuda#portal-paciente' }]
   },
   {
     id: 'logo-marca',
-    title: 'Logo de tu clínica en el menú',
-    summary: 'Sube el escudo o logotipo de tu hospital en Configuración; aparece en la barra lateral.',
-    image: '/brand/dentista-logo.svg',
-    imageAlt: 'Logo en barra lateral',
+    title: 'Logo y marca de la clínica',
+    summary: 'Personaliza el escudo en el menú admin y en los PDF de factura.',
+    goal: 'Mostrar la identidad de tu centro en el software y documentos oficiales.',
+    audience: 'Administradores de clínica.',
+    screenshots: [
+      {
+        src: mobile('admin-dashboard'),
+        alt: 'Logo en barra lateral del panel',
+        caption: 'El logo subido aparece redondo con brillo en la barra lateral.'
+      }
+    ],
     steps: [
-      'Configuración → Logo de la clínica: PNG o JPG, fondo transparente recomendado.',
-      'También se usa en facturas PDF si lo indicas en los datos de facturación.',
-      'Puedes eliminar el logo y volver al predeterminado de Dentista+.'
+      {
+        title: 'Sube el logo',
+        detail: 'Configuración → Logo de la clínica: PNG o JPG, fondo transparente recomendado (mín. 256×256).'
+      },
+      {
+        title: 'Comprueba en el menú',
+        detail: 'Tras guardar, recarga el panel: verás el escudo redondo en la parte superior del menú lateral.'
+      },
+      {
+        title: 'Facturas PDF',
+        detail: 'El mismo logo puede imprimirse en facturas si está activado en datos de facturación.'
+      }
     ]
   }
 ];
