@@ -115,6 +115,17 @@ export function PatientRegistrationPage() {
 
   return (
     <main className="pr-register">
+      <div className="pr-register__bg" aria-hidden>
+        <img
+          src="/images/registro-paciente-bg.jpg"
+          alt=""
+          className="pr-register__bg-img"
+          loading="eager"
+          decoding="async"
+        />
+        <div className="pr-register__overlay" />
+      </div>
+
       <article className="pr-register__card">
         <header className="pr-register__head">
           <LogoMark size={44} />
