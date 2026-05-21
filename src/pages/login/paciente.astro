@@ -1,3 +1,7 @@
 ---
-return Astro.redirect('/login', 302);
+import AppLayout from '@/layouts/AppLayout.astro';
+import { PatientLoginPage } from '@/components/DentistaApp';
 ---
+<AppLayout title="Portal paciente · Dentista+">
+  <PatientLoginPage client:load />
+</AppLayout>

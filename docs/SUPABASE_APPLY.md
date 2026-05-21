@@ -17,6 +17,8 @@ Si en Supabase **no has ejecutado ninguna migración**, sigue este orden en el *
 | 9 | `0009_auth_bootstrap.sql` | **Sí** | Índices auth y `profiles.tenant_id` |
 | 10 | `0010_phase3_records_billing.sql` | **Sí** | Consentimientos, cola de notificaciones, checkout Stripe |
 | 11 | `0011_phase4_ops.sql` | **Sí** | FK a `profiles`, columnas factura/pago, webhook Stripe |
+| … | `0012`–`0017` | Según despliegue | Sucursales, PdP, logo, política contraseña, registro paciente |
+| 18 | `0018_profiles_staff_patient_email.sql` | **Sí en PRO** | Mismo email staff + paciente en una clínica |
 
 ### Resumen rápido — modo PRO (`PUBLIC_DEMO_MODE=false`)
 
@@ -112,6 +114,17 @@ npm run users -- add --email admin@clinica.com --password 'TuClave123!' --name "
   --access clinic --clinic-id <UUID> --role clinic_admin --permission execute
 npm run users -- permissions --email admin@clinica.com --clinic-id <UUID> --role admin --level write
 ```
+
+## Clínica ficticia en PRO (presentación)
+
+1. Ejecuta `0018_profiles_staff_patient_email.sql` en el SQL Editor.
+2. En `.env` define `SUPER_ADMIN_PASSWORD` (mín. 6 caracteres).
+3. Carga datos: `npm run seed:clinic` — crea **Clínica Dental Nova** (`clinica-dental-nova`), elimina restos demo anteriores y configura `admin@dentista.app` con acceso a plataforma, `/admin` y `/paciente`.
+
+Accesos directos tras el seed:
+
+- Panel clínica: `/login/admin?email=admin@dentista.app`
+- Portal paciente: `/login/paciente?email=admin@dentista.app`
 
 ## Webhook Stripe (opcional)
 

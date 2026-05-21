@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Heart, Lock, Mail, ShieldCheck } from 'lucide-react';
 import { loginWithCredentials } from '@/lib/session';
 
@@ -15,6 +15,11 @@ export function LiveLoginForm({
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const prefill = new URLSearchParams(window.location.search).get('email');
+    if (prefill) setEmail(prefill);
+  }, []);
   const isAdmin = variant === 'admin';
   const isPatient = variant === 'patient';
   async function submit(e: React.FormEvent) {

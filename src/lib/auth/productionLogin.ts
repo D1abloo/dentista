@@ -1,6 +1,7 @@
 import type { SessionUser } from '@/lib/auth';
 import { AccountNotActivatedError } from '@/lib/auth/accountErrors';
 import { evaluatePasswordStatus } from '@/lib/auth/passwordPolicy';
+import { pickProfileForLogin, type ClinicProfileRow } from '@/lib/auth/profilePick';
 import { isPatientActivated } from '@/lib/services/patientRegistration';
 import { getSupabaseAdmin } from '@/lib/supabaseServer';
 import { signInWithEmailPassword } from '@/lib/supabaseAuth';
@@ -8,19 +9,7 @@ import type { LoginInput } from '@/lib/validators';
 
 const STAFF_ROLES = new Set(['admin', 'owner', 'clinic_admin', 'dentist', 'receptionist']);
 
-type ProfileRow = {
-  id: string;
-  clinic_id: string;
-  tenant_id: string | null;
-  role: string;
-  full_name: string;
-  email: string;
-  must_change_password?: boolean | null;
-  password_expires_at?: string | null;
-  activated_at?: string | null;
-};
-
-function toPortalSession(profile: ProfileRow): Omit<SessionUser, 'expiresAt'> {
+function toPortalSession(profile: ClinicProfileRow): Omit<SessionUser, 'expiresAt'> {
   const isPatient = profile.role === 'patient';
   const pwd = evaluatePasswordStatus(profile);
   return {
@@ -70,17 +59,18 @@ export async function loginWithSupabaseProfile(
   if (input.role === 'super_admin') {
     return loginPlatformAdmin(admin, authData.user.id, input.email);
   }
-  const { data: profile, error: profileError } = await admin
+  const { data: profiles, error: profileError } = await admin
     .from('profiles')
     .select(
       'id, clinic_id, tenant_id, role, full_name, email, must_change_password, password_expires_at, activated_at'
     )
-    .eq('auth_user_id', authData.user.id)
-    .maybeSingle();
+    .eq('auth_user_id', authData.user.id);
 
-  if (profileError || !profile) return null;
+  if (profileError || !profiles?.length) return null;
 
-  const row = profile as ProfileRow;
+  const intent = input.role === 'auto' ? 'auto' : input.role === 'patient' ? 'patient' : 'admin';
+  const row = pickProfileForLogin(profiles as ClinicProfileRow[], intent);
+  if (!row) return null;
 
   if (input.role === 'patient' && row.role !== 'patient') return null;
   if (input.role === 'patient' && !isPatientActivated(row)) throw new AccountNotActivatedError();

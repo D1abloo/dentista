@@ -16,6 +16,7 @@
     "users": "node scripts/manage-users.mjs",
     "users:list": "node scripts/manage-users.mjs list",
     "users:clinics": "node scripts/manage-users.mjs clinics",
+    "seed:clinic": "node scripts/seed-pro-clinic.mjs",
     "codex:bootstrap": "bash scripts/codex-bootstrap.sh",
     "git:save": "bash scripts/git-save.sh",
     "github:save": "bash scripts/git-save.sh",
