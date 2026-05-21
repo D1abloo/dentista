@@ -7,6 +7,7 @@ export type PlatformRole =
   | 'super_admin'
   | 'clinic_admin'
   | 'admin'
+  | 'owner'
   | 'dentist'
   | 'receptionist'
   | 'patient';

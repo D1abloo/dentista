@@ -13,7 +13,6 @@ import { Button, Card, Empty, Field, Input, Select, Textarea } from '@/component
 import type {
   ClinicRegistration,
   PlatformClinic,
-  PlatformClinicUser,
   PlatformIsolationReport,
   PlatformOrganization,
   PlatformOverview,
@@ -251,56 +250,6 @@ export function PlatformSupport() {
           </Card>
         ))}
         {!list.length ? <Empty title="Sin tickets" text="Las solicitudes de contacto aparecerán aquí." /> : null}
-      </div>
-    </PlatformShell>
-  );
-}
-
-export function PlatformUsers() {
-  const [list, setList] = useState<PlatformClinicUser[]>([]);
-  const [filter, setFilter] = useState('');
-
-  useEffect(() => {
-    void api<PlatformClinicUser[]>('/api/platform/users')
-      .then(setList)
-      .catch(() => undefined);
-  }, []);
-
-  const filtered = useMemo(() => {
-    const q = filter.trim().toLowerCase();
-    if (!q) return list;
-    return list.filter(
-      (u) =>
-        u.full_name.toLowerCase().includes(q) ||
-        u.email.toLowerCase().includes(q) ||
-        u.clinic_name.toLowerCase().includes(q)
-    );
-  }, [list, filter]);
-
-  return (
-    <PlatformShell title="Usuarios por clínica" subtitle="Personal con acceso al panel; cada fila pertenece a un solo tenant">
-      <div className="mb-4">
-        <Input placeholder="Buscar por nombre, email o clínica…" value={filter} onChange={(e) => setFilter(e.target.value)} />
-      </div>
-      <div className="space-y-3">
-        {filtered.map((u) => (
-          <Card key={u.id} className="p-4">
-            <div className="flex flex-wrap justify-between gap-2">
-              <div>
-                <h3 className="font-bold">{u.full_name}</h3>
-                <p className="text-sm text-[var(--muted)]">{u.email}</p>
-              </div>
-              <span className="rounded-lg bg-[var(--blue)]/10 px-2 py-1 text-xs font-bold uppercase text-[var(--blue)]">{u.role}</span>
-            </div>
-            <p className="mt-2 text-sm">
-              <span className="font-semibold">{u.clinic_name}</span> · {u.clinic_slug} · {u.clinic_status}
-            </p>
-            <p className="mt-1 text-xs text-[var(--muted)]">
-              Acceso: /admin · tenant {u.tenant_id ? u.tenant_id.slice(0, 8) + '…' : 'pendiente de vincular'}
-            </p>
-          </Card>
-        ))}
-        {!filtered.length ? <Empty title="Sin usuarios staff" text="Aprueba registros para crear el primer administrador de clínica." /> : null}
       </div>
     </PlatformShell>
   );

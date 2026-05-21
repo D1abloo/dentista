@@ -38,7 +38,7 @@ export const platformNavSections: PlatformNavSection[] = [
     items: [
       { href: '/platform/organizaciones', label: 'Organizaciones', icon: Building2, description: 'Multi-sede por tenant' },
       { href: '/platform/clinicas', label: 'Clínicas', icon: Building2, description: 'Estado, plan y suspensión' },
-      { href: '/platform/usuarios', label: 'Usuarios', icon: Users, description: 'Personal por clínica (sin cruce)' },
+      { href: '/platform/usuarios', label: 'Usuarios', icon: Users, description: 'Alta de personal y pacientes por clínica' },
       { href: '/platform/aislamiento', label: 'Aislamiento', icon: Lock, description: 'Política multi-tenant' }
     ]
   },

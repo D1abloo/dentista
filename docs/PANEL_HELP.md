@@ -27,8 +27,10 @@ Este panel sirve para operar el SaaS a nivel global. El sidebar está organizado
 
 ### Usuarios (`/platform/usuarios`)
 
-- Listado de personal (`clinic_admin`, dentistas, recepción) agrupado por clínica.
-- Buscador por nombre, email o centro.
+- **Solo super administrador** (`/platform/login`): crear y listar cuentas de personal y pacientes.
+- El panel de clínica (`/admin`) no gestiona usuarios.
+- Alta con rol, clínica, destino (panel clínica o portal paciente) y envío de credenciales por correo.
+- Filtro por clínica y buscador por nombre o email.
 
 ### Registros (`/platform/registros` y `/platform/historial`)
 

@@ -271,14 +271,15 @@ export async function setClinicPlan(clinicId: string, plan: SubscriptionPlan) {
   await db.from('clinic_subscriptions').update({ plan, updated_at: new Date().toISOString() }).eq('clinic_id', clinicId);
 }
 
-const STAFF_ROLES = ['clinic_admin', 'admin', 'dentist', 'receptionist', 'owner'] as const;
+const STAFF_ROLES = ['clinic_admin', 'admin', 'owner', 'dentist', 'receptionist'] as const;
+const PLATFORM_USER_ROLES = [...STAFF_ROLES, 'patient'] as const;
 
 export async function listClinicUsers(clinicId?: string): Promise<PlatformClinicUser[]> {
   const db = getSupabaseAdmin();
   let q = db
     .from('profiles')
     .select('id, clinic_id, role, full_name, email, tenant_id, created_at, clinics(name, slug, status)')
-    .in('role', [...STAFF_ROLES])
+    .in('role', [...PLATFORM_USER_ROLES])
     .order('created_at', { ascending: false });
   if (clinicId) q = q.eq('clinic_id', clinicId);
   const { data, error } = await q;
