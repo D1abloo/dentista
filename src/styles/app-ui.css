@@ -875,6 +875,70 @@ body {
   background: var(--app-teal-soft);
 }
 
+.admin-search {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 28rem;
+}
+
+.admin-search__icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  color: var(--app-muted);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.admin-search__input {
+  flex: 1 1 12rem;
+  min-width: 10rem;
+  padding-left: 2.25rem !important;
+  font-size: 0.8rem !important;
+}
+
+.admin-search__filter {
+  flex: 0 0 auto;
+  min-width: 7rem;
+  font-size: 0.75rem !important;
+  padding: 0.45rem 0.5rem !important;
+}
+
+.admin-search__drop {
+  left: 0;
+  right: 0;
+  max-width: 100%;
+}
+
+.admin-search__empty {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--app-muted);
+  background: #fff;
+  border-radius: 0.6rem;
+  border: 1px solid var(--app-line);
+}
+
+.patient-identity__nhc {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--app-teal);
+}
+
 /* Stepper */
 .stepper {
   display: flex;

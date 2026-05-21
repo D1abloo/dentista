@@ -4,6 +4,7 @@ import { Button, Card, Empty, Field, Input, PageHeader, Select } from '@/compone
 import { useNotice } from '@/hooks/useNotice';
 import { usePortalAccess } from '@/hooks/usePortalAccess';
 import { useStaffContext } from '@/hooks/useStaffContext';
+import { canViewPdpAudit } from '@/lib/adminNav';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useTenant } from '@/hooks/useTenant';
 import { patientsForTenant } from '@/lib/tenant';
@@ -211,11 +212,13 @@ export function AdminPortalAccess() {
         {!loading && !tokens.length ? <Empty title="Sin tokens" text="Genera el primer token de acceso." /> : null}
       </Card>
 
-      <p className="text-center text-sm text-slate-500">
-        <a href="/admin/auditoria-pdp" className="font-semibold text-[var(--blue)] underline">
-          Ver auditoría de actividad en PdP (solo administración)
-        </a>
-      </p>
+      {canViewPdpAudit(staff?.role) ? (
+        <p className="text-center text-sm text-slate-500">
+          <a href="/admin/auditoria-pdp" className="font-semibold text-[var(--blue)] underline">
+            Ver auditoría de actividad en PdP
+          </a>
+        </p>
+      ) : null}
     </div>
   );
 }

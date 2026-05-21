@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Download, Filter } from 'lucide-react';
 import { Badge, Button, Card, Empty, Field, PageHeader, Select } from '@/components/ui';
 import { useNotice } from '@/hooks/useNotice';
+import { useStaffContext } from '@/hooks/useStaffContext';
+import { canViewPdpAudit } from '@/lib/adminNav';
 import { exportCsv } from '@/lib/demoStore';
 import { portalAuditEventLabel } from '@/lib/portalAccessLabels';
 
@@ -21,10 +23,12 @@ type StaffOption = { id: string; full_name: string; email: string; role: string 
 
 export function AdminPdpAudit() {
   const { setNotice } = useNotice();
+  const { staff, loading: staffLoading } = useStaffContext();
   const [audit, setAudit] = useState<AuditRow[]>([]);
   const [staffProfiles, setStaffProfiles] = useState<StaffOption[]>([]);
   const [staffFilter, setStaffFilter] = useState('');
   const [loading, setLoading] = useState(true);
+  const denied = !staffLoading && !canViewPdpAudit(staff?.role);
 
   async function load(filter = staffFilter) {
     setLoading(true);
@@ -71,6 +75,15 @@ export function AdminPdpAudit() {
     const suffix = staffFilter ? `-${staffFilter.slice(0, 8)}` : '';
     exportCsv(exportRows, `auditoria-pdp${suffix}.csv`);
     setNotice({ type: 'ok', message: 'Exportación lista (abre el CSV en Excel).' });
+  }
+
+  if (denied) {
+    return (
+      <Card>
+        <PageHeader title="Acceso restringido" subtitle="Solo administración de clínica" />
+        <p className="text-sm text-slate-600">La auditoría del portal del paciente no está disponible para tu rol.</p>
+      </Card>
+    );
   }
 
   return (

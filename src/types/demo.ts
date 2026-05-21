@@ -39,6 +39,8 @@ export interface Tenant {
 
 export interface Patient {
   id: string;
+  /** Número de historia clínica (4+ dígitos, único por clínica). */
+  nhc?: string;
   fullName: string;
   email: string;
   phone: string;

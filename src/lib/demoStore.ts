@@ -16,6 +16,7 @@ import {
 } from '@/lib/ids';
 import { loadPersistedState, resetPersistedState, savePersistedState } from '@/lib/storage/persist';
 import { STORAGE_EPHEMERAL, STORAGE_PATIENT_ID, STORAGE_ROLE, STORAGE_TENANT_ID } from '@/lib/storage/keys';
+import { nextDemoNhc } from '@/lib/nhc';
 import { isClientDemoMode } from '@/lib/appMode';
 import { TENANT_CENTRO } from '@/lib/tenantIds';
 import type {
@@ -351,8 +352,9 @@ export function savePatient(state: DemoState, patient: Patient): DemoState {
   };
 }
 
-export function createPatient(state: DemoState, data: Omit<Patient, 'id' | 'createdAt'>): DemoState {
-  const patient: Patient = { ...data, id: nextPatientId(state), createdAt: todayIso() };
+export function createPatient(state: DemoState, data: Omit<Patient, 'id' | 'createdAt' | 'nhc'>): DemoState {
+  const nhc = nextDemoNhc(state, data.preferredClinicId);
+  const patient: Patient = { ...data, nhc, id: nextPatientId(state), createdAt: todayIso() };
   return savePatient(state, patient);
 }
 

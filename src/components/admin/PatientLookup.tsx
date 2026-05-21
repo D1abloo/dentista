@@ -2,8 +2,7 @@ import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import type { DemoState } from '@/types/demo';
 import { findPatientsByQuery, findPatientIdByQuery } from '@/lib/patientSearch';
-import { patientName } from '@/lib/selectors';
-import { IdBadge } from '@/components/ui/IdBadge';
+import { patientDisplayCode } from '@/lib/nhc';
 import { Field, Input } from '@/components/ui';
 
 type Props = {
@@ -13,7 +12,7 @@ type Props = {
   label?: string;
 };
 
-/** Búsqueda por PAT-XXXX, DNI o nombre */
+/** Búsqueda por NHC, DNI, nombre o ID interno */
 export function PatientLookup({ state, patientId, onPatientId, label = 'Buscar paciente' }: Props) {
   const [q, setQ] = useState('');
   const matches = useMemo(() => findPatientsByQuery(state, q), [state, q]);
@@ -34,7 +33,7 @@ export function PatientLookup({ state, patientId, onPatientId, label = 'Buscar p
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input
             className="!pl-10"
-            placeholder="DNI, PAT-0001 o nombre…"
+            placeholder="NHC, DNI o nombre…"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), applyQuery())}
@@ -53,7 +52,9 @@ export function PatientLookup({ state, patientId, onPatientId, label = 'Buscar p
                   setQ('');
                 }}
               >
-                <IdBadge id={p.id} kind="paciente" />
+                <span className="rounded bg-teal-100 px-2 py-0.5 text-xs font-bold text-teal-900">
+                  {p.nhc ? `NHC ${p.nhc}` : p.id}
+                </span>
                 <span>{p.fullName}</span>
                 {p.dni ? <span className="text-xs text-slate-500">DNI {p.dni}</span> : null}
               </button>
@@ -63,11 +64,11 @@ export function PatientLookup({ state, patientId, onPatientId, label = 'Buscar p
       ) : null}
       {selected ? (
         <p className="mt-2 rounded-xl bg-dental-50 px-3 py-2 text-sm font-bold text-dental-900">
-          Seleccionado: <IdBadge id={selected.id} kind="paciente" /> {selected.fullName}
+          Seleccionado: {patientDisplayCode(selected)} · {selected.fullName}
           {selected.dni ? ` · DNI ${selected.dni}` : ''}
         </p>
       ) : (
-        <p className="mt-1 text-xs text-slate-500">Obligatorio vincular a un paciente (ID o DNI).</p>
+        <p className="mt-1 text-xs text-slate-500">Introduce NHC, DNI o nombre y pulsa Enter.</p>
       )}
     </div>
   );
@@ -75,5 +76,6 @@ export function PatientLookup({ state, patientId, onPatientId, label = 'Buscar p
 
 export function patientFilterLabel(state: DemoState, patientId: string) {
   const p = state.patients.find((x) => x.id === patientId);
-  return p ? `${p.id} · ${p.fullName}${p.dni ? ` · ${p.dni}` : ''}` : patientName(state, patientId);
+  if (!p) return patientId;
+  return `${p.nhc ? `NHC ${p.nhc}` : p.id} · ${p.fullName}${p.dni ? ` · ${p.dni}` : ''}`;
 }

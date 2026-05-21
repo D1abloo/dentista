@@ -4,6 +4,7 @@ import {
   sendPatientActivationEmail,
   sendPatientRegistrationPendingEmail
 } from '@/lib/email/patientActivationEmail';
+import { allocateNextNhc } from '@/lib/services/nhc';
 import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
 import type { PatientRegistrationInput } from '@/lib/validators';
 
@@ -72,6 +73,7 @@ export async function registerPatient(input: PatientRegistrationInput) {
 
   const authUserId = authData.user.id;
   const pwdExpires = passwordExpiresAtForRole('patient', new Date(now));
+  const nhc = await allocateNextNhc(input.clinic_id);
 
   const { data: profile, error: profileErr } = await db
     .from('profiles')
@@ -84,6 +86,7 @@ export async function registerPatient(input: PatientRegistrationInput) {
       email: input.email.trim().toLowerCase(),
       phone: input.phone.trim(),
       dni: input.dni.trim().toUpperCase(),
+      nhc,
       birth_date: input.birth_date || null,
       must_change_password: false,
       password_set_at: now,
@@ -92,7 +95,7 @@ export async function registerPatient(input: PatientRegistrationInput) {
       activation_token_hash: hash,
       activation_token_expires_at: expiresAt
     })
-    .select('id, email, full_name')
+    .select('id, email, full_name, nhc')
     .single();
   if (profileErr) {
     await db.auth.admin.deleteUser(authUserId);
@@ -123,6 +126,7 @@ export async function registerPatient(input: PatientRegistrationInput) {
   return {
     profileId: profile.id as string,
     email: profile.email as string,
+    nhc: profile.nhc as string,
     activationEmailSent
   };
 }

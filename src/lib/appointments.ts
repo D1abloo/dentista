@@ -58,8 +58,17 @@ export function filterAppointments(
   if (opts.q?.trim()) {
     const q = opts.q.toLowerCase();
     out = out.filter((a) => {
+      const p = state.patients.find((x) => x.id === a.patientId);
       const name = patientName(state, a.patientId).toLowerCase();
-      return name.includes(q) || a.id.toLowerCase().includes(q) || a.date.includes(q);
+      const nhc = p?.nhc?.toLowerCase() ?? '';
+      const dni = p?.dni?.toLowerCase() ?? '';
+      return (
+        name.includes(q) ||
+        nhc.includes(q.replace(/^nhc\s*/, '')) ||
+        dni.includes(q) ||
+        a.id.toLowerCase().includes(q) ||
+        a.date.includes(q)
+      );
     });
   }
   return out.sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`));

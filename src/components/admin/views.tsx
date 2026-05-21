@@ -49,6 +49,7 @@ import { useStaffContext } from '@/hooks/useStaffContext';
 import type { Appointment, AppointmentStatus, Dentist, Patient, Treatment } from '@/types/demo';
 import { IdBadge } from '@/components/ui/IdBadge';
 import { PatientSelect } from './shared';
+import { PatientLookup } from './PatientLookup';
 import { AdminStaffPortalProfile } from './portalAccess';
 import { ClinicLogoUpload } from './ClinicLogoUpload';
 import {
@@ -143,7 +144,7 @@ export function AdminDashboard() {
 }
 
 export function AdminAgenda() {
-  const { state, commit } = useDemoStore();
+  const { state, commit, refresh } = useDemoStore();
   const scope = useTenant();
   const { setNotice } = useNotice();
   const { staff, loading: staffLoading } = useStaffContext();
@@ -162,6 +163,9 @@ export function AdminAgenda() {
   const [cabinetId, setCabinetId] = useState('');
   const [blockTime, setBlockTime] = useState('13:00');
   const [blockReason, setBlockReason] = useState('');
+  const [bookPatientId, setBookPatientId] = useState('');
+  const [bookTime, setBookTime] = useState('10:00');
+  const [bookTreatmentId, setBookTreatmentId] = useState(scope.treatments[0]?.id ?? '');
 
   const filtered = useMemo(() => {
     let list = scope.appointments.filter((a) => a.clinicId === clinicId);
@@ -211,6 +215,91 @@ export function AdminAgenda() {
           <span className="self-center text-xs font-semibold text-slate-500">Agenda asignada a tu perfil</span>
         ) : null}
       </div>
+      <Card title="Asignar cita por NHC">
+        <p className="mb-3 text-sm text-slate-600">
+          Busca al paciente por NHC, DNI o nombre. La cita aparecerá en su portal del paciente.
+        </p>
+        <div className="grid gap-3 md:grid-cols-2">
+          <PatientLookup
+            state={state}
+            patientId={bookPatientId}
+            onPatientId={setBookPatientId}
+            label="Paciente (NHC)"
+          />
+          <Field label="Hora">
+            <Input type="time" value={bookTime} onChange={(e) => setBookTime(e.target.value)} />
+          </Field>
+          <Field label="Tratamiento">
+            <Select value={bookTreatmentId} onChange={(e) => setBookTreatmentId(e.target.value)}>
+              {scope.treatments.map((tr) => (
+                <option key={tr.id} value={tr.id}>
+                  {tr.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <div className="flex items-end">
+            <Button
+              onClick={async () => {
+                const err =
+                  required(bookPatientId, 'Paciente') ||
+                  required(bookTime, 'Hora') ||
+                  required(bookTreatmentId, 'Tratamiento');
+                if (err) {
+                  setNotice({ type: 'error', message: err });
+                  return;
+                }
+                const patient = state.patients.find((p) => p.id === bookPatientId);
+                const activeDentist = dentistId || scope.dentists[0]?.id;
+                if (!activeDentist) {
+                  setNotice({ type: 'error', message: 'Selecciona un dentista.' });
+                  return;
+                }
+                if (!isClientDemoMode()) {
+                  const live = await createAppointmentLive({
+                    clinicId,
+                    patientId: bookPatientId,
+                    patientName: patient?.fullName ?? 'Paciente',
+                    patientEmail: patient?.email,
+                    patientPhone: patient?.phone,
+                    dentistId: activeDentist,
+                    treatmentId: bookTreatmentId,
+                    roomName: 'Gabinete 1',
+                    date,
+                    time: bookTime
+                  });
+                  if (!live.ok) {
+                    setNotice({ type: 'error', message: live.message });
+                    return;
+                  }
+                  await refresh();
+                  setNotice({ type: 'ok', message: 'Cita creada. Visible en el PdP del paciente.' });
+                  return;
+                }
+                const result = tryCreateAppointment(state, {
+                  patientId: bookPatientId,
+                  dentistId: activeDentist,
+                  clinicId,
+                  cabinetId: cabinetId || 'g-1',
+                  treatmentId: bookTreatmentId,
+                  date,
+                  time: bookTime,
+                  notes: '',
+                  status: 'pendiente'
+                });
+                if (!result.ok) {
+                  setNotice({ type: 'error', message: result.message ?? 'Horario ocupado.' });
+                  return;
+                }
+                commit(result.state);
+                setNotice({ type: 'ok', message: 'Cita creada. Visible en el PdP del paciente.' });
+              }}
+            >
+              Crear cita en agenda
+            </Button>
+          </div>
+        </div>
+      </Card>
       <Card title={`Citas (${filtered.length})`}>
         <div className="table-cards">
           {filtered.map((a) => (
@@ -385,7 +474,7 @@ export function AdminAppointments() {
       </div>
       <Card title="Nueva cita">
         <div className="grid gap-3">
-          <PatientSelect state={state} value={form.patientId} onChange={(id) => setForm({ ...form, patientId: id })} required />
+          <PatientLookup state={state} patientId={form.patientId} onPatientId={(id) => setForm({ ...form, patientId: id })} label="Paciente (NHC / DNI)" />
           <Field label="Dentista"><Select value={form.dentistId} onChange={(e) => setForm({ ...form, dentistId: e.target.value })}>{scope.dentists.map((d) => <option key={d.id} value={d.id}>{d.fullName}</option>)}</Select></Field>
           <Field label="Tratamiento"><Select value={form.treatmentId} onChange={(e) => setForm({ ...form, treatmentId: e.target.value })}>{scope.treatments.map((tr) => <option key={tr.id} value={tr.id}>{tr.name}</option>)}</Select></Field>
           <Field label="Fecha"><Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} /></Field>
@@ -429,7 +518,7 @@ export function AdminPatients() {
 
   return (
     <div className="space-y-4">
-<SearchInput value={q} onChange={setQ} placeholder="Buscar por DNI, PAT-XXXX, nombre o email…" />
+<SearchInput value={q} onChange={setQ} placeholder="Buscar por NHC, DNI, nombre o email…" />
       <Button onClick={newPatient}>Crear paciente</Button>
       <div className="table-cards">
         {list.map((p) => {
@@ -439,7 +528,10 @@ export function AdminPatients() {
           return (
             <article key={p.id} className="patient-card">
               <div className="patient-card__main">
-                <p className="patient-card__name"><IdBadge id={p.id} kind="paciente" /> {p.fullName}</p>
+                <p className="patient-card__name">
+                  {p.nhc ? <span className="mr-2 rounded bg-teal-100 px-2 py-0.5 text-xs font-bold text-teal-900">NHC {p.nhc}</span> : null}
+                  {p.fullName}
+                </p>
                 <p className="patient-card__contact">{p.email} · {p.phone}{p.dni ? ` · DNI ${p.dni}` : ''}</p>
                 <p className="patient-card__stats">Próxima: {next ? fmtDateTime(next.date, next.time) : '—'} · Facturas pend.: {pending} · Informes: {rec.reports.length}</p>
               </div>

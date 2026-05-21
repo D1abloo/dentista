@@ -159,9 +159,11 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
   const patientProfiles = (profiles ?? []).filter((p) => p.role === 'patient');
   state.patients = patientProfiles.map((p) => ({
     id: p.id,
+    nhc: (p.nhc as string | null) ?? undefined,
     fullName: p.full_name,
     email: p.email,
     phone: p.phone ?? '',
+    dni: (p.dni as string | null) ?? undefined,
     preferredClinicId: p.clinic_id ?? mainClinic.id,
     createdAt: String(p.created_at ?? '').slice(0, 10)
   }));

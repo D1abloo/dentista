@@ -7,8 +7,10 @@ import { useDemoStore } from '@/hooks/useDemoStore';
 import { useTenant } from '@/hooks/useTenant';
 import { getStaffProfile, organizationDisplayName, organizationSubtitle } from '@/lib/organization';
 import { getStoredTenantId, settingsFor } from '@/lib/demoStore';
-import { GlobalIdSearch } from '@/components/shared/GlobalIdSearch';
+import { AdminSearch } from './AdminSearch';
 import { adminNav } from './nav';
+import { isNavItemVisible } from '@/lib/adminNav';
+import { useStaffContext } from '@/hooks/useStaffContext';
 import { ClinicBranchSwitcher } from './ClinicBranchSwitcher';
 import { AdminQuickAccess } from './AdminQuickAccess';
 
@@ -27,6 +29,7 @@ function AdminRail({
   userLabel,
   clinicLogoUrl,
   platformInspect,
+  staffRole,
   onNav,
   onLogout,
   variant
@@ -36,10 +39,12 @@ function AdminRail({
   userLabel: string;
   clinicLogoUrl: string;
   platformInspect: boolean;
+  staffRole?: string;
   onNav: () => void;
   onLogout: () => void;
   variant: 'drawer' | 'rail';
 }) {
+  const visibleNav = adminNav.filter((item) => isNavItemVisible(item.view, staffRole));
   const cls =
     variant === 'drawer'
       ? 'portal-rail portal-rail--admin portal-rail--drawer'
@@ -58,7 +63,7 @@ function AdminRail({
         <p className="admin-org-card__user">{userLabel}</p>
       </div>
       <nav className="flex-1 overflow-y-auto">
-        {adminNav.map((item) => {
+        {visibleNav.map((item) => {
           const active = path === item.href || (item.href !== '/admin' && path.startsWith(item.href));
           return (
             <a
@@ -103,7 +108,10 @@ export function AdminShell({
   const live = isClientLiveMode();
   const tenantId = scope.tenantId || getStoredTenantId();
   const [sessionName, setSessionName] = useState('');
+  const [sessionStaffRole, setSessionStaffRole] = useState<string | undefined>();
   const [platformInspect, setPlatformInspect] = useState(false);
+  const { staff } = useStaffContext();
+  const staffRole = staff?.role ?? sessionStaffRole;
   const orgName = organizationDisplayName(state, tenantId);
   const clinicLogoUrl = settingsFor(state, tenantId).logoUrl ?? '/brand/clinic-shield.svg';
   const tenant = {
@@ -117,9 +125,10 @@ export function AdminShell({
   useEffect(() => {
     void fetch('/api/auth/me', { credentials: 'include' })
       .then((r) => r.json())
-      .then((j: { data?: { name?: string; email?: string; platformInspect?: boolean; inspectMode?: string } }) => {
+      .then((j: { data?: { name?: string; email?: string; staffRole?: string; role?: string; platformInspect?: boolean; inspectMode?: string } }) => {
         if (j.data?.name) setSessionName(j.data.name);
         else if (j.data?.email) setSessionName(j.data.email);
+        setSessionStaffRole(j.data?.staffRole ?? j.data?.role);
         setPlatformInspect(Boolean(j.data?.platformInspect && j.data?.inspectMode === 'clinic_admin'));
         if (live && j.data?.name) setStaffReady(true);
       })
@@ -175,6 +184,7 @@ export function AdminShell({
         userLabel={userLabel}
         clinicLogoUrl={clinicLogoUrl}
         platformInspect={platformInspect}
+        staffRole={staffRole}
         onNav={close}
         onLogout={logout}
         variant="rail"
@@ -193,6 +203,7 @@ export function AdminShell({
               userLabel={userLabel}
               clinicLogoUrl={clinicLogoUrl}
               platformInspect={platformInspect}
+              staffRole={staffRole}
               onNav={close}
               onLogout={logout}
               variant="drawer"
@@ -217,7 +228,7 @@ export function AdminShell({
               <ClinicBranchSwitcher />
             </div>
             <div className="hidden md:block">
-              <GlobalIdSearch />
+              <AdminSearch />
             </div>
             <button type="button" className="admin-logout-btn admin-logout-btn--compact" onClick={logout}>
               <LogOut className="h-4 w-4" />

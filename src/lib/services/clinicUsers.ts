@@ -4,6 +4,7 @@ import {
   newUserPasswordFields
 } from '@/lib/auth/passwordPolicy';
 import { sendNewUserCredentialsEmail } from '@/lib/email/accountEmails';
+import { allocateNextNhc } from '@/lib/services/nhc';
 import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
 
 const PERMISSION_LEVELS = {
@@ -142,6 +143,9 @@ export async function createClinicUser(input: CreateClinicUserInput) {
 
   const authUserId = authData.user.id;
 
+  const patientNhc =
+    profileRole === 'patient' ? await allocateNextNhc(input.clinicId) : undefined;
+
   const { data: profile, error: profileErr } = await db
     .from('profiles')
     .insert({
@@ -151,6 +155,7 @@ export async function createClinicUser(input: CreateClinicUserInput) {
       role: profileRole,
       full_name: input.fullName,
       email: input.email,
+      nhc: patientNhc,
       ...pwdFields
     })
     .select('id, role, email, full_name, clinic_id, created_at')

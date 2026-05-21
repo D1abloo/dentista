@@ -29,8 +29,13 @@ export const GET: APIRoute = async (context) => {
 
   const auditOnly = context.url.searchParams.get('audit') === '1';
   const staffProfileId = context.url.searchParams.get('staffProfileId') ?? undefined;
+  const role = gate.user.staffRole ?? gate.user.role;
+  const MANAGER = new Set(['clinic_admin', 'admin', 'owner']);
   try {
     if (auditOnly) {
+      if (!MANAGER.has(role) && gate.user.role !== 'admin') {
+        return fail('No tienes permiso para ver la auditoría.', 403);
+      }
       const staffFilter =
         staffProfileId === 'me' ? gate.user.profileId : staffProfileId || undefined;
       const [rows, staffList] = await Promise.all([
