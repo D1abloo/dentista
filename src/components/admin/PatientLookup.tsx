@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import { Search } from 'lucide-react';
+import { Hash, Search } from 'lucide-react';
 import type { DemoState } from '@/types/demo';
 import { findPatientsByQuery, findPatientIdByQuery } from '@/lib/patientSearch';
-import { patientDisplayCode } from '@/lib/nhc';
+import { normalizeNhcQuery, patientDisplayCode } from '@/lib/nhc';
 import { Field, Input } from '@/components/ui';
 
 type Props = {
@@ -10,10 +10,11 @@ type Props = {
   patientId: string;
   onPatientId: (id: string) => void;
   label?: string;
+  /** Prioriza búsqueda por número NHC (campo numérico). */
+  nhcPrimary?: boolean;
 };
 
-/** Búsqueda por NHC, DNI, nombre o ID interno */
-export function PatientLookup({ state, patientId, onPatientId, label = 'Buscar paciente' }: Props) {
+export function PatientLookup({ state, patientId, onPatientId, label = 'Buscar paciente', nhcPrimary }: Props) {
   const [q, setQ] = useState('');
   const matches = useMemo(() => findPatientsByQuery(state, q), [state, q]);
   const selected = state.patients.find((p) => p.id === patientId);
@@ -26,14 +27,22 @@ export function PatientLookup({ state, patientId, onPatientId, label = 'Buscar p
     }
   }
 
+  const isNumeric = /^\d+$/.test(normalizeNhcQuery(q));
+
   return (
-    <div className="patient-lookup">
+    <div className={`patient-lookup ${nhcPrimary ? 'patient-lookup--nhc' : ''}`}>
       <Field label={label}>
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          {nhcPrimary ? (
+            <Hash className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-teal-600" />
+          ) : (
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          )}
           <Input
             className="!pl-10"
-            placeholder="NHC, DNI o nombre…"
+            type={nhcPrimary && isNumeric ? 'number' : 'search'}
+            inputMode={nhcPrimary ? 'numeric' : 'search'}
+            placeholder={nhcPrimary ? 'Número NHC (ej. 12)' : 'NHC, DNI o nombre…'}
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), applyQuery())}
@@ -41,34 +50,33 @@ export function PatientLookup({ state, patientId, onPatientId, label = 'Buscar p
         </div>
       </Field>
       {q.trim() && matches.length ? (
-        <ul className="patient-lookup__results mt-2 max-h-48 overflow-y-auto rounded-xl ring-1 ring-slate-200">
+        <ul className="patient-lookup__results">
           {matches.slice(0, 8).map((p) => (
             <li key={p.id}>
               <button
                 type="button"
-                className="flex w-full flex-wrap items-center gap-2 px-3 py-2 text-left text-sm font-semibold hover:bg-dental-50"
+                className="patient-lookup__result-btn"
                 onClick={() => {
                   onPatientId(p.id);
-                  setQ('');
+                  setQ(p.nhc ?? '');
                 }}
               >
-                <span className="rounded bg-teal-100 px-2 py-0.5 text-xs font-bold text-teal-900">
-                  {p.nhc ? `NHC ${p.nhc}` : p.id}
-                </span>
-                <span>{p.fullName}</span>
-                {p.dni ? <span className="text-xs text-slate-500">DNI {p.dni}</span> : null}
+                {p.nhc ? <span className="patient-lookup__nhc">NHC {p.nhc}</span> : null}
+                <span className="patient-lookup__name">{p.fullName}</span>
+                {p.dni ? <span className="patient-lookup__meta">DNI {p.dni}</span> : null}
               </button>
             </li>
           ))}
         </ul>
       ) : null}
       {selected ? (
-        <p className="mt-2 rounded-xl bg-dental-50 px-3 py-2 text-sm font-bold text-dental-900">
-          Seleccionado: {patientDisplayCode(selected)} · {selected.fullName}
-          {selected.dni ? ` · DNI ${selected.dni}` : ''}
+        <p className="patient-lookup__selected">
+          <strong>{patientDisplayCode(selected)}</strong> — {selected.fullName}
         </p>
       ) : (
-        <p className="mt-1 text-xs text-slate-500">Introduce NHC, DNI o nombre y pulsa Enter.</p>
+        <p className="patient-lookup__hint">
+          {nhcPrimary ? 'Introduce el número NHC y pulsa Enter.' : 'NHC, DNI o nombre + Enter.'}
+        </p>
       )}
     </div>
   );

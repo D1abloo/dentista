@@ -1,18 +1,16 @@
 import type { DemoState, Patient } from '@/types/demo';
 
-/** Ancho mínimo de dígitos del NHC (amplía cuando se agotan). */
-export const NHC_MIN_WIDTH = 4;
-
-export function formatNhc(value: number, width = NHC_MIN_WIDTH) {
-  const w = value >= 10 ** width ? String(value).length : width;
-  return String(value).padStart(w, '0');
+/** NHC como número entero (1, 2, 3… sin ceros a la izquierda). */
+export function formatNhc(value: number) {
+  return String(Math.max(1, Math.floor(value)));
 }
 
 export function normalizeNhcQuery(query: string) {
-  return query.trim().replace(/\s+/g, '').replace(/^nhc[-\s]*/i, '');
+  const raw = query.trim().replace(/\s+/g, '').replace(/^nhc[-\s]*/i, '');
+  if (/^\d+$/.test(raw)) return String(parseInt(raw, 10));
+  return raw;
 }
 
-/** Siguiente NHC en modo demo (por clínica preferida o global). */
 export function nextDemoNhc(state: DemoState, clinicId?: string): string {
   const list = clinicId
     ? state.patients.filter((p) => p.preferredClinicId === clinicId || !p.preferredClinicId)
@@ -20,7 +18,7 @@ export function nextDemoNhc(state: DemoState, clinicId?: string): string {
   let max = 0;
   for (const p of list) {
     if (!p.nhc) continue;
-    const n = parseInt(p.nhc.replace(/\D/g, ''), 10);
+    const n = parseInt(String(p.nhc).replace(/\D/g, ''), 10);
     if (!Number.isNaN(n) && n > max) max = n;
   }
   return formatNhc(max + 1);

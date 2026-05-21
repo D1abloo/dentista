@@ -18,6 +18,6 @@ with ranked as (
   where role = 'patient' and nhc is null
 )
 update public.profiles p
-set nhc = lpad(ranked.rn::text, 4, '0')
+set nhc = ranked.rn::text
 from ranked
 where p.id = ranked.id;

@@ -98,7 +98,7 @@ export const demoSeed: DemoState = {
   patients: [
     {
       id: PATIENT,
-      nhc: '0001',
+      nhc: '1',
       fullName: 'Elena Vidal Romero',
       email: 'maria@example.com',
       phone: '+34 612 345 678',
