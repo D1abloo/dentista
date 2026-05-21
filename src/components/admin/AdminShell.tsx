@@ -2,10 +2,11 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { LogOut, Menu } from 'lucide-react';
 import { AdminStaffSetup } from '@/components/auth/AdminStaffSetup';
 import { useLogout } from '@/components/auth/RoleGate';
+import { isClientLiveMode } from '@/lib/appMode';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useTenant } from '@/hooks/useTenant';
 import { getStaffProfile, organizationDisplayName, organizationSubtitle } from '@/lib/organization';
-import { settingsFor } from '@/lib/demoStore';
+import { getStoredTenantId, settingsFor } from '@/lib/demoStore';
 import { GlobalIdSearch } from '@/components/shared/GlobalIdSearch';
 import { adminNav } from './nav';
 import { ClinicBranchSwitcher } from './ClinicBranchSwitcher';
@@ -98,17 +99,19 @@ export function AdminShell({
   const path = typeof window !== 'undefined' ? window.location.pathname : '';
   const logout = useLogout();
   const scope = useTenant();
-  const { state } = useDemoStore();
+  const { state, dataSource } = useDemoStore();
+  const live = isClientLiveMode();
+  const tenantId = scope.tenantId || getStoredTenantId();
   const [sessionName, setSessionName] = useState('');
   const [platformInspect, setPlatformInspect] = useState(false);
-  const orgName = organizationDisplayName(state, scope.tenantId);
-  const clinicLogoUrl = settingsFor(state, scope.tenantId).logoUrl ?? '/brand/clinic-shield.svg';
+  const orgName = organizationDisplayName(state, tenantId);
+  const clinicLogoUrl = settingsFor(state, tenantId).logoUrl ?? '/brand/clinic-shield.svg';
   const tenant = {
-    id: scope.tenantId,
+    id: tenantId,
     name: orgName,
-    subtitle: organizationSubtitle(state, scope.tenantId)
+    subtitle: organizationSubtitle(state, tenantId)
   };
-  const [staffReady, setStaffReady] = useState(() => Boolean(getStaffProfile(scope.tenantId)));
+  const [staffReady, setStaffReady] = useState(() => live || Boolean(getStaffProfile(tenantId)));
   const close = () => setOpen(false);
 
   useEffect(() => {
@@ -118,12 +121,42 @@ export function AdminShell({
         if (j.data?.name) setSessionName(j.data.name);
         else if (j.data?.email) setSessionName(j.data.email);
         setPlatformInspect(Boolean(j.data?.platformInspect && j.data?.inspectMode === 'clinic_admin'));
+        if (live && j.data?.name) setStaffReady(true);
       })
       .catch(() => undefined);
-  }, []);
+  }, [live]);
 
-  if (!staffReady) {
+  if (!live && !staffReady) {
     return <AdminStaffSetup onDone={() => setStaffReady(true)} />;
+  }
+
+  if (live && dataSource === 'loading') {
+    return (
+      <main className="grid min-h-screen place-items-center bg-[#eef2f7] px-4 text-sm font-bold text-dental-800">
+        Cargando panel de clínica…
+      </main>
+    );
+  }
+
+  if (live && dataSource === 'empty') {
+    return (
+      <main className="grid min-h-screen place-items-center bg-[#eef2f7] px-4">
+        <div className="max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-lg">
+          <h1 className="font-display text-xl text-dental-950">No se pudo cargar la clínica</h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Revisa tu sesión o vuelve a iniciar sesión. Si el problema continúa, contacta con soporte.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
+            <a href="/login/admin" className="btn btn--primary btn--sm no-underline">
+              Ir al login
+            </a>
+            <button type="button" className="admin-logout-btn admin-logout-btn--compact" onClick={logout}>
+              <LogOut className="h-4 w-4" /> Cerrar sesión
+            </button>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   const userLabel = sessionName || 'Usuario conectado';

@@ -34,7 +34,7 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
   const [syncing] = useState(false);
 
   const loadBootstrap = useCallback(async () => {
-    store.clearDemoSession();
+    store.clearDemoRoleHints();
     setDataSource('loading');
     try {
       const res = await fetch('/api/clinic/bootstrap', { credentials: 'include' });

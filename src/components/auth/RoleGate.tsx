@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { isClientDemoMode } from '@/lib/appMode';
-import { clearDemoSession } from '@/lib/demoStore';
+import { clearDemoRoleHints } from '@/lib/demoStore';
 import { logoutSession } from '@/lib/session';
 import { Restricted } from './Restricted';
 import type { DemoRole } from '@/types/demo';
@@ -26,7 +26,7 @@ export function RoleGate({ role, children }: { role: DemoRole; children: ReactNo
     let cancelled = false;
 
     const sync = async () => {
-      if (live) clearDemoSession();
+      if (live) clearDemoRoleHints();
       try {
         const res = await fetch('/api/auth/me', { credentials: 'include' });
         if (!res.ok) {

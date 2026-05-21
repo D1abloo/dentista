@@ -14,7 +14,7 @@ export const GET: APIRoute = async (context) => {
 
   const user = getEffectiveSessionUser(context.cookies);
   if (!user) return fail('No autenticado.', 401);
-  if (user.role === 'super_admin' && !user.platformInspect) {
+  if (user.role === 'super_admin' && !user.platformInspect && !user.clinicId) {
     return fail('Usa el panel /platform para administración global.', 400);
   }
   if (!user.clinicId) {

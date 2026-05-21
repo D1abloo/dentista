@@ -123,16 +123,51 @@ export function clearDemoSession() {
   localStorage.removeItem(STORAGE_EPHEMERAL);
 }
 
+/** En LIVE: no borra tenant/clínica activa (los fija el bootstrap tras login). */
+export function clearDemoRoleHints() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(STORAGE_ROLE);
+  localStorage.removeItem(STORAGE_PATIENT_ID);
+  localStorage.removeItem(STORAGE_EPHEMERAL);
+}
+
+export function defaultAppSettings(clinicName = 'Clínica'): AppSettings {
+  return {
+    clinicName,
+    tagline: 'Gestión dental premium',
+    legalName: clinicName,
+    phone: '',
+    email: '',
+    whatsapp: '',
+    address: '',
+    city: '',
+    imageUrl: '/brand/dentista-logo.svg',
+    generalHours: 'Lun–Vie 09:00–20:00',
+    defaultDuration: 45,
+    slotIntervalMinutes: 15,
+    minCancelHours: 24,
+    remindersEnabled: true,
+    welcomeMessage: `Bienvenido a ${clinicName}`,
+    appointmentConfirmMessage: 'Cita registrada correctamente.',
+    primaryColor: '#2563EB',
+    accentColor: '#14B8A6',
+    logoUrl: '/brand/clinic-shield.svg'
+  };
+}
+
+export function settingsFor(state: DemoState, tenantId = getStoredTenantId()): AppSettings {
+  const hit =
+    state.settingsByTenant[tenantId] ??
+    Object.values(state.settingsByTenant)[0];
+  return hit ?? defaultAppSettings();
+}
+
 export function clearStoredRole() {
   clearDemoSession();
 }
 
 export function setStoredPatientId(id: string) {
   localStorage.setItem(STORAGE_PATIENT_ID, id);
-}
-
-export function settingsFor(state: DemoState, tenantId = getStoredTenantId()): AppSettings {
-  return state.settingsByTenant[tenantId] ?? Object.values(state.settingsByTenant)[0];
 }
 
 export function normativeFor(state: DemoState, tenantId = getStoredTenantId()): NormativeText[] {
