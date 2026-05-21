@@ -60,16 +60,22 @@ export const POST: APIRoute = async (context) => {
       role: parsed.data.role,
       clinicId: targetClinicId,
       permission: parsed.data.permission,
-      specialty: parsed.data.specialty
+      specialty: parsed.data.specialty,
+      sendEmail: parsed.data.sendEmail
     });
 
     return ok(
       {
         user: created.profile,
         loginPath: created.loginPath,
-        accessLabel: created.accessLabel
+        accessLabel: created.accessLabel,
+        emailSent: created.emailSent
       },
-      { message: 'Usuario creado correctamente.' }
+      {
+        message: created.emailSent
+          ? 'Usuario creado. Se ha enviado un email con la contraseña temporal.'
+          : 'Usuario creado. Configura SMTP para enviar credenciales por correo.'
+      }
     );
   } catch (error) {
     logError('clinic.users.post', error);

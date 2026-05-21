@@ -1,4 +1,5 @@
 import type { SessionUser } from '@/lib/auth';
+import { evaluatePasswordStatus } from '@/lib/auth/passwordPolicy';
 import { getSupabaseAdmin } from '@/lib/supabaseServer';
 import { signInWithEmailPassword } from '@/lib/supabaseAuth';
 import type { LoginInput } from '@/lib/validators';
@@ -12,10 +13,13 @@ type ProfileRow = {
   role: string;
   full_name: string;
   email: string;
+  must_change_password?: boolean | null;
+  password_expires_at?: string | null;
 };
 
 function toPortalSession(profile: ProfileRow): Omit<SessionUser, 'expiresAt'> {
   const isPatient = profile.role === 'patient';
+  const pwd = evaluatePasswordStatus(profile);
   return {
     role: isPatient ? 'patient' : 'admin',
     email: profile.email,
@@ -24,7 +28,9 @@ function toPortalSession(profile: ProfileRow): Omit<SessionUser, 'expiresAt'> {
     clinicId: profile.clinic_id,
     tenantId: profile.tenant_id ?? undefined,
     patientId: isPatient ? profile.id : undefined,
-    staffRole: profile.role
+    staffRole: profile.role,
+    mustChangePassword: pwd.requiresPasswordChange,
+    passwordExpired: pwd.passwordExpired
   };
 }
 
@@ -63,7 +69,7 @@ export async function loginWithSupabaseProfile(
   }
   const { data: profile, error: profileError } = await admin
     .from('profiles')
-    .select('id, clinic_id, tenant_id, role, full_name, email')
+    .select('id, clinic_id, tenant_id, role, full_name, email, must_change_password, password_expires_at')
     .eq('auth_user_id', authData.user.id)
     .maybeSingle();
 

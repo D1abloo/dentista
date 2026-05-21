@@ -7,9 +7,12 @@ export type SessionUser = {
   role: 'admin' | 'patient' | 'super_admin';
   email: string;
   name: string;
+  profileId?: string;
   clinicId?: string;
   tenantId?: string;
   patientId?: string;
+  mustChangePassword?: boolean;
+  passwordExpired?: boolean;
 };
 
 function mapApiRole(role: string): DemoRole | null {
@@ -40,7 +43,10 @@ export async function loginWithCredentials(
   role: 'admin' | 'patient',
   email: string,
   password: string
-): Promise<{ ok: true; portalRole: DemoRole } | { ok: false; message: string }> {
+): Promise<
+  | { ok: true; portalRole: DemoRole; mustChangePassword?: boolean; passwordExpired?: boolean }
+  | { ok: false; message: string }
+> {
   clearDemoSession();
   const res = await fetch('/api/auth/login', {
     method: 'POST',
@@ -61,7 +67,18 @@ export async function loginWithCredentials(
   }
   if (json.data.tenantId) localStorage.setItem(STORAGE_TENANT_ID, json.data.tenantId);
   if (json.data.patientId) localStorage.setItem(STORAGE_PATIENT_ID, json.data.patientId);
-  return { ok: true, portalRole };
+  const mustChange = Boolean(json.data.mustChangePassword || json.data.passwordExpired);
+  if (mustChange) {
+    const q = json.data.passwordExpired ? '?expired=1' : '';
+    window.location.href = `/login/cambiar-password${q}`;
+    return { ok: true, portalRole, mustChangePassword: true };
+  }
+  return {
+    ok: true,
+    portalRole,
+    mustChangePassword: json.data.mustChangePassword,
+    passwordExpired: json.data.passwordExpired
+  };
 }
 
 export async function logoutSession(): Promise<void> {

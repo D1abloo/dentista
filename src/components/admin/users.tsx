@@ -49,12 +49,12 @@ export function AdminUsers() {
   const [form, setForm] = useState({
     fullName: '',
     email: '',
-    password: '',
     accessType: 'clinic' as 'clinic' | 'patient',
     role: 'receptionist',
     clinicId: defaultClinicId,
     permission: 'write',
-    specialty: 'General'
+    specialty: 'General',
+    sendEmail: true
   });
 
   const activeClinicId = form.clinicId || getActiveClinicId(state, scope.tenantId);
@@ -91,8 +91,8 @@ export function AdminUsers() {
   }, [form.accessType]);
 
   async function createUser() {
-    if (!form.fullName.trim() || !form.email.trim() || !form.password) {
-      setNotice({ type: 'error', message: 'Completa nombre, email y contraseña.' });
+    if (!form.fullName.trim() || !form.email.trim()) {
+      setNotice({ type: 'error', message: 'Completa nombre y email.' });
       return;
     }
     try {
@@ -103,24 +103,27 @@ export function AdminUsers() {
         body: JSON.stringify({
           fullName: form.fullName.trim(),
           email: form.email.trim(),
-          password: form.password,
           accessType: form.accessType,
           role: form.accessType === 'patient' ? 'patient' : form.role,
           clinicId: activeClinicId,
           permission: form.permission,
-          specialty: form.role === 'dentist' ? form.specialty : undefined
+          specialty: form.role === 'dentist' ? form.specialty : undefined,
+          sendEmail: form.sendEmail
         })
       });
       const json = (await res.json()) as {
-        data?: { loginPath?: string; accessLabel?: string };
+        data?: { loginPath?: string; emailSent?: boolean };
         error?: { message?: string };
+        meta?: { message?: string };
       };
       if (!res.ok) throw new Error(json.error?.message ?? 'No se pudo crear');
       setNotice({
         type: 'ok',
-        message: `Usuario creado (${json.data?.accessLabel ?? 'acceso configurado'}). Inicio de sesión: ${json.data?.loginPath ?? '/login'}`
+        message:
+          json.meta?.message ??
+          `Usuario creado. ${json.data?.emailSent ? 'Credenciales enviadas por email.' : 'Activa SMTP para enviar el correo.'}`
       });
-      setForm((f) => ({ ...f, password: '', fullName: '', email: '' }));
+      setForm((f) => ({ ...f, fullName: '', email: '' }));
       await load();
       await refresh();
     } catch (e) {
@@ -180,9 +183,18 @@ export function AdminUsers() {
           <Field label="Email">
             <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </Field>
-          <Field label="Contraseña inicial">
-            <Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} minLength={6} />
-          </Field>
+          <p className="md:col-span-2 text-xs text-slate-600">
+            Se generará una contraseña temporal y se enviará por correo. El usuario deberá cambiarla en el primer
+            acceso. Caducidad a 3 meses (excepto administradores de clínica).
+          </p>
+          <label className="flex items-center gap-2 text-sm font-semibold md:col-span-2">
+            <input
+              type="checkbox"
+              checked={form.sendEmail}
+              onChange={(e) => setForm({ ...form, sendEmail: e.target.checked })}
+            />
+            Enviar credenciales por email
+          </label>
           {form.accessType === 'clinic' && form.role !== 'patient' ? (
             <Field label="Nivel de permisos">
               <Select value={form.permission} onChange={(e) => setForm({ ...form, permission: e.target.value })}>

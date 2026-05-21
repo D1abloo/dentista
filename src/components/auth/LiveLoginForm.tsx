@@ -52,7 +52,7 @@ export function LiveLoginForm({
         </p>
       ) : (
         <p className="login-form__badge login-form__badge--neutral">
-          <strong>Acceso producción</strong> — credenciales de tu clínica en Supabase Auth.
+          <strong>Acceso seguro</strong> — credenciales de tu organización.
         </p>
       )}
 

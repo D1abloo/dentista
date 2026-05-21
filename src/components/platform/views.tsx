@@ -181,7 +181,7 @@ export function PlatformRegistrations() {
     });
     setMsg(
       decision === 'approved'
-        ? 'Clínica aprobada. El responsable accede solo a su panel /admin (tenant aislado).'
+        ? 'Organización aprobada. Se ha enviado un email al responsable con usuario y contraseña temporal (debe cambiarla en el primer acceso).'
         : 'Solicitud rechazada.'
     );
     await load();

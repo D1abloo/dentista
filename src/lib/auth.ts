@@ -15,6 +15,8 @@ export interface SessionUser {
   tenantId?: string;
   patientId?: string;
   staffRole?: string;
+  mustChangePassword?: boolean;
+  passwordExpired?: boolean;
   expiresAt: number;
 }
 

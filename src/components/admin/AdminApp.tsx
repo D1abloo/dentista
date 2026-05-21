@@ -1,5 +1,6 @@
 import { DemoStoreProvider } from '@/hooks/useDemoStore';
 import { NoticeProvider } from '@/hooks/useNotice';
+import { PasswordChangeGate } from '@/components/auth/PasswordChangeGate';
 import { RoleGate } from '@/components/auth/RoleGate';
 import { Toast } from '@/components/ui';
 import { useNotice } from '@/hooks/useNotice';
@@ -84,11 +85,13 @@ function AdminInner({ view, patientId }: { view: AdminView; patientId?: string }
 export function AdminApp({ view = 'dashboard', patientId }: { view?: AdminView; patientId?: string }) {
   return (
     <RoleGate role="admin">
-      <DemoStoreProvider>
-        <NoticeProvider>
-          <AdminInner view={view} patientId={patientId} />
-        </NoticeProvider>
-      </DemoStoreProvider>
+      <PasswordChangeGate>
+        <DemoStoreProvider>
+          <NoticeProvider>
+            <AdminInner view={view} patientId={patientId} />
+          </NoticeProvider>
+        </DemoStoreProvider>
+      </PasswordChangeGate>
     </RoleGate>
   );
 }

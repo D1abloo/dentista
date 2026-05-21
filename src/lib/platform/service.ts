@@ -1,3 +1,5 @@
+import { generateTemporaryPassword, newUserPasswordFields } from '@/lib/auth/passwordPolicy';
+import { sendOrganizationApprovedEmail } from '@/lib/email/accountEmails';
 import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
 import type {
   ClinicRegistration,
@@ -208,11 +210,12 @@ export async function reviewRegistration(
     })
     .eq('id', id);
 
-  const defaultPassword =
-    import.meta.env.CLINIC_DEFAULT_PASSWORD ?? import.meta.env.SUPER_ADMIN_PASSWORD ?? 'ChangeMeNow!';
+  const temporaryPassword = generateTemporaryPassword();
+  const pwdFields = newUserPasswordFields('clinic_admin', true);
+
   const { data: authUser, error: authErr } = await db.auth.admin.createUser({
     email: reg.email,
-    password: defaultPassword,
+    password: temporaryPassword,
     email_confirm: true,
     user_metadata: { full_name: reg.owner_name },
     app_metadata: { clinic_id: clinic.id, tenant_id: tenant.id, role: 'clinic_admin' }
@@ -225,11 +228,32 @@ export async function reviewRegistration(
     tenant_id: tenant.id,
     role: 'clinic_admin',
     full_name: reg.owner_name,
-    email: reg.email
+    email: reg.email,
+    ...pwdFields
   });
   if (profileErr) throw profileErr;
 
-  return { registration: reg, clinic, tenantId: tenant.id, adminEmail: reg.email, adminPanelPath: '/admin' };
+  let credentialsEmailSent = false;
+  try {
+    await sendOrganizationApprovedEmail({
+      ownerName: reg.owner_name,
+      clinicName: reg.clinic_name,
+      email: reg.email,
+      password: temporaryPassword
+    });
+    credentialsEmailSent = true;
+  } catch {
+    /* registro aprobado aunque falle SMTP */
+  }
+
+  return {
+    registration: reg,
+    clinic,
+    tenantId: tenant.id,
+    adminEmail: reg.email,
+    adminPanelPath: '/admin',
+    credentialsEmailSent
+  };
 }
 
 export async function setClinicStatus(clinicId: string, status: ClinicStatus) {

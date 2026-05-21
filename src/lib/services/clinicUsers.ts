@@ -1,3 +1,9 @@
+import {
+  afterPasswordChangeFields,
+  generateTemporaryPassword,
+  newUserPasswordFields
+} from '@/lib/auth/passwordPolicy';
+import { sendNewUserCredentialsEmail } from '@/lib/email/accountEmails';
 import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
 
 const PERMISSION_LEVELS = {
@@ -41,13 +47,23 @@ export type ClinicUserRow = {
 
 export type CreateClinicUserInput = {
   email: string;
-  password: string;
+  password?: string;
   fullName: string;
   accessType: 'clinic' | 'patient';
   role: string;
   clinicId: string;
   permission?: 'read' | 'write' | 'execute';
   specialty?: string;
+  sendEmail?: boolean;
+};
+
+const ROLE_LABELS: Record<string, string> = {
+  clinic_admin: 'Administrador de clínica',
+  admin: 'Administrador',
+  owner: 'Propietario',
+  dentist: 'Dentista',
+  receptionist: 'Recepción',
+  patient: 'Paciente'
 };
 
 function requireDb() {
@@ -107,10 +123,12 @@ export async function createClinicUser(input: CreateClinicUserInput) {
 
   const tenantId = clinic.tenant_id as string | null;
   const permission = input.permission ?? (profileRole === 'clinic_admin' ? 'execute' : 'write');
+  const plainPassword = input.password?.trim() || generateTemporaryPassword();
+  const pwdFields = newUserPasswordFields(profileRole, true);
 
   const { data: authData, error: authErr } = await db.auth.admin.createUser({
     email: input.email,
-    password: input.password,
+    password: plainPassword,
     email_confirm: true,
     user_metadata: { full_name: input.fullName },
     app_metadata: { role: profileRole, clinic_id: input.clinicId, tenant_id: tenantId }
@@ -132,7 +150,8 @@ export async function createClinicUser(input: CreateClinicUserInput) {
       tenant_id: tenantId,
       role: profileRole,
       full_name: input.fullName,
-      email: input.email
+      email: input.email,
+      ...pwdFields
     })
     .select('id, role, email, full_name, clinic_id, created_at')
     .single();
@@ -155,10 +174,31 @@ export async function createClinicUser(input: CreateClinicUserInput) {
   }
 
   const loginPath = input.accessType === 'patient' ? '/login/paciente' : '/login/admin';
+  const accessLabel =
+    input.accessType === 'patient' ? 'Portal del paciente' : 'Panel administrativo de clínica';
+
+  let emailSent = false;
+  if (input.sendEmail !== false) {
+    try {
+      await sendNewUserCredentialsEmail({
+        fullName: input.fullName,
+        email: input.email,
+        password: plainPassword,
+        accessLabel,
+        loginPath,
+        roleLabel: ROLE_LABELS[profileRole] ?? profileRole
+      });
+      emailSent = true;
+    } catch {
+      /* no bloquear alta */
+    }
+  }
 
   return {
     profile: profile as ClinicUserRow,
     loginPath,
-    accessLabel: input.accessType === 'patient' ? 'Portal del paciente' : 'Panel administrativo de clínica'
+    accessLabel,
+    temporaryPassword: plainPassword,
+    emailSent
   };
 }

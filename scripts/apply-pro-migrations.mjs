@@ -15,7 +15,8 @@ const PRO_MIGRATIONS = [
   '0010_phase3_records_billing.sql',
   '0011_phase4_ops.sql',
   '0012_organization_branches.sql',
-  '0013_patient_portal_access.sql'
+  '0013_patient_portal_access.sql',
+  '0014_profile_password_policy.sql'
 ];
 
 const url = process.env.DATABASE_URL;

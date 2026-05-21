@@ -286,16 +286,28 @@ export const portalAccessExchangeSchema = z.object({
 export const clinicUserCreateSchema = z
   .object({
     email: z.string().email(),
-    password: z.string().min(6).max(120),
+    password: z.string().min(6).max(120).optional(),
     fullName: z.string().min(2).max(120),
     accessType: z.enum(['clinic', 'patient']),
     role: z.enum(['clinic_admin', 'admin', 'owner', 'dentist', 'receptionist', 'patient']),
     clinicId: z.string().uuid().optional(),
     permission: z.enum(['read', 'write', 'execute']).default('write'),
-    specialty: z.string().max(80).optional()
+    specialty: z.string().max(80).optional(),
+    sendEmail: z.boolean().default(true)
   })
   .refine((d) => (d.accessType === 'patient' ? d.role === 'patient' : d.role !== 'patient'), {
     message: 'El tipo de acceso no coincide con el rol.'
+  });
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1),
+    newPassword: z.string().min(8).max(120),
+    confirmPassword: z.string().min(8).max(120)
+  })
+  .refine((d) => d.newPassword === d.confirmPassword, {
+    message: 'Las contraseñas no coinciden.',
+    path: ['confirmPassword']
   });
 
 export const portalAccessAuditSchema = z.object({

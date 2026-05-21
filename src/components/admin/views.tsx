@@ -769,6 +769,11 @@ export function AdminConfig() {
           <input type="checkbox" checked={s.remindersEnabled} onChange={(e) => setS({ ...s, remindersEnabled: e.target.checked })} /> Recordatorios activos
         </label>
         <Button onClick={() => { commit(saveSettings(state, tenantId, s)); setNotice({ type: 'ok', message: 'Configuración guardada.' }); }}>Guardar</Button>
+        <p className="md:col-span-2 text-sm">
+          <a href="/login/cambiar-password?optional=1" className="font-semibold text-[var(--blue)]">
+            Cambiar mi contraseña
+          </a>
+        </p>
       </div>
     </Card>
     </div>

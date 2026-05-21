@@ -1,6 +1,6 @@
-import { useState, type ReactNode } from 'react';
-import { LogOut, Menu, Shield } from 'lucide-react';
-import { LogoMark } from '@/components/brand/Logo';
+import { useEffect, useState, type ReactNode } from 'react';
+import { LogOut, Menu } from 'lucide-react';
+import { Logo } from '@/components/brand/Logo';
 import { AdminStaffSetup } from '@/components/auth/AdminStaffSetup';
 import { useLogout } from '@/components/auth/RoleGate';
 import { useDemoStore } from '@/hooks/useDemoStore';
@@ -13,12 +13,14 @@ import { ClinicBranchSwitcher } from './ClinicBranchSwitcher';
 function AdminRail({
   path,
   tenant,
+  userLabel,
   onNav,
   onLogout,
   variant
 }: {
   path: string;
   tenant: { id: string; name: string; subtitle: string };
+  userLabel: string;
   onNav: () => void;
   onLogout: () => void;
   variant: 'drawer' | 'rail';
@@ -29,17 +31,13 @@ function AdminRail({
       : 'portal-rail portal-rail--admin';
   return (
     <aside className={cls}>
-      <a href="/admin" className="mb-6 flex items-center gap-2 px-2 no-underline">
-        <LogoMark size={36} />
-        <span className="font-[family-name:var(--display)] text-white">Dentista+</span>
+      <a href="/admin" className="admin-brand mb-6 px-2 no-underline" onClick={onNav}>
+        <Logo theme="dark" size={48} />
       </a>
-      <div className="mb-4 rounded-xl bg-white/10 p-3 text-white">
-        <div className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-[var(--warn)]" />
-          <p className="text-sm font-bold leading-tight">{tenant.name}</p>
-        </div>
-        <p className="mt-1 text-xs text-white/75">{tenant.subtitle}</p>
-        <p className="mt-2 text-[0.65rem] text-white/60">Organización · varias sedes</p>
+      <div className="admin-org-card mb-4">
+        <p className="admin-org-card__name">{tenant.name}</p>
+        <p className="admin-org-card__sub">{tenant.subtitle}</p>
+        <p className="admin-org-card__user">{userLabel}</p>
       </div>
       <nav className="flex-1 overflow-y-auto">
         {adminNav.map((item) => {
@@ -57,11 +55,11 @@ function AdminRail({
           );
         })}
       </nav>
-      <a href="/" className="rail-link rail-link--admin text-white/50">
-        ← Inicio
+      <a href="/" className="rail-link rail-link--admin text-white/50" onClick={onNav}>
+        ← Inicio público
       </a>
-      <button type="button" className="rail-link rail-link--admin mt-1 w-full border-0 bg-transparent" onClick={onLogout}>
-        <LogOut className="h-4 w-4" /> Salir
+      <button type="button" className="admin-logout-btn mt-2" onClick={onLogout}>
+        <LogOut className="h-4 w-4" /> Cerrar sesión
       </button>
     </aside>
   );
@@ -81,6 +79,7 @@ export function AdminShell({
   const logout = useLogout();
   const scope = useTenant();
   const { state } = useDemoStore();
+  const [sessionName, setSessionName] = useState('');
   const orgName = organizationDisplayName(state, scope.tenantId);
   const tenant = {
     id: scope.tenantId,
@@ -90,13 +89,32 @@ export function AdminShell({
   const [staffReady, setStaffReady] = useState(() => Boolean(getStaffProfile(scope.tenantId)));
   const close = () => setOpen(false);
 
+  useEffect(() => {
+    void fetch('/api/auth/me', { credentials: 'include' })
+      .then((r) => r.json())
+      .then((j: { data?: { name?: string; email?: string } }) => {
+        if (j.data?.name) setSessionName(j.data.name);
+        else if (j.data?.email) setSessionName(j.data.email);
+      })
+      .catch(() => undefined);
+  }, []);
+
   if (!staffReady) {
     return <AdminStaffSetup onDone={() => setStaffReady(true)} />;
   }
 
+  const userLabel = sessionName || 'Usuario conectado';
+
   return (
     <div className="portal portal--admin">
-      <AdminRail path={path} tenant={tenant} onNav={close} onLogout={logout} variant="rail" />
+      <AdminRail
+        path={path}
+        tenant={tenant}
+        userLabel={userLabel}
+        onNav={close}
+        onLogout={logout}
+        variant="rail"
+      />
       {open ? (
         <div
           className="portal-drawer-backdrop lg:hidden"
@@ -105,7 +123,14 @@ export function AdminShell({
           onKeyDown={(e) => e.key === 'Escape' && close()}
         >
           <div onClick={(e) => e.stopPropagation()}>
-            <AdminRail path={path} tenant={tenant} onNav={close} onLogout={logout} variant="drawer" />
+            <AdminRail
+              path={path}
+              tenant={tenant}
+              userLabel={userLabel}
+              onNav={close}
+              onLogout={logout}
+              variant="drawer"
+            />
           </div>
         </div>
       ) : null}
@@ -114,7 +139,6 @@ export function AdminShell({
           <div>
             <div className="portal-top__row">
               <h1 className="portal-top__title">{title}</h1>
-              <span className="live-pill">PRODUCCIÓN</span>
             </div>
             {subtitle ? <p className="portal-top__sub">{subtitle}</p> : null}
             <p className="portal-top__meta">
@@ -128,6 +152,9 @@ export function AdminShell({
             <div className="hidden md:block">
               <GlobalIdSearch />
             </div>
+            <button type="button" className="admin-logout-btn admin-logout-btn--compact hidden sm:inline-flex" onClick={logout}>
+              <LogOut className="h-4 w-4" /> Salir
+            </button>
             <button type="button" className="pub-menu-btn lg:hidden" onClick={() => setOpen(true)} aria-label="Menú">
               <Menu className="h-5 w-5" />
             </button>

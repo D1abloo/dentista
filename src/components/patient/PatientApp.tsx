@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { DemoStoreProvider } from '@/hooks/useDemoStore';
 import { NoticeProvider } from '@/hooks/useNotice';
+import { PasswordChangeGate } from '@/components/auth/PasswordChangeGate';
 import { PatientPortalGate } from '@/components/auth/PatientPortalGate';
 import { Toast } from '@/components/ui';
 import { useNotice } from '@/hooks/useNotice';
@@ -119,11 +120,13 @@ function PatientInner({ view }: { view: PatientView }) {
 export function PatientApp({ view = 'dashboard' }: { view?: PatientView }) {
   return (
     <PatientPortalGate>
-      <DemoStoreProvider>
-        <NoticeProvider>
-          <PatientInner view={view} />
-        </NoticeProvider>
-      </DemoStoreProvider>
+      <PasswordChangeGate>
+        <DemoStoreProvider>
+          <NoticeProvider>
+            <PatientInner view={view} />
+          </NoticeProvider>
+        </DemoStoreProvider>
+      </PasswordChangeGate>
     </PatientPortalGate>
   );
 }
