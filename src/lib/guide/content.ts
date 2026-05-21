@@ -1,27 +1,6 @@
-export type GuideScreenshot = {
-  src: string;
-  alt: string;
-  caption: string;
-};
+import type { GuideSection } from '@/lib/guide/types';
 
-export type GuideStep = {
-  title: string;
-  detail: string;
-};
-
-export type GuideSection = {
-  id: string;
-  title: string;
-  summary: string;
-  goal: string;
-  audience: string;
-  prerequisites?: string[];
-  screenshots: GuideScreenshot[];
-  steps: GuideStep[];
-  tips?: string[];
-  warnings?: string[];
-  related?: { label: string; href: string }[];
-};
+export type { GuideScreenshot, GuideStep, GuideSection } from '@/lib/guide/types';
 
 const mobile = (name: string) => `/images/guides/mobile/${name}.png`;
 
@@ -63,7 +42,7 @@ export const patientGuideSections: GuideSection[] = [
       }
     ],
     tips: ['Guarda la web en la pantalla de inicio del móvil para abrirla como una app.', 'Cierra sesión en tablets compartidas de la clínica.'],
-    related: [{ label: 'Reservar cita sin cuenta', href: '/reserva' }]
+    related: [{ label: 'Reservar cita', href: '/reserva' }]
   },
   {
     id: 'citas',
