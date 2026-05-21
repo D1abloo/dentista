@@ -3,7 +3,7 @@ import { Download, Filter } from 'lucide-react';
 import { Badge, Button, Card, Empty, Field, PageHeader, Select } from '@/components/ui';
 import { useNotice } from '@/hooks/useNotice';
 import { exportCsv } from '@/lib/demoStore';
-import { portalAuditEventLabel } from '@/lib/services/portalAccess';
+import { portalAuditEventLabel } from '@/lib/portalAccessLabels';
 
 type AuditRow = {
   id: string;

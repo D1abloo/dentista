@@ -1,5 +1,8 @@
 import { generatePortalToken, hashPortalToken } from '@/lib/auth/portalAccess';
+import { portalAuditEventLabel } from '@/lib/portalAccessLabels';
 import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
+
+export { portalAuditEventLabel };
 
 export type PortalAccessTokenRow = {
   id: string;
@@ -33,22 +36,6 @@ export type PortalAccessAuditRow = {
   staff_name?: string;
   patient_name?: string;
 };
-
-const EVENT_LABELS: Record<string, string> = {
-  token_created: 'Token creado',
-  token_revoked: 'Token revocado',
-  portal_open: 'Apertura del portal',
-  nav_click: 'Navegación',
-  view_report: 'Consulta informe',
-  view_document: 'Consulta documento',
-  view_invoice: 'Consulta factura',
-  view_consent: 'Consulta consentimiento',
-  other: 'Otra acción'
-};
-
-export function portalAuditEventLabel(eventType: string) {
-  return EVENT_LABELS[eventType] ?? eventType;
-}
 
 function requireDb() {
   if (!hasSupabaseConfig()) throw new Error('Servicio no disponible.');
