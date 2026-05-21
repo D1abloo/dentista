@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
-import { createSessionToken, loginProductionUser, sessionCookieName } from '@/lib/auth';
+import { createSessionToken, loginProductionUser, loginProductionUserWithPortal, sessionCookieName } from '@/lib/auth';
+import { isPortalChoiceLogin } from '@/lib/auth/loginResolve';
 import { AccountNotActivatedError } from '@/lib/auth/accountErrors';
 import { fail, ok } from '@/lib/http';
 import { logError } from '@/lib/logger';
@@ -15,7 +16,14 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     let user;
     try {
-      user = await loginProductionUser(parsed.data);
+      if (parsed.data.portal) {
+        user = await loginProductionUserWithPortal(
+          { email: parsed.data.email, password: parsed.data.password, role: 'auto' },
+          parsed.data.portal
+        );
+      } else {
+        user = await loginProductionUser(parsed.data);
+      }
     } catch (err) {
       if (err instanceof AccountNotActivatedError) {
         return fail(err.message, 403);
@@ -23,6 +31,18 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       throw err;
     }
     if (!user) return fail('Email, contraseña o tipo de acceso incorrecto.', 401);
+
+    if (isPortalChoiceLogin(user)) {
+      return ok(
+        {
+          choosePortal: true,
+          email: user.email,
+          name: user.name,
+          options: user.options
+        },
+        { message: 'Selecciona el portal al que quieres acceder.' }
+      );
+    }
 
     cookies.set(sessionCookieName, createSessionToken(user), {
       httpOnly: true,

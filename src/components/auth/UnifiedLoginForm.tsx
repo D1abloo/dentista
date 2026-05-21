@@ -1,31 +1,49 @@
-import { useState } from 'react';
 import { Lock, Mail } from 'lucide-react';
-import { loginUnified } from '@/lib/session';
+import { PortalChoicePanel } from './PortalChoicePanel';
+import { useLoginWithPortalChoice } from './useLoginWithPortalChoice';
 
 export function UnifiedLoginForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    error,
+    loading,
+    portalLoading,
+    portalChoice,
+    submitForm,
+    pickPortal,
+    resetChoice
+  } = useLoginWithPortalChoice();
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    const result = await loginUnified(email.trim(), password);
-    setLoading(false);
-    if (!result.ok) {
-      setError(result.message);
-      return;
-    }
-    if (result.mustChangePassword) return;
+  if (portalChoice) {
+    return (
+      <div className="login-form login-form--unified login-form--choice">
+        <PortalChoicePanel
+          email={portalChoice.email}
+          options={portalChoice.options}
+          loading={portalLoading}
+          onSelect={pickPortal}
+        />
+        {error ? (
+          <p className="login-form__error" role="alert">
+            {error}
+          </p>
+        ) : null}
+        <p className="login-form__back text-center">
+          <button type="button" className="login-form__link-btn" onClick={resetChoice}>
+            ← Cambiar email o contraseña
+          </button>
+        </p>
+      </div>
+    );
   }
 
   return (
-    <form onSubmit={submit} className="login-form login-form--unified">
+    <form onSubmit={submitForm} className="login-form login-form--unified">
       <p className="login-form__badge login-form__badge--neutral">
-        Introduce tu email y contraseña. Te llevamos al <strong>portal paciente</strong> o al{' '}
-        <strong>panel de tu clínica</strong> según tu cuenta.
+        Introduce tu email y contraseña. Si tu cuenta tiene varios accesos, podrás elegir el portal.
       </p>
 
       <div className="login-form__field">

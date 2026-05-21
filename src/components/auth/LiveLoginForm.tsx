@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Heart, Lock, Mail, ShieldCheck } from 'lucide-react';
-import { loginWithCredentials } from '@/lib/session';
+import { PortalChoicePanel } from './PortalChoicePanel';
+import { useLoginWithPortalChoice } from './useLoginWithPortalChoice';
 
 type LiveRole = 'admin' | 'patient';
 
@@ -11,26 +12,49 @@ export function LiveLoginForm({
   apiRole: LiveRole;
   variant?: 'default' | 'admin' | 'patient';
 }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    error,
+    loading,
+    portalLoading,
+    portalChoice,
+    submitForm,
+    pickPortal,
+    resetChoice
+  } = useLoginWithPortalChoice(apiRole);
 
   useEffect(() => {
     const prefill = new URLSearchParams(window.location.search).get('email');
     if (prefill) setEmail(prefill);
-  }, []);
+  }, [setEmail]);
+
   const isAdmin = variant === 'admin';
   const isPatient = variant === 'patient';
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    const result = await loginWithCredentials(apiRole, email.trim(), password);
-    setLoading(false);
-    if (!result.ok) {
-      setError(result.message);
-    }
+
+  if (portalChoice) {
+    return (
+      <div className="login-form login-form--choice">
+        <PortalChoicePanel
+          email={portalChoice.email}
+          options={portalChoice.options}
+          loading={portalLoading}
+          onSelect={pickPortal}
+        />
+        {error ? (
+          <p className="login-form__error" role="alert">
+            {error}
+          </p>
+        ) : null}
+        <p className="login-form__back">
+          <button type="button" className="login-form__link-btn" onClick={resetChoice}>
+            ← Cambiar email o contraseña
+          </button>
+        </p>
+      </div>
+    );
   }
 
   const formClass = [
@@ -42,7 +66,7 @@ export function LiveLoginForm({
     .join(' ');
 
   return (
-    <form onSubmit={submit} className={formClass}>
+    <form onSubmit={submitForm} className={formClass}>
       {isAdmin ? (
         <p className="login-form__badge login-form__badge--admin">
           <ShieldCheck className="h-3.5 w-3.5" aria-hidden />

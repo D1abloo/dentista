@@ -21,6 +21,7 @@ export const availabilityQuerySchema = clinicQuerySchema.extend({
 
 export const loginSchema = z.object({
   role: z.enum(['patient', 'admin', 'super_admin', 'auto']).default('auto'),
+  portal: z.enum(['patient', 'admin', 'platform']).optional(),
   email: z.string().email(),
   password: z.string().min(6).max(120)
 });

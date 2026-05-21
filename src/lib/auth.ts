@@ -1,5 +1,8 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { AccountNotActivatedError } from '@/lib/auth/accountErrors';
 import { loginAutoDetect } from '@/lib/auth/loginAuto';
+import type { LoginProductionResult } from '@/lib/auth/loginResolve';
+import { resolveProductionLogin, resolveProductionLoginWithPortal } from '@/lib/auth/loginResolve';
 import { getPlatformInspectSession } from '@/lib/auth/platformInspect';
 import { loginWithSupabaseProfile } from '@/lib/auth/productionLogin';
 import { hasSupabaseConfig, isDemoMode } from '@/lib/supabaseServer';
@@ -167,21 +170,34 @@ export function loginSuperAdmin(input: LoginInput): Omit<SessionUser, 'expiresAt
   };
 }
 
-export async function loginProductionUser(input: LoginInput): Promise<Omit<SessionUser, 'expiresAt'> | null> {
-  if (input.role === 'auto') {
-    if (!hasSupabaseConfig()) return null;
-    try {
-      return await loginAutoDetect(input.email, input.password);
-    } catch {
-      return null;
-    }
-  }
+export type { LoginProductionResult } from '@/lib/auth/loginResolve';
+
+export async function loginProductionUser(input: LoginInput): Promise<LoginProductionResult | null> {
   const superUser = loginSuperAdmin(input);
   if (superUser) return superUser;
   if (!hasSupabaseConfig()) return null;
   try {
-    return await loginWithSupabaseProfile(input);
-  } catch {
+    if (input.role === 'auto') {
+      return await loginAutoDetect(input.email, input.password);
+    }
+    return await resolveProductionLogin(input);
+  } catch (err) {
+    if (err instanceof AccountNotActivatedError) throw err;
+    return null;
+  }
+}
+
+export async function loginProductionUserWithPortal(
+  input: LoginInput,
+  portal: 'admin' | 'patient' | 'platform'
+): Promise<Omit<SessionUser, 'expiresAt'> | null> {
+  const superUser = loginSuperAdmin({ ...input, role: 'super_admin' });
+  if (portal === 'platform' && superUser) return superUser;
+  if (!hasSupabaseConfig()) return null;
+  try {
+    return await resolveProductionLoginWithPortal(input, portal);
+  } catch (err) {
+    if (err instanceof AccountNotActivatedError) throw err;
     return null;
   }
 }

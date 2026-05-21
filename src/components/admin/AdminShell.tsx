@@ -186,8 +186,10 @@ export function AdminShell({
             <div className="hidden md:block">
               <GlobalIdSearch />
             </div>
-            <button type="button" className="admin-logout-btn admin-logout-btn--compact hidden sm:inline-flex" onClick={logout}>
-              <LogOut className="h-4 w-4" /> Salir
+            <button type="button" className="admin-logout-btn admin-logout-btn--compact" onClick={logout}>
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Cerrar sesión</span>
+              <span className="sm:hidden">Salir</span>
             </button>
             <button type="button" className="pub-menu-btn lg:hidden" onClick={() => setOpen(true)} aria-label="Menú">
               <Menu className="h-5 w-5" />

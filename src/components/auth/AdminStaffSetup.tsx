@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { UserRound } from 'lucide-react';
+import { LogOut, UserRound } from 'lucide-react';
+import { useLogout } from '@/components/auth/RoleGate';
 import { getStoredTenantId } from '@/lib/demoStore';
 import { organizationDisplayName, saveStaffProfile } from '@/lib/organization';
 import { useDemoStore } from '@/hooks/useDemoStore';
@@ -12,6 +13,7 @@ export function AdminStaffSetup({ onDone }: { onDone: () => void }) {
   const orgName = organizationDisplayName(state, tenantId);
   const [name, setName] = useState('');
   const [error, setError] = useState('');
+  const logout = useLogout();
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -48,6 +50,9 @@ export function AdminStaffSetup({ onDone }: { onDone: () => void }) {
             Entrar al panel
           </Button>
         </form>
+        <button type="button" className="admin-logout-btn staff-setup__logout" onClick={logout}>
+          <LogOut className="h-4 w-4" /> Cerrar sesión
+        </button>
       </div>
     </div>
   );
