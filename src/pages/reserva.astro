@@ -1,3 +1,7 @@
 ---
-return Astro.redirect('/paciente/reservar');
+import AppLayout from '@/layouts/AppLayout.astro';
+import { PublicBookingPage } from '@/components/public/PublicBookingPage';
 ---
+<AppLayout title="Reservar cita · Dentista+">
+  <PublicBookingPage client:load />
+</AppLayout>

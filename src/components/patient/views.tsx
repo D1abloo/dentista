@@ -241,7 +241,30 @@ export function PatientBook() {
     return Object.keys(e).length === 0;
   }
 
-  function confirm() {
+  async function confirm() {
+    const onPublicBooking =
+      typeof window !== 'undefined' &&
+      (window.location.pathname === '/reserva' || window.location.pathname.endsWith('/reserva'));
+
+    if (onPublicBooking) {
+      try {
+        const meRes = await fetch('/api/auth/me', { credentials: 'include' });
+        const meJson = (await meRes.json()) as { data?: { role?: string } };
+        if (!meRes.ok || meJson.data?.role !== 'patient') {
+          setNotice({
+            type: 'info',
+            message: 'Inicia sesión como paciente para confirmar la cita en tu portal.'
+          });
+          window.location.href = `/login?next=${encodeURIComponent('/paciente/reservar')}`;
+          return;
+        }
+      } catch {
+        setNotice({ type: 'info', message: 'Inicia sesión para confirmar tu reserva.' });
+        window.location.href = `/login?next=${encodeURIComponent('/paciente/reservar')}`;
+        return;
+      }
+    }
+
     const result = tryCreateAppointment(state, {
       patientId: patient.id,
       tenantId: clinicTenantId(state, clinicId),
@@ -261,7 +284,7 @@ export function PatientBook() {
     }
     commit(result.state);
     setNotice({ type: 'ok', message: settingsFor(state).appointmentConfirmMessage });
-    window.location.href = '/paciente/citas';
+    window.location.href = onPublicBooking ? '/paciente/citas' : '/paciente/citas';
   }
 
   const cancelPolicy = normativeFor(state).find((n) => n.id === 'cancelacion')?.body;
