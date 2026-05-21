@@ -1,14 +1,8 @@
 import { useState } from 'react';
 import { Heart, Lock, Mail, ShieldCheck } from 'lucide-react';
-import { isClientDemoMode } from '@/lib/appMode';
 import { loginWithCredentials } from '@/lib/session';
 
 type LiveRole = 'admin' | 'patient';
-
-const demoHints: Record<LiveRole, { email: string; password: string }> = {
-  admin: { email: 'admin@clinic.local', password: 'admin12345' },
-  patient: { email: 'maria@example.com', password: 'paciente123' }
-};
 
 export function LiveLoginForm({
   apiRole,
@@ -17,9 +11,8 @@ export function LiveLoginForm({
   apiRole: LiveRole;
   variant?: 'default' | 'admin' | 'patient';
 }) {
-  const demo = isClientDemoMode();
-  const [email, setEmail] = useState(demo ? demoHints[apiRole].email : '');
-  const [password, setPassword] = useState(demo ? demoHints[apiRole].password : '');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const isAdmin = variant === 'admin';

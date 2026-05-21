@@ -10,6 +10,7 @@ export interface SessionUser {
   role: PlatformRole | 'patient' | 'admin' | 'super_admin';
   email: string;
   name: string;
+  profileId?: string;
   clinicId?: string;
   tenantId?: string;
   patientId?: string;

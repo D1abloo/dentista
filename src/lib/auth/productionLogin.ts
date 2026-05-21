@@ -20,6 +20,7 @@ function toPortalSession(profile: ProfileRow): Omit<SessionUser, 'expiresAt'> {
     role: isPatient ? 'patient' : 'admin',
     email: profile.email,
     name: profile.full_name,
+    profileId: profile.id,
     clinicId: profile.clinic_id,
     tenantId: profile.tenant_id ?? undefined,
     patientId: isPatient ? profile.id : undefined,

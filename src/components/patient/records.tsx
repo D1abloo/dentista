@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { logPortalAudit, usePortalAccess } from '@/hooks/usePortalAccess';
 import { createPayment } from '@/lib/demoStore';
 import { downloadDemoFileRef, getDemoFile, isImageMime, isPdfMime, openDemoFilePreview } from '@/lib/demoFiles';
 import { generateInvoicePdfFile } from '@/lib/pdfInvoice';
@@ -30,7 +31,18 @@ async function downloadInvoicePdf(state: ReturnType<typeof useDemoStore>['state'
 export function PatientReports() {
   const { state } = useDemoStore();
   const patient = usePatient();
+  const portalAccess = usePortalAccess();
   const [q, setQ] = useState('');
+
+  useEffect(() => {
+    if (portalAccess.active) {
+      void logPortalAudit({
+        eventType: 'view_report',
+        pagePath: '/paciente/informes',
+        resourceLabel: 'Consulta de informes clínicos'
+      });
+    }
+  }, [portalAccess.active]);
   const list = useMemo(() => {
     let r = visibleReportsForPatient(state, patient.id);
     if (q.trim()) {
@@ -54,7 +66,21 @@ export function PatientReports() {
             </div>
             <div className="data-row__aside">
               {r.fileRef ? (
-                <FileActions fileRef={r.fileRef} fileName={r.fileName} mimeType={r.mimeType} />
+                <FileActions
+                  fileRef={r.fileRef}
+                  fileName={r.fileName}
+                  mimeType={r.mimeType}
+                  onOpen={() => {
+                    if (portalAccess.active) {
+                      void logPortalAudit({
+                        eventType: 'view_report',
+                        pagePath: '/paciente/informes',
+                        resourceLabel: r.title,
+                        resourceId: r.id
+                      });
+                    }
+                  }}
+                />
               ) : (
                 <Button tone="ghost" className="!text-xs" disabled>
                   Sin PDF adjunto

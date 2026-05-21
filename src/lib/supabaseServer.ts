@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
-/** Por defecto LIVE; solo demo si PUBLIC_DEMO_MODE=true explícito. */
-export const isDemoMode = () => import.meta.env.PUBLIC_DEMO_MODE === 'true';
+/** Producción: sin modo demo en servidor. */
+export const isDemoMode = () => false;
 
 const isConfiguredValue = (value: string | undefined) => Boolean(value && !value.includes('YOUR_') && !value.includes('YOUR_PROJECT'));
 
@@ -12,7 +12,7 @@ export const hasSupabaseConfig = () =>
 
 export function getSupabaseAdmin() {
   if (!hasSupabaseConfig()) {
-    throw new Error('Supabase no está configurado. Usa modo demo o completa .env.');
+    throw new Error('Servicio no configurado. Completa las variables de entorno.');
   }
 
   return createClient(

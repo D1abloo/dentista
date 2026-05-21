@@ -46,7 +46,7 @@ const FAQS = [
   },
   {
     q: '¿Mis datos están separados de otras clínicas?',
-    a: 'Sí. Cada centro aprobado recibe clinic_id y tenant_id únicos con políticas RLS en Supabase.'
+    a: 'Sí. Cada centro aprobado recibe identificadores únicos y aislamiento de datos por organización.'
   }
 ] as const;
 
@@ -175,7 +175,7 @@ export function ClinicRegistrationPage() {
                   </span>
                   <span>
                     <strong>Multi-tenant</strong>
-                    <small>RLS por clínica</small>
+                    <small>Datos aislados por clínica</small>
                   </span>
                 </li>
                 <li>
@@ -220,7 +220,7 @@ export function ClinicRegistrationPage() {
             <div className="cr-alert cr-alert--warn" role="alert">
               <p className="cr-alert__title">Servicio temporalmente no disponible</p>
               <p className="cr-alert__text">
-                Falta configuración de Supabase en el servidor. Contacta con{' '}
+                El servicio no está disponible en este momento. Contacta con{' '}
                 <a href="/contacto">soporte</a>.
               </p>
             </div>
@@ -428,7 +428,7 @@ export function ClinicRegistrationPage() {
                 <li>Panel <strong>/admin</strong> para tu equipo</li>
                 <li>Portal paciente bajo tu clínica</li>
                 <li>Agenda, citas, informes y facturación</li>
-                <li>Consentimientos y documentos con RLS</li>
+                <li>Consentimientos y documentos con control de acceso</li>
                 <li>Suscripción plan Essential inicial</li>
               </ul>
               <p className="cr-aside__muted">
@@ -444,7 +444,7 @@ export function ClinicRegistrationPage() {
         <section className="cp-section cp-section--alt shell">
           <div className="cp-section__head">
             <h2>Preguntas frecuentes</h2>
-            <p>Todo el flujo opera en producción con Supabase y revisión manual.</p>
+            <p>Todo el flujo opera en producción con revisión manual del equipo.</p>
           </div>
           <div className="cp-faq">
             {FAQS.map((item, i) => {

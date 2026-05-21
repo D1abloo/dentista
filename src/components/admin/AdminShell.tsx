@@ -3,13 +3,11 @@ import { LogOut, Menu, Shield } from 'lucide-react';
 import { LogoMark } from '@/components/brand/Logo';
 import { AdminStaffSetup } from '@/components/auth/AdminStaffSetup';
 import { useLogout } from '@/components/auth/RoleGate';
-import { isClientDemoMode, isClientLiveMode } from '@/lib/appMode';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useTenant } from '@/hooks/useTenant';
 import { getStaffProfile, organizationDisplayName, organizationSubtitle } from '@/lib/organization';
 import { GlobalIdSearch } from '@/components/shared/GlobalIdSearch';
 import { adminNav } from './nav';
-import { TenantSwitcher } from './TenantSwitcher';
 import { ClinicBranchSwitcher } from './ClinicBranchSwitcher';
 
 function AdminRail({
@@ -82,29 +80,19 @@ export function AdminShell({
   const path = typeof window !== 'undefined' ? window.location.pathname : '';
   const logout = useLogout();
   const scope = useTenant();
-  const { state, dataSource, syncing } = useDemoStore();
+  const { state } = useDemoStore();
   const orgName = organizationDisplayName(state, scope.tenantId);
   const tenant = {
     id: scope.tenantId,
     name: orgName,
     subtitle: organizationSubtitle(state, scope.tenantId)
   };
-  const [staffReady, setStaffReady] = useState(
-    () => !isClientDemoMode() || Boolean(getStaffProfile(scope.tenantId))
-  );
+  const [staffReady, setStaffReady] = useState(() => Boolean(getStaffProfile(scope.tenantId)));
   const close = () => setOpen(false);
-  const live = isClientLiveMode();
 
   if (!staffReady) {
     return <AdminStaffSetup onDone={() => setStaffReady(true)} />;
   }
-
-  const dataLabel =
-    dataSource === 'supabase'
-      ? syncing
-        ? 'Guardando…'
-        : 'Supabase'
-      : 'Conectado';
 
   return (
     <div className="portal portal--admin">
@@ -131,12 +119,10 @@ export function AdminShell({
             {subtitle ? <p className="portal-top__sub">{subtitle}</p> : null}
             <p className="portal-top__meta">
               {tenant.subtitle} · {tenant.name}
-              <span className="portal-top__data">{dataLabel}</span>
             </p>
           </div>
           <div className="portal-top__actions">
             <div className="hidden lg:flex lg:flex-wrap lg:items-center lg:gap-2">
-              <TenantSwitcher />
               <ClinicBranchSwitcher />
             </div>
             <div className="hidden md:block">

@@ -1,13 +1,12 @@
-/** Cliente: PUBLIC_DEMO_MODE=false → modo LIVE (sin localStorage de roles demo). */
+/** Producción: sin modo demo en cliente. */
 export function isClientDemoMode(): boolean {
-  return import.meta.env.PUBLIC_DEMO_MODE === 'true';
+  return false;
 }
 
 export function isClientLiveMode(): boolean {
-  return !isClientDemoMode();
+  return true;
 }
 
-/** Texto según modo demo o LIVE (cliente). */
-export function modeCopy(demo: string, live: string): string {
-  return isClientDemoMode() ? demo : live;
+export function modeCopy(_demo: string, live: string): string {
+  return live;
 }

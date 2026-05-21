@@ -3,8 +3,7 @@ import type { LucideIcon } from 'lucide-react';
 import { LogOut, Menu } from 'lucide-react';
 import { LogoMark } from '@/components/brand/Logo';
 import { useLogout } from '@/components/auth/RoleGate';
-import { isClientDemoMode } from '@/lib/appMode';
-import { useDemoStore } from '@/hooks/useDemoStore';
+import { logPortalAudit, usePortalAccess } from '@/hooks/usePortalAccess';
 import { usePatient } from '@/hooks/usePatient';
 import { PatientIdentity } from './PatientIdentity';
 
@@ -21,7 +20,7 @@ function Rail({
   nav: NavItem[];
   path: string;
   patient: { fullName: string; dni?: string };
-  onNav: () => void;
+  onNav: (href: string, label: string) => void;
   onLogout: () => void;
   variant: 'drawer' | 'rail';
 }) {
@@ -45,7 +44,7 @@ function Rail({
             <a
               key={item.href}
               href={item.href}
-              onClick={onNav}
+              onClick={() => onNav(item.href, item.label)}
               className={`rail-link ${active ? 'rail-link--active' : ''}`}
             >
               <item.icon className="h-4 w-4" />
@@ -66,16 +65,23 @@ export function PatientShell({ title, nav, children }: { title: string; nav: Nav
   const path = typeof window !== 'undefined' ? window.location.pathname : '';
   const logout = useLogout();
   const patient = usePatient();
-  const { ephemeral } = useDemoStore();
+  const portalAccess = usePortalAccess();
   const close = () => setOpen(false);
+
+  const onNav = (href: string, label: string) => {
+    if (portalAccess.active) {
+      void logPortalAudit({ eventType: 'nav_click', pagePath: href, resourceLabel: label });
+    }
+    close();
+  };
 
   return (
     <div className="portal portal--patient">
-      <Rail nav={nav} path={path} patient={patient} onNav={close} onLogout={logout} variant="rail" />
+      <Rail nav={nav} path={path} patient={patient} onNav={onNav} onLogout={logout} variant="rail" />
       {open ? (
         <div className="fixed inset-0 z-50 bg-black/40 lg:hidden" onClick={close}>
           <div onClick={(e) => e.stopPropagation()}>
-            <Rail nav={nav} path={path} patient={patient} onNav={close} onLogout={logout} variant="drawer" />
+            <Rail nav={nav} path={path} patient={patient} onNav={onNav} onLogout={logout} variant="drawer" />
           </div>
         </div>
       ) : null}
@@ -90,10 +96,9 @@ export function PatientShell({ title, nav, children }: { title: string; nav: Nav
           </button>
         </header>
         <main className="portal-body">
-          {isClientDemoMode() && ephemeral ? (
-            <p className="banner-alert mb-4 text-sm" role="status">
-              Modo prueba: puedes reservar y gestionar citas en pantalla, pero <strong>nada se guarda</strong> al
-              recargar.
+          {portalAccess.active ? (
+            <p className="banner-alert mb-4 rounded-xl border border-amber-200 bg-amber-50 text-sm text-amber-950" role="status">
+              Acceso clínico autorizado — {portalAccess.patientName ?? 'paciente'}. Las acciones quedan registradas.
             </p>
           ) : null}
           {children}

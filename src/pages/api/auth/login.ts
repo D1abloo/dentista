@@ -1,9 +1,8 @@
 import type { APIRoute } from 'astro';
-import { createSessionToken, loginDemoUser, loginProductionUser, sessionCookieName } from '@/lib/auth';
+import { createSessionToken, loginProductionUser, sessionCookieName } from '@/lib/auth';
 import { fail, ok } from '@/lib/http';
 import { logError } from '@/lib/logger';
 import { loginSchema } from '@/lib/validators';
-import { isDemoMode } from '@/lib/supabaseServer';
 
 export const prerender = false;
 
@@ -13,7 +12,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const parsed = loginSchema.safeParse(payload);
     if (!parsed.success) return fail('Credenciales inválidas.', 422, parsed.error.flatten());
 
-    const user = isDemoMode() ? loginDemoUser(parsed.data) : await loginProductionUser(parsed.data);
+    const user = await loginProductionUser(parsed.data);
     if (!user) return fail('Email, contraseña o tipo de acceso incorrecto.', 401);
 
     cookies.set(sessionCookieName, createSessionToken(user), {

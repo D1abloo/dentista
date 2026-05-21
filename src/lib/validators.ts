@@ -262,6 +262,34 @@ export const stripeCheckoutSchema = z.object({
   cancelUrl: z.string().url().optional()
 });
 
+export const portalAccessTokenCreateSchema = z
+  .object({
+    patientId: z.string().uuid(),
+    staffProfileId: z.string().uuid().optional(),
+    dentistId: z.string().uuid().optional(),
+    targetClinicId: z.string().uuid().optional(),
+    label: z.string().max(120).optional(),
+    expiresInHours: z.number().int().min(1).max(168).default(24)
+  })
+  .refine((d) => Boolean(d.staffProfileId || d.dentistId), {
+    message: 'Indica el profesional (perfil o dentista).'
+  });
+
+export const portalAccessTokenRevokeSchema = z.object({
+  tokenId: z.string().uuid()
+});
+
+export const portalAccessExchangeSchema = z.object({
+  token: z.string().min(16).max(200)
+});
+
+export const portalAccessAuditSchema = z.object({
+  eventType: z.enum(['nav_click', 'view_report', 'view_document', 'view_invoice', 'view_consent', 'other']),
+  pagePath: z.string().max(300).optional(),
+  resourceLabel: z.string().max(200).optional(),
+  resourceId: z.string().max(120).optional()
+});
+
 export type ClinicQuery = z.infer<typeof clinicQuerySchema>;
 export type PatientQuery = z.infer<typeof patientQuerySchema>;
 export type AvailabilityQuery = z.infer<typeof availabilityQuerySchema>;

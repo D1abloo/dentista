@@ -48,6 +48,7 @@ import { useNotice } from '@/hooks/useNotice';
 import type { Appointment, AppointmentStatus, Dentist, Patient, Treatment } from '@/types/demo';
 import { IdBadge } from '@/components/ui/IdBadge';
 import { PatientSelect } from './shared';
+import { AdminStaffPortalProfile } from './portalAccess';
 import {
   AdminClinicalReports,
   AdminDocuments,
@@ -748,6 +749,8 @@ export function AdminConfig() {
   const tenantId = getStoredTenantId();
   const [s, setS] = useState(settingsFor(state, tenantId));
   return (
+    <div className="grid gap-4">
+      <AdminStaffPortalProfile />
     <Card title="Configuración">
       <div className="grid gap-3 md:grid-cols-2">
         <Field label="Nombre clínica"><Input value={s.clinicName} onChange={(e) => setS({ ...s, clinicName: e.target.value })} /></Field>
@@ -768,5 +771,6 @@ export function AdminConfig() {
         <Button onClick={() => { commit(saveSettings(state, tenantId, s)); setNotice({ type: 'ok', message: 'Configuración guardada.' }); }}>Guardar</Button>
       </div>
     </Card>
+    </div>
   );
 }

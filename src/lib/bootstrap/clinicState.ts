@@ -136,6 +136,7 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
 
   state.dentists = (dentists ?? []).map((d) => ({
     id: d.id,
+    profileId: d.profile_id ?? undefined,
     tenantId,
     fullName: d.name,
     specialty: d.specialty,

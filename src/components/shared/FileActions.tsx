@@ -5,11 +5,13 @@ import { Button } from '@/components/ui';
 export function FileActions({
   fileRef,
   fileName,
-  mimeType
+  mimeType,
+  onOpen
 }: {
   fileRef?: string;
   fileName?: string;
   mimeType?: string;
+  onOpen?: () => void;
 }) {
   if (!fileRef) return null;
   const stored = getDemoFile(fileRef);
@@ -28,7 +30,14 @@ export function FileActions({
         <Download className="mr-1 inline h-3 w-3" />
         {isPdf ? 'Descargar PDF' : 'Descargar'}
       </Button>
-      <Button tone="ghost" className="!text-xs" onClick={() => openDemoFilePreview(fileRef)}>
+      <Button
+        tone="ghost"
+        className="!text-xs"
+        onClick={() => {
+          onOpen?.();
+          openDemoFilePreview(fileRef);
+        }}
+      >
         <Eye className="mr-1 inline h-3 w-3" />
         Ver {isImg ? 'imagen' : isPdf ? 'PDF' : 'archivo'}
       </Button>

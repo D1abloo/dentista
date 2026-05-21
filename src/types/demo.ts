@@ -57,6 +57,7 @@ export interface Patient {
 
 export interface Dentist {
   id: string;
+  profileId?: string;
   tenantId: string;
   fullName: string;
   specialty: string;

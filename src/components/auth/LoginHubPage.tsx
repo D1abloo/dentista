@@ -1,6 +1,4 @@
 import { Building2, ChevronRight, ClipboardPlus, Lock, ShieldCheck, Sparkles, UserRound } from 'lucide-react';
-import { isClientDemoMode, isClientLiveMode } from '@/lib/appMode';
-import { DEMO_TENANTS } from '@/lib/tenantIds';
 import { PortalLoginShell } from './PortalLoginShell';
 
 const TRUST_ITEMS = [
@@ -10,19 +8,12 @@ const TRUST_ITEMS = [
 ] as const;
 
 export function LoginHubPage() {
-  const demo = isClientDemoMode();
-  const live = isClientLiveMode();
-
   return (
     <PortalLoginShell
       variant="hub"
       eyebrow="Dentista+ · Acceso seguro"
       title="Elige tu portal"
-      lead={
-        demo
-          ? 'Modo demo: entra como clínica o paciente. Cada organización ve solo sus datos.'
-          : 'Accede al panel de tu centro o al espacio personal del paciente. Sin cruces entre clínicas.'
-      }
+      lead="Accede al panel de tu centro o al espacio personal del paciente. Sin cruces entre clínicas."
       footer={
         <div className="login-portal__foot-grid">
           <a href="/">← Inicio público</a>
@@ -53,9 +44,7 @@ export function LoginHubPage() {
                 <span className="login-portal__option-title">Panel clínica</span>
                 <span className="login-portal__option-badge login-portal__option-badge--blue">Staff</span>
               </span>
-              <span className="login-portal__option-meta">
-                {demo ? DEMO_TENANTS.map((t) => t.label).join(' · ') : 'Agenda, pacientes, facturación y equipo'}
-              </span>
+              <span className="login-portal__option-meta">Agenda, pacientes, facturación y equipo</span>
             </span>
             <span className="login-portal__option-cta">
               Administración
@@ -76,9 +65,7 @@ export function LoginHubPage() {
                 <span className="login-portal__option-title">Portal paciente</span>
                 <span className="login-portal__option-badge login-portal__option-badge--teal">Paciente</span>
               </span>
-              <span className="login-portal__option-meta">
-                {demo ? 'Elena Vidal Romero · DNI 45678912K' : 'Citas, informes clínicos y pagos'}
-              </span>
+              <span className="login-portal__option-meta">Citas, informes clínicos y pagos</span>
             </span>
             <span className="login-portal__option-cta">
               Mi cuenta
@@ -88,12 +75,10 @@ export function LoginHubPage() {
         </li>
       </ul>
 
-      {!demo && live ? (
-        <p className="login-portal__hint">
-          ¿Primera vez? Solicita el alta de tu centro en{' '}
-          <a href="/registro-clinica">registro de clínica</a>. Tras la aprobación recibirás acceso solo a tu panel.
-        </p>
-      ) : null}
+      <p className="login-portal__hint">
+        ¿Primera vez? Solicita el alta de tu centro en{' '}
+        <a href="/registro-clinica">registro de clínica</a>. Tras la aprobación recibirás acceso solo a tu panel.
+      </p>
 
       <div className="login-portal__secondary">
         <a href="/registro-clinica" className="login-portal__secondary-link">

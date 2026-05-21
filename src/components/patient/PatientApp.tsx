@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { DemoStoreProvider } from '@/hooks/useDemoStore';
 import { NoticeProvider } from '@/hooks/useNotice';
-import { RoleGate } from '@/components/auth/RoleGate';
+import { PatientPortalGate } from '@/components/auth/PatientPortalGate';
 import { Toast } from '@/components/ui';
 import { useNotice } from '@/hooks/useNotice';
 import { PatientShell } from './PatientShell';
@@ -118,12 +118,12 @@ function PatientInner({ view }: { view: PatientView }) {
 
 export function PatientApp({ view = 'dashboard' }: { view?: PatientView }) {
   return (
-    <RoleGate role="paciente">
+    <PatientPortalGate>
       <DemoStoreProvider>
         <NoticeProvider>
           <PatientInner view={view} />
         </NoticeProvider>
       </DemoStoreProvider>
-    </RoleGate>
+    </PatientPortalGate>
   );
 }

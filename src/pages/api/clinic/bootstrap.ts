@@ -3,16 +3,13 @@ import { loadClinicDemoState } from '@/lib/bootstrap/clinicState';
 import { requireSession } from '@/lib/api/guards';
 import { fail, ok } from '@/lib/http';
 import { logError } from '@/lib/logger';
-import { hasSupabaseConfig, isDemoMode } from '@/lib/supabaseServer';
+import { hasSupabaseConfig } from '@/lib/supabaseServer';
 
 export const prerender = false;
 
 export const GET: APIRoute = async (context) => {
-  if (isDemoMode()) {
-    return fail('Bootstrap de clínica solo disponible en modo producción.', 403);
-  }
   if (!hasSupabaseConfig()) {
-    return fail('Supabase no configurado.', 503);
+    return fail('Servicio no disponible.', 503);
   }
 
   const gate = requireSession(context);

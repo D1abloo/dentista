@@ -67,7 +67,7 @@ const steps = [
 
 const platformPillars = [
   { icon: Building2, title: 'Multi-clínica', text: 'Cada centro opera en su entorno aislado.' },
-  { icon: ShieldCheck, title: 'RLS y seguridad', text: 'Aislamiento en base de datos por clínica.' },
+  { icon: ShieldCheck, title: 'Seguridad y privacidad', text: 'Aislamiento de datos por clínica y organización.' },
   { icon: Shield, title: 'Roles y permisos', text: 'Admin, dentista, recepción y paciente.' }
 ] as const;
 
@@ -345,7 +345,7 @@ export function LandingPage() {
               <ul>
                 <li>Integraciones API</li>
                 <li>SLA y formación</li>
-                <li>Redis y Supabase en producción</li>
+                <li>Operación en entorno de producción</li>
               </ul>
               <a href="/contacto" className="btn btn--outline btn--block">
                 Contactar ventas
