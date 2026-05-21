@@ -619,7 +619,8 @@ body {
 }
 
 .portal-top--admin {
-  box-shadow: none;
+  box-shadow: 0 1px 0 rgba(15, 39, 66, 0.06);
+  align-items: center;
 }
 
 .portal-top__row {
@@ -6731,14 +6732,9 @@ a.cp-channel:hover {
 }
 
 @media (max-width: 639px) {
-  .portal-top--admin {
-    flex-wrap: wrap;
-    gap: 0.75rem;
-  }
-
   .portal-top__actions {
-    width: 100%;
-    justify-content: space-between;
+    width: auto;
+    justify-content: flex-end;
   }
 
   .guide-docs__section {
