@@ -9,8 +9,9 @@ export function HelpFaqPanel({ audience }: { audience: HelpAudience }) {
   return (
     <section className="help-faq" aria-labelledby="help-faq-title">
       <header className="help-faq__head">
+        <p className="help-faq__kicker">Respuestas rápidas</p>
         <h2 id="help-faq-title">Preguntas frecuentes</h2>
-        <p>Respuestas rápidas para {audience === 'patient' ? 'pacientes' : 'equipos de clínica'}.</p>
+        <p>{audience === 'patient' ? 'Pacientes' : 'Equipos de clínica'} · {faqs.length} temas</p>
       </header>
       <div className="help-faq__list">
         {faqs.map((faq) => {

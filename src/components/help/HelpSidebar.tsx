@@ -1,4 +1,4 @@
-import { ExternalLink } from 'lucide-react';
+import { CircleHelp, ExternalLink } from 'lucide-react';
 import {
   faqsForAudience,
   helpAudiences,
@@ -23,9 +23,13 @@ export function HelpSidebar({
   onToggleFaqs: () => void;
 }) {
   const sections = helpSectionsByAudience[audience];
+  const currentIndex = sections.findIndex((s) => s.id === sectionId);
+  const progress = currentIndex >= 0 ? currentIndex + 1 : 1;
 
   return (
-    <aside className="help-nav">
+    <aside className="help-nav" aria-label="Navegación de ayuda">
+      <p className="help-nav__role">Navegación</p>
+
       <div className="help-nav__audience" role="tablist" aria-label="Tipo de guía">
         {helpAudiences.map((a) => (
           <button
@@ -41,20 +45,24 @@ export function HelpSidebar({
         ))}
       </div>
 
-      <p className="help-nav__desc">{helpAudiences.find((a) => a.id === audience)?.description}</p>
+      {!showFaqs ? (
+        <p className="help-nav__progress" aria-live="polite">
+          Tema {progress} de {sections.length}
+        </p>
+      ) : null}
 
-      <nav className="help-nav__sections" aria-label="Temas de la guía">
-        <p className="help-nav__label">Temas</p>
+      <nav className="help-nav__sections" aria-label="Temas">
         <ul>
-          {sections.map((s) => (
+          {sections.map((s, i) => (
             <li key={s.id}>
               <button
                 type="button"
                 className={sectionId === s.id && !showFaqs ? 'help-nav__link--active' : ''}
                 onClick={() => onSection(s.id)}
-                aria-current={sectionId === s.id && !showFaqs ? 'true' : undefined}
+                aria-current={sectionId === s.id && !showFaqs ? 'step' : undefined}
               >
-                {s.title}
+                <span className="help-nav__link-n">{i + 1}</span>
+                <span className="help-nav__link-text">{s.title}</span>
               </button>
             </li>
           ))}
@@ -66,22 +74,23 @@ export function HelpSidebar({
         className={`help-nav__faq-btn ${showFaqs ? 'help-nav__faq-btn--active' : ''}`}
         onClick={onToggleFaqs}
       >
-        Preguntas frecuentes ({faqsForAudience(audience).length})
+        <CircleHelp className="h-4 w-4" aria-hidden />
+        FAQ · {faqsForAudience(audience).length}
       </button>
 
-      <div className="help-nav__links">
-        <p className="help-nav__label">Enlaces útiles</p>
+      <details className="help-nav__more">
+        <summary>Enlaces rápidos</summary>
         <ul>
           {helpQuickLinks.map((link) => (
             <li key={link.id}>
-              <a href={link.href} className="help-nav__ext">
+              <a href={link.href}>
                 {link.label}
                 <ExternalLink className="h-3 w-3" aria-hidden />
               </a>
             </li>
           ))}
         </ul>
-      </div>
+      </details>
     </aside>
   );
 }

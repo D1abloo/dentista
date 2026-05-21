@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BookOpen, Headphones } from 'lucide-react';
+import { Headphones } from 'lucide-react';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { PublicHeader } from '@/components/public/PublicHeader';
 import { HelpFaqPanel } from '@/components/help/HelpFaqPanel';
@@ -15,23 +15,16 @@ export function HelpCenterPage() {
     <>
       <PublicHeader activeHref="/ayuda" />
       <main className="help-page">
-        <section className="help-page__hero shell">
-          <div className="help-page__hero-inner">
-            <span className="help-page__badge">
-              <BookOpen className="h-4 w-4" aria-hidden />
-              Centro de ayuda
-            </span>
-            <h1>Documentación Dentista+</h1>
-            <p>
-              Tutoriales con capturas en móvil. Elige el tipo de usuario en el menú lateral y consulta un tema cada vez,
-              sin scroll interminable.
-            </p>
-            <a href="/contacto" className="help-page__support">
-              <Headphones className="h-4 w-4" aria-hidden />
-              Contactar soporte
-            </a>
+        <div className="help-page__top shell">
+          <div className="help-page__top-inner">
+            <h1>Ayuda</h1>
+            <p>Guías paso a paso para pacientes y clínicas.</p>
           </div>
-        </section>
+          <a href="/contacto" className="help-page__support-link">
+            <Headphones className="h-4 w-4" aria-hidden />
+            Soporte
+          </a>
+        </div>
 
         <div className="shell help-page__shell">
           <HelpSidebar
@@ -49,13 +42,13 @@ export function HelpCenterPage() {
             onToggleFaqs={() => setShowFaqs((v) => !v)}
           />
 
-          <div className="help-page__main">
+          <div className="help-page__main" id="help-content">
             {showFaqs ? (
               <HelpFaqPanel audience={audience} />
             ) : activeSection ? (
-              <HelpSectionPanel section={activeSection} />
+              <HelpSectionPanel key={activeSection.id} section={activeSection} />
             ) : (
-              <p className="help-page__empty">Selecciona un tema en el menú lateral.</p>
+              <p className="help-page__empty">Elige un tema en el menú.</p>
             )}
           </div>
         </div>
