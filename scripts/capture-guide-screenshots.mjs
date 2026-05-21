@@ -27,6 +27,12 @@ const SCENES = [
   'admin-acceso'
 ];
 
+async function runBuild() {
+  const { execSync } = await import('node:child_process');
+  console.log('Compilando para capturas sin overlay de desarrollo…');
+  execSync('npm run build', { cwd: ROOT, stdio: 'inherit' });
+}
+
 async function waitForServer(url, attempts = 40) {
   for (let i = 0; i < attempts; i++) {
     try {
@@ -43,25 +49,26 @@ async function waitForServer(url, attempts = 40) {
 async function main() {
   await mkdir(OUT_DIR, { recursive: true });
 
-  let devProc;
-  const needDev = !(await waitForServer(BASE));
-  if (needDev) {
-    devProc = spawn('npm', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', '4321'], {
+  let serverProc;
+  const needServer = !(await waitForServer(BASE));
+  if (needServer) {
+    await runBuild();
+    serverProc = spawn('npm', ['run', 'preview', '--', '--host', '127.0.0.1', '--port', '4321'], {
       cwd: ROOT,
       stdio: 'ignore',
       detached: false
     });
-    const ok = await waitForServer(BASE, 60);
+    const ok = await waitForServer(BASE, 80);
     if (!ok) {
-      devProc?.kill();
-      throw new Error('No se pudo iniciar el servidor de desarrollo en :4321');
+      serverProc?.kill();
+      throw new Error('No se pudo iniciar preview en :4321');
     }
   }
 
   const { chromium } = await import('playwright');
   const browser = await chromium.launch();
   const page = await browser.newPage({
-    viewport: { width: 430, height: 900 },
+    viewport: { width: 360, height: 720 },
     deviceScaleFactor: 2
   });
 
@@ -80,15 +87,18 @@ async function main() {
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.waitForSelector('.guide-phone-frame', { state: 'visible', timeout: 15000 });
     await page.waitForSelector('.guide-shot-body', { state: 'attached', timeout: 45000 });
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(2000);
     const frame = page.locator('.guide-phone-frame');
+    await page.locator('.astro-error-overlay').count().then((n) => {
+      if (n > 0) throw new Error(`Overlay de error visible en escena ${scene}`);
+    });
     const outPath = join(OUT_DIR, `${scene}.png`);
     await frame.screenshot({ path: outPath, type: 'png' });
     console.log(`OK ${scene}.png`);
   }
 
   await browser.close();
-  if (devProc) devProc.kill('SIGTERM');
+  if (serverProc) serverProc.kill('SIGTERM');
   console.log('Capturas guardadas en public/images/guides/mobile/');
 }
 

@@ -28,6 +28,10 @@ const title = titles[scene] ?? 'Vista';
     <title>Captura guía · {scene}</title>
   </head>
   <body>
+    <script is:inline>
+      localStorage.setItem('dentista_patient_id', 'PAT-0001');
+      localStorage.setItem('dentista_tenant_id', 'TEN-0001');
+    </script>
     <div class="guide-phone-stage">
       <div class="guide-phone-frame">
         <div class="guide-phone-frame__status" aria-hidden>
@@ -56,9 +60,9 @@ const title = titles[scene] ?? 'Vista';
     padding: 1rem;
   }
   .guide-phone-frame {
-    width: 390px;
-    border-radius: 2.25rem;
-    border: 10px solid #1e293b;
+    width: 300px;
+    border-radius: 2rem;
+    border: 8px solid #1e293b;
     background: #0f172a;
     box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
     overflow: hidden;
@@ -103,9 +107,15 @@ const title = titles[scene] ?? 'Vista';
   .guide-shot-portal .portal-rail { display: none !important; }
   .guide-shot-portal .portal-main { margin: 0 !important; width: 100% !important; }
   .guide-shot-body {
-    padding: 0.75rem !important;
-    max-height: 640px;
-    overflow-y: auto;
-    font-size: 0.82rem;
+    padding: 0.5rem 0.65rem !important;
+    max-height: 460px;
+    overflow: hidden;
+    font-size: 0.72rem;
+    transform: scale(0.92);
+    transform-origin: top center;
+  }
+  .guide-shot-placeholder {
+    min-height: 200px;
+    background: #f8fafc;
   }
 </style>

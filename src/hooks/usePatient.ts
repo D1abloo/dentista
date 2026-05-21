@@ -1,7 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { DEMO_PATIENT_LOGIN_ID } from '@/data/demoData';
 import { getStoredPatientId } from '@/lib/demoStore';
 import { STORAGE_PATIENT_ID } from '@/lib/storage/keys';
+import type { Patient } from '@/types/demo';
 import { useDemoStore } from './useDemoStore';
+
+const FALLBACK_PATIENT: Patient = {
+  id: DEMO_PATIENT_LOGIN_ID,
+  fullName: 'Paciente',
+  email: '',
+  phone: '',
+  reminderChannels: ['email'],
+  createdAt: '2026-01-01'
+};
 
 export function usePatient() {
   const { state } = useDemoStore();
@@ -22,6 +33,13 @@ export function usePatient() {
     })();
   }, []);
 
-  const id = overrideId ?? getStoredPatientId();
-  return state.patients.find((p) => p.id === id) ?? state.patients[0];
+  return useMemo(() => {
+    const id = (overrideId ?? getStoredPatientId()) || DEMO_PATIENT_LOGIN_ID;
+    return (
+      state.patients.find((p) => p.id === id) ??
+      state.patients.find((p) => p.id === DEMO_PATIENT_LOGIN_ID) ??
+      state.patients[0] ??
+      FALLBACK_PATIENT
+    );
+  }, [state.patients, overrideId]);
 }

@@ -5181,41 +5181,69 @@ a.cp-channel:hover {
 }
 
 .guide-docs__gallery {
-  display: grid;
-  gap: 1.25rem;
-  margin: 1rem 0 1.25rem;
-}
-
-@media (min-width: 768px) {
-  .guide-docs__gallery {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.75rem 2rem;
+  margin: 1.25rem auto 1.5rem;
+  max-width: 52rem;
+  padding: 0.5rem 0;
 }
 
 .guide-docs__shot {
   margin: 0;
+  width: 100%;
+  max-width: 17.5rem;
+  flex: 0 1 17.5rem;
 }
 
 .guide-docs__phone {
-  border-radius: 1.75rem;
-  padding: 0.65rem;
+  margin: 0 auto;
+  max-width: 15.5rem;
+  border-radius: 1.5rem;
+  padding: 0.4rem;
   background: linear-gradient(160deg, #1e293b, #0f172a);
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.2);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.18);
 }
 
 .guide-docs__phone img {
   display: block;
   width: 100%;
   height: auto;
-  border-radius: 1.25rem;
-  border: 2px solid rgba(255, 255, 255, 0.12);
+  max-height: 22rem;
+  object-fit: contain;
+  object-position: top center;
+  border-radius: 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #f8fafc;
 }
 
 .guide-docs__shot figcaption {
-  margin-top: 0.5rem;
-  font-size: 0.82rem;
+  margin-top: 0.65rem;
+  padding: 0 0.25rem;
+  font-size: 0.8rem;
   color: var(--muted);
   line-height: 1.45;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .guide-docs__gallery {
+    justify-content: flex-start;
+  }
+
+  .guide-docs--rich .guide-docs__section {
+    padding: 1.5rem 1.75rem;
+  }
+}
+
+.help-center__body .guide-docs {
+  max-width: 56rem;
+  margin-inline: auto;
+}
+
+.help-center__body .guide-docs__section {
+  margin-inline: auto;
 }
 
 .guide-docs__steps-block {

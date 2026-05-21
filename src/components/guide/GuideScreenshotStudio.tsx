@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useLayoutEffect, useState, type ReactNode } from 'react';
 import { demoSeed } from '@/data/demoData';
 import { NoticeProvider } from '@/hooks/useNotice';
 import { PatientAppointments, PatientDashboard, PatientInvoices, PatientReports } from '@/components/patient/views';
@@ -12,12 +12,10 @@ import { TENANT_CENTRO } from '@/lib/tenantIds';
 
 const PATIENT_ID = 'PAT-0001';
 
-function SeedStorage() {
-  useEffect(() => {
-    localStorage.setItem(STORAGE_PATIENT_ID, PATIENT_ID);
-    localStorage.setItem(STORAGE_TENANT_ID, TENANT_CENTRO);
-  }, []);
-  return null;
+function seedGuideStorage() {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(STORAGE_PATIENT_ID, PATIENT_ID);
+  localStorage.setItem(STORAGE_TENANT_ID, TENANT_CENTRO);
 }
 
 const scenes: Record<string, { node: ReactNode }> = {
@@ -36,14 +34,23 @@ const scenes: Record<string, { node: ReactNode }> = {
 
 /** Contenido interior del marco móvil (el marco HTML está en guia-capturas.astro). */
 export function GuideScreenshotStudio({ scene }: { scene: string }) {
+  const [ready, setReady] = useState(false);
   const entry = scenes[scene] ?? scenes['pdp-inicio'];
   const portalClass =
     scene.startsWith('admin') ? 'portal portal--admin guide-shot-portal' : 'portal portal--patient guide-shot-portal';
 
+  useLayoutEffect(() => {
+    seedGuideStorage();
+    setReady(true);
+  }, []);
+
+  if (!ready) {
+    return <div className="guide-shot-placeholder" aria-hidden />;
+  }
+
   return (
     <GuideDemoStoreProvider initialState={demoSeed}>
       <NoticeProvider>
-        <SeedStorage />
         <div className={portalClass}>
           <main className="guide-shot-body portal-body portal-body--admin">{entry.node}</main>
         </div>
