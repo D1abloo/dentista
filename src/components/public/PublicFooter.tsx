@@ -1,5 +1,5 @@
 import { Facebook, Instagram, Linkedin } from 'lucide-react';
-import { ClinicBrandLockup } from '@/components/brand/ClinicBrandLogo';
+import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
 
 const product = [
   { href: '/#caracteristicas', label: 'Características' },
@@ -28,7 +28,7 @@ export function PublicFooter() {
       <div className="shell lp-footer__grid">
         <div className="lp-footer__brand">
           <a href="/" className="lp-footer__logo">
-            <ClinicBrandLockup size={40} theme="dark" />
+            <DentistaWebpLockup placement="footer" />
           </a>
           <p>La plataforma dental que conecta pacientes y clínicas con seguridad, diseño premium y gestión integral.</p>
           <div className="lp-footer__social">

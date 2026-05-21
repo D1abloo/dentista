@@ -59,6 +59,86 @@ body {
   font-weight: 700;
   color: var(--ink);
   text-decoration: none;
+  min-width: 0;
+}
+
+/* Logo WebP — header / footer */
+.dentista-webp-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.dentista-webp-lockup__img {
+  display: block;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.dentista-webp-lockup--header .dentista-webp-lockup__img {
+  width: auto;
+  height: 2.35rem;
+  max-width: 2.75rem;
+}
+
+.dentista-webp-lockup--header .dentista-webp-lockup__text {
+  display: none;
+}
+
+@media (min-width: 480px) {
+  .dentista-webp-lockup--header .dentista-webp-lockup__text {
+    display: block;
+  }
+}
+
+.dentista-webp-lockup--header .dentista-webp-lockup__name {
+  display: block;
+  font-family: var(--display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+  line-height: 1.15;
+}
+
+.dentista-webp-lockup--header .dentista-webp-lockup__tag {
+  display: block;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  line-height: 1.2;
+}
+
+.dentista-webp-lockup--footer .dentista-webp-lockup__img {
+  width: auto;
+  height: 2.1rem;
+  max-width: 2.5rem;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.25));
+}
+
+.dentista-webp-lockup--footer .dentista-webp-lockup__name {
+  display: block;
+  font-family: var(--display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.15;
+}
+
+.dentista-webp-lockup--footer .dentista-webp-lockup__tag {
+  display: block;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.lp-footer__logo .dentista-webp-lockup__text {
+  min-width: 0;
 }
 
 .pub-header__inner .pub-nav {

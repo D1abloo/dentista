@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { ClinicBrandLockup } from '@/components/brand/ClinicBrandLogo';
+import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
 
 const links = [
   { href: '/', label: 'Inicio' },
@@ -19,7 +19,7 @@ export function PublicHeader({ activeHref }: { activeHref?: string }) {
       <div className="pub-header__clinic-bg" aria-hidden />
       <div className="shell pub-header__inner">
         <a href="/" className="pub-header__brand">
-          <ClinicBrandLockup size={44} />
+          <DentistaWebpLockup placement="header" />
         </a>
         <nav className="pub-nav" aria-label="Principal">
           {links.map((l) => (
