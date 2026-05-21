@@ -3,6 +3,7 @@ import { demoSeed } from '@/data/demoData';
 import { NoticeProvider } from '@/hooks/useNotice';
 import { PatientAppointments, PatientDashboard, PatientInvoices, PatientReports } from '@/components/patient/views';
 import { PatientDocuments, PatientPayments } from '@/components/patient/records';
+import { PatientConsents } from '@/components/patient/consents';
 import { AdminAgenda, AdminDashboard, AdminPatients } from '@/components/admin/views';
 import { AdminInvoices } from '@/components/admin/uploadViews';
 import { AdminPortalAccess } from '@/components/admin/portalAccess';
@@ -25,6 +26,7 @@ const scenes: Record<string, { node: ReactNode }> = {
   'pdp-documentos': { node: <PatientDocuments /> },
   'pdp-facturas': { node: <PatientInvoices /> },
   'pdp-pagos': { node: <PatientPayments /> },
+  'pdp-consentimientos': { node: <PatientConsents /> },
   'admin-dashboard': { node: <AdminDashboard /> },
   'admin-agenda': { node: <AdminAgenda /> },
   'admin-pacientes': { node: <AdminPatients /> },

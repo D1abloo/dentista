@@ -20,6 +20,7 @@ const SCENES = [
   'pdp-documentos',
   'pdp-facturas',
   'pdp-pagos',
+  'pdp-consentimientos',
   'admin-dashboard',
   'admin-agenda',
   'admin-pacientes',

@@ -5247,39 +5247,19 @@ a.cp-channel:hover {
   max-width: 38rem;
 }
 
-.help-guide__objective {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.4rem;
-  margin: 0.65rem 0 0;
-  padding: 0.55rem 0.65rem;
-  border-radius: 0.45rem;
-  background: #f0f4ff;
-  border: 1px solid #dbe4ff;
-  font-size: 0.8rem;
-  line-height: 1.4;
-  color: #334155;
+.help-guide__pill--live {
+  background: #ecfdf5;
+  color: #047857;
 }
 
-.help-guide__objective svg {
-  color: var(--blue);
-  margin-top: 0.1rem;
+.help-guide__hero-shot {
+  padding: 0 1.25rem 1rem;
+  border-bottom: 1px solid #e8ecf1;
+  background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
 }
 
-.help-guide__grid {
-  display: grid;
-  gap: 0;
-}
-
-@media (min-width: 768px) {
-  .help-guide__grid {
-    grid-template-columns: minmax(0, 1fr) 11.5rem;
-  }
-}
-
-.help-guide__flow {
-  padding: 1rem 1.25rem 1.15rem;
-  min-width: 0;
+.help-guide__body {
+  padding: 1rem 1.25rem 0.5rem;
 }
 
 .help-guide__prep {
@@ -5431,6 +5411,18 @@ a.cp-channel:hover {
   color: var(--navy);
 }
 
+.help-guide__step-badge {
+  flex-shrink: 0;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: #ecfdf5;
+  color: #047857;
+}
+
 .help-guide__step-body {
   margin: 0.25rem 0 0.5rem 2.35rem;
   padding: 0.65rem 0.75rem;
@@ -5474,57 +5466,67 @@ a.cp-channel:hover {
   color: #92400e;
 }
 
-.help-guide__preview {
-  padding: 1rem;
-  border-top: 1px solid #e8ecf1;
-  background: #fafbfc;
+/* Captura real PdP (sin doble marco) */
+.help-pdp-screen {
+  margin: 0;
+  max-width: 20rem;
+  margin-inline: auto;
 }
 
-@media (min-width: 768px) {
-  .help-guide__preview {
-    border-top: none;
-    border-left: 1px solid #e8ecf1;
-    position: sticky;
-    top: 4.5rem;
-    align-self: start;
+@media (min-width: 640px) {
+  .help-pdp-screen {
+    max-width: 17.5rem;
   }
 }
 
-.help-guide__preview-label {
-  margin: 0 0 0.5rem;
-  font-size: 0.62rem;
+.help-pdp-screen__frame {
+  position: relative;
+  border-radius: 0.65rem;
+  overflow: hidden;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.06),
+    0 12px 32px rgba(15, 23, 42, 0.12);
+  background: #0f172a;
+}
+
+.help-pdp-screen__label {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 1;
+  padding: 0.2rem 0.45rem;
+  border-radius: 0.3rem;
+  background: rgba(15, 39, 66, 0.75);
+  font-size: 0.58rem;
   font-weight: 800;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #94a3b8;
+  color: #fff;
 }
 
-.help-guide__shot {
-  margin: 0;
-}
-
-.help-guide__phone {
-  padding: 0.3rem;
-  border-radius: 0.85rem;
-  background: #1e293b;
-}
-
-.help-guide__phone img {
+.help-pdp-screen__frame img {
   display: block;
   width: 100%;
   height: auto;
-  max-height: 14rem;
-  object-fit: contain;
-  object-position: top center;
-  border-radius: 0.65rem;
-  background: #f8fafc;
+  vertical-align: top;
 }
 
-.help-guide__shot figcaption {
-  margin-top: 0.4rem;
-  font-size: 0.68rem;
-  line-height: 1.35;
-  color: #94a3b8;
+.help-pdp-screen figcaption {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: #64748b;
+  text-align: center;
+}
+
+.help-guide__hero-shot .help-pdp-screen {
+  max-width: min(100%, 18rem);
+}
+
+@media (min-width: 900px) {
+  .help-guide__hero-shot .help-pdp-screen {
+    max-width: 16.5rem;
+  }
 }
 
 .help-guide__actions {

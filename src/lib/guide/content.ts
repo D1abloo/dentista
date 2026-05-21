@@ -26,19 +26,23 @@ export const patientGuideSections: GuideSection[] = [
     steps: [
       {
         title: 'Regístrate como paciente',
-        detail: 'En /registro-paciente completa nombre, DNI, email, teléfono, clínica y contraseña. Es obligatorio para reservar citas online.'
+        detail: 'En /registro-paciente: nombre, DNI, email, teléfono, clínica y contraseña.',
+        shot: 'pdp-inicio'
       },
       {
         title: 'Activa tu cuenta por correo',
-        detail: 'Abre el email «Activa tu cuenta» y pulsa el enlace. Sin activación no podrás iniciar sesión.'
+        detail: 'Abre el email «Activa tu cuenta» (48 h). Sin activación no podrás entrar.',
+        shot: 'pdp-inicio'
       },
       {
         title: 'Inicia sesión',
-        detail: 'En /login introduce email y contraseña. El sistema te abre el portal del paciente automáticamente.'
+        detail: 'En /login introduce email y contraseña. Te lleva al portal automáticamente.',
+        shot: 'pdp-inicio'
       },
       {
         title: 'Revisa el inicio',
-        detail: 'En Inicio aparecen citas próximas, facturas pendientes, informes recientes y mensajes sin leer.'
+        detail: 'Citas próximas, facturas, informes y mensajes en un solo panel.',
+        shot: 'pdp-inicio'
       }
     ],
     tips: ['Guarda la web en la pantalla de inicio del móvil para abrirla como una app.', 'Cierra sesión en tablets compartidas de la clínica.'],
@@ -65,15 +69,18 @@ export const patientGuideSections: GuideSection[] = [
     steps: [
       {
         title: 'Abre Mis citas',
-        detail: 'En el menú inferior o lateral entra en Mis citas. Las próximas aparecen primero; el historial queda al final.'
+        detail: 'Menú → Mis citas. Próximas arriba; historial abajo.',
+        shot: 'pdp-citas'
       },
       {
         title: 'Interpreta el estado',
-        detail: 'Confirmada: asiste en la hora indicada. Pendiente: espera confirmación de la clínica. Cancelada: ya no está activa.'
+        detail: 'Confirmada · Pendiente · Cancelada — cada tarjeta lo indica con color.',
+        shot: 'pdp-citas'
       },
       {
         title: 'Reserva un nuevo hueco',
-        detail: 'Usa Reservar en el menú para elegir clínica, tratamiento, dentista y franja libre en el calendario.'
+        detail: 'Desde Reservar eliges tratamiento, dentista y hora libre.',
+        shot: 'pdp-inicio'
       }
     ],
     warnings: ['La cancelación online puede tener plazo mínimo (p. ej. 24 h); revisa la normativa de tu clínica.']
@@ -92,18 +99,9 @@ export const patientGuideSections: GuideSection[] = [
       }
     ],
     steps: [
-      {
-        title: 'Entra en Informes',
-        detail: 'Solo verás documentos que tu clínica haya marcado como visibles para ti.'
-      },
-      {
-        title: 'Abre la vista previa',
-        detail: 'Pulsa el informe para leerlo en el navegador o descargarlo según tu dispositivo.'
-      },
-      {
-        title: 'Consulta el historial',
-        detail: 'Los más recientes aparecen arriba; usa la búsqueda si tienes muchos registros.'
-      }
+      { title: 'Entra en Informes', detail: 'Solo lo publicado por tu clínica.', shot: 'pdp-informes' },
+      { title: 'Abre el PDF', detail: 'Pulsa el informe para leer o descargar.', shot: 'pdp-informes' },
+      { title: 'Historial', detail: 'Los más recientes aparecen primero.', shot: 'pdp-informes' }
     ],
     tips: ['Descarga copias importantes para tu archivo personal si lo necesitas.']
   },
@@ -121,18 +119,9 @@ export const patientGuideSections: GuideSection[] = [
       }
     ],
     steps: [
-      {
-        title: 'Abre Documentos',
-        detail: 'Filtra mentalmente por tipo: las RX suelen ir en categoría radiografía.'
-      },
-      {
-        title: 'Visualiza el archivo',
-        detail: 'Toca el documento para ampliar. En móvil puedes compartir o guardar con las opciones del sistema.'
-      },
-      {
-        title: 'Revisa novedades desde Inicio',
-        detail: 'El panel de inicio avisa cuando hay documentos nuevos desde tu última visita.'
-      }
+      { title: 'Abre Documentos', detail: 'RX, fotos y archivos de tu ficha.', shot: 'pdp-documentos' },
+      { title: 'Visualiza el archivo', detail: 'Toca para ampliar o compartir.', shot: 'pdp-documentos' },
+      { title: 'Novedades en Inicio', detail: 'El inicio avisa si hay archivos nuevos.', shot: 'pdp-inicio' }
     ]
   },
   {
@@ -154,18 +143,9 @@ export const patientGuideSections: GuideSection[] = [
       }
     ],
     steps: [
-      {
-        title: 'Revisa Facturas',
-        detail: 'Pendiente: aún no cobrada. Pagada: liquidada. Vencida: requiere atención; contacta con recepción.'
-      },
-      {
-        title: 'Descarga el PDF',
-        detail: 'Cada factura incluye datos fiscales de la clínica y desglose de conceptos.'
-      },
-      {
-        title: 'Consulta Pagos',
-        detail: 'En Pagos verás el historial de cobros y su relación con la factura correspondiente.'
-      }
+      { title: 'Revisa Facturas', detail: 'Estado, importe y PDF de cada FAC-XXXX.', shot: 'pdp-facturas' },
+      { title: 'Descarga el PDF', detail: 'Datos fiscales y conceptos en el documento.', shot: 'pdp-facturas' },
+      { title: 'Consulta Pagos', detail: 'Historial PAG-XXXX vinculado a facturas.', shot: 'pdp-pagos' }
     ],
     warnings: ['Los pagos online solo aparecen si tu clínica los tiene activados.']
   },
@@ -177,20 +157,19 @@ export const patientGuideSections: GuideSection[] = [
     audience: 'Pacientes con consentimientos asignados por la clínica.',
     screenshots: [
       {
+        src: mobile('pdp-consentimientos'),
+        alt: 'Consentimientos informados en el portal',
+        caption: 'Lista de consentimientos pendientes y firmados.'
+      },
+      {
         src: mobile('pdp-inicio'),
-        alt: 'Aviso de consentimiento pendiente',
-        caption: 'El inicio puede mostrar alertas de documentos por firmar.'
+        alt: 'Aviso en inicio',
+        caption: 'El inicio puede avisar de documentos por firmar.'
       }
     ],
     steps: [
-      {
-        title: 'Entra en Consentimientos',
-        detail: 'Los pendientes se destacan; léelos completos antes de aceptar.'
-      },
-      {
-        title: 'Firma o rechaza',
-        detail: 'Tu decisión queda registrada con fecha y hora. Si tienes dudas, contacta con la clínica antes de firmar.'
-      }
+      { title: 'Abre Consentimientos', detail: 'Pendientes destacados en la lista.', shot: 'pdp-consentimientos' },
+      { title: 'Firma o rechaza', detail: 'Queda registrado con fecha y hora.', shot: 'pdp-consentimientos' }
     ],
     tips: ['Puedes descargar una copia del consentimiento firmado si la clínica lo habilita.']
   }

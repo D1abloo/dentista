@@ -7,6 +7,8 @@ export type GuideScreenshot = {
 export type GuideStep = {
   title: string;
   detail: string;
+  /** Escena capturada del PdP/admin, p. ej. `pdp-inicio` → /images/guides/mobile/pdp-inicio.png */
+  shot?: string;
 };
 
 export type GuideSection = {
