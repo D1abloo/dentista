@@ -252,7 +252,7 @@ export function AdminShell({
             </button>
           </div>
         </header>
-        <main className="portal-body portal-body--admin">{children}</main>
+        <main className="portal-body portal-body--corp portal-body--admin">{children}</main>
       </div>
     </div>
   );

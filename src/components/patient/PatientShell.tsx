@@ -19,24 +19,28 @@ function Rail({
 }: {
   nav: NavItem[];
   path: string;
-  patient: { fullName: string; dni?: string };
+  patient: { fullName: string; dni?: string; nhc?: string };
   onNav: (href: string, label: string) => void;
   onLogout: () => void;
   variant: 'drawer' | 'rail';
 }) {
   const cls =
     variant === 'drawer'
-      ? 'portal-rail portal-rail--patient fixed z-50 flex lg:hidden'
+      ? 'portal-rail portal-rail--patient portal-rail--drawer fixed z-50 flex lg:hidden'
       : 'portal-rail portal-rail--patient';
   return (
     <aside className={cls}>
-      <a href="/paciente" className="mb-6 flex items-center gap-2 px-2 no-underline">
-        <LogoMark size={36} />
-        <span className="font-[family-name:var(--display)] text-[var(--navy)]">Dentista+</span>
+      <a href="/paciente" className="corp-rail-brand no-underline">
+        <LogoMark size={40} />
+        <span>
+          <span className="corp-rail-brand__name">Dentista+</span>
+          <span className="corp-rail-brand__role">Portal paciente</span>
+        </span>
       </a>
-      <div className="mb-4 rounded-xl bg-[#f0fdfa] p-3">
+      <div className="corp-rail-user corp-rail-user--patient">
         <PatientIdentity patient={patient} size="sm" />
       </div>
+      <p className="corp-rail-nav-label">Tu espacio</p>
       <nav className="flex-1 overflow-y-auto">
         {nav.map((item) => {
           const active = path === item.href || (item.href !== '/paciente' && path.startsWith(item.href));
@@ -53,9 +57,15 @@ function Rail({
           );
         })}
       </nav>
-      <button type="button" className="rail-link mt-2 w-full border-0 bg-transparent" onClick={onLogout}>
-        <LogOut className="h-4 w-4" /> Salir
-      </button>
+      <div className="corp-rail-footer">
+        <button
+          type="button"
+          className="rail-link corp-rail-logout--patient mt-0 w-full border-0 bg-transparent"
+          onClick={onLogout}
+        >
+          <LogOut className="h-4 w-4" /> Salir
+        </button>
+      </div>
     </aside>
   );
 }
@@ -79,25 +89,31 @@ export function PatientShell({ title, nav, children }: { title: string; nav: Nav
     <div className="portal portal--patient">
       <Rail nav={nav} path={path} patient={patient} onNav={onNav} onLogout={logout} variant="rail" />
       {open ? (
-        <div className="fixed inset-0 z-50 bg-black/40 lg:hidden" onClick={close}>
+        <div className="portal-drawer-backdrop lg:hidden" role="presentation" onClick={close}>
           <div onClick={(e) => e.stopPropagation()}>
             <Rail nav={nav} path={path} patient={patient} onNav={onNav} onLogout={logout} variant="drawer" />
           </div>
         </div>
       ) : null}
       <div className="portal-main">
-        <header className="portal-top">
-          <div className="portal-top__intro">
-            <h1 className="portal-top__title">{title}</h1>
-            <PatientIdentity patient={patient} size="sm" />
+        <header className="portal-top portal-top--patient patient-topbar">
+          <div className="patient-topbar__brand">
+            <span className="patient-topbar__accent" aria-hidden />
+            <div className="min-w-0">
+              <h1 className="patient-topbar__title">{title}</h1>
+              <PatientIdentity patient={patient} size="sm" className="patient-topbar__identity" />
+            </div>
           </div>
           <button type="button" className="pub-menu-btn lg:hidden" onClick={() => setOpen(true)} aria-label="Menú">
             <Menu className="h-5 w-5" />
           </button>
         </header>
-        <main className="portal-body">
+        <main className="portal-body portal-body--corp portal-body--patient">
           {portalAccess.active ? (
-            <div className="banner-alert mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-950" role="status">
+            <div
+              className="banner-alert mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-950"
+              role="status"
+            >
               <p className="m-0">
                 Acceso clínico autorizado — {portalAccess.patientName ?? 'paciente'}.
               </p>
