@@ -3,7 +3,7 @@ export function LogoMark({ size = 44, className = '' }: { size?: number; classNa
     <span className={`brand-logo-shine ${className}`} style={{ width: size, height: size }}>
       <img
         src="/brand/dentista-logo.svg"
-        alt=""
+        alt="Dentista+"
         width={size}
         height={size}
         className="brand-logo-shine__img"

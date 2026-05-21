@@ -4892,6 +4892,120 @@ a.cp-channel:hover {
   padding-bottom: 3rem;
 }
 
+.help-center__quick {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 42rem;
+  margin: 1.75rem auto 0;
+  text-align: left;
+}
+
+@media (min-width: 640px) {
+  .help-center__quick {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 52rem;
+  }
+}
+
+.help-center__quick-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--navy);
+  font-size: 0.88rem;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.help-center__quick-card:hover {
+  border-color: rgba(14, 165, 233, 0.45);
+  transform: translateY(-1px);
+}
+
+.help-center__quick-card strong {
+  display: block;
+  font-weight: 800;
+}
+
+.help-center__quick-card small {
+  display: block;
+  margin-top: 0.1rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.help-center__quick-card > span {
+  flex: 1;
+  min-width: 0;
+}
+
+.help-center__quick-card--muted {
+  background: rgba(248, 250, 252, 0.9);
+}
+
+.lp-help {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .lp-help {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.lp-help__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 1.5rem;
+  border-radius: 1.25rem;
+  border: 1px solid var(--line);
+  background: #fff;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+}
+
+.lp-help__card--featured {
+  border-color: rgba(14, 165, 233, 0.35);
+  background: linear-gradient(160deg, #fff 0%, rgba(224, 242, 254, 0.65) 100%);
+  box-shadow: 0 12px 36px rgba(37, 99, 235, 0.12);
+}
+
+.lp-help__card h3 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 1.15rem;
+  color: var(--navy);
+}
+
+.lp-help__card p {
+  margin: 0;
+  flex: 1;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.lp-help__card .btn {
+  align-self: flex-start;
+  margin-top: 0.35rem;
+}
+
+.lp-help__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.85rem;
+  background: linear-gradient(135deg, #0ea5e9, #2563eb);
+  color: #fff;
+}
+
 .platform-inspect-banner {
   position: sticky;
   top: 0;

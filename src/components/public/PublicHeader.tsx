@@ -7,6 +7,7 @@ const links = [
   { href: '/#caracteristicas', label: 'Características' },
   { href: '/registro-clinica', label: 'Registrar clínica' },
   { href: '/#precios', label: 'Precios' },
+  { href: '/ayuda', label: 'Ayuda' },
   { href: '/contacto', label: 'Contacto' }
 ];
 

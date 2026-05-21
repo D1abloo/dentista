@@ -4,13 +4,13 @@ import { Logo } from '@/components/brand/Logo';
 const product = [
   { href: '/#caracteristicas', label: 'Características' },
   { href: '/reserva', label: 'Reservar cita' },
+  { href: '/ayuda', label: 'Centro de ayuda' },
   { href: '/login', label: 'Acceso pacientes y clínicas' }
 ];
 
 const company = [
   { href: '/contacto', label: 'Contacto' },
-  { href: '/ayuda#panel-admin', label: 'Guía panel clínica' },
-  { href: '/ayuda#portal-paciente', label: 'Guía portal paciente' },
+  { href: '/ayuda', label: 'Tutoriales y guías' },
   { href: '/registro-clinica', label: 'Registrar clínica' },
   { href: '/#precios', label: 'Precios' }
 ];

@@ -7,6 +7,7 @@ import {
   ChevronRight,
   CreditCard,
   FileText,
+  BookOpen,
   LogIn,
   Receipt,
   Shield,
@@ -109,6 +110,10 @@ export function LandingPage() {
                 <a href="/login" className="btn btn--outline btn--lg">
                   <LogIn className="h-5 w-5" aria-hidden />
                   Iniciar sesión
+                </a>
+                <a href="/ayuda" className="btn btn--ghost btn--lg">
+                  <BookOpen className="h-5 w-5" aria-hidden />
+                  Centro de ayuda
                 </a>
               </div>
               <p className="lp-trust">
@@ -298,6 +303,48 @@ export function LandingPage() {
                 </article>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section id="ayuda" className="lp-section lp-section--alt shell">
+          <header className="lp-section__head">
+            <h2>¿Necesitas ayuda?</h2>
+            <p>Tutoriales paso a paso con capturas para pacientes y equipos de clínica</p>
+          </header>
+          <div className="lp-help">
+            <article className="lp-help__card">
+              <span className="lp-help__icon">
+                <Smartphone className="h-6 w-6" aria-hidden />
+              </span>
+              <h3>Portal del paciente</h3>
+              <p>Citas, informes, documentos, facturas y acceso seguro desde el móvil o el ordenador.</p>
+              <a href="/ayuda#portal-paciente" className="btn btn--outline btn--sm">
+                Ver guía paciente
+                <ChevronRight className="h-4 w-4" aria-hidden />
+              </a>
+            </article>
+            <article className="lp-help__card lp-help__card--featured">
+              <span className="lp-help__icon">
+                <Building2 className="h-6 w-6" aria-hidden />
+              </span>
+              <h3>Panel de la clínica</h3>
+              <p>Agenda, pacientes, informes, facturación y acceso supervisado al portal del paciente.</p>
+              <a href="/ayuda#panel-admin" className="btn btn--primary btn--sm">
+                Ver guía clínica
+                <ChevronRight className="h-4 w-4" aria-hidden />
+              </a>
+            </article>
+            <article className="lp-help__card">
+              <span className="lp-help__icon">
+                <BookOpen className="h-6 w-6" aria-hidden />
+              </span>
+              <h3>Centro de ayuda</h3>
+              <p>Todas las guías en un solo lugar: elige tu rol y consulta cada sección con imágenes.</p>
+              <a href="/ayuda" className="btn btn--outline btn--sm">
+                Abrir ayuda
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </a>
+            </article>
           </div>
         </section>
 

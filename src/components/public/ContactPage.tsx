@@ -103,7 +103,7 @@ const contactChannels: ContactChannel[] = [
     title: 'Centro de ayuda',
     value: 'Explora guías y respuestas',
     sub: 'Ir al centro de ayuda →',
-    href: '/documentacion'
+    href: '/ayuda'
   }
 ];
 

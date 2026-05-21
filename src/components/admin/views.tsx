@@ -90,7 +90,7 @@ export function AdminDashboard() {
   return (
     <div className="space-y-5">
       <p className="admin-intro">
-        Resumen de actividad de tu organización. Consulta la <a href="/admin/ayuda">guía de uso</a> para el panel y el portal del paciente.
+        Resumen de actividad de tu organización. Consulta la <a href="/ayuda#panel-admin">guía de uso</a> para el panel y el portal del paciente.
       </p>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
