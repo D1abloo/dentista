@@ -181,20 +181,30 @@ export async function logPortalAccessAudit(input: {
   pagePath?: string;
   resourceLabel?: string;
   resourceId?: string;
+  accessRole?: string | null;
+  actorEmail?: string | null;
   meta?: Record<string, unknown>;
 }) {
   const db = requireDb();
+  const meta = {
+    ...(input.meta ?? {}),
+    ...(input.accessRole ? { access_role: input.accessRole } : {}),
+    ...(input.actorEmail ? { actor_email: input.actorEmail } : {})
+  };
   await db.from('patient_portal_access_audit').insert({
     token_id: input.tokenId ?? null,
     clinic_id: input.clinicId ?? null,
     tenant_id: input.tenantId ?? null,
-    staff_profile_id: input.staffProfileId ?? null,
+    staff_profile_id:
+      input.staffProfileId && input.staffProfileId !== 'platform-inspect' ? input.staffProfileId : null,
     patient_id: input.patientId ?? null,
     event_type: input.eventType,
     page_path: input.pagePath ?? null,
     resource_label: input.resourceLabel ?? null,
     resource_id: input.resourceId ?? null,
-    meta: input.meta ?? {}
+    access_role: input.accessRole ?? (meta.access_role as string | undefined) ?? null,
+    actor_email: input.actorEmail ?? (meta.actor_email as string | undefined) ?? null,
+    meta
   });
 }
 

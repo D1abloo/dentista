@@ -75,7 +75,7 @@ const nav = [
   { href: '/paciente/mensajes', label: 'Mensajes', icon: MessageSquare },
   { href: '/paciente/consentimientos', label: 'Consentimientos', icon: FileSignature },
   { href: '/paciente/perfil', label: 'Perfil', icon: User },
-  { href: '/paciente/ayuda', label: 'Ayuda', icon: HelpCircle }
+  { href: '/ayuda#portal-paciente', label: 'Ayuda', icon: HelpCircle }
 ];
 
 function Body({ view }: { view: PatientView }) {

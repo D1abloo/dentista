@@ -129,7 +129,7 @@ export function PlatformUsers() {
         type: 'ok',
         message:
           json.meta?.message ??
-          `Usuario creado. ${json.data?.emailSent ? 'Credenciales enviadas por email.' : 'Configura SMTP para enviar el correo.'}`
+          `Usuario creado. ${json.data?.emailSent ? 'Credenciales enviadas por email.' : 'No se pudo enviar el correo; revisa la configuración de envío.'}`
       });
       setForm((f) => ({ ...f, fullName: '', email: '' }));
       await loadUsers(clinicFilter || undefined);

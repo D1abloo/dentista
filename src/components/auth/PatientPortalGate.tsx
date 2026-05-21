@@ -1,12 +1,12 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { clearDemoSession } from '@/lib/demoStore';
-import { resolvePortalRole } from '@/lib/session';
 import { Restricted } from './Restricted';
 import type { DemoRole } from '@/types/demo';
 
 export function PatientPortalGate({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [staffView, setStaffView] = useState(false);
+  const [inspectBanner, setInspectBanner] = useState(false);
   const [current, setCurrent] = useState<DemoRole | null>(null);
 
   useEffect(() => {
@@ -25,11 +25,49 @@ export function PatientPortalGate({ children }: { children: ReactNode }) {
       } catch {
         /* ignore */
       }
-      const resolved = await resolvePortalRole();
-      if (!cancelled) {
-        setStaffView(false);
-        setCurrent(resolved);
-        setReady(true);
+      try {
+        const meRes = await fetch('/api/auth/me', { credentials: 'include' });
+        const meJson = (await meRes.json()) as {
+          data?: { role?: string; platformInspect?: boolean; inspectMode?: string };
+        };
+        if (meJson.data?.platformInspect && meJson.data.inspectMode === 'patient_portal') {
+          if (!cancelled) {
+            setStaffView(true);
+            setInspectBanner(true);
+            setCurrent('paciente');
+            setReady(true);
+          }
+          return;
+        }
+        if (meJson.data?.role === 'super_admin') {
+          if (!cancelled) {
+            setStaffView(true);
+            setCurrent('paciente');
+            setReady(true);
+          }
+          return;
+        }
+      } catch {
+        /* ignore */
+      }
+      try {
+        const meRes = await fetch('/api/auth/me', { credentials: 'include' });
+        const meJson = (await meRes.json()) as { data?: { role?: string } };
+        const role = meJson.data?.role;
+        if (!cancelled) {
+          setStaffView(false);
+          setInspectBanner(false);
+          if (role === 'patient') setCurrent('paciente');
+          else if (role === 'admin') setCurrent('admin');
+          else setCurrent(null);
+          setReady(true);
+        }
+      } catch {
+        if (!cancelled) {
+          setStaffView(false);
+          setCurrent(null);
+          setReady(true);
+        }
       }
     };
     void sync();
@@ -49,7 +87,19 @@ export function PatientPortalGate({ children }: { children: ReactNode }) {
     );
   }
 
-  if (staffView) return <>{children}</>;
+  if (staffView) {
+    return (
+      <>
+        {inspectBanner ? (
+          <div className="platform-inspect-banner platform-inspect-banner--patient" role="status">
+            <strong>Revisión PdP (plataforma)</strong> — Quedan registrados usuario, rol, fecha/hora y clics.{' '}
+            <a href="/platform/incidencias">Salir de inspección</a>
+          </div>
+        ) : null}
+        {children}
+      </>
+    );
+  }
 
   if (current !== 'paciente') {
     return <Restricted expected="paciente" current={current} live />;

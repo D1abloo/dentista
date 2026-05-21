@@ -180,7 +180,7 @@ export function PlatformRegistrations() {
     });
     setMsg(
       decision === 'approved'
-        ? 'Organización aprobada. Se ha enviado un email al responsable con usuario y contraseña temporal (debe cambiarla en el primer acceso).'
+        ? 'Organización aprobada. Se ha enviado un correo al responsable con usuario y contraseña temporal (debe cambiarla en el primer acceso).'
         : 'Solicitud rechazada.'
     );
     await load();

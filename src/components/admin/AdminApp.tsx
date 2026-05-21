@@ -26,7 +26,6 @@ import {
 } from './views';
 import { AdminConsents } from './consents';
 import { AdminPortalAccess } from './portalAccess';
-import { AdminGuide } from './AdminGuide';
 
 function Body({ view, patientId }: { view: AdminView; patientId?: string }) {
   if (patientId && view === 'pacientes') {
@@ -61,8 +60,6 @@ function Body({ view, patientId }: { view: AdminView; patientId?: string }) {
       return <AdminConfig />;
     case 'acceso-portal':
       return <AdminPortalAccess />;
-    case 'ayuda':
-      return <AdminGuide />;
     case 'consentimientos':
       return <AdminConsents />;
     default:

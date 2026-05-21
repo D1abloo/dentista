@@ -9,8 +9,8 @@ const product = [
 
 const company = [
   { href: '/contacto', label: 'Contacto' },
-  { href: '/admin/ayuda', label: 'Guía panel clínica' },
-  { href: '/paciente/ayuda', label: 'Guía portal paciente' },
+  { href: '/ayuda#panel-admin', label: 'Guía panel clínica' },
+  { href: '/ayuda#portal-paciente', label: 'Guía portal paciente' },
   { href: '/registro-clinica', label: 'Registrar clínica' },
   { href: '/#precios', label: 'Precios' }
 ];

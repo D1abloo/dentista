@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { loadClinicDemoState } from '@/lib/bootstrap/clinicState';
-import { requireSession } from '@/lib/api/guards';
+import { getEffectiveSessionUser } from '@/lib/auth';
 import { fail, ok } from '@/lib/http';
 import { logError } from '@/lib/logger';
 import { hasSupabaseConfig } from '@/lib/supabaseServer';
@@ -12,19 +12,19 @@ export const GET: APIRoute = async (context) => {
     return fail('Servicio no disponible.', 503);
   }
 
-  const gate = requireSession(context);
-  if (gate.response) return gate.response;
-  if (gate.user.role === 'super_admin') {
+  const user = getEffectiveSessionUser(context.cookies);
+  if (!user) return fail('No autenticado.', 401);
+  if (user.role === 'super_admin' && !user.platformInspect) {
     return fail('Usa el panel /platform para administración global.', 400);
   }
-  if (!gate.user.clinicId) {
+  if (!user.clinicId) {
     return fail('Sesión sin clínica asignada.', 403);
   }
 
   try {
-    const state = await loadClinicDemoState(gate.user);
+    const state = await loadClinicDemoState(user);
     return ok(
-      { state, tenantId: gate.user.tenantId ?? gate.user.clinicId, clinicId: gate.user.clinicId },
+      { state, tenantId: user.tenantId ?? user.clinicId, clinicId: user.clinicId, platformInspect: user.platformInspect ?? false },
       { source: 'supabase' }
     );
   } catch (error) {

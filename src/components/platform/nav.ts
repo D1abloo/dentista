@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   LifeBuoy,
   Lock,
+  Eye,
   Settings,
   ShieldCheck,
   Users
@@ -39,6 +40,7 @@ export const platformNavSections: PlatformNavSection[] = [
       { href: '/platform/organizaciones', label: 'Organizaciones', icon: Building2, description: 'Multi-sede por tenant' },
       { href: '/platform/clinicas', label: 'Clínicas', icon: Building2, description: 'Estado, plan y suspensión' },
       { href: '/platform/usuarios', label: 'Usuarios', icon: Users, description: 'Alta de personal y pacientes por clínica' },
+      { href: '/platform/incidencias', label: 'Incidencias', icon: Eye, description: 'Revisar panel clínica y PdP con auditoría' },
       { href: '/platform/aislamiento', label: 'Aislamiento', icon: Lock, description: 'Política multi-tenant' }
     ]
   },

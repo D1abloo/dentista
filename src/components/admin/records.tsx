@@ -522,7 +522,7 @@ export function AdminPayments() {
         });
       }
       await refresh();
-      setNotice({ type: 'ok', message: 'Pago registrado en Supabase.' });
+      setNotice({ type: 'ok', message: 'Pago registrado correctamente.' });
       return;
     }
     commit(

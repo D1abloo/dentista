@@ -1,5 +1,5 @@
 import type { APIContext } from 'astro';
-import { getSessionUser, type SessionUser } from '@/lib/auth';
+import { getEffectiveSessionUser, getSessionUser, type SessionUser } from '@/lib/auth';
 import { fail } from '@/lib/http';
 import { clinicBelongsToTenant } from '@/lib/services/branches';
 
@@ -12,16 +12,20 @@ export function requireSession(context: APIContext) {
 }
 
 export function requireStaffSession(context: APIContext) {
-  const gate = requireSession(context);
-  if (gate.response) return gate;
-  const role = gate.user.staffRole ?? gate.user.role;
-  if (!STAFF_ROLES.has(role) && gate.user.role !== 'admin') {
+  const user = getEffectiveSessionUser(context.cookies);
+  if (!user) return { user: null as null, response: fail('No autenticado.', 401) };
+  const role = user.staffRole ?? user.role;
+  if (user.platformInspect && user.inspectMode === 'clinic_admin') {
+    if (!user.clinicId) return { user: null as null, response: fail('Inspección sin clínica.', 403) };
+    return { user, response: null as null };
+  }
+  if (!STAFF_ROLES.has(role) && user.role !== 'admin') {
     return { user: null as null, response: fail('Se requiere acceso de personal de clínica.', 403) };
   }
-  if (!gate.user.tenantId && !gate.user.clinicId) {
+  if (!user.tenantId && !user.clinicId) {
     return { user: null as null, response: fail('Sesión sin organización asignada.', 403) };
   }
-  return gate;
+  return { user, response: null as null };
 }
 
 /** Impide acceder a datos de otra clínica (misma organización / tenant permitido). */

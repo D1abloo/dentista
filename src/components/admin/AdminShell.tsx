@@ -10,11 +10,21 @@ import { GlobalIdSearch } from '@/components/shared/GlobalIdSearch';
 import { adminNav } from './nav';
 import { ClinicBranchSwitcher } from './ClinicBranchSwitcher';
 
+function logInspectNav(href: string, label: string) {
+  void fetch('/api/platform/inspect', {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ eventType: 'nav_click', pagePath: href, resourceLabel: label })
+  });
+}
+
 function AdminRail({
   path,
   tenant,
   userLabel,
   clinicLogoUrl,
+  platformInspect,
   onNav,
   onLogout,
   variant
@@ -23,6 +33,7 @@ function AdminRail({
   tenant: { id: string; name: string; subtitle: string };
   userLabel: string;
   clinicLogoUrl: string;
+  platformInspect: boolean;
   onNav: () => void;
   onLogout: () => void;
   variant: 'drawer' | 'rail';
@@ -49,7 +60,10 @@ function AdminRail({
             <a
               key={item.href}
               href={item.href}
-              onClick={onNav}
+              onClick={() => {
+                if (platformInspect) logInspectNav(item.href, item.label);
+                onNav();
+              }}
               className={`rail-link rail-link--admin ${active ? 'rail-link--active' : ''}`}
             >
               <item.icon className="h-4 w-4" />
@@ -83,6 +97,7 @@ export function AdminShell({
   const scope = useTenant();
   const { state } = useDemoStore();
   const [sessionName, setSessionName] = useState('');
+  const [platformInspect, setPlatformInspect] = useState(false);
   const orgName = organizationDisplayName(state, scope.tenantId);
   const clinicLogoUrl = settingsFor(state, scope.tenantId).logoUrl ?? '/brand/dentista-logo.svg';
   const tenant = {
@@ -96,9 +111,10 @@ export function AdminShell({
   useEffect(() => {
     void fetch('/api/auth/me', { credentials: 'include' })
       .then((r) => r.json())
-      .then((j: { data?: { name?: string; email?: string } }) => {
+      .then((j: { data?: { name?: string; email?: string; platformInspect?: boolean; inspectMode?: string } }) => {
         if (j.data?.name) setSessionName(j.data.name);
         else if (j.data?.email) setSessionName(j.data.email);
+        setPlatformInspect(Boolean(j.data?.platformInspect && j.data?.inspectMode === 'clinic_admin'));
       })
       .catch(() => undefined);
   }, []);
@@ -111,11 +127,18 @@ export function AdminShell({
 
   return (
     <div className="portal portal--admin">
+      {platformInspect ? (
+        <div className="platform-inspect-banner" role="status">
+          <strong>Revisión de plataforma</strong> — Quedan registrados usuario, rol, fecha/hora y clics.{' '}
+          <a href="/platform/incidencias">Volver a plataforma</a>
+        </div>
+      ) : null}
       <AdminRail
         path={path}
         tenant={tenant}
         userLabel={userLabel}
         clinicLogoUrl={clinicLogoUrl}
+        platformInspect={platformInspect}
         onNav={close}
         onLogout={logout}
         variant="rail"
@@ -133,6 +156,7 @@ export function AdminShell({
               tenant={tenant}
               userLabel={userLabel}
               clinicLogoUrl={clinicLogoUrl}
+              platformInspect={platformInspect}
               onNav={close}
               onLogout={logout}
               variant="drawer"

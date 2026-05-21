@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { loginAutoDetect } from '@/lib/auth/loginAuto';
+import { getPlatformInspectSession } from '@/lib/auth/platformInspect';
 import { loginWithSupabaseProfile } from '@/lib/auth/productionLogin';
 import { hasSupabaseConfig, isDemoMode } from '@/lib/supabaseServer';
 import type { PlatformRole } from '@/lib/platform/types';
@@ -19,6 +20,10 @@ export interface SessionUser {
   mustChangePassword?: boolean;
   passwordExpired?: boolean;
   expiresAt: number;
+  /** Super admin revisando panel clínica o PdP (auditoría) */
+  platformInspect?: boolean;
+  inspectMode?: 'clinic_admin' | 'patient_portal';
+  inspectAccessRole?: string;
 }
 
 interface CookieReader {
@@ -88,6 +93,39 @@ export function parseSessionToken(token: string | undefined): SessionUser | null
 
 export function getSessionUser(cookies: CookieReader) {
   return parseSessionToken(cookies.get(sessionCookieName)?.value);
+}
+
+/** Sesión efectiva: super admin en modo inspección actúa como admin de la clínica indicada. */
+export function getEffectiveSessionUser(cookies: CookieReader): SessionUser | null {
+  const user = getSessionUser(cookies);
+  if (!user) return null;
+  if (user.role !== 'super_admin') return user;
+
+  const inspect = getPlatformInspectSession(cookies);
+  if (!inspect) return user;
+
+  if (inspect.mode === 'clinic_admin') {
+    return {
+      ...user,
+      role: 'admin',
+      clinicId: inspect.clinicId,
+      tenantId: inspect.tenantId,
+      staffRole: 'super_admin',
+      platformInspect: true,
+      inspectMode: 'clinic_admin',
+      inspectAccessRole: inspect.accessRole
+    };
+  }
+
+  return {
+    ...user,
+    platformInspect: true,
+    inspectMode: 'patient_portal',
+    inspectAccessRole: inspect.accessRole,
+    clinicId: inspect.clinicId,
+    tenantId: inspect.tenantId,
+    patientId: inspect.patientId
+  };
 }
 
 /** Solo disponible con PUBLIC_DEMO_MODE=true */

@@ -1,9 +1,21 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { isClientDemoMode } from '@/lib/appMode';
 import { clearDemoSession } from '@/lib/demoStore';
-import { logoutSession, resolvePortalRole } from '@/lib/session';
+import { logoutSession } from '@/lib/session';
 import { Restricted } from './Restricted';
 import type { DemoRole } from '@/types/demo';
+
+type MeUser = {
+  role: string;
+  platformInspect?: boolean;
+  inspectMode?: string;
+};
+
+function mapMeToPortalRole(data: MeUser): DemoRole | null {
+  if (data.role === 'patient') return 'paciente';
+  if (data.role === 'admin' || data.role === 'super_admin') return 'admin';
+  return null;
+}
 
 export function RoleGate({ role, children }: { role: DemoRole; children: ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -15,10 +27,26 @@ export function RoleGate({ role, children }: { role: DemoRole; children: ReactNo
 
     const sync = async () => {
       if (live) clearDemoSession();
-      const resolved = await resolvePortalRole();
-      if (!cancelled) {
-        setCurrent(resolved);
-        setReady(true);
+      try {
+        const res = await fetch('/api/auth/me', { credentials: 'include' });
+        if (!res.ok) {
+          if (!cancelled) {
+            setCurrent(null);
+            setReady(true);
+          }
+          return;
+        }
+        const json = (await res.json()) as { data?: MeUser };
+        const data = json.data;
+        if (!cancelled) {
+          setCurrent(data ? mapMeToPortalRole(data) : null);
+          setReady(true);
+        }
+      } catch {
+        if (!cancelled) {
+          setCurrent(null);
+          setReady(true);
+        }
       }
     };
 
@@ -54,8 +82,10 @@ export function RoleGate({ role, children }: { role: DemoRole; children: ReactNo
 
 export function useLogout() {
   return () => {
-    void logoutSession().finally(() => {
-      window.location.replace('/?logged_out=1');
-    });
+    void fetch('/api/platform/inspect', { method: 'DELETE', credentials: 'include' }).finally(() =>
+      logoutSession().finally(() => {
+        window.location.replace('/?logged_out=1');
+      })
+    );
   };
 }

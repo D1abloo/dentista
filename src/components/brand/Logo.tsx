@@ -1,12 +1,14 @@
 export function LogoMark({ size = 44, className = '' }: { size?: number; className?: string }) {
   return (
-    <img
-      src="/brand/dentista-logo.svg"
-      alt=""
-      width={size}
-      height={size}
-      className={`rounded-2xl shadow-lg shadow-dental-200/70 ${className}`}
-    />
+    <span className={`brand-logo-shine ${className}`} style={{ width: size, height: size }}>
+      <img
+        src="/brand/dentista-logo.svg"
+        alt=""
+        width={size}
+        height={size}
+        className="brand-logo-shine__img"
+      />
+    </span>
   );
 }
 
@@ -23,7 +25,7 @@ export function LogoWordmark({ theme = 'light' }: { theme?: 'light' | 'dark' }) 
 
 export function Logo({ theme = 'light', size = 44 }: { theme?: 'light' | 'dark'; size?: number }) {
   return (
-    <span className="inline-flex items-center gap-3">
+    <span className="brand-logo-lockup inline-flex items-center gap-3">
       <LogoMark size={size} />
       <LogoWordmark theme={theme} />
     </span>

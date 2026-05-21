@@ -13,11 +13,15 @@ export type SessionUser = {
   patientId?: string;
   mustChangePassword?: boolean;
   passwordExpired?: boolean;
+  platformInspect?: boolean;
+  inspectMode?: 'clinic_admin' | 'patient_portal';
+  inspectAccessRole?: string;
 };
 
 function mapApiRole(role: string): DemoRole | null {
   if (role === 'admin') return 'admin';
   if (role === 'patient') return 'paciente';
+  if (role === 'super_admin') return 'admin';
   return null;
 }
 
