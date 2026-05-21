@@ -283,6 +283,21 @@ export const portalAccessExchangeSchema = z.object({
   token: z.string().min(16).max(200)
 });
 
+export const clinicUserCreateSchema = z
+  .object({
+    email: z.string().email(),
+    password: z.string().min(6).max(120),
+    fullName: z.string().min(2).max(120),
+    accessType: z.enum(['clinic', 'patient']),
+    role: z.enum(['clinic_admin', 'admin', 'owner', 'dentist', 'receptionist', 'patient']),
+    clinicId: z.string().uuid().optional(),
+    permission: z.enum(['read', 'write', 'execute']).default('write'),
+    specialty: z.string().max(80).optional()
+  })
+  .refine((d) => (d.accessType === 'patient' ? d.role === 'patient' : d.role !== 'patient'), {
+    message: 'El tipo de acceso no coincide con el rol.'
+  });
+
 export const portalAccessAuditSchema = z.object({
   eventType: z.enum(['nav_click', 'view_report', 'view_document', 'view_invoice', 'view_consent', 'other']),
   pagePath: z.string().max(300).optional(),

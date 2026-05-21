@@ -43,6 +43,8 @@ const required = [
   'src/pages/api/auth/me.ts',
   'src/pages/api/appointments.ts',
   'src/pages/api/admin/portal-access.ts',
+  'src/pages/api/clinic/users.ts',
+  'src/pages/admin/usuarios.astro',
   'src/pages/api/portal-access/exchange.ts',
   'src/pages/api/notifications/appointment.ts',
   'src/pages/api/admin/metrics.ts',

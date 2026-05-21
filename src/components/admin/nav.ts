@@ -14,6 +14,7 @@ import {
   Scale,
   Settings,
   Stethoscope,
+  UserCog,
   Users
 } from 'lucide-react';
 
@@ -33,6 +34,7 @@ export type AdminView =
   | 'normativa'
   | 'configuracion'
   | 'acceso-portal'
+  | 'usuarios'
   | 'consentimientos';
 
 export const adminNav: { href: string; label: string; icon: LucideIcon; view: AdminView }[] = [
@@ -40,6 +42,7 @@ export const adminNav: { href: string; label: string; icon: LucideIcon; view: Ad
   { href: '/admin/agenda', label: 'Agenda', icon: CalendarDays, view: 'agenda' },
   { href: '/admin/citas', label: 'Citas', icon: Calendar, view: 'citas' },
   { href: '/admin/pacientes', label: 'Pacientes', icon: Users, view: 'pacientes' },
+  { href: '/admin/usuarios', label: 'Usuarios', icon: UserCog, view: 'usuarios' },
   { href: '/admin/informes', label: 'Informes', icon: FileText, view: 'informes' },
   { href: '/admin/consentimientos', label: 'Consentimientos', icon: FileSignature, view: 'consentimientos' },
   { href: '/admin/documentos', label: 'Documentos', icon: FileStack, view: 'documentos' },
@@ -70,6 +73,7 @@ export const adminTitles: Record<AdminView, string> = {
   normativa: 'Normativa',
   configuracion: 'Configuración',
   'acceso-portal': 'Acceso al portal del paciente',
+  usuarios: 'Usuarios y accesos',
   consentimientos: 'Consentimientos informados'
 };
 
@@ -89,5 +93,6 @@ export const adminSubtitles: Record<AdminView, string> = {
   normativa: 'Textos legales visibles al paciente',
   configuracion: 'Datos de contacto, perfil y recordatorios',
   'acceso-portal': 'Tokens y registro de actividad en el PdP',
+  usuarios: 'Alta de personal, administradores y pacientes',
   consentimientos: 'Firma obligatoria del paciente en el portal'
 };
