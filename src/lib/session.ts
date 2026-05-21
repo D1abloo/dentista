@@ -44,6 +44,10 @@ export async function resolvePortalRole(): Promise<DemoRole | null> {
 }
 
 function redirectAfterLogin(user: SessionUser): string {
+  if (typeof window !== 'undefined') {
+    const next = new URLSearchParams(window.location.search).get('next');
+    if (next && next.startsWith('/') && !next.startsWith('//')) return next;
+  }
   if (user.role === 'super_admin') return '/platform';
   if (user.role === 'patient') return '/paciente';
   return '/admin';

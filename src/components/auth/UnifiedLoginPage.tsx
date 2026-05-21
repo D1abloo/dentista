@@ -11,8 +11,8 @@ export function UnifiedLoginPage() {
       footer={
         <div className="login-portal__foot-grid">
           <a href="/">← Inicio</a>
+          <a href="/registro-paciente">Registrarse (paciente)</a>
           <a href="/registro-clinica">Registrar clínica</a>
-          <a href="/reserva">Reservar cita</a>
         </div>
       }
     >

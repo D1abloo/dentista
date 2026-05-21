@@ -76,6 +76,16 @@ export function UnifiedLoginForm() {
         {loading ? 'Comprobando acceso…' : 'Iniciar sesión'}
       </button>
 
+      <div className="login-form__register-cta">
+        <p>¿Eres paciente y aún no tienes cuenta?</p>
+        <a href="/registro-paciente" className="btn btn--outline btn--sm w-full no-underline">
+          Registrarse como paciente
+        </a>
+        <p className="login-form__register-hint">
+          Tras registrarte recibirás un correo para activar la cuenta antes de reservar citas.
+        </p>
+      </div>
+
       <p className="login-form__back text-center">
         <a href="/">← Volver al inicio</a>
         {' · '}

@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createSessionToken, loginProductionUser, sessionCookieName } from '@/lib/auth';
+import { AccountNotActivatedError } from '@/lib/auth/accountErrors';
 import { fail, ok } from '@/lib/http';
 import { logError } from '@/lib/logger';
 import { loginSchema } from '@/lib/validators';
@@ -12,7 +13,15 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const parsed = loginSchema.safeParse(payload);
     if (!parsed.success) return fail('Credenciales inválidas.', 422, parsed.error.flatten());
 
-    const user = await loginProductionUser(parsed.data);
+    let user;
+    try {
+      user = await loginProductionUser(parsed.data);
+    } catch (err) {
+      if (err instanceof AccountNotActivatedError) {
+        return fail(err.message, 403);
+      }
+      throw err;
+    }
     if (!user) return fail('Email, contraseña o tipo de acceso incorrecto.', 401);
 
     cookies.set(sessionCookieName, createSessionToken(user), {

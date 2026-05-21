@@ -32,7 +32,11 @@ export const patientGuideSections: GuideSection[] = [
     summary: 'Entra con el email que te dio la clínica; el sistema te reconoce y abre tu espacio personal.',
     goal: 'Iniciar sesión de forma segura y llegar al inicio del portal sin confusiones entre paciente y personal.',
     audience: 'Pacientes con cuenta activada por la clínica.',
-    prerequisites: ['Email y contraseña facilitados por recepción o correo de bienvenida.', 'Navegador actualizado en móvil o ordenador.'],
+    prerequisites: [
+      'Registro obligatorio en /registro-paciente con DNI, teléfono y clínica.',
+      'Activación de la cuenta desde el correo que recibirás (enlace válido 48 h).',
+      'Navegador actualizado en móvil o ordenador.'
+    ],
     screenshots: [
       {
         src: mobile('pdp-inicio'),
@@ -42,12 +46,16 @@ export const patientGuideSections: GuideSection[] = [
     ],
     steps: [
       {
-        title: 'Abre Iniciar sesión',
-        detail: 'Desde la web pública pulsa Iniciar sesión e introduce tu email y contraseña. No necesitas elegir tipo de usuario.'
+        title: 'Regístrate como paciente',
+        detail: 'En /registro-paciente completa nombre, DNI, email, teléfono, clínica y contraseña. Es obligatorio para reservar citas online.'
       },
       {
-        title: 'Completa el primer acceso',
-        detail: 'Si la clínica te envió una contraseña temporal, el sistema te pedirá cambiarla antes de continuar.'
+        title: 'Activa tu cuenta por correo',
+        detail: 'Abre el email «Activa tu cuenta» y pulsa el enlace. Sin activación no podrás iniciar sesión.'
+      },
+      {
+        title: 'Inicia sesión',
+        detail: 'En /login introduce email y contraseña. El sistema te abre el portal del paciente automáticamente.'
       },
       {
         title: 'Revisa el inicio',

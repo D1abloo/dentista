@@ -1,6 +1,8 @@
 import type { SessionUser } from '@/lib/auth';
+import { AccountNotActivatedError } from '@/lib/auth/accountErrors';
 import { evaluatePasswordStatus } from '@/lib/auth/passwordPolicy';
 import { loginPlatformAdmin } from '@/lib/auth/productionLogin';
+import { isPatientActivated } from '@/lib/services/patientRegistration';
 import { getSupabaseAdmin } from '@/lib/supabaseServer';
 import { signInWithEmailPassword } from '@/lib/supabaseAuth';
 
@@ -15,6 +17,7 @@ type ProfileRow = {
   email: string;
   must_change_password?: boolean | null;
   password_expires_at?: string | null;
+  activated_at?: string | null;
 };
 
 function toPortalSession(profile: ProfileRow): Omit<SessionUser, 'expiresAt'> {
@@ -48,7 +51,9 @@ export async function loginAutoDetect(
 
   const { data: profile, error: profileError } = await admin
     .from('profiles')
-    .select('id, clinic_id, tenant_id, role, full_name, email, must_change_password, password_expires_at')
+    .select(
+      'id, clinic_id, tenant_id, role, full_name, email, must_change_password, password_expires_at, activated_at'
+    )
     .eq('auth_user_id', authData.user.id)
     .maybeSingle();
 
@@ -56,6 +61,7 @@ export async function loginAutoDetect(
 
   const row = profile as ProfileRow;
   if (row.role !== 'patient' && !STAFF_ROLES.has(row.role)) return null;
+  if (!isPatientActivated(row)) throw new AccountNotActivatedError();
 
   const { data: clinic } = await admin.from('clinics').select('id, status, tenant_id').eq('id', row.clinic_id).maybeSingle();
   if (!clinic || clinic.status !== 'active') return null;

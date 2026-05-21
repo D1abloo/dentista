@@ -5577,6 +5577,367 @@ a.cp-channel:hover {
   cursor: wait;
 }
 
+/* —— Registro paciente —— */
+.pr {
+  padding-bottom: 4rem;
+  background: var(--bg);
+}
+
+.pr-hero {
+  padding: 2.5rem 0 1.5rem;
+}
+
+.pr-hero__grid {
+  display: grid;
+  gap: 2rem;
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .pr-hero__grid {
+    grid-template-columns: 1.1fr 0.9fr;
+  }
+}
+
+.pr-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(20, 184, 166, 0.14);
+  color: #0f766e;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.pr-hero h1 {
+  margin: 0.75rem 0 0.5rem;
+  font-family: var(--display);
+  font-size: clamp(1.85rem, 4vw, 2.6rem);
+  color: var(--navy);
+}
+
+.pr-hero__lead {
+  font-size: 0.95rem;
+  color: var(--muted);
+  line-height: 1.6;
+  max-width: 36rem;
+}
+
+.pr-trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.25rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.pr-trust li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.pr-hero__visual {
+  position: relative;
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+}
+
+.pr-hero__orb {
+  position: absolute;
+  inset: 10%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.25), transparent 70%);
+}
+
+.pr-hero__icon {
+  position: relative;
+  width: 5.5rem;
+  height: 5.5rem;
+  color: #0ea5e9;
+  filter: drop-shadow(0 12px 28px rgba(14, 165, 233, 0.35));
+}
+
+.pr-form-section {
+  max-width: 40rem;
+  margin-inline: auto;
+}
+
+.pr-form {
+  padding: 1.75rem;
+  border-radius: 1.5rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.pr-form__head h2 {
+  margin: 0 0 0.35rem;
+  font-family: var(--display);
+  font-size: 1.35rem;
+  color: var(--navy);
+}
+
+.pr-form__head p {
+  margin: 0 0 1.25rem;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.pr-form__grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .pr-form__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .pr-form__full {
+    grid-column: 1 / -1;
+  }
+}
+
+.pr-field-icon {
+  position: relative;
+}
+
+.pr-field-icon svg {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.pr-field-icon input,
+.pr-field-icon select {
+  padding-left: 2.5rem !important;
+}
+
+.pr-form__legal {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.pr-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.pr-check input {
+  margin-top: 0.2rem;
+  accent-color: var(--blue);
+}
+
+.pr-check a {
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.pr-form__err {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--danger);
+}
+
+.pr-form__err--block {
+  margin-top: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.65rem;
+  background: #fef2f2;
+}
+
+.pr-form__submit {
+  width: 100%;
+  margin-top: 1.25rem;
+}
+
+.pr-form__login {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.pr-form__login a {
+  font-weight: 800;
+  color: var(--blue);
+}
+
+.pr-success {
+  padding: 2rem;
+  border-radius: 1.5rem;
+  background: linear-gradient(160deg, #ecfdf5, #fff);
+  border: 1px solid #99f6e4;
+  text-align: center;
+}
+
+.pr-success h2 {
+  margin: 0.75rem 0 0.5rem;
+  font-family: var(--display);
+  color: var(--navy);
+}
+
+.pr-success__steps {
+  text-align: left;
+  margin: 1rem auto;
+  max-width: 20rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.pr-success__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: center;
+  margin-top: 1.25rem;
+}
+
+.pr-alert {
+  padding: 1.25rem;
+  border-radius: 1rem;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+  font-size: 0.9rem;
+}
+
+.activate-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+  background: linear-gradient(160deg, #f0f9ff, #f8fafc);
+}
+
+.activate-page__card {
+  width: 100%;
+  max-width: 26rem;
+  padding: 2rem;
+  border-radius: 1.5rem;
+  background: #fff;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--line);
+}
+
+.activate-page__icon {
+  width: 3rem;
+  height: 3rem;
+  margin: 1rem auto 0;
+}
+
+.activate-page__icon--spin {
+  animation: pr-spin 1s linear infinite;
+  color: var(--blue);
+}
+
+.activate-page__icon--ok {
+  color: #16a34a;
+}
+
+.activate-page__icon--err {
+  color: var(--danger);
+}
+
+@keyframes pr-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.activate-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1.25rem;
+}
+
+.booking-gate {
+  padding: 2rem 1.5rem;
+  border-radius: 1.5rem;
+  text-align: center;
+  background: linear-gradient(160deg, #fffbeb 0%, #fff 55%);
+  border: 1px solid #fde68a;
+  box-shadow: var(--shadow);
+}
+
+.booking-gate__icon {
+  width: 4rem;
+  height: 4rem;
+  margin: 0 auto 1rem;
+  display: grid;
+  place-items: center;
+  border-radius: 1rem;
+  background: rgba(245, 158, 11, 0.15);
+  color: #b45309;
+}
+
+.booking-gate h2 {
+  margin: 0 0 0.5rem;
+  font-family: var(--display);
+  color: var(--navy);
+}
+
+.booking-gate p {
+  margin: 0 auto 1.25rem;
+  max-width: 28rem;
+  font-size: 0.92rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.booking-gate__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.login-form__register-cta {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: linear-gradient(160deg, #f0fdfa, #fff);
+  border: 1px solid #99f6e4;
+  text-align: center;
+}
+
+.login-form__register-cta p {
+  margin: 0 0 0.65rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.login-form__register-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
 /* —— Logo clínica sidebar —— */
 .admin-brand {
   display: flex;

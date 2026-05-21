@@ -55,6 +55,51 @@ export const clinicRegistrationSchema = z.object({
   message: z.string().max(2000).optional()
 });
 
+export const patientRegistrationSchema = z
+  .object({
+    full_name: z.string().min(2, 'Indica tu nombre completo.').max(120),
+    email: z.string().email('Email no válido.'),
+    phone: z
+      .string()
+      .min(9, 'Teléfono obligatorio (mín. 9 dígitos).')
+      .max(20)
+      .regex(/^[\d\s+()-]+$/, 'Formato de teléfono no válido.'),
+    dni: z
+      .string()
+      .min(8, 'DNI/NIE obligatorio.')
+      .max(20)
+      .regex(/^[0-9A-Za-z]+$/, 'Solo letras y números, sin espacios.'),
+    birth_date: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha no válida.')
+      .optional()
+      .or(z.literal('')),
+    clinic_id: z.string().uuid('Selecciona una clínica.'),
+    password: z
+      .string()
+      .min(8, 'Mínimo 8 caracteres.')
+      .max(120)
+      .regex(/[A-Za-z]/, 'Incluye al menos una letra.')
+      .regex(/\d/, 'Incluye al menos un número.'),
+    password_confirm: z.string().min(8).max(120),
+    accept_terms: z.literal(true, {
+      errorMap: () => ({ message: 'Debes aceptar los términos de uso.' })
+    }),
+    accept_privacy: z.literal(true, {
+      errorMap: () => ({ message: 'Debes aceptar la política de privacidad.' })
+    })
+  })
+  .refine((d) => d.password === d.password_confirm, {
+    message: 'Las contraseñas no coinciden.',
+    path: ['password_confirm']
+  });
+
+export type PatientRegistrationInput = z.infer<typeof patientRegistrationSchema>;
+
+export const patientActivateSchema = z.object({
+  token: z.string().min(16).max(256)
+});
+
 export const registrationReviewSchema = z.object({
   id: z.string().uuid(),
   decision: z.enum(['approved', 'rejected']),

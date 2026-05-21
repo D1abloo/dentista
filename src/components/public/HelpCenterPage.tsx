@@ -52,8 +52,8 @@ const actions: HelpAction[] = [
   {
     id: 'reserva',
     title: 'Reservar cita',
-    description: 'Flujo público paso a paso: clínica, tratamiento, dentista y hueco libre en el calendario.',
-    cta: 'Ir a reservar',
+    description: 'Requiere cuenta de paciente activada por correo. Luego elige clínica, tratamiento y horario.',
+    cta: 'Registro o reserva',
     icon: CalendarPlus,
     tone: 'amber',
     href: '/reserva'
