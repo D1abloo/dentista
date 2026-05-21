@@ -22,11 +22,11 @@ Construir DentalFlow/Dentista, una app SaaS premium para gestión de citas denta
 5. No hardcodees secretos; usa `.env`.
 6. Mantén UX premium: cards redondeadas, estados visibles, responsive mobile-first.
 7. Antes de terminar una tarea, ejecuta o deja preparado:
-   - `npm run smoke`
-   - `npm run check`
-   - pruebas manuales de `/`, `/paciente`, `/reserva`, `/admin`
+  - `npm run smoke`
+  - `npm run check`
+  - pruebas manuales de `/`, `/paciente`, `/reserva`, `/admin`
 8. Después de validar, sube cambios:
-   - `npm run git:save -- "tipo: mensaje claro"`
+  - `npm run git:save -- "tipo: mensaje claro"`
 9. Si agregas tablas, actualiza `supabase/migrations`, `docs/ARCHITECTURE.md` y tipos de dominio.
 10. Si agregas MCP o integraciones, documenta configuración en `docs/MCP.md`.
 11. Para cambios grandes, divide en commits lógicos: schema, API, UI, tests, docs.
@@ -49,3 +49,5 @@ Construir DentalFlow/Dentista, una app SaaS premium para gestión de citas denta
 - La documentación refleja lo implementado.
 - Los errores del usuario se muestran con mensajes accionables.
 - El cambio está commiteado y subido a GitHub cuando hay credenciales disponibles.
+- Cada cambio que realices debe quedar commiteado y subido a GitHub.
+
