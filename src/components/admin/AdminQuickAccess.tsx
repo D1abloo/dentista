@@ -2,14 +2,27 @@ import { useState } from 'react';
 import { ExternalLink, LayoutDashboard, UserRound } from 'lucide-react';
 import { useNotice } from '@/hooks/useNotice';
 import { usePortalAccess } from '@/hooks/usePortalAccess';
+import { useStaffContext } from '@/hooks/useStaffContext';
 import { STORAGE_PATIENT_ID } from '@/lib/storage/keys';
 
 export function AdminQuickAccess() {
   const { setNotice } = useNotice();
   const portalAccess = usePortalAccess();
+  const { staff, loading: staffLoading } = useStaffContext();
   const [busy, setBusy] = useState<'pdp' | null>(null);
 
+  const portalBlocked = Boolean(
+    !staffLoading && staff && staff.role === 'dentist' && !staff.hasLinkedDentist
+  );
+
   async function enterPatientPortal() {
+    if (portalBlocked) {
+      setNotice({
+        type: 'error',
+        message: 'Tu usuario no tiene perfil de dentista vinculado. Pide asociación en Usuarios de clínica.'
+      });
+      return;
+    }
     if (portalAccess.active) {
       window.location.href = '/paciente';
       return;
@@ -50,7 +63,7 @@ export function AdminQuickAccess() {
       <button
         type="button"
         className="admin-quick-access__btn admin-quick-access__btn--primary"
-        disabled={busy === 'pdp'}
+        disabled={busy === 'pdp' || portalBlocked}
         onClick={() => void enterPatientPortal()}
       >
         <UserRound className="h-4 w-4" aria-hidden />

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { ExternalLink, KeyRound, Shield } from 'lucide-react';
-import { Badge, Button, Card, Empty, Field, Input, PageHeader, Select } from '@/components/ui';
+import { ExternalLink, KeyRound } from 'lucide-react';
+import { Button, Card, Empty, Field, Input, PageHeader, Select } from '@/components/ui';
 import { useNotice } from '@/hooks/useNotice';
 import { usePortalAccess } from '@/hooks/usePortalAccess';
+import { useStaffContext } from '@/hooks/useStaffContext';
 import { useDemoStore } from '@/hooks/useDemoStore';
-import { STORAGE_PATIENT_ID } from '@/lib/storage/keys';
 import { useTenant } from '@/hooks/useTenant';
 import { patientsForTenant } from '@/lib/tenant';
 
@@ -19,28 +19,16 @@ type TokenRow = {
   last_used_at: string | null;
 };
 
-type AuditRow = {
-  id: string;
-  event_type: string;
-  page_path: string | null;
-  resource_label: string | null;
-  resource_id: string | null;
-  staff_profile_id: string | null;
-  patient_id: string | null;
-  created_at: string;
-};
-
 export function AdminPortalAccess() {
   const { state } = useDemoStore();
   const scope = useTenant();
   const { setNotice } = useNotice();
-  const staffPortal = usePortalAccess();
+  const { staff, loading: staffLoading } = useStaffContext();
   const patientIds = patientsForTenant(state, scope.tenantId);
   const patients = state.patients.filter((p) => patientIds.includes(p.id));
   const dentists = state.dentists.filter((d) => d.tenantId === scope.tenantId);
 
   const [tokens, setTokens] = useState<TokenRow[]>([]);
-  const [audit, setAudit] = useState<AuditRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [createdToken, setCreatedToken] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -50,6 +38,10 @@ export function AdminPortalAccess() {
     expiresInHours: '24'
   });
 
+  const profileByDentist = new Map(
+    dentists.filter((d) => d.profileId).map((d) => [d.id, d.profileId as string])
+  );
+
   async function load() {
     setLoading(true);
     try {
@@ -57,9 +49,6 @@ export function AdminPortalAccess() {
       const json = (await res.json()) as { data?: { tokens?: TokenRow[] }; error?: { message?: string } };
       if (!res.ok) throw new Error(json.error?.message ?? 'Error al cargar');
       setTokens(json.data?.tokens ?? []);
-      const auditRes = await fetch('/api/admin/portal-access?audit=1', { credentials: 'include' });
-      const auditJson = (await auditRes.json()) as { data?: { audit?: AuditRow[] } };
-      if (auditRes.ok) setAudit(auditJson.data?.audit ?? []);
     } catch (e) {
       setNotice({ type: 'error', message: e instanceof Error ? e.message : 'No se pudo cargar.' });
     } finally {
@@ -74,6 +63,14 @@ export function AdminPortalAccess() {
   async function createToken() {
     if (!form.patientId || !form.dentistId) {
       setNotice({ type: 'error', message: 'Selecciona paciente y profesional.' });
+      return;
+    }
+    const profileId = profileByDentist.get(form.dentistId);
+    if (!profileId) {
+      setNotice({
+        type: 'error',
+        message: 'El profesional no tiene usuario vinculado. Regístralo en Usuarios de clínica o al dar de alta el dentista.'
+      });
       return;
     }
     try {
@@ -94,9 +91,8 @@ export function AdminPortalAccess() {
       };
       if (!res.ok) throw new Error(json.error?.message ?? 'No se pudo crear');
       setCreatedToken(json.data?.token ?? null);
-      setNotice({ type: 'ok', message: 'Token generado. Cópialo ahora; no se volverá a mostrar.' });
+      setNotice({ type: 'ok', message: 'Token generado. Compártelo solo con el profesional autorizado.' });
       await load();
-      await staffPortal.refresh();
     } catch (e) {
       setNotice({ type: 'error', message: e instanceof Error ? e.message : 'Error al crear token.' });
     }
@@ -119,30 +115,44 @@ export function AdminPortalAccess() {
   }
 
   const patientName = (id: string) => state.patients.find((p) => p.id === id)?.fullName ?? id.slice(0, 8);
-  const staffName = (id: string) => {
-    const d = dentists.find((x) => x.id === id);
-    return d?.fullName ?? id.slice(0, 8);
+  const staffName = (profileId: string) => {
+    const d = dentists.find((x) => x.profileId === profileId);
+    return d?.fullName ?? profileId.slice(0, 8);
   };
+
+  const linkedDentists = dentists.filter((d) => d.profileId);
 
   return (
     <div className="grid gap-4">
       <Card>
-        <PageHeader title="Acceso al portal del paciente" subtitle="Tokens para que el equipo consulte informes en el PdP con trazabilidad." />
+        <PageHeader
+          title="Acceso al portal del paciente"
+          subtitle="Genera tokens para que el personal autorizado consulte el PdP. El historial de actividad está en Auditoría PdP (solo administración)."
+        />
+        {!staffLoading && staff && !staff.hasLinkedDentist && staff.role === 'dentist' ? (
+          <p className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+            Tu usuario no tiene ficha de dentista vinculada. Pide a administración que te asocie en{' '}
+            <a href="/admin/usuarios" className="font-semibold underline">
+              Usuarios de clínica
+            </a>
+            .
+          </p>
+        ) : null}
         <div className="grid gap-3 md:grid-cols-2">
           <Field label="Paciente">
             <Select value={form.patientId} onChange={(e) => setForm({ ...form, patientId: e.target.value })}>
               <option value="">Seleccionar…</option>
               {patients.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.fullName} · {p.dni ?? p.id}
+                  {p.fullName}
                 </option>
               ))}
             </Select>
           </Field>
-          <Field label="Profesional autorizado">
+          <Field label="Profesional autorizado (con perfil vinculado)">
             <Select value={form.dentistId} onChange={(e) => setForm({ ...form, dentistId: e.target.value })}>
               <option value="">Seleccionar…</option>
-              {dentists.map((d) => (
+              {linkedDentists.map((d) => (
                 <option key={d.id} value={d.id}>
                   {d.fullName}
                 </option>
@@ -150,7 +160,7 @@ export function AdminPortalAccess() {
             </Select>
           </Field>
           <Field label="Etiqueta (opcional)">
-            <Input value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} placeholder="Ej. Revisión informes sede norte" />
+            <Input value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} placeholder="Ej. Revisión informes" />
           </Field>
           <Field label="Validez (horas)">
             <Input type="number" min={1} max={168} value={form.expiresInHours} onChange={(e) => setForm({ ...form, expiresInHours: e.target.value })} />
@@ -163,7 +173,10 @@ export function AdminPortalAccess() {
           <div className="mt-4 rounded-xl border border-[var(--line)] bg-[#f8fafc] p-4 text-sm">
             <p className="font-bold text-[var(--navy)]">Token (copiar ahora)</p>
             <code className="mt-2 block break-all rounded bg-white p-2 text-xs">{createdToken}</code>
-            <a className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-[var(--brand)]" href={`/paciente/acceso?token=${encodeURIComponent(createdToken)}`}>
+            <a
+              className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-[var(--brand)]"
+              href={`/paciente/acceso?token=${encodeURIComponent(createdToken)}`}
+            >
               Abrir enlace de acceso <ExternalLink className="h-3 w-3" />
             </a>
           </div>
@@ -195,42 +208,22 @@ export function AdminPortalAccess() {
             </li>
           ))}
         </ul>
+        {!loading && !tokens.length ? <Empty title="Sin tokens" text="Genera el primer token de acceso." /> : null}
       </Card>
 
-      <Card>
-        <PageHeader title="Registro de actividad en PdP" subtitle="Fecha, hora y acciones del profesional en el portal del paciente." />
-        <div className="overflow-x-auto">
-          <table className="data-table w-full text-sm">
-            <thead>
-              <tr>
-                <th>Fecha / hora</th>
-                <th>Evento</th>
-                <th>Detalle</th>
-                <th>Paciente</th>
-              </tr>
-            </thead>
-            <tbody>
-              {audit.map((row) => (
-                <tr key={row.id}>
-                  <td>{new Date(row.created_at).toLocaleString('es-ES')}</td>
-                  <td>{row.event_type}</td>
-                  <td>
-                    {row.resource_label || row.page_path || '—'}
-                    {row.resource_id ? ` · ${row.resource_id}` : ''}
-                  </td>
-                  <td>{row.patient_id ? patientName(row.patient_id) : '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+      <p className="text-center text-sm text-slate-500">
+        <a href="/admin/auditoria-pdp" className="font-semibold text-[var(--blue)] underline">
+          Ver auditoría de actividad en PdP (solo administración)
+        </a>
+      </p>
     </div>
   );
 }
 
+/** Perfil del profesional para entrar con token propio (sin mostrar auditoría). */
 export function AdminStaffPortalProfile() {
   const staffPortal = usePortalAccess();
+  const { staff, loading: staffLoading } = useStaffContext();
   const [tokenInput, setTokenInput] = useState('');
   const { setNotice } = useNotice();
 
@@ -252,51 +245,39 @@ export function AdminStaffPortalProfile() {
         error?: { message?: string };
       };
       if (!res.ok) throw new Error(json.error?.message ?? 'Token no válido');
-      if (json.data?.patientId) {
-        localStorage.setItem(STORAGE_PATIENT_ID, json.data.patientId);
-      }
       window.location.href = json.data?.redirectTo ?? '/paciente';
     } catch (e) {
       setNotice({ type: 'error', message: e instanceof Error ? e.message : 'No se pudo activar el acceso.' });
     }
   }
 
+  if (!staffLoading && staff && !staff.canAccessPatientPortal) {
+    return (
+      <Card>
+        <PageHeader title="Portal del paciente" subtitle="Acceso no disponible" />
+        <p className="text-sm text-slate-600">Tu sesión no tiene un perfil de clínica vinculado para usar tokens de acceso.</p>
+      </Card>
+    );
+  }
+
   return (
     <Card>
-      <PageHeader title="Mi acceso al portal del paciente" subtitle="Consulta informes de otras sedes con autorización registrada." />
+      <PageHeader title="Entrar con token" subtitle="Usa un token que te haya asignado administración." />
       {staffPortal.active ? (
         <div className="rounded-xl border border-teal-200 bg-teal-50 p-4 text-sm">
-          <p className="flex items-center gap-2 font-bold text-teal-900">
-            <Shield className="h-4 w-4" /> Sesión activa: {staffPortal.patientName ?? 'Paciente'}
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <a href="/paciente" className="btn btn--primary text-sm no-underline">
-              Continuar en portal del paciente
-            </a>
-            <Button tone="ghost" onClick={() => void staffPortal.closeAccess()}>
-              Cerrar acceso autorizado
-            </Button>
-          </div>
+          <p className="font-bold text-teal-900">Sesión activa en portal paciente</p>
+          <a href="/paciente" className="btn btn--primary btn--sm mt-3 inline-block no-underline">
+            Continuar en portal del paciente
+          </a>
         </div>
       ) : (
         <>
           <Field label="Token de acceso">
-            <Input value={tokenInput} onChange={(e) => setTokenInput(e.target.value)} placeholder="Pega el token que te ha facilitado administración" />
+            <Input value={tokenInput} onChange={(e) => setTokenInput(e.target.value)} placeholder="Pega tu token" />
           </Field>
           <Button className="mt-2" onClick={() => void openWithToken()}>
             Entrar al portal del paciente
           </Button>
-          {staffPortal.tokens.length > 0 ? (
-            <ul className="mt-4 space-y-2 text-sm">
-              <p className="font-bold text-slate-700">Tokens asignados a ti</p>
-              {staffPortal.tokens.map((t) => (
-                <li key={t.id} className="flex items-center justify-between rounded-lg border border-[var(--line)] px-3 py-2">
-                  <span>{t.label || `Paciente ${t.patient_id.slice(0, 8)}`}</span>
-                  <span className="text-xs text-slate-500">hasta {new Date(t.expires_at).toLocaleString('es-ES')}</span>
-                </li>
-              ))}
-            </ul>
-          ) : null}
         </>
       )}
     </Card>

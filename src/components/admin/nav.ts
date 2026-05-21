@@ -9,6 +9,7 @@ import {
   FileText,
   FileSignature,
   BookOpen,
+  ClipboardCheck,
   KeyRound,
   LayoutDashboard,
   Receipt,
@@ -34,6 +35,8 @@ export type AdminView =
   | 'normativa'
   | 'configuracion'
   | 'acceso-portal'
+  | 'auditoria-pdp'
+  | 'usuarios'
   | 'consentimientos';
 
 export const adminNav: { href: string; label: string; icon: LucideIcon; view: AdminView }[] = [
@@ -53,6 +56,8 @@ export const adminNav: { href: string; label: string; icon: LucideIcon; view: Ad
   { href: '/admin/normativa', label: 'Normativa', icon: Scale, view: 'normativa' },
   { href: '/admin/configuracion', label: 'Configuración', icon: Settings, view: 'configuracion' },
   { href: '/admin/acceso-portal', label: 'Acceso PdP', icon: KeyRound, view: 'acceso-portal' },
+  { href: '/admin/auditoria-pdp', label: 'Auditoría PdP', icon: ClipboardCheck, view: 'auditoria-pdp' },
+  { href: '/admin/usuarios', label: 'Usuarios clínica', icon: Users, view: 'usuarios' },
   { href: '/ayuda#panel-admin', label: 'Guía de uso', icon: BookOpen, view: 'dashboard' }
 ];
 
@@ -72,6 +77,8 @@ export const adminTitles: Record<AdminView, string> = {
   normativa: 'Normativa',
   configuracion: 'Configuración',
   'acceso-portal': 'Acceso al portal del paciente',
+  'auditoria-pdp': 'Auditoría PdP',
+  usuarios: 'Usuarios de clínica',
   consentimientos: 'Consentimientos informados'
 };
 
@@ -90,6 +97,8 @@ export const adminSubtitles: Record<AdminView, string> = {
   reportes: 'Métricas e ingresos',
   normativa: 'Textos legales visibles al paciente',
   configuracion: 'Datos de contacto, perfil y recordatorios',
-  'acceso-portal': 'Tokens y registro de actividad en el PdP',
+  'acceso-portal': 'Tokens de acceso al portal del paciente (sin historial)',
+  'auditoria-pdp': 'Registro de actividad por profesional · exportar Excel',
+  usuarios: 'Alta de personal vinculado a la clínica',
   consentimientos: 'Firma obligatoria del paciente en el portal'
 };

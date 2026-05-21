@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getActiveClinicId, setActiveClinicId } from '@/lib/activeClinic';
 import { dentistsForClinic, getPrimaryClinic } from '@/lib/clinic';
 import { isClientLiveMode } from '@/lib/appMode';
@@ -45,6 +45,7 @@ import { isClientDemoMode, modeCopy } from '@/lib/appMode';
 import { createAppointmentLive, patchAppointmentLive } from '@/lib/clinicApi';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
+import { useStaffContext } from '@/hooks/useStaffContext';
 import type { Appointment, AppointmentStatus, Dentist, Patient, Treatment } from '@/types/demo';
 import { IdBadge } from '@/components/ui/IdBadge';
 import { PatientSelect } from './shared';
@@ -145,11 +146,19 @@ export function AdminAgenda() {
   const { state, commit } = useDemoStore();
   const scope = useTenant();
   const { setNotice } = useNotice();
+  const { staff, loading: staffLoading } = useStaffContext();
   const [mode, setMode] = useState<'dia' | 'semana' | 'mes'>('dia');
   const [date, setDate] = useState(todayIso());
   const primaryClinic = getPrimaryClinic(state, scope.tenantId);
   const [clinicId, setClinicId] = useState(primaryClinic.id);
   const [dentistId, setDentistId] = useState('');
+  const ownAgenda = staff?.agendaScope === 'own' && Boolean(staff.dentistId);
+
+  useEffect(() => {
+    if (!staffLoading && ownAgenda && staff?.dentistId) {
+      setDentistId(staff.dentistId);
+    }
+  }, [staffLoading, ownAgenda, staff?.dentistId]);
   const [cabinetId, setCabinetId] = useState('');
   const [blockTime, setBlockTime] = useState('13:00');
   const [blockReason, setBlockReason] = useState('');
@@ -179,10 +188,28 @@ export function AdminAgenda() {
         <Select className="field-control !w-auto" value={clinicId} onChange={(e) => setClinicId(e.target.value)}>
           {scope.clinics.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </Select>
-        <Select className="field-control !w-auto" value={dentistId} onChange={(e) => setDentistId(e.target.value)}>
-          <option value="">Todos dentistas</option>
-          {dentistsForClinic(state, clinicId).map((d) => <option key={d.id} value={d.id}>{d.fullName}</option>)}
+        <Select
+          className="field-control !w-auto"
+          value={dentistId}
+          disabled={ownAgenda}
+          onChange={(e) => setDentistId(e.target.value)}
+        >
+          {ownAgenda ? (
+            <option value={staff?.dentistId ?? ''}>Mi agenda</option>
+          ) : (
+            <>
+              <option value="">Todos dentistas</option>
+              {dentistsForClinic(state, clinicId).map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.fullName}
+                </option>
+              ))}
+            </>
+          )}
         </Select>
+        {ownAgenda ? (
+          <span className="self-center text-xs font-semibold text-slate-500">Agenda asignada a tu perfil</span>
+        ) : null}
       </div>
       <Card title={`Citas (${filtered.length})`}>
         <div className="table-cards">
@@ -467,8 +494,15 @@ export function AdminDentists() {
   return (
     <Card title="Dentistas">
       <ul className="mb-4 space-y-2">{scope.dentists.map((d) => (
-        <li key={d.id} className="flex justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
-          <span><strong>{d.fullName}</strong> — {d.specialty}</span>
+        <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2 text-sm">
+          <span>
+            <strong>{d.fullName}</strong> — {d.specialty}
+            {d.profileId ? (
+              <span className="ml-2 rounded bg-teal-100 px-2 py-0.5 text-xs font-semibold text-teal-900">Usuario vinculado</span>
+            ) : (
+              <span className="ml-2 rounded bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-950">Sin usuario — dar de alta en Usuarios clínica</span>
+            )}
+          </span>
           <button type="button" className="font-bold text-dental-700" onClick={() => commit(saveDentist(state, { ...d, active: !d.active }))}>{d.active ? 'Desactivar' : 'Activar'}</button>
         </li>
       ))}</ul>

@@ -6,6 +6,7 @@ import {
   createPortalAccessToken,
   listPortalAccessAudit,
   listPortalAccessTokens,
+  listStaffProfilesForAudit,
   revokePortalAccessToken
 } from '@/lib/services/portalAccess';
 import { hasSupabaseConfig } from '@/lib/supabaseServer';
@@ -27,10 +28,16 @@ export const GET: APIRoute = async (context) => {
   if (!clinicId) return fail('Sesión sin clínica.', 403);
 
   const auditOnly = context.url.searchParams.get('audit') === '1';
+  const staffProfileId = context.url.searchParams.get('staffProfileId') ?? undefined;
   try {
     if (auditOnly) {
-      const rows = await listPortalAccessAudit(clinicId, gate.user.tenantId);
-      return ok({ audit: rows });
+      const staffFilter =
+        staffProfileId === 'me' ? gate.user.profileId : staffProfileId || undefined;
+      const [rows, staffList] = await Promise.all([
+        listPortalAccessAudit(clinicId, gate.user.tenantId, { staffProfileId: staffFilter }),
+        listStaffProfilesForAudit(clinicId, gate.user.tenantId)
+      ]);
+      return ok({ audit: rows, staffProfiles: staffList });
     }
     const tokens = await listPortalAccessTokens(clinicId, gate.user.tenantId);
     return ok({ tokens });

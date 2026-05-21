@@ -97,12 +97,12 @@ export function PatientShell({ title, nav, children }: { title: string; nav: Nav
         </header>
         <main className="portal-body">
           {portalAccess.active ? (
-            <div className="banner-alert mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="status">
+            <div className="banner-alert mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-950" role="status">
               <p className="m-0">
-                Acceso clínico autorizado — {portalAccess.patientName ?? 'paciente'}. Las acciones quedan registradas.
+                Acceso clínico autorizado — {portalAccess.patientName ?? 'paciente'}.
               </p>
               <a href="/admin" className="btn btn--outline btn--sm shrink-0 no-underline">
-                Panel administrativo
+                Volver al panel
               </a>
             </div>
           ) : null}

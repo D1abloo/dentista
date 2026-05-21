@@ -4,6 +4,7 @@ import { requireStaffSession } from '@/lib/api/guards';
 import { fail, ok } from '@/lib/http';
 import { logError } from '@/lib/logger';
 import { createPortalAccessToken, exchangePortalToken } from '@/lib/services/portalAccess';
+import { getStaffContextForSession } from '@/lib/services/staffContext';
 import { hasSupabaseConfig, getSupabaseAdmin } from '@/lib/supabaseServer';
 import { z } from 'zod';
 
@@ -22,6 +23,13 @@ export const POST: APIRoute = async (context) => {
   if (!clinicId || !profileId) return fail('Sesión incompleta.', 403);
 
   try {
+    const staffCtx = await getStaffContextForSession(gate.user);
+    if (!staffCtx?.canAccessPatientPortal) {
+      return fail('Tu usuario no tiene perfil vinculado para acceder al portal del paciente.', 403);
+    }
+    if (staffCtx.role === 'dentist' && !staffCtx.hasLinkedDentist) {
+      return fail('Debes tener un perfil de dentista vinculado. Contacta con administración.', 403);
+    }
     const body = await context.request.json().catch(() => ({}));
     const parsed = enterSchema.safeParse(body);
     if (!parsed.success) return fail('Datos inválidos.', 422, parsed.error.flatten());

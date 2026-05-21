@@ -27,10 +27,28 @@ export type PortalAccessAuditRow = {
   page_path: string | null;
   resource_label: string | null;
   resource_id: string | null;
+  access_role: string | null;
+  actor_email: string | null;
   created_at: string;
-  staff?: { full_name: string };
-  patient?: { full_name: string };
+  staff_name?: string;
+  patient_name?: string;
 };
+
+const EVENT_LABELS: Record<string, string> = {
+  token_created: 'Token creado',
+  token_revoked: 'Token revocado',
+  portal_open: 'Apertura del portal',
+  nav_click: 'Navegación',
+  view_report: 'Consulta informe',
+  view_document: 'Consulta documento',
+  view_invoice: 'Consulta factura',
+  view_consent: 'Consulta consentimiento',
+  other: 'Otra acción'
+};
+
+export function portalAuditEventLabel(eventType: string) {
+  return EVENT_LABELS[eventType] ?? eventType;
+}
 
 function requireDb() {
   if (!hasSupabaseConfig()) throw new Error('Servicio no disponible.');
@@ -208,12 +226,41 @@ export async function logPortalAccessAudit(input: {
   });
 }
 
-export async function listPortalAccessAudit(clinicId: string, tenantId?: string | null, limit = 300) {
+async function enrichAuditNames(rows: PortalAccessAuditRow[]) {
   const db = requireDb();
+  const staffIds = [...new Set(rows.map((r) => r.staff_profile_id).filter(Boolean))] as string[];
+  const patientIds = [...new Set(rows.map((r) => r.patient_id).filter(Boolean))] as string[];
+
+  const staffMap = new Map<string, string>();
+  const patientMap = new Map<string, string>();
+
+  if (staffIds.length) {
+    const { data } = await db.from('profiles').select('id, full_name').in('id', staffIds);
+    for (const p of data ?? []) staffMap.set(p.id as string, p.full_name as string);
+  }
+  if (patientIds.length) {
+    const { data } = await db.from('profiles').select('id, full_name').in('id', patientIds);
+    for (const p of data ?? []) patientMap.set(p.id as string, p.full_name as string);
+  }
+
+  return rows.map((row) => ({
+    ...row,
+    staff_name: row.staff_profile_id ? staffMap.get(row.staff_profile_id) ?? row.actor_email ?? '—' : row.actor_email ?? '—',
+    patient_name: row.patient_id ? patientMap.get(row.patient_id) ?? '—' : '—'
+  }));
+}
+
+export async function listPortalAccessAudit(
+  clinicId: string,
+  tenantId?: string | null,
+  opts?: { staffProfileId?: string; limit?: number }
+) {
+  const db = requireDb();
+  const limit = opts?.limit ?? 500;
   let q = db
     .from('patient_portal_access_audit')
     .select(
-      'id, token_id, clinic_id, staff_profile_id, patient_id, event_type, page_path, resource_label, resource_id, created_at'
+      'id, token_id, clinic_id, staff_profile_id, patient_id, event_type, page_path, resource_label, resource_id, access_role, actor_email, created_at'
     )
     .order('created_at', { ascending: false })
     .limit(limit);
@@ -224,9 +271,32 @@ export async function listPortalAccessAudit(clinicId: string, tenantId?: string 
     q = q.eq('clinic_id', clinicId);
   }
 
+  if (opts?.staffProfileId) {
+    q = q.eq('staff_profile_id', opts.staffProfileId);
+  }
+
   const { data, error } = await q;
   if (error) throw new Error(error.message);
-  return (data ?? []) as PortalAccessAuditRow[];
+  return enrichAuditNames((data ?? []) as PortalAccessAuditRow[]);
+}
+
+export async function listStaffProfilesForAudit(clinicId: string, tenantId?: string | null) {
+  const db = requireDb();
+  let q = db
+    .from('profiles')
+    .select('id, full_name, email, role')
+    .in('role', ['dentist', 'clinic_admin', 'admin', 'owner', 'receptionist'])
+    .order('full_name');
+
+  if (tenantId) {
+    q = q.or(`clinic_id.eq.${clinicId},tenant_id.eq.${tenantId}`);
+  } else {
+    q = q.eq('clinic_id', clinicId);
+  }
+
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+  return (data ?? []) as { id: string; full_name: string; email: string; role: string }[];
 }
 
 export async function listTokensForStaff(staffProfileId: string) {

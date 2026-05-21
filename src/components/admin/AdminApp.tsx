@@ -25,6 +25,8 @@ import {
   AdminTreatments
 } from './views';
 import { AdminConsents } from './consents';
+import { AdminClinicUsers } from './clinicUsers';
+import { AdminPdpAudit } from './pdpAudit';
 import { AdminPortalAccess } from './portalAccess';
 
 function Body({ view, patientId }: { view: AdminView; patientId?: string }) {
@@ -60,6 +62,10 @@ function Body({ view, patientId }: { view: AdminView; patientId?: string }) {
       return <AdminConfig />;
     case 'acceso-portal':
       return <AdminPortalAccess />;
+    case 'auditoria-pdp':
+      return <AdminPdpAudit />;
+    case 'usuarios':
+      return <AdminClinicUsers />;
     case 'consentimientos':
       return <AdminConsents />;
     default:
