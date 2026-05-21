@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="Informes clínicos">
+  <rect width="640" height="360" fill="#e0f2fe" rx="24"/>
+  <rect x="40" y="40" width="560" height="280" rx="16" fill="#fff"/>
+  <rect x="64" y="72" width="200" height="16" rx="4" fill="#cbd5e1"/>
+  <rect x="64" y="108" width="480" height="12" rx="4" fill="#e2e8f0"/>
+  <rect x="64" y="132" width="420" height="12" rx="4" fill="#e2e8f0"/>
+  <rect x="64" y="180" width="120" height="100" rx="8" fill="#1d4ed8" opacity=".2"/>
+  <text x="64" y="64" font-family="system-ui" font-size="20" font-weight="700" fill="#0f172a">Informe clínico PDF</text>
+</svg>

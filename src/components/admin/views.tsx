@@ -49,6 +49,7 @@ import type { Appointment, AppointmentStatus, Dentist, Patient, Treatment } from
 import { IdBadge } from '@/components/ui/IdBadge';
 import { PatientSelect } from './shared';
 import { AdminStaffPortalProfile } from './portalAccess';
+import { ClinicLogoUpload } from './ClinicLogoUpload';
 import {
   AdminClinicalReports,
   AdminDocuments,
@@ -89,12 +90,7 @@ export function AdminDashboard() {
   return (
     <div className="space-y-5">
       <p className="admin-intro">
-        {modeCopy(
-          'Vista demo: datos aislados por clínica en este navegador.',
-          'Sesión por cookie. Registros de'
-        )}{' '}
-        <strong>{scope.tenantId}</strong>
-        {modeCopy('', ' · con Supabase los cambios se guardan en servidor.')}
+        Resumen de actividad de tu organización. Consulta la <a href="/admin/ayuda">guía de uso</a> para el panel y el portal del paciente.
       </p>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -307,7 +303,7 @@ export function AdminAppointments() {
         return;
       }
       await refresh();
-      setNotice({ type: 'ok', message: 'Cita creada en Supabase.' });
+      setNotice({ type: 'ok', message: 'Cita creada correctamente.' });
       return;
     }
     const result = tryCreateAppointment(state, {
@@ -751,6 +747,9 @@ export function AdminConfig() {
   return (
     <div className="grid gap-4">
       <AdminStaffPortalProfile />
+      <Card title="Marca de la clínica">
+        <ClinicLogoUpload />
+      </Card>
     <Card title="Configuración">
       <div className="grid gap-3 md:grid-cols-2">
         <Field label="Nombre clínica"><Input value={s.clinicName} onChange={(e) => setS({ ...s, clinicName: e.target.value })} /></Field>

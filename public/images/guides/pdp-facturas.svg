@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="Facturas">
+  <rect width="640" height="360" fill="#f5f3ff" rx="24"/>
+  <rect x="48" y="56" width="544" height="248" rx="14" fill="#fff" stroke="#c4b5fd" stroke-width="2"/>
+  <text x="72" y="100" font-family="system-ui" font-size="22" font-weight="800" fill="#5b21b6">FAC-2026-0142</text>
+  <text x="72" y="140" font-family="system-ui" font-size="16" fill="#64748b">Estado: Pendiente · 126,50 ¬</text>
+  <rect x="72" y="180" width="160" height="44" rx="10" fill="#7c3aed"/>
+  <text x="102" y="208" font-family="system-ui" font-size="14" font-weight="700" fill="#fff">Descargar PDF</text>
+</svg>

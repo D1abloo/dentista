@@ -8,6 +8,7 @@ import {
   FileStack,
   FileText,
   FileSignature,
+  BookOpen,
   KeyRound,
   LayoutDashboard,
   Receipt,
@@ -33,6 +34,7 @@ export type AdminView =
   | 'normativa'
   | 'configuracion'
   | 'acceso-portal'
+  | 'ayuda'
   | 'consentimientos';
 
 export const adminNav: { href: string; label: string; icon: LucideIcon; view: AdminView }[] = [
@@ -51,7 +53,8 @@ export const adminNav: { href: string; label: string; icon: LucideIcon; view: Ad
   { href: '/admin/reportes', label: 'Reportes', icon: FileText, view: 'reportes' },
   { href: '/admin/normativa', label: 'Normativa', icon: Scale, view: 'normativa' },
   { href: '/admin/configuracion', label: 'Configuración', icon: Settings, view: 'configuracion' },
-  { href: '/admin/acceso-portal', label: 'Acceso PdP', icon: KeyRound, view: 'acceso-portal' }
+  { href: '/admin/acceso-portal', label: 'Acceso PdP', icon: KeyRound, view: 'acceso-portal' },
+  { href: '/admin/ayuda', label: 'Guía de uso', icon: BookOpen, view: 'ayuda' }
 ];
 
 export const adminTitles: Record<AdminView, string> = {
@@ -70,6 +73,7 @@ export const adminTitles: Record<AdminView, string> = {
   normativa: 'Normativa',
   configuracion: 'Configuración',
   'acceso-portal': 'Acceso al portal del paciente',
+  ayuda: 'Guía de uso del panel',
   consentimientos: 'Consentimientos informados'
 };
 
@@ -89,5 +93,6 @@ export const adminSubtitles: Record<AdminView, string> = {
   normativa: 'Textos legales visibles al paciente',
   configuracion: 'Datos de contacto, perfil y recordatorios',
   'acceso-portal': 'Tokens y registro de actividad en el PdP',
+  ayuda: 'Tutorial con imágenes: PdP, informes, citas y facturación',
   consentimientos: 'Firma obligatoria del paciente en el portal'
 };

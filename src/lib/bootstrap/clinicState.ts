@@ -312,7 +312,7 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
       vatRate: 21,
       invoiceSeries: 'FAC',
       defaultInvoiceConcept: 'Servicios odontológicos',
-      logoUrl: '/brand/dentista-logo.svg'
+      logoUrl: (mainClinic.logo_url as string | null) || '/brand/dentista-logo.svg'
     }
   };
 

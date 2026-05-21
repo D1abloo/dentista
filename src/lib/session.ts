@@ -39,10 +39,28 @@ export async function resolvePortalRole(): Promise<DemoRole | null> {
   }
 }
 
+function redirectAfterLogin(user: SessionUser): string {
+  if (user.role === 'super_admin') return '/platform';
+  if (user.role === 'patient') return '/paciente';
+  return '/admin';
+}
+
 export async function loginWithCredentials(
   role: 'admin' | 'patient',
   email: string,
   password: string
+): Promise<
+  | { ok: true; portalRole: DemoRole; mustChangePassword?: boolean; passwordExpired?: boolean }
+  | { ok: false; message: string }
+> {
+  return loginUnified(email, password, role);
+}
+
+/** Formulario único: detecta automáticamente paciente, personal o plataforma. */
+export async function loginUnified(
+  email: string,
+  password: string,
+  forcedRole?: 'admin' | 'patient'
 ): Promise<
   | { ok: true; portalRole: DemoRole; mustChangePassword?: boolean; passwordExpired?: boolean }
   | { ok: false; message: string }
@@ -52,7 +70,11 @@ export async function loginWithCredentials(
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ role, email, password })
+    body: JSON.stringify({
+      role: forcedRole ?? 'auto',
+      email,
+      password
+    })
   });
   const json = (await res.json()) as {
     data?: SessionUser;
@@ -61,23 +83,32 @@ export async function loginWithCredentials(
   if (!res.ok || !json.data?.role) {
     return { ok: false, message: json.error?.message ?? 'Credenciales incorrectas.' };
   }
-  const portalRole = mapApiRole(json.data.role);
-  if (!portalRole) {
+  const user = json.data;
+  if (forcedRole) {
+    const portalRole = mapApiRole(user.role);
+    if (!portalRole || portalRole !== forcedRole) {
+      return { ok: false, message: 'Este acceso no corresponde a tu tipo de cuenta.' };
+    }
+  }
+  const portalRole =
+    user.role === 'super_admin' ? 'admin' : mapApiRole(user.role);
+  if (!portalRole && user.role !== 'super_admin') {
     return { ok: false, message: 'Rol de sesión no válido.' };
   }
-  if (json.data.tenantId) localStorage.setItem(STORAGE_TENANT_ID, json.data.tenantId);
-  if (json.data.patientId) localStorage.setItem(STORAGE_PATIENT_ID, json.data.patientId);
-  const mustChange = Boolean(json.data.mustChangePassword || json.data.passwordExpired);
+  if (user.tenantId) localStorage.setItem(STORAGE_TENANT_ID, user.tenantId);
+  if (user.patientId) localStorage.setItem(STORAGE_PATIENT_ID, user.patientId);
+  const mustChange = Boolean(user.mustChangePassword || user.passwordExpired);
   if (mustChange) {
-    const q = json.data.passwordExpired ? '?expired=1' : '';
+    const q = user.passwordExpired ? '?expired=1' : '';
     window.location.href = `/login/cambiar-password${q}`;
-    return { ok: true, portalRole, mustChangePassword: true };
+    return { ok: true, portalRole: portalRole ?? 'admin', mustChangePassword: true };
   }
+  window.location.href = redirectAfterLogin(user);
   return {
     ok: true,
-    portalRole,
-    mustChangePassword: json.data.mustChangePassword,
-    passwordExpired: json.data.passwordExpired
+    portalRole: portalRole ?? 'admin',
+    mustChangePassword: user.mustChangePassword,
+    passwordExpired: user.passwordExpired
   };
 }
 

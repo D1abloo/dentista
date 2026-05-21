@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { LogoMark } from '@/components/brand/Logo';
+import { Logo } from '@/components/brand/Logo';
 
 const links = [
   { href: '/', label: 'Inicio' },
@@ -14,11 +14,11 @@ export function PublicHeader({ activeHref }: { activeHref?: string }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="pub-header">
+    <header className="pub-header pub-header--brand">
+      <div className="pub-header__clinic-bg" aria-hidden />
       <div className="shell pub-header__inner">
         <a href="/" className="pub-header__brand">
-          <LogoMark size={36} />
-          <span className="font-[family-name:var(--display)] text-lg">Dentista+</span>
+          <Logo size={40} />
         </a>
         <nav className="pub-nav" aria-label="Principal">
           {links.map((l) => (

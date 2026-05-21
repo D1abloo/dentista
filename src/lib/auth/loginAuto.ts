@@ -1,8 +1,8 @@
 import type { SessionUser } from '@/lib/auth';
 import { evaluatePasswordStatus } from '@/lib/auth/passwordPolicy';
+import { loginPlatformAdmin } from '@/lib/auth/productionLogin';
 import { getSupabaseAdmin } from '@/lib/supabaseServer';
 import { signInWithEmailPassword } from '@/lib/supabaseAuth';
-import type { LoginInput } from '@/lib/validators';
 
 const STAFF_ROLES = new Set(['admin', 'owner', 'clinic_admin', 'dentist', 'receptionist']);
 
@@ -34,39 +34,18 @@ function toPortalSession(profile: ProfileRow): Omit<SessionUser, 'expiresAt'> {
   };
 }
 
-export async function loginPlatformAdmin(
-  admin: ReturnType<typeof getSupabaseAdmin>,
-  authUserId: string,
-  fallbackEmail: string
+/** Inicio de sesión único: detecta paciente, personal de clínica o super admin de plataforma. */
+export async function loginAutoDetect(
+  email: string,
+  password: string
 ): Promise<Omit<SessionUser, 'expiresAt'> | null> {
-  const { data: row } = await admin
-    .from('platform_admins')
-    .select('email, full_name, active')
-    .eq('auth_user_id', authUserId)
-    .eq('active', true)
-    .maybeSingle();
-  if (!row) return null;
-  await admin.auth.admin.updateUserById(authUserId, {
-    app_metadata: { role: 'super_admin' }
-  });
-  return {
-    role: 'super_admin',
-    email: row.email ?? fallbackEmail,
-    name: row.full_name ?? 'Super Admin'
-  };
-}
-
-export async function loginWithSupabaseProfile(
-  input: LoginInput
-): Promise<Omit<SessionUser, 'expiresAt'> | null> {
-  const { data: authData, error } = await signInWithEmailPassword(input.email, input.password);
+  const { data: authData, error } = await signInWithEmailPassword(email, password);
   if (error || !authData.user) return null;
 
   const admin = getSupabaseAdmin();
+  const platform = await loginPlatformAdmin(admin, authData.user.id, email);
+  if (platform) return platform;
 
-  if (input.role === 'super_admin') {
-    return loginPlatformAdmin(admin, authData.user.id, input.email);
-  }
   const { data: profile, error: profileError } = await admin
     .from('profiles')
     .select('id, clinic_id, tenant_id, role, full_name, email, must_change_password, password_expires_at')
@@ -76,9 +55,7 @@ export async function loginWithSupabaseProfile(
   if (profileError || !profile) return null;
 
   const row = profile as ProfileRow;
-
-  if (input.role === 'patient' && row.role !== 'patient') return null;
-  if (input.role === 'admin' && !STAFF_ROLES.has(row.role)) return null;
+  if (row.role !== 'patient' && !STAFF_ROLES.has(row.role)) return null;
 
   const { data: clinic } = await admin.from('clinics').select('id, status, tenant_id').eq('id', row.clinic_id).maybeSingle();
   if (!clinic || clinic.status !== 'active') return null;

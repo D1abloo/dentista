@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { loginAutoDetect } from '@/lib/auth/loginAuto';
 import { loginWithSupabaseProfile } from '@/lib/auth/productionLogin';
 import { hasSupabaseConfig, isDemoMode } from '@/lib/supabaseServer';
 import type { PlatformRole } from '@/lib/platform/types';
@@ -129,6 +130,14 @@ export function loginSuperAdmin(input: LoginInput): Omit<SessionUser, 'expiresAt
 }
 
 export async function loginProductionUser(input: LoginInput): Promise<Omit<SessionUser, 'expiresAt'> | null> {
+  if (input.role === 'auto') {
+    if (!hasSupabaseConfig()) return null;
+    try {
+      return await loginAutoDetect(input.email, input.password);
+    } catch {
+      return null;
+    }
+  }
   const superUser = loginSuperAdmin(input);
   if (superUser) return superUser;
   if (!hasSupabaseConfig()) return null;

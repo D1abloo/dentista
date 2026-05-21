@@ -25,9 +25,7 @@ export function LiveLoginForm({
     setLoading(false);
     if (!result.ok) {
       setError(result.message);
-      return;
     }
-    window.location.href = result.portalRole === 'admin' ? '/admin' : '/paciente';
   }
 
   const formClass = [

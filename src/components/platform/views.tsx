@@ -477,7 +477,7 @@ export function PlatformSecurity() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="p-6">
           <ShieldCheck className="h-8 w-8 text-[var(--blue)]" />
-          <h3 className="mt-3 font-bold">RLS en Supabase</h3>
+          <h3 className="mt-3 font-bold">Aislamiento por clínica</h3>
           <p className="mt-2 text-sm text-[var(--muted)]">
             Citas, facturas, perfiles y mensajes filtran por <code className="text-xs">clinic_id</code> y{' '}
             <code className="text-xs">tenant_id</code>. Un usuario autenticado solo ve su organización.

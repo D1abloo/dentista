@@ -20,9 +20,18 @@ export const availabilityQuerySchema = clinicQuerySchema.extend({
 });
 
 export const loginSchema = z.object({
-  role: z.enum(['patient', 'admin', 'super_admin']),
+  role: z.enum(['patient', 'admin', 'super_admin', 'auto']).default('auto'),
   email: z.string().email(),
   password: z.string().min(6).max(120)
+});
+
+export const clinicLogoSchema = z.object({
+  logoDataUrl: z
+    .string()
+    .max(520_000)
+    .optional()
+    .refine((v) => !v || v.startsWith('data:image/'), { message: 'Formato de imagen no válido.' }),
+  clear: z.boolean().optional()
 });
 
 export const contactFormSchema = z.object({

@@ -1,16 +1,16 @@
 import { Facebook, Instagram, Linkedin } from 'lucide-react';
-import { LogoMark } from '@/components/brand/Logo';
+import { Logo } from '@/components/brand/Logo';
 
 const product = [
   { href: '/#caracteristicas', label: 'Características' },
   { href: '/reserva', label: 'Reservar cita' },
-  { href: '/login/paciente', label: 'Portal paciente' },
-  { href: '/login/admin', label: 'Panel clínica' }
+  { href: '/login', label: 'Acceso pacientes y clínicas' }
 ];
 
 const company = [
   { href: '/contacto', label: 'Contacto' },
-  { href: '/documentacion', label: 'Documentación' },
+  { href: '/admin/ayuda', label: 'Guía panel clínica' },
+  { href: '/paciente/ayuda', label: 'Guía portal paciente' },
   { href: '/registro-clinica', label: 'Registrar clínica' },
   { href: '/#precios', label: 'Precios' }
 ];
@@ -23,12 +23,12 @@ const legal = [
 
 export function PublicFooter() {
   return (
-    <footer className="lp-footer">
+    <footer className="lp-footer lp-footer--brand">
+      <div className="lp-footer__clinic-bg" aria-hidden />
       <div className="shell lp-footer__grid">
         <div className="lp-footer__brand">
           <a href="/" className="lp-footer__logo">
-            <LogoMark size={32} />
-            <span className="font-[family-name:var(--display)] text-lg text-[var(--ink)]">Dentista+</span>
+            <Logo size={36} />
           </a>
           <p>La plataforma dental que conecta pacientes y clínicas con seguridad, diseño premium y gestión integral.</p>
           <div className="lp-footer__social">

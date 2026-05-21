@@ -1,11 +1,11 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { LogOut, Menu } from 'lucide-react';
-import { Logo } from '@/components/brand/Logo';
 import { AdminStaffSetup } from '@/components/auth/AdminStaffSetup';
 import { useLogout } from '@/components/auth/RoleGate';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useTenant } from '@/hooks/useTenant';
 import { getStaffProfile, organizationDisplayName, organizationSubtitle } from '@/lib/organization';
+import { settingsFor } from '@/lib/demoStore';
 import { GlobalIdSearch } from '@/components/shared/GlobalIdSearch';
 import { adminNav } from './nav';
 import { ClinicBranchSwitcher } from './ClinicBranchSwitcher';
@@ -14,6 +14,7 @@ function AdminRail({
   path,
   tenant,
   userLabel,
+  clinicLogoUrl,
   onNav,
   onLogout,
   variant
@@ -21,6 +22,7 @@ function AdminRail({
   path: string;
   tenant: { id: string; name: string; subtitle: string };
   userLabel: string;
+  clinicLogoUrl: string;
   onNav: () => void;
   onLogout: () => void;
   variant: 'drawer' | 'rail';
@@ -32,7 +34,8 @@ function AdminRail({
   return (
     <aside className={cls}>
       <a href="/admin" className="admin-brand mb-6 px-2 no-underline" onClick={onNav}>
-        <Logo theme="dark" size={48} />
+        <img src={clinicLogoUrl} alt="" className="admin-brand__clinic-logo" width={56} height={56} />
+        <span className="admin-brand__label">Dentista+</span>
       </a>
       <div className="admin-org-card mb-4">
         <p className="admin-org-card__name">{tenant.name}</p>
@@ -81,6 +84,7 @@ export function AdminShell({
   const { state } = useDemoStore();
   const [sessionName, setSessionName] = useState('');
   const orgName = organizationDisplayName(state, scope.tenantId);
+  const clinicLogoUrl = settingsFor(state, scope.tenantId).logoUrl ?? '/brand/dentista-logo.svg';
   const tenant = {
     id: scope.tenantId,
     name: orgName,
@@ -111,6 +115,7 @@ export function AdminShell({
         path={path}
         tenant={tenant}
         userLabel={userLabel}
+        clinicLogoUrl={clinicLogoUrl}
         onNav={close}
         onLogout={logout}
         variant="rail"
@@ -127,6 +132,7 @@ export function AdminShell({
               path={path}
               tenant={tenant}
               userLabel={userLabel}
+              clinicLogoUrl={clinicLogoUrl}
               onNav={close}
               onLogout={logout}
               variant="drawer"

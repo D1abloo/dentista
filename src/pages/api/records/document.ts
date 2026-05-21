@@ -16,7 +16,7 @@ export const POST: APIRoute = async (context) => {
     const scopeErr = assertClinicScope(gate.user, parsed.data.clinicId);
     if (scopeErr) return scopeErr;
     const data = await createPatientDocumentRecord(parsed.data);
-    return created(data, { message: 'Documento guardado en Supabase.' });
+    return created(data, { message: 'Documento guardado correctamente.' });
   } catch (error) {
     return fail('No se pudo guardar el documento.', 500, error instanceof Error ? error.message : error);
   }

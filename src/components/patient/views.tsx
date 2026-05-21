@@ -28,7 +28,9 @@ import { tenantName } from '@/lib/tenant';
 import { fmtDate, fmtDateTime, money, statusLabel, todayIso, uid } from '@/lib/format';
 import { daySlotMap } from '@/lib/slots';
 import { BookingDayCalendar } from '@/components/shared/BookingDayCalendar';
+import { GuideViewer } from '@/components/shared/GuideViewer';
 import { SlotCalendar } from '@/components/shared/SlotCalendar';
+import { patientGuideSections } from '@/lib/guide/content';
 import { PatientConsentAlert, PatientConsents } from './consents';
 import { PatientIdentity } from './PatientIdentity';
 import { email, phone, required } from '@/lib/validation';
@@ -576,18 +578,30 @@ export function PatientMessages() {
 export function PatientHelp() {
   const { state } = useDemoStore();
   return (
-    <div className="space-y-4">
-      <PageHeader title="Ayuda" subtitle="Preguntas frecuentes y normativa" />
+    <div className="space-y-6">
+      <GuideViewer
+        intro="Guía del portal del paciente (PdP): cómo ver citas de ejemplo, informes clínicos, documentos y facturas."
+        sections={patientGuideSections}
+      />
       <Card title="Preguntas frecuentes">
         <dl className="space-y-3 text-sm">
-          <div><dt className="font-bold text-dental-900">¿Cómo cancelo?</dt><dd className="text-slate-600">Desde Mis citas, con al menos 24 h de antelación.</dd></div>
-          <div><dt className="font-bold text-dental-900">¿Puedo reprogramar?</dt><dd className="text-slate-600">Sí, elige nueva fecha y hora si hay disponibilidad.</dd></div>
+          <div>
+            <dt className="font-bold text-dental-900">¿Cómo cancelo?</dt>
+            <dd className="text-slate-600">Desde Mis citas, con al menos 24 h de antelación.</dd>
+          </div>
+          <div>
+            <dt className="font-bold text-dental-900">¿Puedo reprogramar?</dt>
+            <dd className="text-slate-600">Sí, elige nueva fecha y hora si hay disponibilidad.</dd>
+          </div>
         </dl>
       </Card>
       <Card title="Normativa">
         <ul className="space-y-2">
           {normativeFor(state).map((n) => (
-            <li key={n.id} className="rounded-xl bg-slate-50 p-3 text-sm"><strong>{n.title}</strong><p className="mt-1 text-slate-600">{n.body}</p></li>
+            <li key={n.id} className="rounded-xl bg-slate-50 p-3 text-sm">
+              <strong>{n.title}</strong>
+              <p className="mt-1 text-slate-600">{n.body}</p>
+            </li>
           ))}
         </ul>
       </Card>

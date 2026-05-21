@@ -4716,3 +4716,250 @@ a.cp-channel:hover {
 .clinic-branch-switch {
   margin-top: 0.25rem;
 }
+
+/* —— Public brand header/footer (clínica de fondo) —— */
+.pub-header--brand {
+  position: sticky;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.pub-header__clinic-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(105deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.82) 42%, rgba(240, 249, 255, 0.88) 100%),
+    url('/images/login-dentista-paciente.jpg') center 30% / cover no-repeat;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.pub-header--brand .pub-header__inner {
+  position: relative;
+  z-index: 1;
+}
+
+.lp-footer--brand {
+  position: relative;
+  overflow: hidden;
+}
+
+.lp-footer__clinic-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(10, 26, 46, 0.96)),
+    url('/images/login-dentista-paciente.jpg') center / cover no-repeat;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.lp-footer--brand .shell {
+  position: relative;
+  z-index: 1;
+}
+
+.lp-footer--brand .lp-footer__logo span,
+.lp-footer--brand h4,
+.lp-footer--brand a,
+.lp-footer--brand p {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.lp-footer--brand .lp-footer__copy {
+  position: relative;
+  z-index: 1;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* —— Guía en sidebar (docs) —— */
+.guide-docs__intro {
+  margin: 0 0 1.25rem;
+  font-size: 0.95rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.guide-docs__toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem;
+  border-radius: 1rem;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+}
+
+.guide-docs__toc-link {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: #fff;
+  border: 1px solid var(--line);
+  color: var(--navy);
+  text-decoration: none;
+}
+
+.guide-docs__toc-link:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.guide-docs__sections {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.guide-docs__section {
+  padding: 1.25rem;
+  border-radius: 1.25rem;
+  border: 1px solid var(--line);
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.guide-docs__section-head h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+  font-family: var(--display);
+  color: var(--navy);
+}
+
+.guide-docs__section-head p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.guide-docs__media {
+  margin: 1rem 0;
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #f1f5f9;
+}
+
+.guide-docs__media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 280px;
+  object-fit: cover;
+}
+
+.guide-docs__steps {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.guide-docs__tips {
+  margin: 0.75rem 0 0;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: #ecfdf5;
+  font-size: 0.82rem;
+  color: #065f46;
+  list-style: disc;
+  padding-left: 1.5rem;
+}
+
+/* —— Logo clínica sidebar —— */
+.admin-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  text-align: center;
+}
+
+.admin-brand__clinic-logo {
+  border-radius: 1rem;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 0.35rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.admin-brand__label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.clinic-logo-upload {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+.clinic-logo-upload__preview img {
+  border-radius: 1rem;
+  border: 1px solid var(--line);
+  object-fit: contain;
+  background: #f8fafc;
+}
+
+.login-form--unified .login-form__badge {
+  text-align: center;
+}
+
+/* —— Panel responsive (móvil → escritorio amplio) —— */
+@media (min-width: 1280px) {
+  :root {
+    --rail: 17rem;
+  }
+
+  .portal-body--admin,
+  .portal-body--patient {
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+
+  .portal-top__title {
+    font-size: 1.65rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .portal-body--admin,
+  .portal-body--patient {
+    max-width: 1520px;
+  }
+}
+
+@media (max-width: 639px) {
+  .portal-top--admin {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .portal-top__actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .guide-docs__section {
+    padding: 1rem;
+  }
+
+  .data-table {
+    font-size: 0.78rem;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .portal-rail--drawer {
+    width: min(85vw, 18rem);
+  }
+}

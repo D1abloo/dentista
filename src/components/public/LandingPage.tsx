@@ -85,8 +85,7 @@ export function LandingPage() {
         {loggedOut ? (
           <div className="shell lp-alert">
             <p>
-              Sesión cerrada. Elige <strong>Portal paciente</strong> o <strong>Panel admin</strong> en el menú para
-              volver a entrar.
+              Sesión cerrada. Usa <strong>Iniciar sesión</strong> con tu email; te llevamos al portal que corresponda a tu cuenta.
             </p>
           </div>
         ) : null}
