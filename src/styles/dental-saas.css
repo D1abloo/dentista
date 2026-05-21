@@ -5577,127 +5577,172 @@ a.cp-channel:hover {
   cursor: wait;
 }
 
-/* —— Registro paciente (extiende cp / cr) —— */
-.pr-page {
-  padding-bottom: clamp(3rem, 6vw, 5rem);
+/* —— Registro paciente (formulario compacto) —— */
+.pr-register {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: var(--navy);
 }
 
-.pr-page .cp-hero {
-  background:
-    radial-gradient(ellipse 65% 50% at 100% 0%, rgba(20, 184, 166, 0.1), transparent 55%),
-    radial-gradient(ellipse 45% 40% at 0% 100%, rgba(37, 99, 235, 0.06), transparent 50%),
-    var(--bg);
-}
-
-.pr-badge {
-  background: linear-gradient(135deg, rgba(20, 184, 166, 0.16), rgba(37, 99, 235, 0.1));
-  color: #0f766e;
-  border: 1px solid rgba(20, 184, 166, 0.35);
-}
-
-.pr-float {
-  border-color: rgba(20, 184, 166, 0.25);
-  box-shadow: 0 20px 52px rgba(13, 148, 136, 0.14);
-}
-
-.pr-benefit {
-  background: linear-gradient(165deg, #fff 0%, #f0fdfa 55%, #ecfeff 100%);
-  border-color: rgba(20, 184, 166, 0.22);
-}
-
-.pr-benefit__icon {
-  background: rgba(20, 184, 166, 0.14);
-  color: #0d9488;
-}
-
-.pr-form-panel {
-  padding: clamp(1.5rem, 4vw, 2.5rem);
-  gap: clamp(1.5rem, 3vw, 2.25rem);
-}
-
-@media (min-width: 960px) {
-  .pr-form-panel {
-    grid-template-columns: minmax(0, 1.4fr) minmax(16rem, 0.75fr);
-    align-items: stretch;
-  }
-}
-
-.pr-form-panel .cp-form-panel__form h2 {
-  font-size: clamp(1.35rem, 2.5vw, 1.65rem);
-  margin-bottom: 0.35rem;
-}
-
-.pr-aside {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-height: 100%;
-  background: linear-gradient(165deg, #0f2742 0%, #134e6f 48%, #0d9488 115%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-.pr-legal {
-  padding: 1rem 1.1rem;
+.pr-register__card {
+  width: 100%;
+  max-width: 22.5rem;
+  padding: 1.35rem 1.4rem 1.15rem;
   border-radius: 1rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: #fff;
+  border: 1px solid rgba(15, 39, 66, 0.1);
+  box-shadow: 0 20px 48px rgba(6, 20, 47, 0.35);
 }
 
-.pr-legal .cr-check {
-  margin-top: 0.35rem;
-}
-
-.pr-submit {
-  margin-top: 0.25rem;
-  padding-block: 0.85rem;
-  font-size: 0.95rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #0d9488 0%, #2563eb 100%);
-  border: none;
-}
-
-.pr-submit:hover:not(:disabled) {
-  filter: brightness(1.06);
-}
-
-.pr-login-link {
-  margin: 0.5rem 0 0;
-  text-align: center;
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-.pr-login-link a {
-  font-weight: 800;
-  color: var(--blue);
-}
-
-.pr-success {
-  text-align: left;
-  padding: clamp(1.5rem, 3vw, 2rem);
-  border-radius: 1.25rem;
-  background: linear-gradient(165deg, #ecfdf5 0%, #fff 70%);
-  border: 1px solid #99f6e4;
-}
-
-.pr-success__steps {
-  margin: 1rem 0 0;
-  padding-left: 1.2rem;
-  font-size: 0.88rem;
-  color: var(--muted);
-  line-height: 1.65;
-}
-
-.pr-success__steps a {
-  font-weight: 700;
-  color: var(--blue);
-}
-
-.pr-success__actions {
+.pr-register__head {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.pr-register__eyebrow {
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pr-register__head h1 {
+  margin: 0.15rem 0 0;
+  font-family: var(--display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.pr-register__form {
+  display: grid;
   gap: 0.65rem;
-  margin-top: 1.25rem;
+}
+
+.pr-register__form > label {
+  gap: 0.3rem !important;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.pr-register__form .field-control {
+  padding: 0.55rem 0.7rem;
+  font-size: 0.88rem;
+  border-radius: 0.6rem;
+  border-color: #cbd5e1;
+}
+
+.pr-register__form .field-control:focus {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 2px rgba(15, 39, 66, 0.12);
+}
+
+.pr-register__form .login-form__input-wrap .field-control {
+  padding-left: 2.25rem;
+}
+
+.pr-register__form .login-form__submit {
+  margin-top: 0.35rem;
+  background: var(--navy);
+  border: none;
+  font-weight: 800;
+}
+
+.pr-register__form .login-form__submit:hover:not(:disabled) {
+  background: #1a3a5c;
+}
+
+.pr-register__check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  margin: 0.15rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.pr-register__check input {
+  margin-top: 0.15rem;
+  accent-color: var(--navy);
+}
+
+.pr-register__check a {
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.pr-register__check--err {
+  color: var(--danger);
+}
+
+.pr-register__hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.68rem;
+  line-height: 1.4;
+  color: var(--muted);
+  text-align: center;
+}
+
+.pr-register__foot {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line);
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.pr-register__foot a {
+  font-weight: 800;
+  color: var(--navy);
+}
+
+.pr-register__alert {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #92400e;
+  background: #fffbeb;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.5rem;
+}
+
+.pr-register__done {
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+.pr-register__done svg {
+  color: var(--success);
+  margin: 0 auto;
+}
+
+.pr-register__done-title {
+  margin: 0.5rem 0 0.35rem;
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--navy);
+}
+
+.pr-register__done p {
+  margin: 0 0 1rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.pr-register__done .btn {
+  background: var(--navy);
 }
 
 .activate-page {
