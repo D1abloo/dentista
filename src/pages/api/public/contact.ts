@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { submitContactForm } from '@/lib/platform/contact';
+import { getEmailStatus } from '@/lib/email/send';
 import { fail, ok } from '@/lib/http';
 import { logError } from '@/lib/logger';
 import { contactFormSchema } from '@/lib/validators';
@@ -7,7 +8,12 @@ import { contactFormSchema } from '@/lib/validators';
 export const prerender = false;
 
 export const GET: APIRoute = async () => {
-  return ok({ available: true, endpoint: '/api/public/contact' });
+  const email = getEmailStatus();
+  return ok({
+    available: true,
+    endpoint: '/api/public/contact',
+    emailConfigured: email.configured
+  });
 };
 
 export const POST: APIRoute = async ({ request }) => {

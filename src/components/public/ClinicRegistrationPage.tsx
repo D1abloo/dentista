@@ -76,6 +76,7 @@ export function ClinicRegistrationPage() {
   const [form, setForm] = useState<FormState>(initialForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sent, setSent] = useState(false);
+  const [emailWarning, setEmailWarning] = useState<string | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [apiReady, setApiReady] = useState<boolean | null>(null);
@@ -126,7 +127,7 @@ export function ClinicRegistrationPage() {
         })
       });
       const json = (await res.json()) as {
-        data?: { id?: string };
+        data?: { id?: string; emailSent?: boolean };
         error?: { message?: string };
         message?: string;
       };
@@ -135,6 +136,7 @@ export function ClinicRegistrationPage() {
         return;
       }
       setRequestId(json.data?.id ?? null);
+      setEmailWarning(json.data?.emailSent === false ? (json.message ?? null) : null);
       setSent(true);
     } catch {
       setErrors({ form: 'Error de conexión. Comprueba tu red e inténtalo de nuevo.' });
@@ -269,9 +271,14 @@ export function ClinicRegistrationPage() {
                   <CheckCircle2 className="h-10 w-10 text-emerald-600" aria-hidden />
                   <p className="cp-form-success__title">Solicitud enviada</p>
                   <p>
-                    Hemos registrado tu alta correctamente. Te contactaremos en menos de 24 horas con el acceso
-                    al panel de tu clínica.
+                    Hemos registrado tu alta correctamente. Revisa tu correo; te contactaremos en menos de 24 horas
+                    con el acceso al panel de tu clínica.
                   </p>
+                  {emailWarning ? (
+                    <p className="login-form__error mt-3" role="alert">
+                      {emailWarning}
+                    </p>
+                  ) : null}
                   {requestId ? (
                     <p className="cr-success__ref">
                       Referencia: <code>{requestId}</code>

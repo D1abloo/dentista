@@ -100,7 +100,7 @@ Toda entidad operativa contiene `clinic_id`. Las políticas RLS deben impedir ac
 `src/pages/api/notifications/appointment.ts` procesa confirmaciones de cita y genera enlace de activación `/activar`.
 
 - WhatsApp Cloud API de Meta si `WHATSAPP_PROVIDER=meta`.
-- Email transaccional vía Resend si `EMAIL_PROVIDER=resend`.
+- Email transaccional unificado en `src/lib/email/send.ts`: SMTP (Hostinger) o Resend según credenciales (`EMAIL_PROVIDER=auto` por defecto).
 - SMS en modo mock preparado para futuro adaptador.
 - Fallback mock si faltan credenciales.
 

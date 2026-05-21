@@ -1,6 +1,8 @@
 import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
-import { sendMail, notifyInbox } from '@/lib/email/send';
+import { sendMailBatch, notifyInbox } from '@/lib/email/send';
+import { textToHtml } from '@/lib/email/templates';
 import type { SupportRequest } from '@/lib/platform/types';
+import type { EmailProvider } from '@/lib/email/config';
 
 const CATEGORY_MAP = {
   paciente: 'patient',
@@ -16,6 +18,12 @@ export type ContactFormInput = {
   clinic?: string;
   type: keyof typeof CATEGORY_MAP;
   message: string;
+};
+
+export type FormEmailResult = {
+  sent: boolean;
+  mock: boolean;
+  provider: EmailProvider;
 };
 
 export async function submitContactForm(input: ContactFormInput) {
@@ -51,20 +59,22 @@ export async function submitContactForm(input: ContactFormInput) {
   }
 
   const inbox = notifyInbox();
-  await sendMail({
-    to: inbox,
-    replyTo: input.email,
-    subject: `[Dentista+] ${subject}`,
-    text: body
-  });
+  const email = await sendMailBatch([
+    {
+      to: inbox,
+      replyTo: input.email,
+      subject: `[Dentista+] ${subject}`,
+      text: body,
+      html: `<p>${textToHtml(body)}</p>`
+    },
+    {
+      to: input.email,
+      subject: 'Hemos recibido tu mensaje — Dentista+',
+      text: `Hola ${input.name},\n\nGracias por contactar con Dentista+. Hemos registrado tu consulta y te responderemos en menos de 24 horas laborables.\n\nUn saludo,\nEquipo Dentista+`
+    }
+  ]);
 
-  await sendMail({
-    to: input.email,
-    subject: 'Hemos recibido tu mensaje — Dentista+',
-    text: `Hola ${input.name},\n\nGracias por contactar con Dentista+. Hemos registrado tu consulta y te responderemos en menos de 24 horas laborables.\n\nUn saludo,\nEquipo Dentista+ / Estructura Web`
-  });
-
-  return { ticketId: ticket?.id ?? null };
+  return { ticketId: ticket?.id ?? null, email };
 }
 
 export async function notifyClinicRegistration(input: {
@@ -73,7 +83,7 @@ export async function notifyClinicRegistration(input: {
   email: string;
   phone: string;
   registrationId: string;
-}) {
+}): Promise<FormEmailResult> {
   const inbox = notifyInbox();
   const text = [
     'Nueva solicitud de alta de clínica',
@@ -87,16 +97,17 @@ export async function notifyClinicRegistration(input: {
     'Revisar en panel: /platform/registros'
   ].join('\n');
 
-  await sendMail({
-    to: inbox,
-    replyTo: input.email,
-    subject: `[Dentista+] Nueva alta: ${input.clinic_name}`,
-    text
-  });
-
-  await sendMail({
-    to: input.email,
-    subject: 'Solicitud de alta recibida — Dentista+',
-    text: `Hola ${input.owner_name},\n\nHemos recibido la solicitud de alta para «${input.clinic_name}». La revisaremos manualmente y te contactaremos en menos de 24 horas laborables con los siguientes pasos.\n\nReferencia: ${input.registrationId}\n\nUn saludo,\nEquipo Dentista+`
-  });
+  return sendMailBatch([
+    {
+      to: inbox,
+      replyTo: input.email,
+      subject: `[Dentista+] Nueva alta: ${input.clinic_name}`,
+      text
+    },
+    {
+      to: input.email,
+      subject: 'Solicitud de alta recibida — Dentista+',
+      text: `Hola ${input.owner_name},\n\nHemos recibido la solicitud de alta para «${input.clinic_name}». La revisaremos manualmente y te contactaremos en menos de 24 horas laborables con los siguientes pasos.\n\nReferencia: ${input.registrationId}\n\nUn saludo,\nEquipo Dentista+`
+    }
+  ]);
 }

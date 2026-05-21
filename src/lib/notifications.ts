@@ -1,4 +1,6 @@
 import { buildActivationUrl } from './activation';
+import { sendMail } from '@/lib/email/send';
+import { resolveEmailProvider } from '@/lib/email/config';
 
 export type NotificationChannel = 'email' | 'whatsapp' | 'sms';
 
@@ -104,33 +106,34 @@ async function sendWhatsApp(input: AppointmentNotificationInput, activationUrl: 
 }
 
 async function sendEmail(input: AppointmentNotificationInput, activationUrl: string): Promise<NotificationResult> {
-  const provider = envValue('EMAIL_PROVIDER') || 'mock';
+  const provider = resolveEmailProvider();
   const to = input.patientEmail?.trim();
   if (!to) return { channel: 'email', provider, status: 'skipped', error: 'Falta correo del paciente.' };
-  if (provider !== 'resend') return { channel: 'email', provider, status: 'mock', to };
+  if (provider === 'none') {
+    return { channel: 'email', provider: 'none', status: 'mock', to, error: 'Correo no configurado (SMTP o Resend).' };
+  }
 
-  const apiKey = envValue('RESEND_API_KEY');
-  const from = envValue('EMAIL_FROM') || 'Dentista+ <no-reply@dentistaplus.demo>';
-  if (!apiKey) return { channel: 'email', provider, status: 'mock', to, error: 'Falta RESEND_API_KEY.' };
-
-  const response = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      authorization: `Bearer ${apiKey}`,
-      'content-type': 'application/json'
-    },
-    body: JSON.stringify({
-      from,
+  try {
+    const result = await sendMail({
       to,
       subject: 'Activa tu cuenta Dentista+ y consulta tu cita',
-      html: emailHtml(input, activationUrl)
-    })
-  });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    return { channel: 'email', provider, status: 'failed', to, error: payload?.message ?? 'El proveedor de correo rechazó el envío.' };
+      text: appointmentText(input, activationUrl),
+      html: emailHtml(input, activationUrl),
+      requireDelivery: false
+    });
+    if (result.mock) {
+      return { channel: 'email', provider: result.provider, status: 'mock', to };
+    }
+    return { channel: 'email', provider: result.provider, status: 'sent', to };
+  } catch (error) {
+    return {
+      channel: 'email',
+      provider,
+      status: 'failed',
+      to,
+      error: error instanceof Error ? error.message : 'Error al enviar correo.'
+    };
   }
-  return { channel: 'email', provider, status: 'sent', to, messageId: payload?.id };
 }
 
 async function sendSms(input: AppointmentNotificationInput, activationUrl: string): Promise<NotificationResult> {

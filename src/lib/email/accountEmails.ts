@@ -51,7 +51,8 @@ export async function sendOrganizationApprovedEmail(input: {
     to: input.email,
     subject: `Alta aprobada — acceso a ${input.clinicName} · Dentista+`,
     text,
-    html
+    html,
+    requireDelivery: true
   });
 }
 
@@ -89,6 +90,7 @@ export async function sendNewUserCredentialsEmail(input: {
     to: input.email,
     subject: 'Tu acceso a Dentista+',
     text,
-    html
+    html,
+    requireDelivery: true
   });
 }

@@ -177,9 +177,16 @@ export function ContactPage() {
           accept_terms: true
         })
       });
-      const json = (await res.json()) as { error?: { message?: string } };
+      const json = (await res.json()) as {
+        error?: { message?: string };
+        data?: { ticketId?: string | null; email?: { sent?: boolean } };
+      };
       if (!res.ok) {
-        setErrors({ form: json.error?.message ?? 'No se pudo enviar el mensaje.' });
+        setErrors({
+          form:
+            json.error?.message ??
+            'No se pudo enviar el mensaje. Si el problema continúa, escríbenos a info@estructuraweb.es.'
+        });
         return;
       }
       setSent(true);
