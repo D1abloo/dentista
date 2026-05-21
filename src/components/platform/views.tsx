@@ -87,7 +87,7 @@ export function PlatformDashboard() {
             Gestionar clínicas
           </a>
           <a href="/platform/usuarios" className="btn btn--outline btn--sm">
-            Usuarios por clínica
+            Usuarios y accesos
           </a>
           <a href="/platform/suscripciones" className="btn btn--outline btn--sm">
             Suscripciones
