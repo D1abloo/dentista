@@ -1850,6 +1850,263 @@ body {
   opacity: 0.7;
 }
 
+/* Login plataforma — split hero + formulario */
+.login-platform {
+  display: grid;
+  min-height: 100vh;
+  min-height: 100dvh;
+  grid-template-columns: 1fr;
+  background: #0f172a;
+}
+
+.login-platform--ready .login-platform__card {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.login-platform__hero {
+  position: relative;
+  min-height: 42vh;
+  overflow: hidden;
+}
+
+.login-platform__hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  transition: transform 0.35s ease-out;
+  will-change: transform;
+}
+
+.login-platform__hero-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(160deg, rgba(15, 23, 42, 0.55) 0%, rgba(15, 39, 66, 0.82) 45%, rgba(15, 23, 42, 0.92) 100%),
+    linear-gradient(0deg, rgba(14, 173, 221, 0.12), transparent 50%);
+}
+
+.login-platform__hero-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: inherit;
+  padding: 2rem 1.5rem 2.25rem;
+  color: #fff;
+}
+
+.login-platform__hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #7dd3fc;
+}
+
+.login-platform__hero-title {
+  margin: 0.75rem 0 0;
+  max-width: 22ch;
+  font-family: var(--display), Fraunces, serif;
+  font-size: clamp(1.65rem, 4vw, 2.35rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.login-platform__hero-lead {
+  margin: 0.85rem 0 0;
+  max-width: 42ch;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.login-platform__hero-trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.login-platform__hero-trust li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.login-platform__panel {
+  display: grid;
+  place-items: center;
+  padding: 1.5rem 1.25rem 2rem;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+}
+
+.login-platform__card {
+  position: relative;
+  width: 100%;
+  max-width: 26rem;
+  padding: 1.75rem 1.65rem 1.5rem;
+  border-radius: 1.35rem;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 24px 48px rgba(15, 39, 66, 0.12),
+    0 0 0 1px rgba(15, 39, 66, 0.04);
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.45s ease,
+    box-shadow 0.3s ease;
+}
+
+.login-platform__card-glow {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.35), rgba(15, 39, 66, 0.2), rgba(20, 184, 166, 0.25));
+  opacity: 0.45;
+  filter: blur(12px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.login-platform__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.35rem;
+}
+
+.login-platform__eyebrow {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #0369a1;
+}
+
+.login-platform__title {
+  margin: 0.35rem 0 0;
+  font-family: var(--display), Fraunces, serif;
+  font-size: 1.65rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+}
+
+.login-platform__lead {
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.login-platform__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.login-platform__foot a {
+  color: var(--blue);
+  text-decoration: none;
+}
+
+.login-platform__foot a:hover {
+  text-decoration: underline;
+}
+
+.login-platform__foot span {
+  opacity: 0.45;
+}
+
+.login-form--platform {
+  gap: 1.05rem;
+}
+
+.login-form__badge--platform {
+  color: #1e3a5f;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.14), rgba(15, 39, 66, 0.08));
+  border-color: rgba(14, 165, 233, 0.28);
+}
+
+.login-form--platform .login-form__input:focus {
+  border-color: #0284c7 !important;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18) !important;
+}
+
+.login-form--platform .login-form__submit {
+  margin-top: 0.2rem;
+  padding: 0.9rem 1rem;
+  border-radius: 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #0ea5e9 0%, #1d4ed8 45%, #0f2742 100%);
+  background-size: 200% auto;
+  border: none;
+  box-shadow: 0 12px 32px rgba(14, 165, 233, 0.35);
+}
+
+.login-form--platform .login-form__submit:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+@media (min-width: 900px) {
+  .login-platform {
+    grid-template-columns: minmax(0, 1.05fr) minmax(22rem, 0.95fr);
+  }
+
+  .login-platform__hero {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .login-platform__hero-content {
+    padding: 3rem 3rem 3.5rem;
+    justify-content: center;
+  }
+
+  .login-platform__panel {
+    padding: 2.5rem 2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-platform__hero-img,
+  .login-platform__card {
+    transition: none;
+  }
+
+  .login-platform--ready .login-platform__card {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Portal admin/paciente — tipografía compacta y filas sin solapamiento */
 .portal-body .card__title,
 .portal-body h1 {

@@ -32,51 +32,6 @@ async function api<T>(url: string, init?: RequestInit): Promise<T> {
   return json.data as T;
 }
 
-export function PlatformLoginPage() {
-  const [emailVal, setEmailVal] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setError('');
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ role: 'super_admin', email: emailVal, password })
-    });
-    const json = (await res.json()) as { error?: { message?: string } };
-    if (!res.ok) {
-      setError(json.error?.message ?? 'Acceso denegado');
-      return;
-    }
-    window.location.href = '/platform';
-  }
-
-  return (
-    <main className="login-portal login-portal--ready min-h-screen grid place-items-center p-4">
-      <Card className="w-full max-w-md p-8">
-        <p className="text-xs font-bold uppercase tracking-widest text-[var(--teal)]">Dentista+ Platform</p>
-        <h1 className="mt-2 font-[family-name:var(--display)] text-2xl font-semibold text-[var(--ink)]">Super Admin</h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">Acceso restringido al equipo de plataforma.</p>
-        <form onSubmit={submit} className="mt-6 grid gap-4">
-          <Field label="Email">
-            <Input type="email" value={emailVal} onChange={(e) => setEmailVal(e.target.value)} required />
-          </Field>
-          <Field label="Contraseña">
-            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-          </Field>
-          {error ? <p className="text-sm font-bold text-rose-600">{error}</p> : null}
-          <Button type="submit" className="w-full">
-            Entrar al panel
-          </Button>
-        </form>
-      </Card>
-    </main>
-  );
-}
-
 export function PlatformDashboard() {
   const [overview, setOverview] = useState<PlatformOverview | null>(null);
   const [error, setError] = useState('');
