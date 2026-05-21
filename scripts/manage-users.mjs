@@ -21,11 +21,11 @@ import { loadEnvFile } from './lib/load-env.mjs';
 
 loadEnvFile();
 
-const url = process.env.SUPABASE_URL;
+const url = process.env.SUPABASE_URL || process.env.PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!url || !serviceKey) {
-  console.error('Faltan SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en .env');
+  console.error('Faltan SUPABASE_URL (o PUBLIC_SUPABASE_URL) y SUPABASE_SERVICE_ROLE_KEY en .env');
   process.exit(1);
 }
 
