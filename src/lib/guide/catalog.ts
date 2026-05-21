@@ -6,15 +6,15 @@ export type { GuideSection, HelpAudience, HelpFaq, HelpQuickLink } from '@/lib/g
 export const helpAudiences: HelpAudienceMeta[] = [
   {
     id: 'patient',
-    label: 'Portal paciente',
+    label: 'Paciente',
     hash: 'portal-paciente',
-    description: 'Registro, citas, informes, facturas y consentimientos.'
+    description: 'Registro, citas, informes y facturas en tu portal.'
   },
   {
     id: 'admin',
-    label: 'Panel clínica',
+    label: 'Clínica',
     hash: 'panel-admin',
-    description: 'Agenda, pacientes, facturación y acceso al PdP.'
+    description: 'Agenda, pacientes, facturación y acceso al portal del paciente.'
   }
 ];
 
@@ -27,31 +27,31 @@ export const helpQuickLinks: HelpQuickLink[] = [
   {
     id: 'register',
     label: 'Registro paciente',
-    description: 'Alta obligatoria con activación por correo.',
+    description: 'Alta con activación por correo.',
     href: '/registro-paciente'
   },
   {
     id: 'login',
     label: 'Iniciar sesión',
-    description: 'Acceso unificado paciente y clínica.',
+    description: 'Acceso paciente o clínica.',
     href: '/login'
   },
   {
     id: 'booking',
     label: 'Reservar cita',
-    description: 'Requiere cuenta activada.',
+    description: 'Cuenta activada obligatoria.',
     href: '/reserva'
   },
   {
     id: 'clinic-register',
     label: 'Registrar clínica',
-    description: 'Solicitud de alta para centros dentales.',
+    description: 'Solicitud de alta del centro.',
     href: '/registro-clinica'
   },
   {
     id: 'contact',
-    label: 'Contacto y soporte',
-    description: 'Incidencias, facturación o ayuda comercial.',
+    label: 'Soporte',
+    description: 'Contacto e incidencias.',
     href: '/contacto'
   }
 ];
@@ -95,46 +95,73 @@ export const helpFaqs: HelpFaq[] = [
     id: 'multi-site',
     audience: 'admin',
     question: '¿Cómo cambio de sede?',
-    answer: 'Si gestionas varias clínicas, usa el selector de sede en la barra del panel. Filtra citas, pacientes y facturación.'
+    answer: 'Si gestionas varias clínicas, usa el selector de sede en la barra del panel.'
   },
   {
     id: 'support',
     audience: 'all',
     question: '¿Dónde contacto con soporte?',
-    answer: 'Usa el formulario en /contacto indicando si eres paciente o clínica. Para altas de centro, /registro-clinica.'
+    answer: 'Usa el formulario en /contacto indicando si eres paciente o clínica.'
   }
 ];
-
-export function defaultSectionId(audience: HelpAudience): string {
-  return helpSectionsByAudience[audience][0]?.id ?? 'acceso';
-}
 
 export function getSection(audience: HelpAudience, sectionId: string): GuideSection | undefined {
   return helpSectionsByAudience[audience].find((s) => s.id === sectionId);
 }
 
-export function parseHelpHash(hash: string): { audience: HelpAudience; sectionId: string } {
+export type HelpRoute = {
+  audience: HelpAudience;
+  sectionId: string | null;
+  showFaq: boolean;
+};
+
+export function parseHelpHash(hash: string): HelpRoute {
   const raw = hash.replace(/^#/, '').trim();
+
+  if (raw === 'faq') {
+    return { audience: 'patient', sectionId: null, showFaq: true };
+  }
+
   if (!raw || raw === 'portal-paciente' || raw === 'paciente') {
-    return { audience: 'patient', sectionId: defaultSectionId('patient') };
+    return { audience: 'patient', sectionId: null, showFaq: false };
   }
+
   if (raw === 'panel-admin' || raw === 'admin') {
-    return { audience: 'admin', sectionId: defaultSectionId('admin') };
+    return { audience: 'admin', sectionId: null, showFaq: false };
   }
+
   if (helpSectionsByAudience.admin.some((s) => s.id === raw)) {
-    return { audience: 'admin', sectionId: raw };
+    return { audience: 'admin', sectionId: raw, showFaq: false };
   }
+
   if (helpSectionsByAudience.patient.some((s) => s.id === raw)) {
-    return { audience: 'patient', sectionId: raw };
+    return { audience: 'patient', sectionId: raw, showFaq: false };
   }
-  return { audience: 'patient', sectionId: defaultSectionId('patient') };
+
+  return { audience: 'patient', sectionId: null, showFaq: false };
 }
 
-export function helpHashFor(audience: HelpAudience, sectionId: string): string {
-  const anchor = sectionId === defaultSectionId(audience) ? helpAudiences.find((a) => a.id === audience)?.hash : sectionId;
-  return `#${anchor ?? sectionId}`;
+export function helpHashAudience(audience: HelpAudience): string {
+  const h = helpAudiences.find((a) => a.id === audience)?.hash ?? 'portal-paciente';
+  return `#${h}`;
+}
+
+export function helpHashSection(sectionId: string): string {
+  return `#${sectionId}`;
+}
+
+export function helpHashFaq(): string {
+  return '#faq';
 }
 
 export function faqsForAudience(audience: HelpAudience): HelpFaq[] {
   return helpFaqs.filter((f) => f.audience === 'all' || f.audience === audience);
+}
+
+export function sectionThumb(section: GuideSection): string {
+  const shot = section.screenshots[0]?.src;
+  if (shot) return shot;
+  const firstStep = section.steps.find((s) => s.shot);
+  if (firstStep?.shot) return `/images/guides/mobile/${firstStep.shot}.png`;
+  return '/images/guides/mobile/pdp-inicio.png';
 }

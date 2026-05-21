@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  defaultSectionId,
   getSection,
-  helpHashFor,
+  helpHashAudience,
+  helpHashFaq,
+  helpHashSection,
   parseHelpHash,
   type HelpAudience
 } from '@/lib/guide/catalog';
@@ -10,13 +11,15 @@ import {
 export function useHelpState(initialAudience?: HelpAudience, options?: { syncHash?: boolean }) {
   const syncHash = options?.syncHash ?? true;
   const [audience, setAudience] = useState<HelpAudience>(initialAudience ?? 'patient');
-  const [sectionId, setSectionId] = useState(() => defaultSectionId(initialAudience ?? 'patient'));
+  const [sectionId, setSectionId] = useState<string | null>(null);
+  const [showFaq, setShowFaq] = useState(false);
 
   const applyHash = useCallback(() => {
     if (!syncHash) return;
-    const parsed = parseHelpHash(window.location.hash);
-    setAudience(parsed.audience);
-    setSectionId(parsed.sectionId);
+    const route = parseHelpHash(window.location.hash);
+    setAudience(route.audience);
+    setSectionId(route.sectionId);
+    setShowFaq(route.showFaq);
   }, [syncHash]);
 
   useEffect(() => {
@@ -28,28 +31,55 @@ export function useHelpState(initialAudience?: HelpAudience, options?: { syncHas
 
   const selectAudience = useCallback(
     (next: HelpAudience) => {
-      const first = defaultSectionId(next);
       setAudience(next);
-      setSectionId(first);
+      setSectionId(null);
+      setShowFaq(false);
       if (!syncHash) return;
-      const hash = helpHashFor(next, first);
-      window.history.replaceState(null, '', `${window.location.pathname}${hash}`);
+      window.history.replaceState(null, '', `${window.location.pathname}${helpHashAudience(next)}`);
     },
     [syncHash]
   );
 
-  const selectSection = useCallback(
-    (nextSectionId: string, nextAudience?: HelpAudience) => {
-      const aud = nextAudience ?? audience;
-      if (!getSection(aud, nextSectionId)) return;
-      setAudience(aud);
-      setSectionId(nextSectionId);
+  const openSection = useCallback(
+    (id: string, aud?: HelpAudience) => {
+      const a = aud ?? audience;
+      if (!getSection(a, id)) return;
+      setAudience(a);
+      setSectionId(id);
+      setShowFaq(false);
       if (!syncHash) return;
-      const hash = helpHashFor(aud, nextSectionId);
-      window.history.replaceState(null, '', `${window.location.pathname}${hash}`);
+      window.history.replaceState(null, '', `${window.location.pathname}${helpHashSection(id)}`);
+      document.getElementById('help-hub')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     },
     [audience, syncHash]
   );
 
-  return { audience, sectionId, selectAudience, selectSection, activeSection: getSection(audience, sectionId) };
+  const openIndex = useCallback(() => {
+    setSectionId(null);
+    setShowFaq(false);
+    if (!syncHash) return;
+    window.history.replaceState(null, '', `${window.location.pathname}${helpHashAudience(audience)}`);
+  }, [audience, syncHash]);
+
+  const openFaq = useCallback(() => {
+    setSectionId(null);
+    setShowFaq(true);
+    if (!syncHash) return;
+    window.history.replaceState(null, '', `${window.location.pathname}${helpHashFaq()}`);
+  }, [syncHash]);
+
+  const activeSection = sectionId ? getSection(audience, sectionId) : undefined;
+  const mode = showFaq ? 'faq' : sectionId && activeSection ? 'guide' : 'hub';
+
+  return {
+    audience,
+    sectionId,
+    showFaq,
+    mode,
+    activeSection,
+    selectAudience,
+    openSection,
+    openIndex,
+    openFaq
+  };
 }

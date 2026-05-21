@@ -1,45 +1,29 @@
-import { useState } from 'react';
-import { helpSectionsByAudience, type HelpAudience } from '@/lib/guide/catalog';
-import { HelpFaqPanel } from '@/components/help/HelpFaqPanel';
-import { HelpSectionPanel } from '@/components/help/HelpSectionPanel';
-import { useHelpState } from '@/components/help/useHelpState';
+import { ArrowRight } from 'lucide-react';
+import { helpSectionsByAudience, sectionThumb, type HelpAudience } from '@/lib/guide/catalog';
 
+/** Vista compacta: tarjetas que enlazan al centro de ayuda completo. */
 export function HelpEmbedded({ audience = 'patient' }: { audience?: HelpAudience }) {
-  const { sectionId, selectSection, activeSection } = useHelpState(audience, { syncHash: false });
-  const [showFaqs, setShowFaqs] = useState(false);
   const sections = helpSectionsByAudience[audience];
+  const hubHash = audience === 'patient' ? 'portal-paciente' : 'panel-admin';
 
   return (
-    <div className="help-embedded">
-      <div className="help-embedded__bar">
-        <p className="help-embedded__intro">
-          Guía del portal. Documentación completa en{' '}
-          <a href={`/ayuda#${audience === 'patient' ? 'portal-paciente' : 'panel-admin'}`}>Centro de ayuda</a>.
-        </p>
-        <button type="button" className="help-embedded__faq-toggle" onClick={() => setShowFaqs((v) => !v)}>
-          {showFaqs ? 'Ver temas' : 'FAQ'}
-        </button>
+    <div className="help-embedded-v2">
+      <p className="help-embedded-v2__lead">
+        Elige un tema o abre el{' '}
+        <a href={`/ayuda#${hubHash}`}>centro de ayuda</a> con capturas reales del portal.
+      </p>
+      <div className="help-embedded-v2__grid">
+        {sections.map((s) => (
+          <a key={s.id} href={`/ayuda#${s.id}`} className="help-embedded-v2__card">
+            <img src={sectionThumb(s)} alt="" loading="lazy" />
+            <span>
+              <strong>{s.title}</strong>
+              <small>{s.steps.length} pasos</small>
+            </span>
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </a>
+        ))}
       </div>
-
-      {showFaqs ? (
-        <HelpFaqPanel audience={audience} />
-      ) : (
-        <>
-          <nav className="help-embedded__chips" aria-label="Temas de la guía">
-            {sections.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                className={sectionId === s.id ? 'help-embedded__chip--active' : ''}
-                onClick={() => selectSection(s.id)}
-              >
-                {s.title}
-              </button>
-            ))}
-          </nav>
-          {activeSection ? <HelpSectionPanel section={activeSection} /> : null}
-        </>
-      )}
     </div>
   );
 }
