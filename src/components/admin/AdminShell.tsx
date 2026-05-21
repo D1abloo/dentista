@@ -213,7 +213,7 @@ export function AdminShell({
       ) : null}
       <div className="portal-main">
         <header className="portal-top portal-top--admin">
-          <div>
+          <div className="portal-top__lead min-w-0 flex-1">
             <div className="portal-top__row">
               <h1 className="portal-top__title">{title}</h1>
             </div>
@@ -221,13 +221,16 @@ export function AdminShell({
             <p className="portal-top__meta">
               {tenant.subtitle} · {tenant.name}
             </p>
+            <div className="portal-top__search-row">
+              <AdminSearch className="portal-top__search" />
+            </div>
           </div>
           <div className="portal-top__actions">
             <AdminQuickAccess />
             <div className="hidden lg:flex lg:flex-wrap lg:items-center lg:gap-2">
               <ClinicBranchSwitcher />
             </div>
-            <div className="hidden md:block">
+            <div className="portal-top__search portal-top__search--desktop hidden md:block">
               <AdminSearch />
             </div>
             <button type="button" className="admin-logout-btn admin-logout-btn--compact" onClick={logout}>

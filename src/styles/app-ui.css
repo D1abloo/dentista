@@ -875,61 +875,205 @@ body {
   background: var(--app-teal-soft);
 }
 
+/* Buscador administrativo: consulta arriba + filtro abajo */
 .admin-search {
   position: relative;
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.65rem;
   width: 100%;
-  max-width: 28rem;
+  min-width: 12.5rem;
+  max-width: 17.5rem;
+}
+
+.admin-search__query {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.65rem 0.75rem 0.7rem;
+  border-radius: 0.85rem;
+  background: #fff;
+  border: 1px solid var(--app-line);
+  box-shadow: 0 1px 2px rgba(15, 39, 66, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-search:focus-within .admin-search__query {
+  border-color: var(--app-teal);
+  box-shadow: 0 0 0 3px var(--app-teal-soft);
 }
 
 .admin-search__icon {
+  flex-shrink: 0;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.1rem;
+  color: var(--app-ink);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.admin-search__input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--app-ink);
+  outline: none;
+  box-shadow: none;
+}
+
+.admin-search__input::placeholder {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.admin-search__filter-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border-radius: 0.85rem;
+  border: 1px solid var(--app-line);
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 39, 66, 0.04);
+}
+
+.admin-search__filter {
+  width: 100%;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0.6rem 2.25rem 0.6rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--app-ink);
+  cursor: pointer;
+  outline: none;
+  border-radius: 0.85rem;
+}
+
+.admin-search__filter-hint {
+  display: none;
+}
+
+.admin-search__chevron {
   position: absolute;
-  left: 0.75rem;
+  right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
   width: 1rem;
   height: 1rem;
   color: var(--app-muted);
   pointer-events: none;
-  z-index: 1;
-}
-
-.admin-search__input {
-  flex: 1 1 12rem;
-  min-width: 10rem;
-  padding-left: 2.25rem !important;
-  font-size: 0.8rem !important;
-}
-
-.admin-search__filter {
-  flex: 0 0 auto;
-  min-width: 7rem;
-  font-size: 0.75rem !important;
-  padding: 0.45rem 0.5rem !important;
 }
 
 .admin-search__drop {
+  position: absolute;
+  top: calc(100% + 0.4rem);
   left: 0;
   right: 0;
-  max-width: 100%;
+  z-index: 60;
+  max-height: 16rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.35rem;
+  list-style: none;
+  border-radius: 0.85rem;
+  background: #fff;
+  border: 1px solid var(--app-line);
+  box-shadow: var(--app-shadow-lg);
+}
+
+.admin-search__hit {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--app-ink);
+}
+
+.admin-search__hit:hover {
+  background: var(--app-teal-soft);
+}
+
+.admin-search__hit-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-search__hit-label {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-search__hit-meta {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--app-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .admin-search__empty {
   position: absolute;
-  top: calc(100% + 0.35rem);
+  top: calc(100% + 0.4rem);
   left: 0;
   right: 0;
-  z-index: 50;
+  z-index: 60;
   margin: 0;
-  padding: 0.5rem 0.75rem;
+  padding: 0.65rem 0.85rem;
   font-size: 0.75rem;
+  font-weight: 600;
   color: var(--app-muted);
   background: #fff;
-  border-radius: 0.6rem;
+  border-radius: 0.85rem;
   border: 1px solid var(--app-line);
+  box-shadow: var(--app-shadow-lg);
+}
+
+.portal-top__search {
+  width: 100%;
+  max-width: 17.5rem;
+}
+
+.portal-top__search-row {
+  display: none;
+  width: 100%;
+  padding: 0 0 0.75rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 0.25rem;
+}
+
+@media (max-width: 767px) {
+  .portal-top__search-row {
+    display: block;
+  }
+
+  .portal-top__search--desktop {
+    display: none !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .portal-top__search-row {
+    display: none;
+  }
 }
 
 .patient-identity__nhc {
