@@ -443,15 +443,22 @@ export function savePatientDocument(state: DemoState, doc: PatientDocument): Dem
   };
 }
 
+export function deletePatientDocument(state: DemoState, id: string): DemoState {
+  return {
+    ...state,
+    patientDocuments: state.patientDocuments.filter((d) => d.id !== id)
+  };
+}
+
 export function createPatientDocument(
   state: DemoState,
-  data: Omit<PatientDocument, 'id' | 'createdAt' | 'tenantId'> & { tenantId?: string }
+  data: Omit<PatientDocument, 'id' | 'createdAt' | 'tenantId'> & { tenantId?: string; createdAt?: string }
 ): DemoState {
   const doc: PatientDocument = {
     ...data,
     tenantId: data.tenantId ?? getStoredTenantId(),
     id: nextDocumentId(state),
-    createdAt: todayIso()
+    createdAt: data.createdAt ?? todayIso()
   };
   return savePatientDocument(state, doc);
 }
