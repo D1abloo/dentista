@@ -1,251 +1,310 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ArrowRight,
   Building2,
-  CalendarPlus,
-  CreditCard,
+  Check,
   FileText,
+  Phone,
   Shield,
-  ShieldCheck
+  ShieldCheck,
+  Users,
+  X
 } from 'lucide-react';
-import { clinicShowcases, patientShowcases } from '@/data/landingShowcases';
+import { scrollToSection } from '@/lib/publicScroll';
 import { PublicFooter } from './PublicFooter';
 import { PublicHeader } from './PublicHeader';
 import { CookieBanner } from './CookieBanner';
-import { LandingShowcase } from './LandingShowcase';
+import { ProAccessForm, type ProPlan } from './ProAccessForm';
+import { LandingDashboardPreview } from './LandingDashboardPreview';
+import { FeatureShowcaseTabs } from './FeatureShowcaseTabs';
 
-const features = [
+const valueCards = [
   {
-    icon: CalendarPlus,
-    tone: 'teal',
-    title: 'Citas online',
-    text: 'Reserva en minutos con confirmación al instante.'
+    icon: Phone,
+    title: 'Más citas, menos llamadas',
+    text: 'Automatiza reservas y reduce interrupciones en recepción.'
+  },
+  {
+    icon: Users,
+    title: 'Recepción más eficiente',
+    text: 'Centraliza agenda, pacientes e incidencias en un solo panel.'
   },
   {
     icon: FileText,
-    tone: 'blue',
-    title: 'Informes y documentos',
-    text: 'Historial clínico accesible desde tu móvil.'
-  },
-  {
-    icon: CreditCard,
-    tone: 'purple',
-    title: 'Facturas y pagos',
-    text: 'Consulta y paga sin llamar a recepción.'
+    title: 'Facturación profesional',
+    text: 'Emite facturas, controla cobros y comparte PDFs con tu clínica.'
   },
   {
     icon: Shield,
-    tone: 'green',
-    title: 'Privacidad',
-    text: 'Datos aislados por clínica y sesión protegida.'
+    title: 'Experiencia del paciente',
+    text: 'Ofrece portal seguro para citas, informes y pagos.'
   }
 ] as const;
 
-const steps = [
-  { n: 1, title: 'Reserva', text: 'Elige clínica, tratamiento y horario.' },
-  { n: 2, title: 'Asiste', text: 'La clínica gestiona tu agenda en tiempo real.' },
-  { n: 3, title: 'Gestiona', text: 'Informes y facturas en el portal.' }
-] as const;
+const beforePoints = [
+  'Llamadas constantes',
+  'Documentos dispersos',
+  'Facturación manual',
+  'Poca visibilidad de agenda'
+];
+
+const afterPoints = [
+  'Reservas organizadas 24/7',
+  'Expediente centralizado',
+  'Cobros y facturas claros',
+  'Panel en tiempo real'
+];
+
+const securityBullets = [
+  'Datos separados por clínica',
+  'Accesos protegidos y trazabilidad',
+  'Portal paciente seguro',
+  'Preparado para una o varias sedes'
+];
+
+const trustBadges = ['RGPD', 'Multi-sede', 'Panel PRO', 'Portal seguro'];
+
+const proClinicFeatures = [
+  'Agenda avanzada',
+  'Portal paciente',
+  'Informes y documentos',
+  'Facturación',
+  'Soporte prioritario'
+];
+
+const proMultiFeatures = [
+  'Todo en PRO Clínica',
+  'Multi-sede',
+  'Gestión centralizada',
+  'Permisos por equipo',
+  'Atención especializada'
+];
 
 export function LandingPage() {
   const [loggedOut, setLoggedOut] = useState(false);
+  const [plan, setPlan] = useState<ProPlan>('pro_clinica');
+
+  const openProForm = useCallback((nextPlan: ProPlan) => {
+    setPlan(nextPlan);
+    scrollToSection('contacto-pro');
+    window.history.replaceState(null, '', `/?plan=${nextPlan}#contacto-pro`);
+  }, []);
 
   useEffect(() => {
     setLoggedOut(new URLSearchParams(window.location.search).get('logged_out') === '1');
+    const hash = window.location.hash.replace('#', '');
+    if (hash) scrollToSection(hash);
+    const q = new URLSearchParams(window.location.search).get('plan');
+    if (q === 'pro_multi' || q === 'pro_clinica') setPlan(q);
   }, []);
 
   return (
     <>
-      <PublicHeader />
-      <main className="lp">
+      <PublicHeader variant="pro" onWantPro={() => openProForm('pro_clinica')} />
+      <main className="lp lp--pro">
         {loggedOut ? (
           <div className="shell lp-alert">
             <p>
-              Sesión cerrada. Usa <strong>Iniciar sesión</strong> con tu email para volver a tu portal.
+              Sesión cerrada. Usa <strong>Acceso clínica</strong> para volver al panel de tu clínica.
             </p>
           </div>
         ) : null}
 
-        <section className="lp-hero lp-hero--simple shell" aria-labelledby="lp-hero-title">
-          <div className="lp-hero__grid">
-            <div className="lp-hero__copy">
-              <span className="lp-badge">Plataforma dental</span>
-              <h1 id="lp-hero-title">
-                Tus citas dentales en <span className="lp-gradient-text">minutos</span>
-              </h1>
-              <p className="lp-hero__lead">
-                Reserva, consulta informes y paga facturas desde un portal seguro para pacientes y clínicas.
+        <section className="pro-hero shell" aria-labelledby="pro-hero-title">
+          <div className="pro-hero__grid">
+            <div className="pro-hero__copy">
+              <span className="pro-eyebrow">Software dental para clínicas</span>
+              <h1 id="pro-hero-title">Digitaliza tu clínica dental con una solución PRO</h1>
+              <p className="pro-hero__lead">
+                Gestiona agenda, pacientes, informes, facturación y portal del paciente desde una sola
+                plataforma diseñada para clínicas dentales.
               </p>
-              <div className="lp-hero__ctas">
-                <a href="/reserva" className="btn btn--teal btn--lg lp-hero__cta-primary">
-                  <CalendarPlus className="h-5 w-5" aria-hidden />
-                  Reservar cita
-                </a>
-                <a href="/login/paciente" className="btn btn--outline-teal btn--lg lp-hero__cta-secondary">
-                  Entrar como paciente
-                </a>
+              <div className="pro-hero__ctas">
+                <button
+                  type="button"
+                  className="btn btn--coral btn--lg"
+                  onClick={() => openProForm('pro_clinica')}
+                >
+                  Solicitar acceso PRO
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--outline-teal btn--lg"
+                  onClick={() => scrollToSection('funcionalidades')}
+                >
+                  Ver funcionalidades
+                </button>
               </div>
-              <p className="lp-trust">
-                <ShieldCheck className="h-4 w-4" aria-hidden />
-                Seguro y pensado para ti
-              </p>
+              <ul className="pro-hero__bullets">
+                <li>
+                  <Check className="h-4 w-4" aria-hidden />
+                  Reservas online 24/7
+                </li>
+                <li>
+                  <Check className="h-4 w-4" aria-hidden />
+                  Menos carga administrativa
+                </li>
+                <li>
+                  <Check className="h-4 w-4" aria-hidden />
+                  Control multi-sede
+                </li>
+              </ul>
             </div>
-            <div className="lp-hero__visual">
-              <div className="lp-hero__photo">
-                <img
-                  src="/images/login-dentista-paciente.jpg"
-                  alt="Paciente en clínica dental"
-                  width={640}
-                  height={480}
-                  loading="eager"
-                />
-              </div>
+            <div className="pro-hero__visual">
+              <LandingDashboardPreview />
             </div>
           </div>
         </section>
 
-        <section id="acceso" className="lp-section shell">
-          <header className="lp-section__head">
-            <h2>Accede a tu portal</h2>
-          </header>
-          <div className="lp-portals">
-            <article className="lp-portal-card">
-              <div className="lp-portal-card__body">
-                <h3>Soy paciente</h3>
-                <p>Citas, informes, documentos y facturas en cualquier dispositivo.</p>
-                <a href="/login/paciente" className="btn btn--teal">
-                  Entrar como paciente
-                  <ArrowRight className="h-4 w-4" aria-hidden />
-                </a>
-              </div>
-            </article>
-            <article className="lp-portal-card">
-              <div className="lp-portal-card__body">
-                <h3>Soy clínica</h3>
-                <p>Agenda, pacientes y facturación en un panel multi-centro.</p>
-                <a href="/login/admin" className="btn btn--outline-teal">
-                  Acceso clínica
-                  <ArrowRight className="h-4 w-4" aria-hidden />
-                </a>
-              </div>
-            </article>
-          </div>
-        </section>
-
-        <section id="caracteristicas" className="lp-section lp-section--alt shell">
-          <header className="lp-section__head">
-            <h2>Todo en un solo lugar</h2>
-            <p>
-              Reserva online, gestión clínica con agenda multi-profesional, informes PDF, facturación FAC-XXXX y
-              portal del paciente sincronizado en tiempo real.
-            </p>
-          </header>
-          <div className="lp-features">
-            {features.map((f) => (
-              <article key={f.title} className="lp-feature">
-                <span className={`lp-feature__icon lp-feature__icon--${f.tone}`}>
-                  <f.icon className="h-6 w-6" aria-hidden />
+        <section id="beneficios" className="pro-section shell">
+          <div className="pro-value-grid">
+            {valueCards.map((c) => (
+              <article key={c.title} className="pro-value-card">
+                <span className="pro-value-card__icon">
+                  <c.icon className="h-6 w-6" aria-hidden />
                 </span>
-                <h3>{f.title}</h3>
-                <p>{f.text}</p>
+                <h3>{c.title}</h3>
+                <p>{c.text}</p>
               </article>
             ))}
           </div>
         </section>
 
-        <LandingShowcase
-          id="portal-paciente"
-          title="Portal del paciente"
-          lead="Capturas reales del móvil: citas, informes, documentos, facturas y pagos con identificadores CIT-, FAC- y PAG-."
-          items={patientShowcases}
-        />
-
-        <LandingShowcase
-          id="panel-clinica"
-          title="Panel de clínica"
-          lead="Agenda, pacientes con NHC, facturación, dashboard y acceso supervisado al portal del paciente."
-          items={clinicShowcases}
-        />
-
-        <section className="lp-section shell">
-          <header className="lp-section__head">
-            <h2>Cómo funciona</h2>
+        <section className="pro-section pro-section--alt shell">
+          <header className="pro-section__head">
+            <h2>De procesos manuales a una clínica digital</h2>
           </header>
-          <div className="lp-steps">
-            {steps.map((s) => (
-              <article key={s.n} className="lp-step">
-                <span className="lp-step__num">{s.n}</span>
-                <h3>{s.title}</h3>
-                <p>{s.text}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section id="precios" className="lp-section lp-section--alt shell">
-          <header className="lp-section__head">
-            <h2>Planes para tu clínica</h2>
-          </header>
-          <div className="lp-pricing">
-            <article className="lp-price-card">
-              <h3>Esencial</h3>
-              <p className="lp-price-card__amount">Desde 0 €</p>
+          <div className="pro-compare">
+            <article className="pro-compare__col pro-compare__col--before">
+              <h3>Antes</h3>
               <ul>
-                <li>Agenda y reservas</li>
-                <li>Portal paciente</li>
+                {beforePoints.map((p) => (
+                  <li key={p}>
+                    <X className="h-4 w-4" aria-hidden />
+                    {p}
+                  </li>
+                ))}
               </ul>
-              <a href="/reserva" className="btn btn--outline-teal btn--block">
-                Probar ahora
-              </a>
             </article>
-            <article className="lp-price-card lp-price-card--featured">
-              <span className="lp-price-card__tag">Recomendado</span>
-              <h3>Profesional</h3>
-              <p className="lp-price-card__amount">
-                49 €<small>/mes</small>
-              </p>
-              <ul>
-                <li>Multi-centro</li>
-                <li>Facturación e informes</li>
-              </ul>
-              <a href="/contacto" className="btn btn--teal btn--block">
-                Solicitar info
-              </a>
-            </article>
-            <article className="lp-price-card">
-              <h3>Enterprise</h3>
-              <p className="lp-price-card__amount">A medida</p>
-              <ul>
-                <li>API e integraciones</li>
-                <li>SLA dedicado</li>
-              </ul>
-              <a href="/contacto" className="btn btn--outline-teal btn--block">
-                Contactar
-              </a>
-            </article>
-          </div>
-          <p className="lp-section__foot">
-            <a href="/registro-clinica" className="btn btn--ghost">
-              <Building2 className="h-4 w-4" aria-hidden />
-              Registrar mi clínica
-            </a>
-          </p>
-        </section>
-
-        <section className="lp-section shell">
-          <div className="lp-cta-banner">
-            <div>
-              <h2>¿Listo para tu próxima cita?</h2>
-              <p>Reserva en menos de dos minutos.</p>
+            <div className="pro-compare__arrow" aria-hidden>
+              <ArrowRight className="h-8 w-8" />
             </div>
-            <a href="/reserva" className="btn btn--white btn--lg">
-              Reservar cita
-              <ArrowRight className="h-5 w-5" aria-hidden />
-            </a>
+            <article className="pro-compare__col pro-compare__col--after">
+              <h3>Con Dentista+ PRO</h3>
+              <ul>
+                {afterPoints.map((p) => (
+                  <li key={p}>
+                    <Check className="h-4 w-4" aria-hidden />
+                    {p}
+                  </li>
+                ))}
+              </ul>
+            </article>
           </div>
+        </section>
+
+        <section id="funcionalidades" className="pro-section shell">
+          <header className="pro-section__head">
+            <h2>Todo lo que necesita tu clínica</h2>
+          </header>
+          <FeatureShowcaseTabs />
+        </section>
+
+        <section id="seguridad" className="pro-section pro-section--alt shell">
+          <div className="pro-security">
+            <div className="pro-security__icon" aria-hidden>
+              <ShieldCheck className="h-16 w-16" />
+            </div>
+            <div className="pro-security__copy">
+              <h2>Seguridad y control para tu clínica</h2>
+              <ul>
+                {securityBullets.map((b) => (
+                  <li key={b}>
+                    <Check className="h-4 w-4" aria-hidden />
+                    {b}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="pro-security__badges">
+              {trustBadges.map((b) => (
+                <span key={b} className="pro-badge-pill">
+                  {b}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="precios" className="pro-section shell">
+          <header className="pro-section__head">
+            <h2>Planes PRO para clínicas dentales</h2>
+          </header>
+          <div className="pro-pricing">
+            <article className="pro-price-card">
+              <span className="pro-price-card__icon pro-price-card__icon--coral">
+                <Building2 className="h-7 w-7" aria-hidden />
+              </span>
+              <h3>PRO Clínica</h3>
+              <ul>
+                {proClinicFeatures.map((f) => (
+                  <li key={f}>
+                    <Check className="h-4 w-4" aria-hidden />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <button type="button" className="btn btn--coral btn--block" onClick={() => openProForm('pro_clinica')}>
+                Quiero PRO
+              </button>
+            </article>
+            <article className="pro-price-card pro-price-card--featured">
+              <span className="pro-price-card__tag">MÁS RECOMENDADO</span>
+              <span className="pro-price-card__icon pro-price-card__icon--teal">
+                <Building2 className="h-7 w-7" aria-hidden />
+              </span>
+              <h3>PRO Multi-clínica</h3>
+              <ul>
+                {proMultiFeatures.map((f) => (
+                  <li key={f}>
+                    <Check className="h-4 w-4" aria-hidden />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <button type="button" className="btn btn--teal btn--block" onClick={() => openProForm('pro_multi')}>
+                Hablar con ventas
+              </button>
+            </article>
+          </div>
+        </section>
+
+        <section className="pro-cta-band">
+          <div className="shell pro-cta-band__grid">
+            <div className="pro-cta-band__visual" aria-hidden>
+              <img
+                src="/images/login-dentista-paciente.jpg"
+                alt=""
+                width={560}
+                height={360}
+                loading="lazy"
+              />
+            </div>
+            <div className="pro-cta-band__copy">
+              <h2>Haz que tu clínica funcione de forma más simple, profesional y rentable</h2>
+              <p>Implanta Dentista+ PRO y centraliza toda tu operación en una sola plataforma.</p>
+              <button type="button" className="btn btn--coral btn--lg" onClick={() => openProForm('pro_clinica')}>
+                Solicitar acceso PRO
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section id="contacto-pro" className="pro-section pro-section--form shell" aria-labelledby="contacto-pro-title">
+          <ProAccessForm plan={plan} onPlanChange={setPlan} />
         </section>
       </main>
-      <PublicFooter />
+      <PublicFooter variant="pro" />
       <CookieBanner />
     </>
   );

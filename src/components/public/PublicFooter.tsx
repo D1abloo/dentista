@@ -1,12 +1,20 @@
 import { Facebook, Instagram, Linkedin } from 'lucide-react';
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
 
-const navLinks = [
+const defaultNavLinks = [
   { href: '/', label: 'Inicio' },
   { href: '/reserva', label: 'Reservar cita' },
   { href: '/login/paciente', label: 'Portal paciente' },
   { href: '/ayuda', label: 'Ayuda' },
   { href: '/contacto', label: 'Contacto' }
+];
+
+const proNavLinks = [
+  { href: '/#funcionalidades', label: 'Funciones' },
+  { href: '/#precios', label: 'Precios' },
+  { href: '/login/admin', label: 'Acceso clínica' },
+  { href: '/ayuda', label: 'Ayuda' },
+  { href: '/#contacto-pro', label: 'Solicitar PRO' }
 ];
 
 const legalLinks = [
@@ -15,17 +23,21 @@ const legalLinks = [
   { href: '/cookies', label: 'Cookies' }
 ];
 
-export function PublicFooter() {
+export function PublicFooter({ variant = 'default' }: { variant?: 'default' | 'pro' }) {
+  const navLinks = variant === 'pro' ? proNavLinks : defaultNavLinks;
+  const tagline =
+    variant === 'pro'
+      ? 'Software PRO para clínicas dentales: agenda, expedientes, facturación y portal del paciente.'
+      : 'Citas, informes y facturas en un portal seguro para pacientes y familias.';
+
   return (
-    <footer className="lp-footer lp-footer--corp">
+    <footer className={`lp-footer lp-footer--corp${variant === 'pro' ? ' lp-footer--pro' : ''}`}>
       <div className="shell lp-footer__grid">
         <div className="lp-footer__brand">
           <a href="/" className="lp-footer__logo">
             <DentistaWebpLockup placement="footer" />
           </a>
-          <p className="lp-footer__tagline">
-            Citas, informes y facturas en un portal seguro para pacientes y familias.
-          </p>
+          <p className="lp-footer__tagline">{tagline}</p>
           <div className="lp-footer__social">
             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
               <Facebook className="h-4 w-4" />

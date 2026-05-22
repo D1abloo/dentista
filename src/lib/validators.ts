@@ -46,6 +46,19 @@ export const contactFormSchema = z.object({
   })
 });
 
+export const proAccessFormSchema = z.object({
+  clinic_name: z.string().min(2, 'Indica el nombre de la clínica.').max(120),
+  contact_name: z.string().min(2, 'Indica tu nombre.').max(120),
+  email: z.string().email('Email no válido.'),
+  phone: z.string().min(6, 'Indica un teléfono de contacto.').max(40),
+  branches: z.coerce.number().int().min(1, 'Indica al menos 1 sede.').max(500),
+  plan: z.enum(['pro_clinica', 'pro_multi']),
+  message: z.string().min(10, 'El mensaje debe tener al menos 10 caracteres.').max(4000),
+  accept_terms: z.literal(true, {
+    errorMap: () => ({ message: 'Debes aceptar la política de privacidad.' })
+  })
+});
+
 export const clinicRegistrationSchema = z.object({
   clinic_name: z.string().min(2).max(120),
   owner_name: z.string().min(2).max(120),

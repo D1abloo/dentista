@@ -77,6 +77,44 @@ export async function submitContactForm(input: ContactFormInput) {
   return { ticketId: ticket?.id ?? null, email };
 }
 
+const PRO_PLAN_LABELS = {
+  pro_clinica: 'PRO Clínica',
+  pro_multi: 'PRO Multi-clínica'
+} as const;
+
+export type ProAccessFormInput = {
+  clinic_name: string;
+  contact_name: string;
+  email: string;
+  phone: string;
+  branches: number;
+  plan: keyof typeof PRO_PLAN_LABELS;
+  message: string;
+};
+
+export async function submitProAccessForm(input: ProAccessFormInput) {
+  const planLabel = PRO_PLAN_LABELS[input.plan];
+  const message = [
+    `Solicitud de acceso PRO — ${planLabel}`,
+    '',
+    `Clínica: ${input.clinic_name}`,
+    `Contacto: ${input.contact_name}`,
+    `Teléfono: ${input.phone}`,
+    `Sedes: ${input.branches}`,
+    `Plan: ${planLabel}`,
+    '',
+    input.message
+  ].join('\n');
+
+  return submitContactForm({
+    name: input.contact_name,
+    email: input.email,
+    clinic: input.clinic_name,
+    type: 'clinica',
+    message
+  });
+}
+
 export async function notifyClinicRegistration(input: {
   clinic_name: string;
   owner_name: string;
