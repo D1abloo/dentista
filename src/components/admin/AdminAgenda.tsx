@@ -16,7 +16,7 @@ import {
 import { dentistsForClinic, getPrimaryClinic } from '@/lib/clinic';
 import { isClientDemoMode } from '@/lib/appMode';
 import { appointmentsInRange, monthPrefix, weekRange } from '@/lib/appointments';
-import { addBlockedSlot, removeBlockedSlot, rescheduleAppointment } from '@/lib/demoStore';
+import { addBlockedSlot, confirmAppointmentAttendance, removeBlockedSlot, rescheduleAppointment } from '@/lib/demoStore';
 import { createAdminAppointment, updateAdminAppointmentStatus } from '@/lib/adminAppointments';
 import { createScheduleBlockLive, deleteScheduleBlockLive } from '@/lib/clinicApi';
 import { consumeBookingPatientPrefill } from '@/lib/patientAdmin';
@@ -34,6 +34,7 @@ import type { Appointment, AppointmentStatus, BlockedSlot } from '@/types/demo';
 import { Button, Field, Input, Select, Textarea } from '@/components/ui';
 import { PatientLookup } from './PatientLookup';
 import { AGENDA_HOURS, AgendaDayCalendar, AgendaWeekMonthCalendar } from './AgendaCalendarViews';
+import { AgendaAppointmentModal } from './AgendaAppointmentModal';
 
 const TIMELINE_HOURS = AGENDA_HOURS;
 const DURATIONS = [15, 30, 45, 60] as const;
@@ -110,6 +111,7 @@ export function AdminAgenda() {
   const [dentistOpen, setDentistOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [userLabel, setUserLabel] = useState('Usuario conectado');
+  const [detailAppt, setDetailAppt] = useState<Appointment | null>(null);
   const [rescheduleTarget, setRescheduleTarget] = useState<Appointment | null>(null);
   const [rescheduleDate, setRescheduleDate] = useState('');
   const [rescheduleTime, setRescheduleTime] = useState('10:00');
@@ -714,6 +716,7 @@ export function AdminAgenda() {
                 onConfirm={(appt) => void setStatus(appt, 'confirmada')}
                 onCancel={(appt) => void setStatus(appt, 'cancelada')}
                 onReschedule={startReschedule}
+                onOpenAppointment={setDetailAppt}
                 onRemoveBlock={(id) => void removeBlock(id)}
               />
             ) : (
@@ -801,6 +804,47 @@ export function AdminAgenda() {
           </div>
         </aside>
       </div>
+
+      <AgendaAppointmentModal
+        open={Boolean(detailAppt)}
+        state={state}
+        appointment={detailAppt}
+        treatmentName={
+          detailAppt
+            ? (scope.treatments.find((t) => t.id === detailAppt.treatmentId)?.name ?? 'Consulta')
+            : ''
+        }
+        dentistName={
+          detailAppt
+            ? (scope.dentists.find((d) => d.id === detailAppt.dentistId)?.fullName ?? 'Profesional')
+            : ''
+        }
+        clinicName={
+          detailAppt ? (scope.clinics.find((c) => c.id === detailAppt.clinicId)?.name ?? activeClinic.name) : ''
+        }
+        onClose={() => setDetailAppt(null)}
+        onConfirm={() => {
+          if (!detailAppt) return;
+          void setStatus(detailAppt, 'confirmada');
+          setDetailAppt(null);
+        }}
+        onCancel={() => {
+          if (!detailAppt) return;
+          void setStatus(detailAppt, 'cancelada');
+          setDetailAppt(null);
+        }}
+        onConfirmAttendance={() => {
+          if (!detailAppt) return;
+          commit(confirmAppointmentAttendance(state, detailAppt.id));
+          setNotice({ type: 'ok', message: 'Asistencia confirmada. El paciente puede descargar el justificante.' });
+          setDetailAppt(null);
+        }}
+        onReschedule={() => {
+          if (!detailAppt) return;
+          startReschedule(detailAppt);
+          setDetailAppt(null);
+        }}
+      />
 
       {rescheduleTarget ? (
         <div className="agd-modal-backdrop" role="presentation" onClick={() => setRescheduleTarget(null)}>

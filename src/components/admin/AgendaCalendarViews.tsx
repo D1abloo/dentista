@@ -51,6 +51,7 @@ type DayViewProps = {
   onConfirm: (appt: Appointment) => void;
   onCancel: (appt: Appointment) => void;
   onReschedule: (appt: Appointment) => void;
+  onOpenAppointment: (appt: Appointment) => void;
   onRemoveBlock: (blockId: string) => void;
 };
 
@@ -99,6 +100,7 @@ function EventMenu({
           e.stopPropagation();
           setOpen((v) => !v);
         }}
+        onMouseDown={(e) => e.stopPropagation()}
       >
         <MoreHorizontal className="h-4 w-4" />
       </button>
@@ -127,7 +129,8 @@ function AppointmentEvent({
   dentist,
   onConfirm,
   onCancel,
-  onReschedule
+  onReschedule,
+  onOpen
 }: {
   appt: Appointment;
   state: DemoState;
@@ -136,10 +139,23 @@ function AppointmentEvent({
   onConfirm: () => void;
   onCancel: () => void;
   onReschedule: () => void;
+  onOpen: () => void;
 }) {
   const pending = appt.status === 'pendiente';
+  const canCancel = appt.status !== 'cancelada';
   return (
-    <article className={`agd-event ${statusClass(appt.status)}`}>
+    <article
+      className={`agd-event ${statusClass(appt.status)} agd-event--clickable`}
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
+    >
       <header className="agd-event__head">
         <div className="agd-event__title-wrap">
           <strong>{patientName(state, appt.patientId)}</strong>
@@ -152,16 +168,34 @@ function AppointmentEvent({
           <EventMenu onReschedule={onReschedule} />
         </div>
       </header>
-      {pending ? (
+      {pending || canCancel ? (
         <div className="agd-event__actions" role="group" aria-label="Acciones de la cita">
-          <button type="button" className="agd-event__btn agd-event__btn--ok" onClick={onConfirm}>
-            <Check className="h-3.5 w-3.5" aria-hidden />
-            Confirmar
-          </button>
-          <button type="button" className="agd-event__btn agd-event__btn--danger" onClick={onCancel}>
-            <X className="h-3.5 w-3.5" aria-hidden />
-            Cancelar
-          </button>
+          {pending ? (
+            <button
+              type="button"
+              className="agd-event__btn agd-event__btn--ok"
+              onClick={(e) => {
+                e.stopPropagation();
+                onConfirm();
+              }}
+            >
+              <Check className="h-3.5 w-3.5" aria-hidden />
+              Confirmar
+            </button>
+          ) : null}
+          {canCancel ? (
+            <button
+              type="button"
+              className="agd-event__btn agd-event__btn--danger"
+              onClick={(e) => {
+                e.stopPropagation();
+                onCancel();
+              }}
+            >
+              <X className="h-3.5 w-3.5" aria-hidden />
+              Cancelar
+            </button>
+          ) : null}
         </div>
       ) : null}
     </article>
@@ -180,6 +214,7 @@ export function AgendaDayCalendar({
   onConfirm,
   onCancel,
   onReschedule,
+  onOpenAppointment,
   onRemoveBlock
 }: DayViewProps) {
   const cols = multiDentist
@@ -224,6 +259,7 @@ export function AgendaDayCalendar({
                       onConfirm={() => onConfirm(appt)}
                       onCancel={() => onCancel(appt)}
                       onReschedule={() => onReschedule(appt)}
+                      onOpen={() => onOpenAppointment(appt)}
                     />
                   ) : block ? (
                     <article className="agd-event agd-event--block">

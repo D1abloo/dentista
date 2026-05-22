@@ -15,7 +15,13 @@ import {
   nextTreatmentId
 } from '@/lib/ids';
 import { loadPersistedState, resetPersistedState, savePersistedState } from '@/lib/storage/persist';
-import { STORAGE_EPHEMERAL, STORAGE_PATIENT_ID, STORAGE_ROLE, STORAGE_TENANT_ID } from '@/lib/storage/keys';
+import {
+  STORAGE_EPHEMERAL,
+  STORAGE_PATIENT_ID,
+  STORAGE_ROLE,
+  STORAGE_STATE,
+  STORAGE_TENANT_ID
+} from '@/lib/storage/keys';
 import { nextDemoNhc } from '@/lib/nhc';
 import { isClientDemoMode } from '@/lib/appMode';
 import { pushClinicNotification } from '@/lib/clinicNotifications';
@@ -125,6 +131,7 @@ export function clearDemoSession() {
   localStorage.removeItem(STORAGE_PATIENT_ID);
   localStorage.removeItem(STORAGE_TENANT_ID);
   localStorage.removeItem(STORAGE_EPHEMERAL);
+  localStorage.removeItem(STORAGE_STATE);
 }
 
 /** En LIVE: no borra tenant/clínica activa (los fija el bootstrap tras login). */
@@ -334,11 +341,31 @@ export function updateAppointmentStatus(
   state: DemoState,
   id: string,
   status: AppointmentStatus,
-  patch?: Partial<Pick<Appointment, 'date' | 'time' | 'notes'>>
+  patch?: Partial<
+    Pick<Appointment, 'date' | 'time' | 'notes' | 'attendanceConfirmed' | 'attendanceConfirmedAt'>
+  >
 ): DemoState {
   return {
     ...state,
     appointments: state.appointments.map((a) => (a.id === id ? { ...a, status, ...patch } : a))
+  };
+}
+
+/** La administración valida que el paciente acudió; habilita justificante en portal. */
+export function confirmAppointmentAttendance(state: DemoState, id: string): DemoState {
+  const at = new Date().toISOString();
+  return {
+    ...state,
+    appointments: state.appointments.map((a) => {
+      if (a.id !== id) return a;
+      if (a.status === 'cancelada') return a;
+      return {
+        ...a,
+        attendanceConfirmed: true,
+        attendanceConfirmedAt: at,
+        status: a.status === 'completada' ? 'completada' : 'completada'
+      };
+    })
   };
 }
 

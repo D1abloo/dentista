@@ -59,7 +59,8 @@ function settings(name: string, address: string, phone: string, email: string): 
     vatRate: 21,
     invoiceSeries: 'FAC',
     defaultInvoiceConcept: 'Servicios odontológicos',
-    logoUrl: '/brand/dentista-logo.svg'
+    logoUrl: '/brand/dentista-logo.svg',
+    clinicStampUrl: '/brand/clinic-shield.svg'
   };
 }
 

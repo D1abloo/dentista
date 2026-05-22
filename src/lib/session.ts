@@ -1,7 +1,7 @@
 import type { DemoRole } from '@/types/demo';
 import type { PortalChoiceId, PortalChoiceOption } from '@/lib/auth/portalChoices';
 import { isClientDemoMode } from '@/lib/appMode';
-import { STORAGE_PATIENT_ID, STORAGE_TENANT_ID } from '@/lib/storage/keys';
+import { STORAGE_ACTIVE_CLINIC_ID, STORAGE_PATIENT_ID, STORAGE_STATE, STORAGE_TENANT_ID } from '@/lib/storage/keys';
 import { clearDemoSession, getStoredRole } from '@/lib/demoStore';
 
 export type SessionUser = {
@@ -183,5 +183,10 @@ export async function loginWithPortalChoice(
 
 export async function logoutSession(): Promise<void> {
   clearDemoSession();
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(STORAGE_STATE);
+    localStorage.removeItem(STORAGE_ACTIVE_CLINIC_ID);
+    sessionStorage.clear();
+  }
   await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
 }

@@ -5,6 +5,13 @@
   --admin-pad-y: clamp(0.55rem, 1vw, 0.85rem);
   --admin-gap: 0.65rem;
   --admin-aside: minmax(300px, min(32vw, 420px));
+  overflow-x: hidden;
+}
+
+@media (min-width: 1024px) {
+  .portal--admin-compact .portal-main {
+    margin-left: 5.25rem;
+  }
 }
 
 .portal--admin .portal-main {

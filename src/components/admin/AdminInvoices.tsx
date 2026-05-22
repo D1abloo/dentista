@@ -18,6 +18,7 @@ import {
   X
 } from 'lucide-react';
 import { invoiceConceptFromAppointment } from '@/lib/clinical';
+import { INVOICE_TEMPLATES } from '@/lib/invoiceTemplates';
 import { getPrimaryClinic } from '@/lib/clinic';
 import { isClientDemoMode } from '@/lib/appMode';
 import {
@@ -158,22 +159,50 @@ function InvPatientPicker({
 
 function RowMenu({ onAction }: { onAction: (a: string) => void }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLUListElement>(null);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (!open || !btnRef.current) return;
+    const rect = btnRef.current.getBoundingClientRect();
+    const menuH = menuRef.current?.offsetHeight ?? 160;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const openUp = spaceBelow < menuH + 12;
+    setPos({
+      top: openUp ? rect.top - menuH - 6 : rect.bottom + 6,
+      left: Math.min(rect.right - 168, window.innerWidth - 176)
+    });
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     const close = (e: MouseEvent) => {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+      if (!btnRef.current?.contains(e.target as Node) && !menuRef.current?.contains(e.target as Node)) {
+        setOpen(false);
+      }
     };
     document.addEventListener('mousedown', close);
     return () => document.removeEventListener('mousedown', close);
   }, [open]);
+
   return (
-    <div className="inv-menu-wrap" ref={ref}>
-      <button type="button" className="inv-btn-ghost" aria-label="Más" onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}>
+    <div className="inv-menu-wrap">
+      <button
+        ref={btnRef}
+        type="button"
+        className="inv-btn-ghost"
+        aria-label="Más"
+        aria-expanded={open}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
+      >
         <MoreHorizontal className="h-4 w-4" />
       </button>
       {open ? (
-        <ul className="inv-menu">
+        <ul ref={menuRef} className="inv-menu inv-menu--fixed" style={{ top: pos.top, left: pos.left }}>
           <li><button type="button" onClick={() => { onAction('edit'); setOpen(false); }}>Editar</button></li>
           <li><button type="button" onClick={() => { onAction('duplicate'); setOpen(false); }}>Duplicar</button></li>
           <li><button type="button" onClick={() => { onAction('archive'); setOpen(false); }}>Archivar</button></li>
@@ -1134,9 +1163,41 @@ export function AdminInvoices() {
         </div>
 
         <div className="inv-util-grid">
+        <div className="inv-util-card inv-util-card--templates">
+          <h3>Plantillas de factura</h3>
+          <p>Elige una plantilla ficticia y edítala antes de crear la factura (solo tu clínica).</p>
+          <ul className="inv-template-list">
+            {INVOICE_TEMPLATES.map((tpl) => (
+              <li key={tpl.id}>
+                <button
+                  type="button"
+                  className="inv-template-item"
+                  onClick={() => {
+                    const lines = (tpl.lines ?? [{ label: tpl.concept, qty: 1, unit: tpl.amount }]).map((l) => ({
+                      ...emptyLine(vat),
+                      description: l.label,
+                      quantity: l.qty,
+                      unitPrice: l.unit
+                    }));
+                    setForm({
+                      ...form,
+                      concept: tpl.concept,
+                      lines
+                    });
+                    scrollToForm();
+                    setNotice({ type: 'ok', message: `Plantilla «${tpl.name}» cargada. Puedes modificar conceptos e importes.` });
+                  }}
+                >
+                  <strong>{tpl.name}</strong>
+                  <span>{money(tpl.amount)} · {tpl.description}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
         <div className="inv-util-card inv-util-card--teal">
           <h3>Automatiza tu facturación</h3>
-          <p>Configura series, IVA y plantillas PDF desde ajustes de clínica.</p>
+          <p>Configura series, IVA y datos fiscales desde ajustes de clínica.</p>
           <button
             type="button"
             className="inv-btn-secondary"

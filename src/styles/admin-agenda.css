@@ -1353,6 +1353,118 @@
   margin-top: 1rem;
 }
 
+.agd-modal--patient {
+  width: min(32rem, 100%);
+  max-height: min(90vh, 40rem);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.agd-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #e8edf2;
+}
+
+.agd-modal__head h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f2742;
+}
+
+.agd-modal__close {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.agd-modal__body {
+  padding: 0.85rem 1rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.agd-modal__foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #e8edf2;
+  background: #fafbfc;
+}
+
+.agd-patient-card {
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #e8edf2;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.agd-patient-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #0f2742;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.agd-patient-card dl {
+  margin: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.agd-patient-card dt {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.agd-patient-card dd {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.agd-patient-card__ok {
+  color: #047857 !important;
+}
+
+.agd-patient-card__link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #0d9488;
+}
+
+.agd-event--clickable {
+  cursor: pointer;
+}
+
+.agd-event--clickable:hover {
+  box-shadow: 0 4px 14px rgba(15, 39, 66, 0.08);
+}
+
 .agd-module--loading .agd-kpi__value,
 .agd-module--loading .agd-metrics strong {
   background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);

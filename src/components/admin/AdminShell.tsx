@@ -210,7 +210,7 @@ export function AdminShell({
   const unreadNotifications = unreadCount(state, tenantId);
 
   return (
-    <div className="portal portal--admin">
+    <div className={`portal portal--admin${compactNav ? ' portal--admin-compact' : ''}`}>
       {platformInspect ? (
         <div className="platform-inspect-banner" role="status">
           <strong>Revisión de plataforma</strong> — Quedan registrados usuario, rol, fecha/hora y clics.{' '}

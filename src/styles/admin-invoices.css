@@ -340,7 +340,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .inv-list-card .inv-table-wrap {
@@ -983,6 +983,11 @@
   position: relative;
 }
 
+.inv-menu--fixed {
+  position: fixed;
+  z-index: 1200;
+}
+
 .inv-menu {
   position: absolute;
   right: 0;
@@ -1134,6 +1139,51 @@
   .inv-sort select {
     width: 100%;
   }
+}
+
+.inv-util-card--templates {
+  grid-column: 1 / -1;
+}
+
+.inv-template-list {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+  gap: 0.4rem;
+  max-height: 10rem;
+  overflow-y: auto;
+}
+
+.inv-template-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  width: 100%;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.inv-template-item:hover {
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.12);
+}
+
+.inv-template-item strong {
+  font-size: 0.72rem;
+  color: #0f2742;
+}
+
+.inv-template-item span {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #64748b;
 }
 
 @media (max-width: 560px) {

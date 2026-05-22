@@ -367,11 +367,36 @@ export function PatientBook() {
 function AppointmentRow({ a }: { a: Appointment }) {
   const { state, commit } = useDemoStore();
   const { setNotice } = useNotice();
+  const patient = usePatient();
   const meta = useApptMeta(state, a);
   const [showCancel, setShowCancel] = useState(false);
   const [showResched, setShowResched] = useState(false);
   const [date, setDate] = useState(a.date);
   const [time, setTime] = useState(a.time);
+  const [certLoading, setCertLoading] = useState(false);
+  const clinic = state.clinics.find((c) => c.id === a.clinicId);
+  const settings = settingsFor(state, a.tenantId);
+
+  async function downloadJustificante() {
+    if (!a.attendanceConfirmed || !clinic) {
+      setNotice({ type: 'error', message: 'El justificante estará disponible cuando la clínica confirme tu asistencia.' });
+      return;
+    }
+    setCertLoading(true);
+    try {
+      const { generateAppointmentCertificatePdf, downloadCertificateBlob } = await import(
+        '@/lib/pdfAppointmentCertificate'
+      );
+      const p = state.patients.find((x) => x.id === patient.id) ?? patient;
+      const { fileRef, fileName } = await generateAppointmentCertificatePdf(a, p, clinic, settings);
+      downloadCertificateBlob(fileRef, fileName);
+      setNotice({ type: 'ok', message: 'Justificante descargado (sin motivo de consulta).' });
+    } catch {
+      setNotice({ type: 'error', message: 'No se pudo generar el justificante.' });
+    } finally {
+      setCertLoading(false);
+    }
+  }
 
   return (
     <article className="data-row appt-row">
@@ -379,9 +404,22 @@ function AppointmentRow({ a }: { a: Appointment }) {
         <p className="data-row__title">{meta.treatment}</p>
         <p className="data-row__meta">{meta.dentist} · {meta.clinic}</p>
         <p className="data-row__meta">{fmtDateTime(a.date, a.time)} · {money(meta.price)}</p>
+        {a.attendanceConfirmed ? (
+          <p className="data-row__meta text-teal-700">Asistencia confirmada por la clínica</p>
+        ) : null}
       </div>
       <div className="data-row__aside">
         <Badge status={a.status} label={statusLabel(a.status)} />
+      {a.attendanceConfirmed ? (
+        <Button
+          tone="secondary"
+          className="!py-2 !text-xs"
+          disabled={certLoading}
+          onClick={() => void downloadJustificante()}
+        >
+          {certLoading ? 'Generando…' : 'Justificante de asistencia'}
+        </Button>
+      ) : null}
       {isActiveStatus(a.status) ? (
         <div className="flex flex-wrap gap-2">
           <Button tone="secondary" className="!py-2 !text-xs" onClick={() => setShowCancel(true)}>Cancelar</Button>

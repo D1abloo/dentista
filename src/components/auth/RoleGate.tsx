@@ -84,6 +84,9 @@ export function useLogout() {
   return () => {
     void fetch('/api/platform/inspect', { method: 'DELETE', credentials: 'include' }).finally(() =>
       logoutSession().finally(() => {
+        if (typeof window !== 'undefined' && 'caches' in window) {
+          void caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))));
+        }
         window.location.replace('/?logged_out=1');
       })
     );

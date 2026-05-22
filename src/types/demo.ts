@@ -114,6 +114,9 @@ export interface Appointment {
   time: string;
   status: AppointmentStatus;
   notes?: string;
+  /** La administración confirma asistencia; habilita justificante en portal paciente. */
+  attendanceConfirmed?: boolean;
+  attendanceConfirmedAt?: string;
   createdAt: string;
 }
 
@@ -299,6 +302,8 @@ export interface AppSettings {
   invoiceSeries?: string;
   defaultInvoiceConcept?: string;
   logoUrl?: string;
+  /** Sello o imagen de sello para justificantes (URL o data URL). */
+  clinicStampUrl?: string;
   website?: string;
   instagram?: string;
   facebook?: string;

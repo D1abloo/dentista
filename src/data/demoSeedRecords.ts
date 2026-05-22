@@ -210,6 +210,8 @@ export const demoAppointments: Appointment[] = [
     date: offsetDate(-2),
     time: '11:00',
     status: 'completada',
+    attendanceConfirmed: true,
+    attendanceConfirmedAt: offsetDate(-2),
     createdAt: offsetDate(-10)
   },
   {
@@ -289,6 +291,8 @@ export const demoAppointments: Appointment[] = [
     date: offsetDate(-4),
     time: '12:00',
     status: 'completada',
+    attendanceConfirmed: true,
+    attendanceConfirmedAt: offsetDate(-4),
     createdAt: offsetDate(-14)
   },
   {
@@ -328,6 +332,8 @@ export const demoAppointments: Appointment[] = [
     date: offsetDate(-6),
     time: '10:00',
     status: 'completada',
+    attendanceConfirmed: true,
+    attendanceConfirmedAt: offsetDate(-6),
     createdAt: offsetDate(-20)
   },
   {
@@ -488,6 +494,51 @@ export const demoClinicalReports: ClinicalReport[] = [
     uploadedBy: 'Dr. Carlos Ramírez',
     visibleToPatient: false,
     createdAt: offsetDate(-1)
+  },
+  {
+    id: 'INF-0010',
+    tenantId: TENANT_CENTRO,
+    patientId: P2,
+    title: 'Informe limpieza José López',
+    description: 'Profilaxis y encías.',
+    diagnosis: 'Gingivitis leve',
+    recommendations: 'Control en 6 meses',
+    fileName: 'informe-limpieza.pdf',
+    fileRef: demoAsset.informe('informe-limpieza.pdf'),
+    mimeType: 'application/pdf',
+    uploadedBy: 'Dr. Pablo Núñez',
+    visibleToPatient: true,
+    createdAt: offsetDate(-8)
+  },
+  {
+    id: 'INF-0011',
+    tenantId: TENANT_SUR,
+    patientId: P3,
+    title: 'Informe blanqueamiento Patricia Gómez',
+    description: 'Sesión en gabinete Sur.',
+    diagnosis: 'Color A3',
+    recommendations: 'Evitar tintes 48 h',
+    fileName: 'informe-blanqueamiento.pdf',
+    fileRef: demoAsset.informe('informe-blanqueamiento.pdf'),
+    mimeType: 'application/pdf',
+    uploadedBy: 'Dra. Elena Martín',
+    visibleToPatient: true,
+    createdAt: offsetDate(-3)
+  },
+  {
+    id: 'INF-0012',
+    tenantId: TENANT_NORTE,
+    patientId: P3,
+    title: 'Informe revisión general',
+    description: 'Exploración completa.',
+    diagnosis: 'Sin patología activa',
+    recommendations: 'Higiene interdental',
+    fileName: 'informe-periodoncia.pdf',
+    fileRef: demoAsset.informe('informe-periodoncia.pdf'),
+    mimeType: 'application/pdf',
+    uploadedBy: 'Dr. Carlos Ramírez',
+    visibleToPatient: true,
+    createdAt: offsetDate(-10)
   }
 ];
 
@@ -616,7 +667,92 @@ export const demoInvoices: Invoice[] = [
     dueDate: offsetDate(20),
     fileName: 'fac-0002-implantes.pdf',
     fileRef: demoAsset.factura('fac-0002-implantes.pdf'),
-    mimeType: 'application/pdf'
+    mimeType: 'application/pdf',
+    portalVisible: true
+  },
+  {
+    id: 'FAC-0010',
+    tenantId: TENANT_CENTRO,
+    patientId: P2,
+    amount: 80,
+    concept: 'Limpieza dental profesional',
+    status: 'pagada',
+    issuedAt: offsetDate(-8),
+    dueDate: offsetDate(-1),
+    fileName: 'fac-0004-limpieza.pdf',
+    fileRef: demoAsset.factura('fac-0004-limpieza.pdf'),
+    mimeType: 'application/pdf',
+    portalVisible: true
+  },
+  {
+    id: 'FAC-0011',
+    tenantId: TENANT_SUR,
+    patientId: P3,
+    amount: 250,
+    concept: 'Blanqueamiento dental',
+    status: 'pendiente',
+    issuedAt: offsetDate(-3),
+    dueDate: offsetDate(12),
+    fileName: 'fac-0003-blanqueamiento.pdf',
+    fileRef: demoAsset.factura('fac-0003-blanqueamiento.pdf'),
+    mimeType: 'application/pdf',
+    portalVisible: true
+  },
+  {
+    id: 'FAC-0012',
+    tenantId: TENANT_NORTE,
+    patientId: P3,
+    amount: 55,
+    concept: 'Revisión odontológica',
+    status: 'pagada',
+    issuedAt: offsetDate(-10),
+    dueDate: offsetDate(-2),
+    fileName: 'fac-0008-revision.pdf',
+    fileRef: demoAsset.factura('fac-0008-revision.pdf'),
+    mimeType: 'application/pdf',
+    portalVisible: true
+  },
+  {
+    id: 'FAC-0013',
+    tenantId: TENANT_CENTRO,
+    patientId: DEMO_PATIENT_ID,
+    amount: 95,
+    concept: 'Urgencia dental',
+    status: 'vencida',
+    issuedAt: offsetDate(-15),
+    dueDate: offsetDate(-8),
+    fileName: 'fac-0005-limpieza-hoy.pdf',
+    fileRef: demoAsset.factura('fac-0005-limpieza-hoy.pdf'),
+    mimeType: 'application/pdf',
+    portalVisible: true
+  },
+  {
+    id: 'FAC-0014',
+    tenantId: TENANT_SUR,
+    patientId: P2,
+    amount: 450,
+    concept: 'Carillas estéticas · presupuesto',
+    status: 'pendiente',
+    issuedAt: offsetDate(-5),
+    dueDate: offsetDate(18),
+    fileName: 'fac-0007-carillas.pdf',
+    fileRef: demoAsset.factura('fac-0007-carillas.pdf'),
+    mimeType: 'application/pdf',
+    portalVisible: true
+  },
+  {
+    id: 'FAC-0015',
+    tenantId: TENANT_CENTRO,
+    patientId: P3,
+    amount: 320,
+    concept: 'Endodoncia unirradicular',
+    status: 'pendiente',
+    issuedAt: offsetDate(-1),
+    dueDate: offsetDate(21),
+    fileName: 'fac-0006-endodoncia.pdf',
+    fileRef: demoAsset.factura('fac-0006-endodoncia.pdf'),
+    mimeType: 'application/pdf',
+    portalVisible: true
   }
 ];
 
