@@ -561,7 +561,7 @@ export function AdminAgenda() {
           Nueva cita
         </button>
 
-        <a href="/admin/configuracion" className="agd-bell" aria-label="Notificaciones">
+        <a href="/admin/notificaciones" className="agd-bell" aria-label="Notificaciones">
           <Bell className="h-4 w-4" />
           <span className="agd-bell__dot" aria-hidden />
         </a>

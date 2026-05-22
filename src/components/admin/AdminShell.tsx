@@ -14,6 +14,7 @@ import { isNavItemVisible } from '@/lib/adminNav';
 import { useStaffContext } from '@/hooks/useStaffContext';
 import { ClinicBranchSwitcher } from './ClinicBranchSwitcher';
 import { AdminQuickAccess } from './AdminQuickAccess';
+import { AdminNotificationBell } from './AdminNotificationBell';
 
 function logInspectNav(href: string, label: string) {
   void fetch('/api/platform/inspect', {
@@ -264,6 +265,7 @@ export function AdminShell({
                 <AdminSearch />
               </div>
               <div className="admin-topbar__actions">
+                <AdminNotificationBell />
                 <AdminQuickAccess />
                 <div className="hidden lg:block">
                   <ClinicBranchSwitcher />

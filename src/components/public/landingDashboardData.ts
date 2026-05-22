@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import {
+  Bell,
   Building2,
   Calendar,
   CalendarDays,
@@ -38,7 +39,8 @@ export const landingDashNav: LandingDashNavItem[] = [
   { label: 'Tratamientos', icon: ClipboardList, href: '/admin/tratamientos' },
   { label: 'Clínicas', icon: Building2, href: '/admin/clinicas' },
   { label: 'Reportes', icon: LineChart, href: '/admin/reportes' },
-  { label: 'Configuración', icon: Settings, href: '/admin/configuracion' }
+  { label: 'Notificaciones', icon: Bell, href: '/admin/notificaciones' },
+  { label: 'Ajustes', icon: Settings, href: '/admin/configuracion' }
 ];
 
 export const landingDashQuickModules = [

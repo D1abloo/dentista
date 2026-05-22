@@ -49,7 +49,7 @@ export const adminNav: { href: string; label: string; icon: LucideIcon; view: Ad
   { href: '/admin/informes', label: 'Informes', icon: FileText, view: 'informes' },
   { href: '/admin/consentimientos', label: 'Consentimientos', icon: FileSignature, view: 'consentimientos' },
   { href: '/admin/documentos', label: 'Documentos', icon: FileStack, view: 'documentos' },
-  { href: '/admin/facturas', label: 'Facturas', icon: Receipt, view: 'facturas' },
+  { href: '/admin/facturas', label: 'Facturación', icon: Receipt, view: 'facturas' },
   { href: '/admin/pagos', label: 'Pagos', icon: CreditCard, view: 'pagos' },
   { href: '/admin/dentistas', label: 'Dentistas', icon: Stethoscope, view: 'dentistas' },
   { href: '/admin/tratamientos', label: 'Tratamientos', icon: ClipboardList, view: 'tratamientos' },
