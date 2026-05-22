@@ -6,7 +6,12 @@ import {
 } from '@/lib/email/patientActivationEmail';
 import { allocateNextNhc } from '@/lib/services/nhc';
 import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
-import type { PatientRegistrationInput } from '@/lib/validators';
+import type { AdminPatientCreateInput, PatientRegistrationInput } from '@/lib/validators';
+
+function randomTempPassword() {
+  const base = crypto.randomUUID().replace(/-/g, '').slice(0, 10);
+  return `Df${base}9!`;
+}
 
 function appUrl(path: string) {
   const base = (import.meta.env.PUBLIC_APP_URL ?? 'http://localhost:4321').replace(/\/$/, '');
@@ -169,6 +174,23 @@ export async function activatePatientAccount(rawToken: string) {
     email: profile.email as string,
     fullName: profile.full_name as string
   };
+}
+
+/** Alta desde panel administrativo: genera contraseña temporal y envía activación por email. */
+export async function registerPatientByStaff(input: AdminPatientCreateInput & { clinic_id: string }) {
+  const pwd = randomTempPassword();
+  return registerPatient({
+    full_name: input.full_name,
+    email: input.email,
+    phone: input.phone,
+    dni: input.dni?.trim() || '00000000A',
+    birth_date: input.birth_date || '',
+    clinic_id: input.clinic_id,
+    password: pwd,
+    password_confirm: pwd,
+    accept_terms: true,
+    accept_privacy: true
+  });
 }
 
 export function isPatientActivated(profile: { role: string; activated_at?: string | null }) {

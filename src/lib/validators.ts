@@ -110,6 +110,31 @@ export const patientRegistrationSchema = z
 
 export type PatientRegistrationInput = z.infer<typeof patientRegistrationSchema>;
 
+/** Alta de paciente por personal de clínica (recepción / admin). */
+export const adminPatientCreateSchema = z.object({
+  full_name: z.string().min(2, 'Indica el nombre completo.').max(120),
+  email: z.string().email('Email no válido.'),
+  phone: z
+    .string()
+    .min(9, 'Teléfono obligatorio.')
+    .max(20)
+    .regex(/^[\d\s+()-]+$/, 'Formato de teléfono no válido.'),
+  dni: z
+    .string()
+    .max(20)
+    .optional()
+    .or(z.literal('')),
+  birth_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional()
+    .or(z.literal('')),
+  clinic_id: z.string().uuid().optional(),
+  send_activation_email: z.boolean().default(true)
+});
+
+export type AdminPatientCreateInput = z.infer<typeof adminPatientCreateSchema>;
+
 export const patientActivateSchema = z.object({
   token: z.string().min(16).max(256)
 });

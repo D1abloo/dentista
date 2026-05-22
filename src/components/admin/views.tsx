@@ -208,70 +208,7 @@ export function AdminAppointments() {
   );
 }
 
-export function AdminPatients() {
-  const { state, commit } = useDemoStore();
-  const scope = useTenant();
-  const { setNotice } = useNotice();
-  const [q, setQ] = useState('');
-  const [editing, setEditing] = useState<Patient | null>(null);
-  const tenantPatientIds = patientsForTenant(state, scope.tenantId);
-  const tenantPatients = state.patients.filter((p) => tenantPatientIds.includes(p.id));
-  const list = q.trim() ? findPatientsByQuery(state, q).filter((p) => tenantPatientIds.includes(p.id)) : tenantPatients;
-
-  return (
-    <div className="space-y-4">
-<SearchInput value={q} onChange={setQ} placeholder="Buscar por NHC, DNI, nombre o email…" />
-      <p className="text-sm font-semibold text-slate-600">
-        Las fichas de paciente se generan con la reserva online o el alta acordada con la clínica. En PRO no se crean desde este panel.
-      </p>
-      <div className="table-cards">
-        {list.map((p) => {
-          const rec = recordsForPatient(state, p.id);
-          const next = rec.appointments.filter((a) => isActiveStatus(a.status)).sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`))[0];
-          const pending = pendingInvoicesForPatient(state, p.id).length;
-          return (
-            <article key={p.id} className="patient-card">
-              <div className="patient-card__main">
-                <p className="patient-card__name">
-                  {p.nhc ? <span className="mr-2 rounded bg-teal-100 px-2 py-0.5 text-xs font-bold text-teal-900">NHC {p.nhc}</span> : null}
-                  {p.fullName}
-                </p>
-                <p className="patient-card__contact">{p.email} · {p.phone}{p.dni ? ` · DNI ${p.dni}` : ''}</p>
-                <p className="patient-card__stats">Próxima: {next ? fmtDateTime(next.date, next.time) : '—'} · Facturas pend.: {pending} · Informes: {rec.reports.length}</p>
-              </div>
-              <div className="patient-card__actions">
-                <a href={`/admin/pacientes/${p.id}`}><Button tone="secondary" className="!text-xs">Ver ficha</Button></a>
-                <Button tone="ghost" className="!text-xs" onClick={() => setEditing(p)}>Editar</Button>
-                <a href="/admin/citas"><Button tone="ghost" className="!text-xs">Cita</Button></a>
-                <a href="/admin/informes"><Button tone="ghost" className="!text-xs">Informe</Button></a>
-                <a href="/admin/documentos"><Button tone="ghost" className="!text-xs">Documento</Button></a>
-                <a href="/admin/facturas"><Button tone="ghost" className="!text-xs">Factura</Button></a>
-                <a href="/admin/pagos"><Button tone="ghost" className="!text-xs">Pago</Button></a>
-              </div>
-            </article>
-          );
-        })}
-      </div>
-      {editing ? (
-        <Card title={`Editar ${editing.id}`}>
-          <div className="grid gap-3 md:grid-cols-2">
-            <Field label="Nombre"><Input value={editing.fullName} onChange={(e) => setEditing({ ...editing, fullName: e.target.value })} /></Field>
-            <Field label="Email"><Input value={editing.email} onChange={(e) => setEditing({ ...editing, email: e.target.value })} /></Field>
-            <Field label="Teléfono"><Input value={editing.phone} onChange={(e) => setEditing({ ...editing, phone: e.target.value })} /></Field>
-            <Field label="DNI"><Input value={editing.dni ?? ''} onChange={(e) => setEditing({ ...editing, dni: e.target.value })} /></Field>
-            <div className="md:col-span-2"><Field label="Notas"><Textarea value={editing.notes ?? ''} onChange={(e) => setEditing({ ...editing, notes: e.target.value })} /></Field></div>
-            <Button onClick={() => {
-              const err = required(editing.fullName, 'Nombre') || email(editing.email) || phone(editing.phone);
-              if (err) { setNotice({ type: 'error', message: err }); return; }
-              commit(savePatient(state, editing));
-              setNotice({ type: 'ok', message: 'Paciente guardado.' });
-            }}>Guardar</Button>
-          </div>
-        </Card>
-      ) : null}
-    </div>
-  );
-}
+export { AdminPatients } from './AdminPatients';
 
 export function AdminDentists() {
   const { state, commit } = useDemoStore();

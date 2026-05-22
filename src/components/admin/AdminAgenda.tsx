@@ -20,6 +20,7 @@ import { appointmentsInRange, monthPrefix, weekRange } from '@/lib/appointments'
 import { addBlockedSlot, removeBlockedSlot, rescheduleAppointment } from '@/lib/demoStore';
 import { createAdminAppointment, updateAdminAppointmentStatus } from '@/lib/adminAppointments';
 import { createScheduleBlockLive, deleteScheduleBlockLive } from '@/lib/clinicApi';
+import { consumeBookingPatientPrefill } from '@/lib/patientAdmin';
 import { patientsForClinic } from '@/lib/tenant';
 import { fmtDate, statusLabel, todayIso } from '@/lib/format';
 import { patientName } from '@/lib/selectors';
@@ -199,6 +200,14 @@ export function AdminAgenda() {
   useEffect(() => {
     if (!staffLoading && ownAgenda && staff?.dentistId) setDentistId(staff.dentistId);
   }, [staffLoading, ownAgenda, staff?.dentistId]);
+
+  useEffect(() => {
+    const pre = consumeBookingPatientPrefill();
+    if (pre) {
+      setBookPatientId(pre);
+      setLeftTab('book');
+    }
+  }, []);
 
   useEffect(() => {
     void fetch('/api/auth/me', { credentials: 'include' })

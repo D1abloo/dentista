@@ -110,6 +110,7 @@ export function AdminShell({
   children,
   dashboardToolbar,
   agendaModule = false,
+  patientsModule = false,
   compactNav = true
 }: {
   title: string;
@@ -117,6 +118,7 @@ export function AdminShell({
   children: ReactNode;
   dashboardToolbar?: ReactNode;
   agendaModule?: boolean;
+  patientsModule?: boolean;
   compactNav?: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -268,7 +270,7 @@ export function AdminShell({
           </button>
         </header>
         <main
-          className={`portal-body portal-body--corp portal-body--admin${dashboardToolbar ? ' portal-body--dashboard' : ''}${agendaModule ? ' portal-body--agenda-module' : ''}`}
+          className={`portal-body portal-body--corp portal-body--admin${dashboardToolbar ? ' portal-body--dashboard' : ''}${agendaModule ? ' portal-body--agenda-module' : ''}${patientsModule ? ' portal-body--patients-module' : ''}`}
         >
           {children}
         </main>

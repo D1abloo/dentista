@@ -87,7 +87,8 @@ export const adminSubtitles: Record<AdminView, string> = {
     'Resumen de actividad de tu organización. Consulta la guía de uso para el panel y el portal del paciente.',
   agenda: 'Vista día, semana o mes',
   citas: 'CIT-XXXX vinculadas a paciente',
-  pacientes: 'PAT-XXXX conecta citas, informes, facturas y documentos',
+  pacientes:
+    'Gestiona expedientes, citas, documentos, facturas y acceso al portal del paciente.',
   informes: 'Sube PDF · busca por DNI o PAT-XXXX',
   documentos: 'Radiografías y archivos del paciente',
   facturas: 'FAC-XXXX · solo formato PDF',
