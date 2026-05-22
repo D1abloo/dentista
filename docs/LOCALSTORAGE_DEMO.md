@@ -35,8 +35,9 @@ Definidas en `src/lib/storage/keys.ts`.
 `src/data/demoData.ts` exporta `demoState` con:
 
 - 3 tenants (Centro, Norte, Sur)
-- Paciente **PAT-0001** con historial en Centro y Norte
-- Citas, informes, facturas y pagos cruzados para probar el portal paciente
+- Pacientes **PAT-0001** (portal), **PAT-0002** y **PAT-0003** (agenda admin)
+- 20 citas, 9 informes, 9 facturas, 11 documentos y 6 consentimientos con PDF en `public/demo/`
+- Archivos estáticos: `prueba/`, `facturas/`, `documentos/`, `consentimientos/`, `informes/` (`npm run seed:demo-assets`)
 
 Al primer arranque se hidrata desde la semilla si no hay estado guardado.
 

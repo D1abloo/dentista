@@ -53,13 +53,34 @@ export function saveDemoFile(file: File): Promise<string> {
   });
 }
 
+/** Archivos estáticos en `public/demo/` (facturas, documentos, consentimientos, etc.). */
+export function isPublicDemoAsset(fileRef: string): boolean {
+  return fileRef.startsWith('/demo/');
+}
+
 export function getDemoFile(fileRef: string): StoredFile | null {
+  if (isPublicDemoAsset(fileRef)) return null;
   return loadStore()[fileRef] ?? null;
 }
 
+/** URL para previsualizar (data URL local o ruta pública). */
+export function resolveDemoFileUrl(fileRef: string): string | null {
+  if (isPublicDemoAsset(fileRef)) return fileRef;
+  return getDemoFile(fileRef)?.dataUrl ?? null;
+}
+
 export function downloadDemoFileRef(fileRef: string, fallbackName?: string) {
+  if (typeof window === 'undefined') return false;
+  if (isPublicDemoAsset(fileRef)) {
+    const a = document.createElement('a');
+    a.href = fileRef;
+    a.download = fallbackName ?? fileRef.split('/').pop() ?? 'archivo';
+    a.rel = 'noopener';
+    a.click();
+    return true;
+  }
   const f = getDemoFile(fileRef);
-  if (!f || typeof window === 'undefined') return false;
+  if (!f) return false;
   const a = document.createElement('a');
   a.href = f.dataUrl;
   a.download = fallbackName ?? f.name;
@@ -68,9 +89,10 @@ export function downloadDemoFileRef(fileRef: string, fallbackName?: string) {
 }
 
 export function openDemoFilePreview(fileRef: string) {
-  const f = getDemoFile(fileRef);
-  if (!f || typeof window === 'undefined') return;
-  window.open(f.dataUrl, '_blank', 'noopener,noreferrer');
+  if (typeof window === 'undefined') return;
+  const url = resolveDemoFileUrl(fileRef);
+  if (!url) return;
+  window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 export function isPdfMime(mime?: string, name?: string) {

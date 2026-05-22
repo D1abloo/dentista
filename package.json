@@ -13,6 +13,7 @@
     "lint:light": "node scripts/lint-light.mjs",
     "smoke": "node scripts/smoke-test.mjs",
     "seed:sql": "node scripts/print-seed.mjs",
+    "seed:demo-assets": "node scripts/seed-demo-assets.mjs",
     "users": "node scripts/manage-users.mjs",
     "users:list": "node scripts/manage-users.mjs list",
     "users:clinics": "node scripts/manage-users.mjs clinics",

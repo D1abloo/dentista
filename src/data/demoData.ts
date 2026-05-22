@@ -1,8 +1,15 @@
 import type { AppSettings, DemoState, NormativeText } from '@/types/demo';
 import { TENANT_CENTRO, TENANT_NORTE, TENANT_SUR } from '@/lib/tenantIds';
-
-/** Paciente real ficticio único (demo/LIVE). */
-const PATIENT = 'PAT-0001';
+import {
+  DEMO_PATIENT_ID,
+  demoAppointments,
+  demoClinicalReports,
+  demoInformedConsents,
+  demoInvoices,
+  demoPatientDocuments,
+  demoPatients,
+  demoPayments
+} from '@/data/demoSeedRecords';
 
 /** Fecha ISO relativa a hoy (agenda siempre con citas visibles). */
 function offsetDate(days: number): string {
@@ -10,10 +17,6 @@ function offsetDate(days: number): string {
   d.setDate(d.getDate() + days);
   return d.toISOString().slice(0, 10);
 }
-
-const CLI_CENTRO = 'CLI-0001';
-const CLI_NORTE = 'CLI-0002';
-const CLI_SUR = 'CLI-0003';
 
 const defaultNormative = (): NormativeText[] => [
   { id: 'cancelacion', title: 'Política de cancelación', body: 'Cancela con al menos 24 horas de antelación.' },
@@ -95,26 +98,7 @@ export const demoSeed: DemoState = {
       createdAt: '2026-01-15'
     }
   ],
-  patients: [
-    {
-      id: PATIENT,
-      nhc: '1',
-      fullName: 'Elena Vidal Romero',
-      email: 'maria@example.com',
-      phone: '+34 612 345 678',
-      dni: '45678912K',
-      birthDate: '1988-07-14',
-      allergies: 'Sin alergias declaradas',
-      medication: 'Ninguna habitual',
-      reminderChannels: ['email', 'whatsapp'],
-      primaryDentistId: 'DEN-0001',
-      preferredClinicId: CLI_CENTRO,
-      emergencyContactName: 'Miguel Vidal',
-      emergencyContactPhone: '+34 612 111 222',
-      notes: 'Paciente principal · historial en Clínica Centro.',
-      createdAt: '2024-03-10'
-    }
-  ],
+  patients: demoPatients,
   dentists: [
     {
       id: 'DEN-0001',
@@ -159,7 +143,7 @@ export const demoSeed: DemoState = {
   ],
   clinics: [
     {
-      id: CLI_CENTRO,
+      id: 'CLI-0001',
       tenantId: TENANT_CENTRO,
       name: 'Clínica Centro',
       address: 'Calle Mayor 12',
@@ -176,7 +160,7 @@ export const demoSeed: DemoState = {
       ]
     },
     {
-      id: CLI_NORTE,
+      id: 'CLI-0002',
       tenantId: TENANT_NORTE,
       name: 'Clínica Norte',
       address: 'Av. del Norte 45',
@@ -189,7 +173,7 @@ export const demoSeed: DemoState = {
       cabinets: [{ id: 'g-n1', name: 'Gabinete A', equipment: 'Implantología', active: true }]
     },
     {
-      id: CLI_SUR,
+      id: 'CLI-0003',
       tenantId: TENANT_SUR,
       name: 'Clínica Sur',
       address: 'Plaza Sur 8',
@@ -210,343 +194,34 @@ export const demoSeed: DemoState = {
     { id: 'TRA-0005', tenantId: TENANT_SUR, name: 'Blanqueamiento', description: 'Estética', durationMinutes: 60, price: 250, active: true },
     { id: 'TRA-0006', tenantId: TENANT_SUR, name: 'Carillas', description: 'Estética avanzada', durationMinutes: 75, price: 450, active: true }
   ],
-  appointments: [
-    {
-      id: 'CIT-0001',
-      tenantId: TENANT_CENTRO,
-      patientId: PATIENT,
-      dentistId: 'DEN-0001',
-      clinicId: CLI_CENTRO,
-      cabinetId: 'g-c1',
-      treatmentId: 'TRA-0001',
-      date: offsetDate(0),
-      time: '09:00',
-      status: 'confirmada',
-      createdAt: offsetDate(-3)
-    },
-    {
-      id: 'CIT-0002',
-      tenantId: TENANT_CENTRO,
-      patientId: PATIENT,
-      dentistId: 'DEN-0001',
-      clinicId: CLI_CENTRO,
-      cabinetId: 'g-c2',
-      treatmentId: 'TRA-0002',
-      date: offsetDate(0),
-      time: '10:15',
-      status: 'confirmada',
-      createdAt: offsetDate(-5)
-    },
-    {
-      id: 'CIT-0003',
-      tenantId: TENANT_CENTRO,
-      patientId: PATIENT,
-      dentistId: 'DEN-0004',
-      clinicId: CLI_CENTRO,
-      cabinetId: 'g-c1',
-      treatmentId: 'TRA-0001',
-      date: offsetDate(0),
-      time: '12:30',
-      status: 'pendiente',
-      createdAt: offsetDate(-1)
-    },
-    {
-      id: 'CIT-0004',
-      tenantId: TENANT_CENTRO,
-      patientId: PATIENT,
-      dentistId: 'DEN-0001',
-      clinicId: CLI_CENTRO,
-      cabinetId: 'g-c2',
-      treatmentId: 'TRA-0002',
-      date: offsetDate(0),
-      time: '17:00',
-      status: 'confirmada',
-      createdAt: offsetDate(-2)
-    },
-    {
-      id: 'CIT-0005',
-      tenantId: TENANT_CENTRO,
-      patientId: PATIENT,
-      dentistId: 'DEN-0001',
-      clinicId: CLI_CENTRO,
-      cabinetId: 'g-c2',
-      treatmentId: 'TRA-0002',
-      date: offsetDate(1),
-      time: '11:00',
-      status: 'pendiente',
-      createdAt: offsetDate(-1)
-    },
-    {
-      id: 'CIT-0006',
-      tenantId: TENANT_CENTRO,
-      patientId: PATIENT,
-      dentistId: 'DEN-0004',
-      clinicId: CLI_CENTRO,
-      cabinetId: 'g-c1',
-      treatmentId: 'TRA-0001',
-      date: offsetDate(2),
-      time: '10:30',
-      status: 'confirmada',
-      createdAt: offsetDate(0)
-    },
-    {
-      id: 'CIT-0007',
-      tenantId: TENANT_NORTE,
-      patientId: PATIENT,
-      dentistId: 'DEN-0002',
-      clinicId: CLI_NORTE,
-      cabinetId: 'g-n1',
-      treatmentId: 'TRA-0003',
-      date: offsetDate(-1),
-      time: '16:00',
-      status: 'completada',
-      createdAt: offsetDate(-8)
-    },
-    {
-      id: 'CIT-0008',
-      tenantId: TENANT_SUR,
-      patientId: PATIENT,
-      dentistId: 'DEN-0003',
-      clinicId: CLI_SUR,
-      cabinetId: 'g-s1',
-      treatmentId: 'TRA-0005',
-      date: offsetDate(0),
-      time: '09:30',
-      status: 'pendiente',
-      createdAt: offsetDate(-2)
-    },
-    {
-      id: 'CIT-0009',
-      tenantId: TENANT_NORTE,
-      patientId: PATIENT,
-      dentistId: 'DEN-0002',
-      clinicId: CLI_NORTE,
-      cabinetId: 'g-n1',
-      treatmentId: 'TRA-0004',
-      date: offsetDate(3),
-      time: '15:00',
-      status: 'pendiente',
-      createdAt: offsetDate(-1)
-    },
-    {
-      id: 'CIT-0010',
-      tenantId: TENANT_CENTRO,
-      patientId: PATIENT,
-      dentistId: 'DEN-0004',
-      clinicId: CLI_CENTRO,
-      cabinetId: 'g-c1',
-      treatmentId: 'TRA-0001',
-      date: offsetDate(-2),
-      time: '11:00',
-      status: 'completada',
-      createdAt: offsetDate(-10)
-    },
-    {
-      id: 'CIT-0011',
-      tenantId: TENANT_SUR,
-      patientId: PATIENT,
-      dentistId: 'DEN-0003',
-      clinicId: CLI_SUR,
-      cabinetId: 'g-s1',
-      treatmentId: 'TRA-0006',
-      date: offsetDate(7),
-      time: '10:00',
-      status: 'confirmada',
-      createdAt: offsetDate(-3)
-    },
-    {
-      id: 'CIT-0012',
-      tenantId: TENANT_CENTRO,
-      patientId: PATIENT,
-      dentistId: 'DEN-0001',
-      clinicId: CLI_CENTRO,
-      cabinetId: 'g-c2',
-      treatmentId: 'TRA-0002',
-      date: offsetDate(-3),
-      time: '09:45',
-      status: 'no_asistio',
-      createdAt: offsetDate(-12)
-    }
-  ],
-  clinicalReports: [
-    {
-      id: 'INF-0001',
-      tenantId: TENANT_CENTRO,
-      patientId: PATIENT,
-      appointmentId: 'CIT-0002',
-      title: 'Informe ortodoncia',
-      description: 'Control de alineación y tensión de arco.',
-      diagnosis: 'Maloclusión clase I leve',
-      recommendations: 'Control en 4 semanas',
-      uploadedBy: 'Dra. Laura Sánchez',
-      visibleToPatient: true,
-      createdAt: offsetDate(-2)
-    },
-    {
-      id: 'INF-0002',
-      tenantId: TENANT_NORTE,
-      patientId: PATIENT,
-      appointmentId: 'CIT-0007',
-      title: 'Informe valoración implantes',
-      description: 'Estudio CBCT y plan quirúrgico.',
-      diagnosis: 'Pérdida pieza 36',
-      recommendations: 'Fase quirúrgica en 3 semanas',
-      uploadedBy: 'Dr. Carlos Ramírez',
-      visibleToPatient: true,
-      createdAt: offsetDate(-1)
-    },
-    {
-      id: 'INF-0003',
-      tenantId: TENANT_SUR,
-      patientId: PATIENT,
-      appointmentId: 'CIT-0008',
-      title: 'Informe blanqueamiento',
-      description: 'Evaluación color y sensibilidad.',
-      diagnosis: 'Color A2, sin sensibilidad',
-      recommendations: 'Sesión en gabinete Sur',
-      uploadedBy: 'Dra. Elena Martín',
-      visibleToPatient: true,
-      createdAt: offsetDate(-1)
-    },
-    {
-      id: 'INF-0004',
-      tenantId: TENANT_CENTRO,
-      patientId: PATIENT,
-      appointmentId: 'CIT-0010',
-      title: 'Informe limpieza dental',
-      description: 'Profilaxis y encía.',
-      diagnosis: 'Gingivitis leve resuelta',
-      recommendations: 'Higiene interdental diaria',
-      uploadedBy: 'Dr. Pablo Núñez',
-      visibleToPatient: true,
-      createdAt: offsetDate(-2)
-    }
-  ],
-  invoices: [
-    {
-      id: 'FAC-0001',
-      tenantId: TENANT_CENTRO,
-      patientId: PATIENT,
-      appointmentId: 'CIT-0002',
-      amount: 120,
-      concept: 'Ortodoncia · sesión control',
-      status: 'pagada',
-      issuedAt: offsetDate(-5),
-      dueDate: offsetDate(5)
-    },
-    {
-      id: 'FAC-0002',
-      tenantId: TENANT_NORTE,
-      patientId: PATIENT,
-      appointmentId: 'CIT-0007',
-      amount: 600,
-      concept: 'Implantes · valoración y plan',
-      status: 'pendiente',
-      issuedAt: offsetDate(-1),
-      dueDate: offsetDate(14)
-    },
-    {
-      id: 'FAC-0003',
-      tenantId: TENANT_SUR,
-      patientId: PATIENT,
-      appointmentId: 'CIT-0008',
-      amount: 250,
-      concept: 'Blanqueamiento dental',
-      status: 'pendiente',
-      issuedAt: offsetDate(-2),
-      dueDate: offsetDate(10)
-    },
-    {
-      id: 'FAC-0004',
-      tenantId: TENANT_CENTRO,
-      patientId: PATIENT,
-      appointmentId: 'CIT-0010',
-      amount: 80,
-      concept: 'Limpieza dental profesional',
-      status: 'pagada',
-      issuedAt: offsetDate(-3),
-      dueDate: offsetDate(7)
-    },
-    {
-      id: 'FAC-0005',
-      tenantId: TENANT_CENTRO,
-      patientId: PATIENT,
-      appointmentId: 'CIT-0001',
-      amount: 80,
-      concept: 'Limpieza dental · cita de hoy',
-      status: 'pendiente',
-      issuedAt: offsetDate(0),
-      dueDate: offsetDate(15)
-    }
-  ],
-  payments: [
-    {
-      id: 'PAG-0001',
-      tenantId: TENANT_CENTRO,
-      patientId: PATIENT,
-      invoiceId: 'FAC-0001',
-      amount: 120,
-      method: 'tarjeta',
-      status: 'completado',
-      paidAt: offsetDate(-4),
-      createdAt: offsetDate(-4)
-    },
-    {
-      id: 'PAG-0002',
-      tenantId: TENANT_CENTRO,
-      patientId: PATIENT,
-      invoiceId: 'FAC-0004',
-      amount: 80,
-      method: 'transferencia',
-      status: 'completado',
-      paidAt: offsetDate(-2),
-      createdAt: offsetDate(-2)
-    }
-  ],
-  patientDocuments: [
-    {
-      id: 'DOC-0001',
-      tenantId: TENANT_CENTRO,
-      patientId: PATIENT,
-      type: 'consentimiento',
-      title: 'Consentimiento ortodoncia',
-      visibility: 'paciente',
-      createdAt: '2026-05-16'
-    },
-    {
-      id: 'DOC-0002',
-      tenantId: TENANT_NORTE,
-      patientId: PATIENT,
-      type: 'radiografia',
-      title: 'Radiografía panorámica Norte',
-      visibility: 'paciente',
-      createdAt: '2026-05-14'
-    },
-    {
-      id: 'DOC-0003',
-      tenantId: TENANT_SUR,
-      patientId: PATIENT,
-      type: 'otro',
-      title: 'Nota interna Sur',
-      visibility: 'admin',
-      createdAt: '2026-05-15'
-    }
-  ],
+  appointments: demoAppointments,
+  clinicalReports: demoClinicalReports,
+  invoices: demoInvoices,
+  payments: demoPayments,
+  patientDocuments: demoPatientDocuments,
   adminNotes: [
     {
       id: 'NOT-0001',
       tenantId: TENANT_CENTRO,
-      patientId: PATIENT,
+      patientId: DEMO_PATIENT_ID,
       body: 'Prefiere recordatorios por WhatsApp.',
       createdAt: '2026-05-10',
       createdBy: 'Recepción Centro'
+    },
+    {
+      id: 'NOT-0002',
+      tenantId: TENANT_NORTE,
+      patientId: 'PAT-0002',
+      body: 'Valoración implantes pendiente de CBCT.',
+      createdAt: offsetDate(-5),
+      createdBy: 'Recepción Norte'
     }
   ],
   messages: [
     {
       id: 'MSG-0001',
       tenantId: TENANT_CENTRO,
-      patientId: PATIENT,
+      patientId: DEMO_PATIENT_ID,
       subject: 'Recordatorio de cita',
       body: 'Tu cita de ortodoncia en Clínica Centro está confirmada para hoy.',
       channel: 'whatsapp',
@@ -557,13 +232,35 @@ export const demoSeed: DemoState = {
     {
       id: 'MSG-0002',
       tenantId: TENANT_NORTE,
-      patientId: PATIENT,
+      patientId: DEMO_PATIENT_ID,
       subject: 'Nueva factura',
       body: 'Tienes una factura pendiente de implantes en Clínica Norte.',
       channel: 'app',
       type: 'clinica',
       read: false,
       sentAt: '2026-05-20T10:00:00'
+    },
+    {
+      id: 'MSG-0003',
+      tenantId: TENANT_CENTRO,
+      patientId: DEMO_PATIENT_ID,
+      subject: 'Consentimiento pendiente',
+      body: 'Firma el consentimiento de endodoncia antes de tu próxima cita.',
+      channel: 'email',
+      type: 'clinica',
+      read: false,
+      sentAt: '2026-05-20T14:00:00'
+    },
+    {
+      id: 'MSG-0004',
+      tenantId: TENANT_SUR,
+      patientId: DEMO_PATIENT_ID,
+      subject: 'Documentos disponibles',
+      body: 'Ya puedes descargar el informe de blanqueamiento desde tu portal.',
+      channel: 'app',
+      type: 'general',
+      read: true,
+      sentAt: '2026-05-18T11:00:00'
     }
   ],
   settingsByTenant: {
@@ -577,34 +274,8 @@ export const demoSeed: DemoState = {
     [TENANT_SUR]: defaultNormative()
   },
   blockedSlots: [],
-  informedConsents: [
-    {
-      id: 'CON-0001',
-      tenantId: TENANT_CENTRO,
-      patientId: PATIENT,
-      appointmentId: 'CIT-0001',
-      treatmentName: 'Ortodoncia',
-      title: 'Consentimiento informado · Ortodoncia',
-      body: 'Autorizo el plan de ortodoncia, revisiones periódicas y radiografías necesarias para el seguimiento del tratamiento.',
-      status: 'firmado',
-      requiredForPortal: true,
-      signedAt: '2026-05-10T10:00:00',
-      createdAt: '2026-05-10'
-    },
-    {
-      id: 'CON-0002',
-      tenantId: TENANT_SUR,
-      patientId: PATIENT,
-      appointmentId: 'CIT-0008',
-      treatmentName: 'Blanqueamiento',
-      title: 'Consentimiento informado · Blanqueamiento dental',
-      body: 'He sido informada de riesgos, cuidados posteriores y alternativas del tratamiento de blanqueamiento. Autorizo su realización.',
-      status: 'pendiente',
-      requiredForPortal: true,
-      createdAt: '2026-05-18'
-    }
-  ]
+  informedConsents: demoInformedConsents
 };
 
-export const DEMO_PATIENT_LOGIN_ID = PATIENT;
+export const DEMO_PATIENT_LOGIN_ID = DEMO_PATIENT_ID;
 export const demoState = demoSeed;

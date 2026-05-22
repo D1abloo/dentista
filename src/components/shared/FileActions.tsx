@@ -1,5 +1,12 @@
 import { Download, Eye } from 'lucide-react';
-import { downloadDemoFileRef, getDemoFile, isImageMime, isPdfMime, openDemoFilePreview } from '@/lib/demoFiles';
+import {
+  downloadDemoFileRef,
+  getDemoFile,
+  isImageMime,
+  isPdfMime,
+  isPublicDemoAsset,
+  openDemoFilePreview
+} from '@/lib/demoFiles';
 import { Button } from '@/components/ui';
 
 export function FileActions({
@@ -14,8 +21,8 @@ export function FileActions({
   onOpen?: () => void;
 }) {
   if (!fileRef) return null;
-  const stored = getDemoFile(fileRef);
-  const name = fileName ?? stored?.name ?? 'archivo';
+  const stored = isPublicDemoAsset(fileRef) ? null : getDemoFile(fileRef);
+  const name = fileName ?? stored?.name ?? fileRef.split('/').pop() ?? 'archivo';
   const mime = mimeType ?? stored?.mimeType;
   const isPdf = isPdfMime(mime, name);
   const isImg = isImageMime(mime, name);

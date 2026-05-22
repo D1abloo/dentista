@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { logPortalAudit, usePortalAccess } from '@/hooks/usePortalAccess';
 import { createPayment } from '@/lib/demoStore';
-import { downloadDemoFileRef, getDemoFile, isImageMime, isPdfMime, openDemoFilePreview } from '@/lib/demoFiles';
+import {
+  downloadDemoFileRef,
+  isImageMime,
+  isPdfMime,
+  openDemoFilePreview,
+  resolveDemoFileUrl
+} from '@/lib/demoFiles';
 import { generateInvoicePdfFile } from '@/lib/pdfInvoice';
 import { fmtDate, money } from '@/lib/format';
 import {
@@ -114,8 +120,8 @@ export function PatientDocuments() {
       <SearchInput value={q} onChange={setQ} placeholder="Buscar documento o tipo…" />
       <div className="grid gap-4 md:grid-cols-2">
         {list.map((d) => {
-          const stored = d.fileRef ? getDemoFile(d.fileRef) : null;
-          const showImg = stored && isImageMime(stored.mimeType, stored.name);
+          const previewUrl = d.fileRef ? resolveDemoFileUrl(d.fileRef) : null;
+          const showImg = previewUrl && isImageMime(d.mimeType, d.fileName ?? d.fileRef);
           return (
             <article key={d.id} className="doc-tile">
               <div className="flex flex-wrap items-start justify-between gap-2">
@@ -130,7 +136,7 @@ export function PatientDocuments() {
                   className="mt-3 block w-full overflow-hidden rounded-xl ring-1 ring-slate-200"
                   onClick={() => openDemoFilePreview(d.fileRef!)}
                 >
-                  <img src={stored!.dataUrl} alt={d.title} className="max-h-48 w-full object-contain bg-slate-900/5" />
+                  <img src={previewUrl!} alt={d.title} className="max-h-48 w-full object-contain bg-slate-900/5" />
                 </button>
               ) : null}
               <div className="mt-3">
