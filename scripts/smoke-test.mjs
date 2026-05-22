@@ -22,6 +22,7 @@ const required = [
   'src/pages/admin/pagos.astro',
   'src/pages/admin/reportes.astro',
   'src/pages/admin/configuracion.astro',
+  'src/pages/admin/notificaciones.astro',
   'src/pages/admin/normativa.astro',
   'src/pages/login.astro',
   'src/pages/cookies.astro',

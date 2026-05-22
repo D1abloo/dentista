@@ -114,6 +114,8 @@ export function AdminShell({
   documentsModule = false,
   invoicesModule = false,
   reportsModule = false,
+  paymentsModule = false,
+  notificationsModule = false,
   settingsModule = false,
   compactNav = true
 }: {
@@ -125,7 +127,9 @@ export function AdminShell({
   patientsModule?: boolean;
   documentsModule?: boolean;
   invoicesModule?: boolean;
+  paymentsModule?: boolean;
   reportsModule?: boolean;
+  notificationsModule?: boolean;
   settingsModule?: boolean;
   compactNav?: boolean;
 }) {
@@ -278,7 +282,7 @@ export function AdminShell({
           </button>
         </header>
         <main
-          className={`portal-body portal-body--corp portal-body--admin${dashboardToolbar ? ' portal-body--dashboard' : ''}${agendaModule ? ' portal-body--agenda-module' : ''}${patientsModule ? ' portal-body--patients-module' : ''}${documentsModule ? ' portal-body--documents-module' : ''}${invoicesModule ? ' portal-body--invoices-module' : ''}${reportsModule ? ' portal-body--reports-module' : ''}${settingsModule ? ' portal-body--settings-module' : ''}`}
+          className={`portal-body portal-body--corp portal-body--admin${dashboardToolbar ? ' portal-body--dashboard' : ''}${agendaModule ? ' portal-body--agenda-module' : ''}${patientsModule ? ' portal-body--patients-module' : ''}${documentsModule ? ' portal-body--documents-module' : ''}${invoicesModule ? ' portal-body--invoices-module' : ''}${reportsModule ? ' portal-body--reports-module' : ''}${paymentsModule ? ' portal-body--payments-module' : ''}${notificationsModule ? ' portal-body--notifications-module' : ''}${settingsModule ? ' portal-body--settings-module' : ''}`}
         >
           {children}
         </main>

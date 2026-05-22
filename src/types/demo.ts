@@ -169,7 +169,67 @@ export interface Payment {
   method: PaymentMethod;
   status: PaymentStatus;
   paidAt?: string;
+  receiptRef?: string;
+  receiptFileName?: string;
+  notes?: string;
+  notifyPatient?: boolean;
   createdAt: string;
+}
+
+export type ClinicNotificationCategory =
+  | 'citas'
+  | 'pacientes'
+  | 'documentos'
+  | 'informes'
+  | 'facturas'
+  | 'pagos'
+  | 'portal'
+  | 'sistema';
+
+export type ClinicNotificationPriority = 'normal' | 'importante' | 'urgente';
+
+export type ClinicNotificationEntity =
+  | 'appointment'
+  | 'patient'
+  | 'document'
+  | 'report'
+  | 'invoice'
+  | 'payment'
+  | 'portal';
+
+export interface ClinicNotification {
+  id: string;
+  tenantId: string;
+  category: ClinicNotificationCategory;
+  title: string;
+  description: string;
+  patientId?: string;
+  entityType?: ClinicNotificationEntity;
+  entityId?: string;
+  read: boolean;
+  archived?: boolean;
+  priority: ClinicNotificationPriority;
+  createdAt: string;
+}
+
+export interface NotificationChannelPrefs {
+  panel: boolean;
+  email: boolean;
+  whatsapp: boolean;
+  portal: boolean;
+}
+
+export interface NotificationPrefs {
+  categories: Partial<Record<ClinicNotificationCategory, boolean>>;
+  channels: NotificationChannelPrefs;
+  alertNewAppointment: boolean;
+  alertInvoiceDue: boolean;
+  alertPaymentFailed: boolean;
+  alertDocumentDownload: boolean;
+  alertUploadError: boolean;
+  alertInvalidToken: boolean;
+  dailyDigest: boolean;
+  urgentImmediate: boolean;
 }
 
 export interface PatientDocument {
@@ -246,6 +306,7 @@ export interface AppSettings {
   closeTime?: string;
   /** 1=Lun … 7=Dom (ISO weekday) */
   workDays?: number[];
+  notificationPrefs?: NotificationPrefs;
 }
 
 export type ConsentStatus = 'pendiente' | 'firmado';
@@ -295,4 +356,5 @@ export interface DemoState {
   normativeByTenant: Record<string, NormativeText[]>;
   blockedSlots: BlockedSlot[];
   informedConsents: InformedConsent[];
+  clinicNotifications: ClinicNotification[];
 }

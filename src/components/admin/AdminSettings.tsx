@@ -26,7 +26,8 @@ import {
   WEEKDAYS,
   type SettingsTabId
 } from '@/lib/settingsForm';
-import type { AppSettings } from '@/types/demo';
+import { defaultNotificationPrefs } from '@/lib/clinicNotifications';
+import type { AppSettings, ClinicNotificationCategory, NotificationPrefs } from '@/types/demo';
 import { Modal } from '@/components/ui';
 import { AdminStaffPortalProfile } from './portalAccess';
 
@@ -431,26 +432,95 @@ export function AdminSettings() {
     }
 
     if (tab === 'notificaciones') {
+      const prefs = form.notificationPrefs ?? defaultNotificationPrefs();
+      const setPrefs = (next: NotificationPrefs) => patch({ notificationPrefs: next });
+      const cats: ClinicNotificationCategory[] = [
+        'citas',
+        'pacientes',
+        'documentos',
+        'informes',
+        'facturas',
+        'pagos',
+        'portal',
+        'sistema'
+      ];
       return (
         <section className="set-card">
-          <h2>Notificaciones</h2>
-          <p className="set-card__sub">Recordatorios automáticos de citas.</p>
-          <label className="flex items-center gap-2 text-sm font-bold">
+          <h2>Preferencias de notificaciones</h2>
+          <p className="set-card__sub">
+            Activa o desactiva avisos por categoría. El centro de notificaciones está en{' '}
+            <a href="/admin/notificaciones" className="set-link">
+              Notificaciones
+            </a>
+            .
+          </p>
+          <label className="flex items-center gap-2 text-sm font-bold" style={{ marginBottom: '0.75rem' }}>
             <input
               type="checkbox"
               checked={form.remindersEnabled}
               onChange={(e) => patch({ remindersEnabled: e.target.checked })}
             />
-            Recordatorios activos (email, WhatsApp o SMS según configuración)
+            Recordatorios de citas activos
           </label>
-          <button
-            type="button"
-            className="set-link"
-            style={{ marginTop: '0.75rem' }}
-            onClick={() => window.location.href = '/admin/configuracion'}
-          >
-            Ir a plantillas de recordatorio
-          </button>
+          <h3 style={{ fontSize: '0.82rem', fontWeight: 800, margin: '0 0 0.5rem' }}>Categorías</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', marginBottom: '0.75rem' }}>
+            {cats.map((cat) => (
+              <label key={cat} className="text-sm font-semibold">
+                <input
+                  type="checkbox"
+                  checked={prefs.categories[cat] !== false}
+                  onChange={(e) =>
+                    setPrefs({
+                      ...prefs,
+                      categories: { ...prefs.categories, [cat]: e.target.checked }
+                    })
+                  }
+                />{' '}
+                {cat.charAt(0).toUpperCase() + cat.slice(1)}
+              </label>
+            ))}
+          </div>
+          <h3 style={{ fontSize: '0.82rem', fontWeight: 800, margin: '0 0 0.5rem' }}>Canales</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
+            {(['panel', 'email', 'whatsapp', 'portal'] as const).map((ch) => (
+              <label key={ch} className="text-sm font-semibold">
+                <input
+                  type="checkbox"
+                  checked={prefs.channels[ch]}
+                  onChange={(e) =>
+                    setPrefs({
+                      ...prefs,
+                      channels: { ...prefs.channels, [ch]: e.target.checked }
+                    })
+                  }
+                />{' '}
+                {ch === 'panel' ? 'Panel admin' : ch}
+              </label>
+            ))}
+          </div>
+          <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+            {(
+              [
+                ['alertNewAppointment', 'Avisar cuando un paciente solicite una cita'],
+                ['alertInvoiceDue', 'Avisar cuando una factura venza'],
+                ['alertPaymentFailed', 'Avisar cuando un pago falle'],
+                ['alertDocumentDownload', 'Avisar cuando un paciente descargue documentos'],
+                ['alertUploadError', 'Avisar errores de subida o PDF'],
+                ['alertInvalidToken', 'Avisar token inválido en portal'],
+                ['dailyDigest', 'Enviar resumen diario al equipo'],
+                ['urgentImmediate', 'Alertas urgentes inmediatas']
+              ] as const
+            ).map(([key, label]) => (
+              <label key={key} className="text-sm font-semibold">
+                <input
+                  type="checkbox"
+                  checked={prefs[key]}
+                  onChange={(e) => setPrefs({ ...prefs, [key]: e.target.checked })}
+                />{' '}
+                {label}
+              </label>
+            ))}
+          </div>
         </section>
       );
     }
@@ -801,7 +871,7 @@ export function AdminSettings() {
             type="button"
             className="set-quick"
             onClick={() => {
-              setTab('notificaciones');
+              window.location.href = '/admin/notificaciones';
             }}
           >
             <Bell className="h-5 w-5 text-teal-600" />

@@ -18,6 +18,7 @@ export function createEmptyDemoState(): DemoState {
     settingsByTenant: {},
     normativeByTenant: {},
     blockedSlots: [],
-    informedConsents: []
+    informedConsents: [],
+    clinicNotifications: []
   };
 }

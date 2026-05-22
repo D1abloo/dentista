@@ -21,6 +21,7 @@ import {
   AdminNormativa,
   AdminPatientDetail,
   AdminPatients,
+  AdminNotifications,
   AdminPayments,
   AdminReports,
   AdminTreatments
@@ -59,6 +60,8 @@ function Body({ view, patientId }: { view: AdminView; patientId?: string }) {
       return <AdminReports />;
     case 'normativa':
       return <AdminNormativa />;
+    case 'notificaciones':
+      return <AdminNotifications />;
     case 'configuracion':
       return <AdminSettings />;
     case 'acceso-portal':
@@ -82,6 +85,8 @@ function AdminInner({ view, patientId }: { view: AdminView; patientId?: string }
   const isDocuments = view === 'documentos' && !patientId;
   const isInvoices = view === 'facturas' && !patientId;
   const isReports = view === 'reportes' && !patientId;
+  const isPayments = view === 'pagos' && !patientId;
+  const isNotifications = view === 'notificaciones' && !patientId;
   const isSettings = view === 'configuracion' && !patientId;
   const title = patientId && view === 'pacientes' ? `Ficha ${patientId}` : isDashboard ? 'Resumen general' : adminTitles[view];
   const subtitle = patientId && view === 'pacientes' ? undefined : adminSubtitles[view];
@@ -94,7 +99,9 @@ function AdminInner({ view, patientId }: { view: AdminView; patientId?: string }
       patientsModule={isPatients}
       documentsModule={isDocuments}
       invoicesModule={isInvoices}
+      paymentsModule={isPayments}
       reportsModule={isReports}
+      notificationsModule={isNotifications}
       settingsModule={isSettings}
       dashboardToolbar={isDashboard ? <AdminDashboardToolbar /> : undefined}
     >

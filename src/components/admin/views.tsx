@@ -51,13 +51,9 @@ import { PatientLookup } from './PatientLookup';
 import { AdminStaffPortalProfile } from './portalAccess';
 export { AdminAgenda } from './AdminAgenda';
 import { ClinicLogoUpload } from './ClinicLogoUpload';
-import {
-  AdminClinicalReports,
-  AdminDocuments,
-  AdminInvoices,
-  AdminPatientDetail,
-  AdminPayments
-} from './records';
+import { AdminClinicalReports, AdminPatientDetail } from './records';
+import { AdminDocuments, AdminInvoices } from './uploadViews';
+import { AdminPayments } from './AdminPayments';
 import {
   Badge,
   Button,
@@ -74,6 +70,7 @@ import {
 } from '@/components/ui';
 
 export { AdminClinicalReports, AdminDocuments, AdminInvoices, AdminPatientDetail, AdminPayments };
+export { AdminNotifications } from './AdminNotifications';
 
 export { AdminDashboard } from './AdminDashboard';
 

@@ -18,6 +18,9 @@ import { loadPersistedState, resetPersistedState, savePersistedState } from '@/l
 import { STORAGE_EPHEMERAL, STORAGE_PATIENT_ID, STORAGE_ROLE, STORAGE_TENANT_ID } from '@/lib/storage/keys';
 import { nextDemoNhc } from '@/lib/nhc';
 import { isClientDemoMode } from '@/lib/appMode';
+import { pushClinicNotification } from '@/lib/clinicNotifications';
+import { displayPaymentId } from '@/lib/paymentAdmin';
+import { patientName } from '@/lib/selectors';
 import { TENANT_CENTRO } from '@/lib/tenantIds';
 import type {
   Appointment,
@@ -447,7 +450,51 @@ export function createPayment(
     id: nextPaymentId(state),
     createdAt: todayIso()
   };
-  return savePayment(state, payment);
+  let next = savePayment(state, payment);
+  const name = patientName(next, payment.patientId);
+  if (payment.status === 'fallido') {
+    next = pushClinicNotification(next, {
+      category: 'pagos',
+      title: 'Pago fallido',
+      description: `El pago de ${name} ha fallado.`,
+      patientId: payment.patientId,
+      entityType: 'payment',
+      entityId: payment.id,
+      priority: 'urgente'
+    });
+  } else if (payment.status === 'completado') {
+    next = pushClinicNotification(next, {
+      category: 'pagos',
+      title: 'Pago registrado',
+      description: `Pago de ${payment.amount.toFixed(2).replace('.', ',')} € registrado para ${name}.`,
+      patientId: payment.patientId,
+      entityType: 'payment',
+      entityId: payment.id,
+      priority: 'normal'
+    });
+    if (payment.invoiceId) {
+      next = pushClinicNotification(next, {
+        category: 'facturas',
+        title: 'Factura marcada como pagada',
+        description: `Factura vinculada al pago ${displayPaymentId(payment)} marcada como pagada.`,
+        patientId: payment.patientId,
+        entityType: 'invoice',
+        entityId: payment.invoiceId,
+        read: true
+      });
+    }
+  } else {
+    next = pushClinicNotification(next, {
+      category: 'pagos',
+      title: 'Pago pendiente',
+      description: `Pago ${displayPaymentId(payment)} de ${name} pendiente.`,
+      patientId: payment.patientId,
+      entityType: 'payment',
+      entityId: payment.id,
+      priority: 'importante'
+    });
+  }
+  return next;
 }
 
 export function savePatientDocument(state: DemoState, doc: PatientDocument): DemoState {

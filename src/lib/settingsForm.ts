@@ -7,7 +7,7 @@ export const SETTINGS_TABS = [
   { id: 'marca', label: 'Marca' },
   { id: 'facturacion', label: 'Facturación' },
   { id: 'portal', label: 'Portal paciente' },
-  { id: 'notificaciones', label: 'Notificaciones' },
+  { id: 'notificaciones', label: 'Avisos' },
   { id: 'seguridad', label: 'Seguridad' },
   { id: 'integraciones', label: 'Integraciones' },
   { id: 'backup', label: 'Copia de seguridad' },
@@ -47,7 +47,8 @@ export function settingsToForm(s: AppSettings): AppSettings {
     nif: s.nif ?? '',
     website: s.website ?? '',
     instagram: s.instagram ?? '',
-    facebook: s.facebook ?? ''
+    facebook: s.facebook ?? '',
+    notificationPrefs: s.notificationPrefs
   };
 }
 

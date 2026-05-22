@@ -1,4 +1,5 @@
 import type { AppSettings, DemoState, NormativeText } from '@/types/demo';
+import { buildClinicNotificationsFromState } from '@/lib/clinicNotifications';
 import { TENANT_CENTRO, TENANT_NORTE, TENANT_SUR } from '@/lib/tenantIds';
 import {
   DEMO_PATIENT_ID,
@@ -288,8 +289,12 @@ export const demoSeed: DemoState = {
       reason: 'Comida'
     }
   ],
-  informedConsents: demoInformedConsents
+  informedConsents: demoInformedConsents,
+  clinicNotifications: []
 };
 
 export const DEMO_PATIENT_LOGIN_ID = DEMO_PATIENT_ID;
-export const demoState = demoSeed;
+export const demoState: DemoState = {
+  ...demoSeed,
+  clinicNotifications: buildClinicNotificationsFromState(demoSeed)
+};

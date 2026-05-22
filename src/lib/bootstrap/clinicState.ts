@@ -341,5 +341,7 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
     }
   };
 
+  state.clinicNotifications = state.clinicNotifications ?? [];
+
   return state;
 }

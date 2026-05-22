@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import {
+  Bell,
   Building2,
   Calendar,
   CalendarDays,
@@ -34,6 +35,7 @@ export type AdminView =
   | 'reportes'
   | 'normativa'
   | 'configuracion'
+  | 'notificaciones'
   | 'acceso-portal'
   | 'auditoria-pdp'
   | 'usuarios'
@@ -54,7 +56,8 @@ export const adminNav: { href: string; label: string; icon: LucideIcon; view: Ad
   { href: '/admin/clinicas', label: 'Clínicas', icon: Building2, view: 'clinicas' },
   { href: '/admin/reportes', label: 'Reportes', icon: FileText, view: 'reportes' },
   { href: '/admin/normativa', label: 'Normativa', icon: Scale, view: 'normativa' },
-  { href: '/admin/configuracion', label: 'Configuración', icon: Settings, view: 'configuracion' },
+  { href: '/admin/notificaciones', label: 'Notificaciones', icon: Bell, view: 'notificaciones' },
+  { href: '/admin/configuracion', label: 'Ajustes', icon: Settings, view: 'configuracion' },
   { href: '/admin/acceso-portal', label: 'Acceso PdP', icon: KeyRound, view: 'acceso-portal' },
   { href: '/admin/auditoria-pdp', label: 'Auditoría PdP', icon: ClipboardCheck, view: 'auditoria-pdp' },
   { href: '/admin/usuarios', label: 'Usuarios clínica', icon: Users, view: 'usuarios' },
@@ -68,14 +71,15 @@ export const adminTitles: Record<AdminView, string> = {
   pacientes: 'Pacientes',
   informes: 'Informes clínicos',
   documentos: 'Documentos',
-  facturas: 'Facturas',
+  facturas: 'Facturación',
   pagos: 'Pagos',
   dentistas: 'Dentistas',
   tratamientos: 'Tratamientos',
   clinicas: 'Clínicas y gabinetes',
   reportes: 'Reportes',
   normativa: 'Normativa',
-  configuracion: 'Configuración',
+  notificaciones: 'Notificaciones',
+  configuracion: 'Ajustes',
   'acceso-portal': 'Acceso al portal del paciente',
   'auditoria-pdp': 'Auditoría PdP',
   usuarios: 'Usuarios de clínica',
@@ -98,6 +102,7 @@ export const adminSubtitles: Record<AdminView, string> = {
   clinicas: 'Organización y sedes',
   reportes: 'Analiza citas, tratamientos, ingresos, ocupación y rendimiento de tu clínica.',
   normativa: 'Textos legales visibles al paciente',
+  notificaciones: 'Avisos de pacientes, citas, documentos, facturas, pagos y portal',
   configuracion: 'Identidad, facturación, portal del paciente y preferencias',
   'acceso-portal': 'Tokens de acceso al portal del paciente (sin historial)',
   'auditoria-pdp': 'Registro de actividad por profesional · exportar Excel',
