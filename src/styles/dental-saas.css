@@ -602,6 +602,10 @@ body {
   .portal-main {
     margin-left: var(--rail);
   }
+
+  .portal--admin .portal-main {
+    margin-left: 0;
+  }
 }
 
 .portal-top {

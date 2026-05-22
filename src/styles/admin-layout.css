@@ -5,25 +5,44 @@
   --admin-pad-y: clamp(0.55rem, 1vw, 0.85rem);
   --admin-gap: 0.65rem;
   --admin-aside: minmax(300px, min(32vw, 420px));
-  --admin-rail-w: 5.25rem;
+  --admin-rail-w: 4.5rem;
 }
 
 .portal--admin:not(.portal--admin-compact) {
-  --admin-rail-w: var(--rail, 16rem);
+  --admin-rail-w: 14rem;
 }
 
+/* Rail fijo: el contenido se desplaza con padding en el shell, no solo margin en main */
 @media (min-width: 1024px) {
+  .portal--admin {
+    padding-left: var(--admin-rail-w);
+    box-sizing: border-box;
+  }
+
+  .portal--admin .portal-rail.portal-rail--admin:not(.portal-rail--drawer) {
+    width: var(--admin-rail-w) !important;
+    max-width: var(--admin-rail-w);
+    min-width: var(--admin-rail-w);
+  }
+
   .portal--admin .portal-main {
-    margin-left: var(--admin-rail-w);
+    margin-left: 0 !important;
     flex: 1;
     min-width: 0;
-    width: auto;
-    max-width: none;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 }
 
 .portal--admin .portal-main {
   min-width: 0;
+}
+
+@media (max-width: 1023px) {
+  .portal--admin {
+    padding-left: 0;
+  }
 }
 
 .portal--admin .portal-body,
