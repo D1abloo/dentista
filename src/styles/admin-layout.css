@@ -5,17 +5,24 @@
   --admin-pad-y: clamp(0.55rem, 1vw, 0.85rem);
   --admin-gap: 0.65rem;
   --admin-aside: minmax(300px, min(32vw, 420px));
-  overflow-x: hidden;
+  --admin-rail-w: 5.25rem;
+}
+
+.portal--admin:not(.portal--admin-compact) {
+  --admin-rail-w: var(--rail, 16rem);
 }
 
 @media (min-width: 1024px) {
-  .portal--admin-compact .portal-main {
-    margin-left: 5.25rem;
+  .portal--admin .portal-main {
+    margin-left: var(--admin-rail-w);
+    flex: 1;
+    min-width: 0;
+    width: auto;
+    max-width: none;
   }
 }
 
 .portal--admin .portal-main {
-  width: 100%;
   min-width: 0;
 }
 
