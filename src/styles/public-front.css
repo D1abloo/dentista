@@ -7,19 +7,15 @@
   --aqua-glow: rgba(20, 184, 166, 0.35);
 }
 
-/* —— Header —— */
-.pub-header--corp {
+/* —— Header (sitio público: /, reserva, ayuda, contacto) —— */
+.pub-header.pub-header--corp {
   position: sticky;
   top: 0;
   z-index: 50;
-  overflow: hidden;
-  border-bottom: 1px solid rgba(20, 184, 166, 0.12);
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(14px) saturate(1.1);
-  transition:
-    box-shadow 0.25s ease,
-    border-color 0.25s ease,
-    background 0.25s ease;
+  background: #fff !important;
+  border-bottom: 2px solid #14b8a6;
+  box-shadow: 0 2px 12px rgba(15, 39, 66, 0.08);
+  backdrop-filter: none;
 }
 
 .pub-header--corp::before {
@@ -45,10 +41,8 @@
   }
 }
 
-.pub-header--scrolled {
-  background: rgba(255, 255, 255, 0.97);
-  border-bottom-color: rgba(20, 184, 166, 0.22);
-  box-shadow: 0 8px 32px rgba(13, 148, 136, 0.12);
+.pub-header.pub-header--corp.pub-header--scrolled {
+  box-shadow: 0 6px 20px rgba(13, 148, 136, 0.15);
 }
 
 .pub-header--corp .pub-header__inner {
@@ -65,22 +59,24 @@
   color: var(--aqua-dark);
 }
 
+.pub-header--corp .dentista-webp-lockup--header .dentista-webp-lockup__text {
+  display: block !important;
+}
+
 .pub-header--corp .pub-nav a {
-  position: relative;
-  color: #475569;
-  transition:
-    color 0.2s ease,
-    background 0.2s ease;
+  color: #0f2742;
+  font-weight: 700;
+  font-size: 0.88rem;
 }
 
 .pub-header--corp .pub-nav a:hover {
-  color: var(--aqua-dark);
-  background: rgba(20, 184, 166, 0.1);
+  color: #fff;
+  background: #14b8a6;
 }
 
 .pub-header--corp .pub-nav__link--active {
-  color: var(--aqua-dark) !important;
-  background: rgba(20, 184, 166, 0.14) !important;
+  color: #fff !important;
+  background: #0d9488 !important;
 }
 
 .pub-header--corp .pub-menu-btn {
@@ -154,13 +150,11 @@
   transform: translateY(-1px);
 }
 
-/* —— Footer —— */
-.lp-footer--corp {
-  position: relative;
-  overflow: hidden;
+/* —— Footer (sitio público) —— */
+.lp-footer.lp-footer--corp {
   padding: 2.5rem 0 5rem;
-  background: linear-gradient(165deg, #0f766e 0%, var(--aqua) 42%, #0d9488 100%);
-  border-top: none;
+  background: linear-gradient(180deg, #0f766e 0%, #14b8a6 50%, #0d9488 100%);
+  border-top: 3px solid #5eead4;
 }
 
 .lp-footer--corp::before {
@@ -178,11 +172,18 @@
   z-index: 1;
 }
 
-.lp-footer--corp .lp-footer__brand p,
-.lp-footer--corp h4,
-.lp-footer--corp a,
+.lp-footer--corp .lp-footer__brand p {
+  color: #fff;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  max-width: 22rem;
+}
+
 .lp-footer--corp .lp-footer__copy {
-  color: rgba(255, 255, 255, 0.92);
+  color: #fff !important;
+  font-size: 0.82rem;
+  font-weight: 600;
+  opacity: 1;
 }
 
 .lp-footer--corp h4 {
@@ -192,11 +193,6 @@
   text-transform: uppercase;
 }
 
-.lp-footer--corp a:hover {
-  color: #fff;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
 
 .lp-footer--corp .lp-footer__social a {
   background: rgba(255, 255, 255, 0.15);
@@ -282,11 +278,24 @@
   gap: 0.35rem 1.5rem;
 }
 
-.lp-footer__links a {
+.lp-footer--corp .lp-footer__links a {
   display: block;
   margin-top: 0;
-  font-size: 0.86rem;
-  font-weight: 600;
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f766e !important;
+  background: #fff;
+  border: 1px solid #ccfbf1;
+  text-decoration: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.lp-footer--corp .lp-footer__links a:hover {
+  color: #fff !important;
+  background: #0f766e;
+  border-color: #fff;
 }
 
 .lp-section__foot {

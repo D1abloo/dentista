@@ -4,9 +4,8 @@ import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
 const links = [
   { href: '/reserva', label: 'Reservar cita' },
   { href: '/login/paciente', label: 'Portal paciente' },
-  { href: '/login/admin', label: 'Acceso clínica' },
   { href: '/ayuda', label: 'Centro de ayuda' },
-  { href: '/registro-clinica', label: 'Registrar clínica' },
+  { href: '/contacto', label: 'Contacto' },
   { href: '/privacidad', label: 'Privacidad' },
   { href: '/terminos', label: 'Términos' },
   { href: '/cookies', label: 'Cookies' }
