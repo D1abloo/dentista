@@ -127,13 +127,19 @@ export function LiveLoginForm({
         </p>
       ) : null}
 
-      <button type="submit" className="login-form__submit btn btn--primary w-full" disabled={loading}>
-        {loading ? 'Entrando…' : 'Iniciar sesión'}
+      <button
+        type="submit"
+        className={`login-form__submit w-full ${isAdmin ? 'btn btn--teal' : 'btn btn--primary'}`}
+        disabled={loading}
+      >
+        {loading ? 'Entrando…' : isAdmin ? 'Entrar al panel clínica' : 'Iniciar sesión'}
       </button>
 
-      <p className="login-form__back">
-        <a href="/login">← Volver a elegir portal</a>
-      </p>
+      {!isAdmin ? (
+        <p className="login-form__back">
+          <a href="/login">← Volver a elegir portal</a>
+        </p>
+      ) : null}
     </form>
   );
 }

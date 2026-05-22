@@ -1,0 +1,260 @@
+/* Login clínica / plataforma — verde agua corporativo */
+
+.login-access-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3.25rem;
+  padding: 0.4rem clamp(1rem, 3vw, 1.5rem);
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid rgba(20, 184, 166, 0.18);
+  box-shadow: 0 4px 20px rgba(13, 148, 136, 0.1);
+  backdrop-filter: blur(12px);
+}
+
+.login-access-bar__brand {
+  display: inline-flex;
+  min-width: 0;
+  text-decoration: none;
+}
+
+.login-access-bar__badge {
+  margin-left: auto;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0f766e;
+  background: rgba(20, 184, 166, 0.12);
+  border: 1px solid rgba(20, 184, 166, 0.25);
+}
+
+.login-access-bar__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: auto;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0d9488;
+  text-decoration: none;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.login-access-bar__back:hover {
+  background: rgba(20, 184, 166, 0.1);
+  color: #0f766e;
+}
+
+.login-access-bar:has(.login-access-bar__badge) .login-access-bar__back {
+  margin-left: 0;
+}
+
+.login-access-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 1rem;
+  width: 100%;
+  padding-top: 0.15rem;
+}
+
+.login-access-foot a {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0d9488;
+  text-decoration: none;
+}
+
+.login-access-foot a:hover {
+  color: #0f766e;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Portal clínica */
+.login-portal--admin .login-portal__bg-orb--1,
+.login-portal--admin .login-portal__bg-orb--3 {
+  background: rgba(20, 184, 166, 0.35);
+}
+
+.login-portal--admin .login-portal__bg-vignette {
+  background: radial-gradient(ellipse at center, rgba(20, 184, 166, 0.12) 0%, rgba(6, 20, 47, 0.85) 100%);
+}
+
+.login-portal--admin .login-portal__card-glow {
+  background: linear-gradient(125deg, rgba(20, 184, 166, 0.55), rgba(45, 212, 191, 0.4), rgba(20, 184, 166, 0.5));
+}
+
+.login-portal--admin .login-portal__eyebrow {
+  color: #0d9488;
+}
+
+.login-portal--admin .login-portal__title {
+  background: linear-gradient(135deg, #0f2742 0%, #0d9488 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.login-portal--admin .login-portal__card {
+  transform: none !important;
+}
+
+.login-portal--admin .login-portal__card:hover .login-portal__logo {
+  transform: none;
+}
+
+.login-portal__stage {
+  padding-top: 4.5rem;
+}
+
+.login-portal--admin .login-portal__foot {
+  border-top-color: rgba(20, 184, 166, 0.2);
+  background: linear-gradient(180deg, transparent, rgba(240, 253, 250, 0.5));
+  border-radius: 0 0 1rem 1rem;
+  margin: 0 -0.25rem -0.25rem;
+  padding: 1rem 0.75rem;
+}
+
+/* Formulario admin / plataforma */
+.login-form--admin .login-form__badge--admin,
+.login-form__badge--platform {
+  color: #0f766e;
+  background: rgba(20, 184, 166, 0.1);
+  border: 1px solid rgba(20, 184, 166, 0.22);
+}
+
+.login-form--admin .login-form__input:focus,
+.login-form--platform .login-form__input:focus {
+  border-color: #14b8a6 !important;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2) !important;
+}
+
+.login-form--admin .login-form__icon,
+.login-form--platform .login-form__icon {
+  color: #14b8a6;
+}
+
+.login-form--admin .login-form__submit,
+.login-form--platform .login-form__submit {
+  background: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 55%, #0d9488 100%) !important;
+  border: none !important;
+  box-shadow: 0 10px 28px rgba(20, 184, 166, 0.35) !important;
+  font-size: 0.92rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.85rem;
+}
+
+.login-form--admin .login-form__submit:hover:not(:disabled),
+.login-form--platform .login-form__submit:hover:not(:disabled) {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.login-form--admin .login-form__back {
+  display: none;
+}
+
+.login-form__field {
+  gap: 0.35rem;
+}
+
+.login-form__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.login-form__input-wrap {
+  border-radius: 0.75rem;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.login-form__input-wrap:focus-within {
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
+  background: #fff;
+}
+
+.login-form__input.field-control {
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Plataforma */
+.login-platform {
+  padding-top: 3.25rem;
+  background: #0f766e;
+}
+
+.login-platform__hero-overlay {
+  background:
+    linear-gradient(160deg, rgba(15, 118, 110, 0.5) 0%, rgba(15, 39, 66, 0.88) 100%),
+    linear-gradient(0deg, rgba(20, 184, 166, 0.2), transparent 55%);
+}
+
+.login-platform__hero-eyebrow {
+  color: #5eead4;
+}
+
+.login-platform__panel {
+  background: linear-gradient(180deg, #f0fdfa 0%, #f8fafc 100%);
+}
+
+.login-platform__card {
+  transform: none !important;
+  border: 1px solid rgba(20, 184, 166, 0.15);
+  box-shadow: 0 20px 50px rgba(15, 118, 110, 0.12);
+}
+
+.login-platform__card-glow {
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.4), rgba(45, 212, 191, 0.25));
+}
+
+.login-platform__eyebrow {
+  color: #0d9488;
+}
+
+.login-platform__title {
+  background: linear-gradient(135deg, #0f2742, #0d9488);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.login-platform__foot {
+  border-top-color: rgba(20, 184, 166, 0.2);
+  padding-top: 1rem;
+}
+
+.login-platform__foot a {
+  color: #0d9488;
+  font-weight: 700;
+}
+
+.login-platform__foot a:hover {
+  color: #0f766e;
+}
+
+@media (min-width: 900px) {
+  .login-platform__panel {
+    border-left: 1px solid rgba(20, 184, 166, 0.12);
+  }
+}

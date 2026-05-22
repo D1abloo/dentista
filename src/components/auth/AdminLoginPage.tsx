@@ -1,19 +1,25 @@
 import { LiveLoginForm } from './LiveLoginForm';
+import { LoginAccessFoot } from './LoginAccessChrome';
 import { PortalLoginShell } from './PortalLoginShell';
 
 export function AdminLoginPage() {
   return (
     <PortalLoginShell
       variant="admin"
-      eyebrow="Panel clínica · Dentista+"
-      title="Acceso administración"
-      lead="Inicia sesión para gestionar citas, pacientes y facturación."
+      barBadge="Panel clínica"
+      eyebrow="Dentista+ · Administración"
+      title="Acceso a tu clínica"
+      lead="Gestiona agenda, pacientes, informes y facturación."
+      backHref="/login"
+      backLabel="Elegir portal"
       footer={
-        <div className="login-portal__foot-grid login-portal__foot-grid--compact">
-          <a href="/login">← Elegir portal</a>
-          <a href="/login/paciente">Portal paciente</a>
-          <a href="/">Inicio</a>
-        </div>
+        <LoginAccessFoot
+          links={[
+            { href: '/login/paciente', label: 'Portal paciente' },
+            { href: '/platform/login', label: 'Plataforma' },
+            { href: '/', label: 'Inicio' }
+          ]}
+        />
       }
     >
       <LiveLoginForm apiRole="admin" variant="admin" />
