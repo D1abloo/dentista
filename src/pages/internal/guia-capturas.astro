@@ -1,10 +1,14 @@
 ---
+export const prerender = false;
+
 import '@/styles/dental-saas.css';
 import '@/styles/app-ui.css';
 import '@/styles/portal-premium.css';
 import { GuideScreenshotStudio } from '@/components/guide/GuideScreenshotStudio';
 
 const scene = Astro.url.searchParams.get('scene') ?? 'pdp-inicio';
+const layout = Astro.url.searchParams.get('layout') ?? 'phone';
+const isDesktop = layout === 'desktop';
 const titles: Record<string, string> = {
   'pdp-inicio': 'Inicio',
   'pdp-citas': 'Mis citas',
@@ -28,26 +32,32 @@ const title = titles[scene] ?? 'Vista';
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Captura guía · {scene}</title>
   </head>
-  <body>
+  <body class={isDesktop ? 'guide-desktop-stage' : ''}>
     <script is:inline>
       localStorage.setItem('dentista_patient_id', 'PAT-0001');
       localStorage.setItem('dentista_tenant_id', 'TEN-0001');
     </script>
-    <div class="guide-phone-stage">
-      <div class="guide-phone-frame">
-        <div class="guide-phone-frame__status" aria-hidden>
-          <span>9:41</span>
-          <span class="guide-phone-frame__signal"></span>
-        </div>
-        <div class="guide-phone-frame__screen">
-          <header class="guide-shot-top">
-            <span class="guide-shot-top__logo" aria-hidden></span>
-            <strong>{title}</strong>
-          </header>
-          <GuideScreenshotStudio client:load scene={scene} />
+    {isDesktop ? (
+      <div class="guide-desktop-frame">
+        <GuideScreenshotStudio client:load scene={scene} />
+      </div>
+    ) : (
+      <div class="guide-phone-stage">
+        <div class="guide-phone-frame">
+          <div class="guide-phone-frame__status" aria-hidden>
+            <span>9:41</span>
+            <span class="guide-phone-frame__signal"></span>
+          </div>
+          <div class="guide-phone-frame__screen">
+            <header class="guide-shot-top">
+              <span class="guide-shot-top__logo" aria-hidden></span>
+              <strong>{title}</strong>
+            </header>
+            <GuideScreenshotStudio client:load scene={scene} />
+          </div>
         </div>
       </div>
-    </div>
+    )}
   </body>
 </html>
 
@@ -118,5 +128,32 @@ const title = titles[scene] ?? 'Vista';
   .guide-shot-placeholder {
     min-height: 200px;
     background: #f8fafc;
+  }
+  .guide-desktop-stage {
+    margin: 0;
+    background: #f4f7f9;
+  }
+  .guide-desktop-stage .guide-desktop-frame {
+    width: 920px;
+    min-height: 520px;
+    margin: 0 auto;
+    padding: 1rem 1.25rem;
+    background: #f4f7f9;
+    box-sizing: border-box;
+  }
+  .guide-desktop-stage .guide-shot-portal .portal-rail {
+    display: none !important;
+  }
+  .guide-desktop-stage .guide-shot-portal .portal-main {
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+  .guide-desktop-stage .guide-shot-body {
+    padding: 0.75rem 1rem !important;
+    max-height: none !important;
+    overflow: visible !important;
+    font-size: 0.85rem;
+    transform: none !important;
   }
 </style>

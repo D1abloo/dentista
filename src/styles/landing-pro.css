@@ -345,8 +345,54 @@
 .pro-dash__nav {
   flex: 1;
   min-height: 0;
-  overflow: hidden;
-  mask-image: linear-gradient(180deg, #000 85%, transparent 100%);
+  max-height: 14.5rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.45) rgba(0, 0, 0, 0.12);
+  padding-right: 0.15rem;
+}
+
+.pro-dash__nav::-webkit-scrollbar {
+  width: 5px;
+}
+
+.pro-dash__nav::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 999px;
+}
+
+.pro-dash__nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+}
+
+.pro-dash__nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.pro-dash__scroll-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  margin: 0.35rem 0 0;
+  padding-top: 0.35rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.46rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #7eb8bc;
+  flex-shrink: 0;
+}
+
+@media (min-width: 900px) {
+  .pro-dash__nav {
+    max-height: 17rem;
+  }
 }
 
 .pro-dash__nav ul {
@@ -691,6 +737,70 @@
   background: #e6f4f5;
   border-color: var(--pub-aqua);
   color: var(--pub-aqua-dark);
+}
+
+/* Captura real del panel (demo) */
+.pro-dash__capture-wrap {
+  position: relative;
+  margin: 0 0 0.55rem;
+  border-radius: 0.85rem;
+  overflow: hidden;
+  border: 1px solid #d1e0e3;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(15, 39, 66, 0.06);
+}
+
+.pro-dash__capture-label {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 2;
+  margin: 0;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.48rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  background: rgba(0, 77, 87, 0.82);
+  backdrop-filter: blur(4px);
+}
+
+.pro-dash__capture {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 16.5rem;
+  object-fit: cover;
+  object-position: top center;
+}
+
+@media (min-width: 768px) {
+  .pro-dash__capture {
+    max-height: 18.5rem;
+  }
+}
+
+.pro-dash__capture-link {
+  display: block;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.54rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--pub-aqua-dark);
+  background: #f0f9fa;
+  border-top: 1px solid #e2e8f0;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.pro-dash__capture-link:hover {
+  background: #e6f4f5;
+}
+
+.pro-dash__modules--compact {
+  margin-top: 0.35rem;
 }
 
 /* Sections */
