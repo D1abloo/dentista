@@ -91,7 +91,7 @@ export const adminSubtitles: Record<AdminView, string> = {
     'Gestiona expedientes, citas, documentos, facturas y acceso al portal del paciente.',
   informes: 'Sube PDF · busca por DNI o PAT-XXXX',
   documentos: 'Sube, clasifica y comparte documentos clínicos con cada paciente.',
-  facturas: 'FAC-XXXX · solo formato PDF',
+  facturas: 'Gestiona facturas, cobros, vencimientos y PDFs vinculados a cada paciente.',
   pagos: 'PAG-XXXX · búsqueda por DNI o ID paciente',
   dentistas: 'Equipo clínico de la sede',
   tratamientos: 'Catálogo y precios',

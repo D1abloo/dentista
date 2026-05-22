@@ -24,7 +24,17 @@ export function nextReportId(state: DemoState) {
 }
 
 export function nextInvoiceId(state: DemoState) {
-  return nextId('FAC', state.invoices.map((i) => i.id));
+  const year = new Date().getFullYear();
+  const prefix = `FAC-${year}-`;
+  const nums = state.invoices
+    .map((i) => {
+      if (i.id.startsWith(prefix)) return parseInt(i.id.slice(prefix.length), 10);
+      const legacy = i.id.match(/^FAC-(\d+)$/);
+      return legacy ? parseInt(legacy[1], 10) : 0;
+    })
+    .filter((n) => !Number.isNaN(n));
+  const n = (nums.length ? Math.max(...nums) : 0) + 1;
+  return `${prefix}${String(n).padStart(4, '0')}`;
 }
 
 export function nextPaymentId(state: DemoState) {

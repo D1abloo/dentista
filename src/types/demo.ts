@@ -134,6 +134,13 @@ export interface ClinicalReport {
   createdAt: string;
 }
 
+export interface InvoiceLine {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  taxPercent: number;
+}
+
 export interface Invoice {
   id: string;
   tenantId: string;
@@ -147,6 +154,10 @@ export interface Invoice {
   fileName?: string;
   fileRef?: string;
   mimeType?: string;
+  lines?: InvoiceLine[];
+  discount?: number;
+  portalVisible?: boolean;
+  sentAt?: string;
 }
 
 export interface Payment {

@@ -112,6 +112,7 @@ export function AdminShell({
   agendaModule = false,
   patientsModule = false,
   documentsModule = false,
+  invoicesModule = false,
   compactNav = true
 }: {
   title: string;
@@ -121,6 +122,7 @@ export function AdminShell({
   agendaModule?: boolean;
   patientsModule?: boolean;
   documentsModule?: boolean;
+  invoicesModule?: boolean;
   compactNav?: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -272,7 +274,7 @@ export function AdminShell({
           </button>
         </header>
         <main
-          className={`portal-body portal-body--corp portal-body--admin${dashboardToolbar ? ' portal-body--dashboard' : ''}${agendaModule ? ' portal-body--agenda-module' : ''}${patientsModule ? ' portal-body--patients-module' : ''}${documentsModule ? ' portal-body--documents-module' : ''}`}
+          className={`portal-body portal-body--corp portal-body--admin${dashboardToolbar ? ' portal-body--dashboard' : ''}${agendaModule ? ' portal-body--agenda-module' : ''}${patientsModule ? ' portal-body--patients-module' : ''}${documentsModule ? ' portal-body--documents-module' : ''}${invoicesModule ? ' portal-body--invoices-module' : ''}`}
         >
           {children}
         </main>

@@ -389,6 +389,13 @@ export function saveInvoice(state: DemoState, invoice: Invoice): DemoState {
   };
 }
 
+export function deleteInvoice(state: DemoState, id: string): DemoState {
+  return {
+    ...state,
+    invoices: state.invoices.filter((i) => i.id !== id)
+  };
+}
+
 export function createInvoice(
   state: DemoState,
   data: Omit<Invoice, 'id' | 'tenantId'> & { id?: string; tenantId?: string }
