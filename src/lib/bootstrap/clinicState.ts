@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import type { SessionUser } from '@/lib/auth';
 import { createEmptyDemoState } from '@/lib/emptyState';
+import { listScheduleBlocks } from '@/lib/services/scheduleBlocks';
 import { getSupabaseAdmin } from '@/lib/supabaseServer';
 import type { AppointmentStatus, DemoState, InvoiceStatus } from '@/types/demo';
 
@@ -289,6 +290,22 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
       signedAt: c.signed_at ? String(c.signed_at).slice(0, 10) : undefined,
       createdAt: String(c.created_at ?? '').slice(0, 10)
     }));
+
+  try {
+    const blocks = await listScheduleBlocks(user.clinicId);
+    state.blockedSlots = blocks.map((b) => ({
+      id: b.id,
+      tenantId,
+      clinicId: b.clinicId,
+      dentistId: b.dentistId,
+      cabinetId: state.clinics.find((c) => c.id === b.clinicId)?.cabinets[0]?.id ?? 'room-1',
+      date: b.date,
+      time: b.time,
+      reason: b.reason
+    }));
+  } catch {
+    state.blockedSlots = [];
+  }
 
   state.settingsByTenant = {
     [tenantId]: {

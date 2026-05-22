@@ -351,6 +351,15 @@ export const portalAccessExchangeSchema = z.object({
   token: z.string().min(16).max(200)
 });
 
+export const scheduleBlockCreateSchema = z.object({
+  clinicId: z.string().uuid().optional(),
+  dentistId: z.string().uuid(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  time: z.string().regex(/^\d{2}:\d{2}$/),
+  reason: z.string().min(1).max(200),
+  durationMinutes: z.coerce.number().int().min(15).max(240).default(60)
+});
+
 export const clinicUserCreateSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6).max(120).optional(),

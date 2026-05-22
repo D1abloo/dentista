@@ -68,17 +68,57 @@ export async function createAppointmentLive(input: {
   notes?: string;
 }) {
   const offset = '+02:00';
+  const payload: Record<string, unknown> = {
+    clinicId: input.clinicId,
+    patientId: input.patientId,
+    patientName: input.patientName,
+    dentistId: input.dentistId,
+    treatmentId: input.treatmentId,
+    roomName: input.roomName,
+    startsAt: `${input.date}T${input.time}:00${offset}`
+  };
+  if (input.patientEmail?.includes('@')) payload.patientEmail = input.patientEmail.trim();
+  if (input.patientPhone && input.patientPhone.replace(/\D/g, '').length >= 6) {
+    payload.patientPhone = input.patientPhone.trim();
+  }
+  if (input.notes?.trim()) payload.notes = input.notes.trim();
+
   const res = await fetch('/api/appointments', {
     method: 'POST',
     credentials: 'include',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      ...input,
-      startsAt: `${input.date}T${input.time}:00${offset}`
-    })
+    body: JSON.stringify(payload)
   });
   const json = (await res.json()) as { error?: { message?: string } };
   if (!res.ok) return { ok: false as const, message: json.error?.message ?? 'No se pudo crear la cita.' };
+  return { ok: true as const };
+}
+
+export async function createScheduleBlockLive(input: {
+  dentistId: string;
+  date: string;
+  time: string;
+  reason: string;
+  durationMinutes?: number;
+}) {
+  const res = await fetch('/api/schedule/blocks', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input)
+  });
+  const json = (await res.json()) as { error?: { message?: string } };
+  if (!res.ok) return { ok: false as const, message: json.error?.message ?? 'No se pudo bloquear.' };
+  return { ok: true as const };
+}
+
+export async function deleteScheduleBlockLive(blockId: string) {
+  const res = await fetch(`/api/schedule/blocks?id=${encodeURIComponent(blockId)}`, {
+    method: 'DELETE',
+    credentials: 'include'
+  });
+  const json = (await res.json()) as { error?: { message?: string } };
+  if (!res.ok) return { ok: false as const, message: json.error?.message ?? 'No se pudo quitar el bloqueo.' };
   return { ok: true as const };
 }
 

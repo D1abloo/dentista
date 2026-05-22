@@ -17,17 +17,13 @@ import {
 import { dentistsForClinic, getPrimaryClinic } from '@/lib/clinic';
 import { isClientDemoMode } from '@/lib/appMode';
 import { appointmentsInRange, monthPrefix, weekRange } from '@/lib/appointments';
-import {
-  addBlockedSlot,
-  removeBlockedSlot,
-  rescheduleAppointment,
-  tryCreateAppointment,
-  updateAppointmentStatus
-} from '@/lib/demoStore';
+import { addBlockedSlot, removeBlockedSlot, rescheduleAppointment } from '@/lib/demoStore';
+import { createAdminAppointment, updateAdminAppointmentStatus } from '@/lib/adminAppointments';
+import { createScheduleBlockLive, deleteScheduleBlockLive } from '@/lib/clinicApi';
+import { patientsForClinic } from '@/lib/tenant';
 import { fmtDate, statusLabel, todayIso } from '@/lib/format';
 import { patientName } from '@/lib/selectors';
 import { required } from '@/lib/validation';
-import { createAppointmentLive, patchAppointmentLive } from '@/lib/clinicApi';
 import { useCountUp } from '@/hooks/useCountUp';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
@@ -227,6 +223,7 @@ export function AdminAgenda() {
 
   const activeClinic = scope.clinics.find((c) => c.id === clinicId) ?? primaryClinic;
   const clinicDentists = dentistsForClinic(state, clinicId);
+  const clinicPatients = useMemo(() => patientsForClinic(state, clinicId), [state, clinicId]);
 
   const dayAppts = useMemo(() => {
     let list = scope.appointments.filter((a) => a.clinicId === clinicId && a.date === date);
@@ -309,22 +306,13 @@ export function AdminAgenda() {
   }
 
   async function setStatus(appt: Appointment, status: AppointmentStatus, patch?: { date?: string; time?: string }) {
-    if (!isClientDemoMode()) {
-      const live = await patchAppointmentLive({
-        clinicId: appt.clinicId,
-        appointmentId: appt.id,
-        status,
-        date: patch?.date ?? appt.date,
-        time: patch?.time ?? appt.time
-      });
-      if (!live.ok) {
-        setNotice({ type: 'error', message: live.message });
-        return;
-      }
-      await refresh();
-    } else {
-      commit(updateAppointmentStatus(state, appt.id, status, patch));
+    const result = await updateAdminAppointmentStatus(state, appt, status, patch);
+    if (!result.ok) {
+      setNotice({ type: 'error', message: result.message });
+      return;
     }
+    if (result.demoState) commit(result.demoState);
+    else await refresh();
     setNotice({ type: 'ok', message: `Cita ${statusLabel(status).toLowerCase()}.` });
   }
 
@@ -335,21 +323,18 @@ export function AdminAgenda() {
       setNotice({ type: 'error', message: err });
       return;
     }
-    if (!isClientDemoMode()) {
-      const live = await patchAppointmentLive({
-        clinicId: rescheduleTarget.clinicId,
-        appointmentId: rescheduleTarget.id,
-        status: 'reprogramada',
+    if (isClientDemoMode()) {
+      commit(rescheduleAppointment(state, rescheduleTarget.id, rescheduleDate, rescheduleTime));
+    } else {
+      const result = await updateAdminAppointmentStatus(state, rescheduleTarget, 'reprogramada', {
         date: rescheduleDate,
         time: rescheduleTime
       });
-      if (!live.ok) {
-        setNotice({ type: 'error', message: live.message });
+      if (!result.ok) {
+        setNotice({ type: 'error', message: result.message });
         return;
       }
       await refresh();
-    } else {
-      commit(rescheduleAppointment(state, rescheduleTarget.id, rescheduleDate, rescheduleTime));
     }
     setNotice({ type: 'ok', message: 'Cita reprogramada.' });
     setRescheduleTarget(null);
@@ -369,45 +354,35 @@ export function AdminAgenda() {
       setNotice({ type: 'error', message: 'Selecciona un dentista.' });
       return;
     }
+    const patient = clinicPatients.find((p) => p.id === bookPatientId) ?? state.patients.find((p) => p.id === bookPatientId);
+    if (!patient) {
+      setNotice({ type: 'error', message: 'Selecciona un paciente registrado en la clínica.' });
+      return;
+    }
     setSubmitting(true);
     try {
-      const patient = state.patients.find((p) => p.id === bookPatientId);
-      if (!isClientDemoMode()) {
-        const live = await createAppointmentLive({
-          clinicId,
-          patientId: bookPatientId,
-          patientName: patient?.fullName ?? 'Paciente',
-          patientEmail: patient?.email,
-          patientPhone: patient?.phone,
-          dentistId: activeDentist,
-          treatmentId: bookTreatmentId,
-          roomName: activeClinic.cabinets[0]?.name ?? 'Gabinete 1',
-          date,
-          time: bookTime
-        });
-        if (!live.ok) {
-          setNotice({ type: 'error', message: live.message });
-          return;
-        }
-        await refresh();
-      } else {
-        const result = tryCreateAppointment(state, {
-          patientId: bookPatientId,
-          dentistId: activeDentist,
-          clinicId,
-          cabinetId: activeClinic.cabinets[0]?.id ?? 'g-1',
-          treatmentId: bookTreatmentId,
-          date,
-          time: bookTime,
-          notes: bookNotes,
-          status: 'pendiente'
-        });
-        if (!result.ok) {
-          setNotice({ type: 'error', message: result.message ?? 'Horario ocupado.' });
-          return;
-        }
-        commit(result.state);
+      const result = await createAdminAppointment({
+        state,
+        clinicId,
+        cabinetId: activeClinic.cabinets[0]?.id ?? 'g-1',
+        patientId: bookPatientId,
+        patientName: patient.fullName,
+        patientEmail: patient.email,
+        patientPhone: patient.phone,
+        dentistId: activeDentist,
+        treatmentId: bookTreatmentId,
+        roomName: activeClinic.cabinets[0]?.name ?? 'Gabinete 1',
+        date,
+        time: bookTime,
+        notes: bookNotes,
+        status: 'pendiente'
+      });
+      if (!result.ok) {
+        setNotice({ type: 'error', message: result.message });
+        return;
       }
+      if (result.demoState) commit(result.demoState);
+      else await refresh();
       setNotice({ type: 'ok', message: 'Cita creada. Visible en el portal del paciente.' });
       setBookNotes('');
     } finally {
@@ -415,7 +390,7 @@ export function AdminAgenda() {
     }
   }
 
-  function submitBlock() {
+  async function submitBlock() {
     if (!blockReason.trim()) {
       setNotice({ type: 'error', message: 'Indica un motivo.' });
       return;
@@ -425,18 +400,47 @@ export function AdminAgenda() {
       setNotice({ type: 'error', message: 'Selecciona un dentista.' });
       return;
     }
-    commit(
-      addBlockedSlot(state, {
-        clinicId,
+    if (!isClientDemoMode()) {
+      const live = await createScheduleBlockLive({
         dentistId: dId,
-        cabinetId: activeClinic.cabinets[0]?.id ?? 'g-1',
         date,
         time: blockTime.slice(0, 5),
-        reason: blockReason
-      })
-    );
+        reason: blockReason,
+        durationMinutes: bookDuration
+      });
+      if (!live.ok) {
+        setNotice({ type: 'error', message: live.message });
+        return;
+      }
+      await refresh();
+    } else {
+      commit(
+        addBlockedSlot(state, {
+          clinicId,
+          dentistId: dId,
+          cabinetId: activeClinic.cabinets[0]?.id ?? 'g-1',
+          date,
+          time: blockTime.slice(0, 5),
+          reason: blockReason
+        })
+      );
+    }
     setBlockReason('');
     setNotice({ type: 'ok', message: 'Horario bloqueado.' });
+  }
+
+  async function removeBlock(blockId: string) {
+    if (!isClientDemoMode()) {
+      const live = await deleteScheduleBlockLive(blockId);
+      if (!live.ok) {
+        setNotice({ type: 'error', message: live.message });
+        return;
+      }
+      await refresh();
+    } else {
+      commit(removeBlockedSlot(state, blockId));
+    }
+    setNotice({ type: 'ok', message: 'Bloqueo eliminado.' });
   }
 
   const selectedTreatment = scope.treatments.find((t) => t.id === bookTreatmentId);
@@ -623,9 +627,10 @@ export function AdminAgenda() {
                 onPatientId={setBookPatientId}
                 label="Paciente"
                 placeholder="Buscar por NHC, nombre o teléfono…"
+                candidates={clinicPatients}
               />
               <p className="text-xs font-semibold text-slate-500">
-                Solo pacientes ya registrados (reserva online, alta previa o importación). En PRO no se crean fichas desde agenda.
+                La administración puede agendar citas para pacientes ya registrados. Busca por NHC, nombre o teléfono.
               </p>
               <div className="agd-form-row">
                 <Field label="Fecha">
@@ -705,7 +710,7 @@ export function AdminAgenda() {
                       <span>
                         {b.time} — {b.reason}
                       </span>
-                      <button type="button" onClick={() => commit(removeBlockedSlot(state, b.id))}>
+                      <button type="button" onClick={() => void removeBlock(b.id)}>
                         Quitar
                       </button>
                     </li>
@@ -817,7 +822,7 @@ export function AdminAgenda() {
                             type="button"
                             className="agd-menu-btn"
                             aria-label="Quitar bloqueo"
-                            onClick={() => commit(removeBlockedSlot(state, block.id))}
+                            onClick={() => void removeBlock(block.id)}
                           >
                             <MoreHorizontal className="h-4 w-4" />
                           </button>

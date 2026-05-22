@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getActiveClinicId, setActiveClinicId } from '@/lib/activeClinic';
 import { dentistsForClinic, getPrimaryClinic } from '@/lib/clinic';
-import { isClientLiveMode } from '@/lib/appMode';
 import {
   appointmentsInRange,
   filterAppointments,
@@ -10,9 +9,9 @@ import {
   appointmentPrice,
   isActiveStatus
 } from '@/lib/appointments';
+import { createAdminAppointment, updateAdminAppointmentStatus } from '@/lib/adminAppointments';
 import {
   addBlockedSlot,
-  tryCreateAppointment,
   addBranchToOrganization,
   registerOrganization,
   setDemoSession,
@@ -32,6 +31,7 @@ import {
   settingsFor,
   updateAppointmentStatus
 } from '@/lib/demoStore';
+import { patientsForClinic } from '@/lib/tenant';
 import { clinicTenantId } from '@/lib/clinic';
 import { useTenant } from '@/hooks/useTenant';
 import { patientsForTenant } from '@/lib/tenant';
@@ -40,8 +40,7 @@ import { findPatientsByQuery } from '@/lib/patientSearch';
 import { patientName, pendingInvoicesForPatient, recordsForPatient } from '@/lib/selectors';
 import { recentPatientActivity } from '@/lib/selectors';
 import { email, phone, required } from '@/lib/validation';
-import { isClientDemoMode, modeCopy } from '@/lib/appMode';
-import { createAppointmentLive, patchAppointmentLive } from '@/lib/clinicApi';
+import { isClientDemoMode, isClientLiveMode, modeCopy } from '@/lib/appMode';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { useStaffContext } from '@/hooks/useStaffContext';
@@ -86,15 +85,27 @@ export function AdminAppointments() {
   const [status, setStatus] = useState('todos');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const clinic = getPrimaryClinic(state, scope.tenantId);
+  const clinicPatients = useMemo(() => patientsForClinic(state, clinic.id), [state, clinic.id]);
   const list = filterAppointments(state, scope.appointments, { q, status });
   const [form, setForm] = useState({
-    patientId: state.patients[0]?.id ?? '',
+    patientId: clinicPatients[0]?.id ?? '',
     dentistId: scope.dentists[0]?.id ?? '',
     treatmentId: scope.treatments[0]?.id ?? '',
     cabinetId: clinic.cabinets[0]?.id ?? 'g-1',
     date: todayIso(),
     time: '10:00'
   });
+
+  async function patchStatus(a: Appointment, next: AppointmentStatus) {
+    const result = await updateAdminAppointmentStatus(state, a, next);
+    if (!result.ok) {
+      setNotice({ type: 'error', message: result.message });
+      return;
+    }
+    if (result.demoState) commit(result.demoState);
+    else await refresh();
+    setNotice({ type: 'ok', message: `Cita ${statusLabel(next).toLowerCase()}.` });
+  }
 
   async function create() {
     const err =
@@ -107,45 +118,33 @@ export function AdminAppointments() {
       setNotice({ type: 'error', message: err });
       return;
     }
-    const patient = state.patients.find((p) => p.id === form.patientId);
-    if (!isClientDemoMode()) {
-      const live = await createAppointmentLive({
-        clinicId: clinic.id,
-        patientId: form.patientId,
-        patientName: patient?.fullName ?? 'Paciente',
-        patientEmail: patient?.email,
-        patientPhone: patient?.phone,
-        dentistId: form.dentistId,
-        treatmentId: form.treatmentId,
-        roomName: clinic.cabinets.find((c) => c.id === form.cabinetId)?.name ?? 'Gabinete 1',
-        date: form.date,
-        time: form.time
-      });
-      if (!live.ok) {
-        setNotice({ type: 'error', message: live.message });
-        return;
-      }
-      await refresh();
-      setNotice({ type: 'ok', message: 'Cita creada correctamente.' });
+    const patient = clinicPatients.find((p) => p.id === form.patientId);
+    if (!patient) {
+      setNotice({ type: 'error', message: 'Selecciona un paciente registrado.' });
       return;
     }
-    const result = tryCreateAppointment(state, {
-      patientId: form.patientId,
-      dentistId: form.dentistId,
+    const result = await createAdminAppointment({
+      state,
       clinicId: clinic.id,
       cabinetId: form.cabinetId,
+      patientId: form.patientId,
+      patientName: patient.fullName,
+      patientEmail: patient.email,
+      patientPhone: patient.phone,
+      dentistId: form.dentistId,
       treatmentId: form.treatmentId,
+      roomName: clinic.cabinets.find((c) => c.id === form.cabinetId)?.name ?? 'Gabinete 1',
       date: form.date,
       time: form.time,
-      notes: '',
       status: 'pendiente'
     });
     if (!result.ok) {
-      setNotice({ type: 'error', message: result.message ?? 'Horario ocupado.' });
+      setNotice({ type: 'error', message: result.message });
       return;
     }
-    commit(result.state);
-    setNotice({ type: 'ok', message: 'Cita creada.' });
+    if (result.demoState) commit(result.demoState);
+    else await refresh();
+    setNotice({ type: 'ok', message: 'Cita creada correctamente.' });
   }
 
   return (
@@ -168,20 +167,36 @@ export function AdminAppointments() {
               </div>
               <Badge status={a.status} label={statusLabel(a.status)} />
               <div className="flex flex-wrap gap-1">
-                <Button tone="ghost" className="!text-xs" onClick={() => commit(updateAppointmentStatus(state, a.id, 'confirmada'))}>Confirmar</Button>
-                <Button tone="ghost" className="!text-xs" onClick={() => commit(updateAppointmentStatus(state, a.id, 'completada'))}>Completar</Button>
-                <Button tone="ghost" className="!text-xs" onClick={() => setDeleteId(a.id)}>Eliminar</Button>
+                <Button tone="ghost" className="!text-xs" onClick={() => void patchStatus(a, 'confirmada')}>Confirmar</Button>
+                <Button tone="ghost" className="!text-xs" onClick={() => void patchStatus(a, 'completada')}>Completar</Button>
+                <Button tone="ghost" className="!text-xs" onClick={() => setDeleteId(a.id)}>Cancelar</Button>
               </div>
             </div>
           ))}
         </div>
-        <ConfirmModal open={Boolean(deleteId)} title="Eliminar cita" message={modeCopy('¿Eliminar esta cita del modo demo?', '¿Eliminar esta cita?')} confirmLabel="Eliminar"
-          onConfirm={() => { if (deleteId) commit(deleteAppointment(state, deleteId)); setNotice({ type: 'ok', message: 'Cita eliminada.' }); }}
-          onClose={() => setDeleteId(null)} />
+        <ConfirmModal
+          open={Boolean(deleteId)}
+          title="Cancelar cita"
+          message={modeCopy('¿Cancelar esta cita?', '¿Cancelar esta cita? El paciente dejará de tenerla activa.')}
+          confirmLabel="Cancelar cita"
+          onConfirm={() => {
+            const appt = list.find((x) => x.id === deleteId);
+            if (appt) void patchStatus(appt, 'cancelada');
+            setDeleteId(null);
+          }}
+          onClose={() => setDeleteId(null)}
+        />
       </div>
       <Card title="Nueva cita">
         <div className="grid gap-3">
-          <PatientLookup state={state} patientId={form.patientId} onPatientId={(id) => setForm({ ...form, patientId: id })} label="Paciente (NHC / DNI)" />
+          <PatientLookup
+            state={state}
+            patientId={form.patientId}
+            onPatientId={(id) => setForm({ ...form, patientId: id })}
+            label="Paciente (NHC / DNI)"
+            placeholder="Buscar por NHC, nombre o teléfono…"
+            candidates={clinicPatients}
+          />
           <Field label="Dentista"><Select value={form.dentistId} onChange={(e) => setForm({ ...form, dentistId: e.target.value })}>{scope.dentists.map((d) => <option key={d.id} value={d.id}>{d.fullName}</option>)}</Select></Field>
           <Field label="Tratamiento"><Select value={form.treatmentId} onChange={(e) => setForm({ ...form, treatmentId: e.target.value })}>{scope.treatments.map((tr) => <option key={tr.id} value={tr.id}>{tr.name}</option>)}</Select></Field>
           <Field label="Fecha"><Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} /></Field>

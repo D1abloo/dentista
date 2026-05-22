@@ -69,6 +69,25 @@ export function patientScope(state: DemoState, patientId = activePatientId()) {
   };
 }
 
+/** Pacientes visibles para agendar en una sede (ficha en la clínica o historial en esa sede). */
+export function patientsForClinic(state: DemoState, clinicId: string) {
+  const ids = new Set<string>();
+  for (const p of state.patients) {
+    if (!p.preferredClinicId || p.preferredClinicId === clinicId) ids.add(p.id);
+  }
+  for (const a of state.appointments) {
+    if (a.clinicId === clinicId) ids.add(a.patientId);
+  }
+  const clinicTenant = state.clinics.find((c) => c.id === clinicId)?.tenantId;
+  if (clinicTenant) {
+    for (const i of state.invoices) {
+      if (i.tenantId === clinicTenant) ids.add(i.patientId);
+    }
+  }
+  if (!ids.size) return state.patients;
+  return state.patients.filter((p) => ids.has(p.id));
+}
+
 /** Pacientes que tienen al menos un registro en el tenant (citas, informes, etc.) */
 export function patientsForTenant(state: DemoState, tenantId: string): string[] {
   const ids = new Set<string>();

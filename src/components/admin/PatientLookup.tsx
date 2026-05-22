@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Hash, Search } from 'lucide-react';
-import type { DemoState } from '@/types/demo';
+import type { DemoState, Patient } from '@/types/demo';
 import { findPatientsByQuery, findPatientIdByQuery } from '@/lib/patientSearch';
 import { normalizeNhcQuery, patientDisplayCode } from '@/lib/nhc';
 import { Field, Input } from '@/components/ui';
@@ -11,6 +11,8 @@ type Props = {
   onPatientId: (id: string) => void;
   label?: string;
   placeholder?: string;
+  /** Limita la búsqueda a pacientes de la sede (agenda / citas). */
+  candidates?: Patient[];
   /** Prioriza búsqueda por número NHC (campo numérico). */
   nhcPrimary?: boolean;
 };
@@ -21,14 +23,20 @@ export function PatientLookup({
   onPatientId,
   label = 'Buscar paciente',
   placeholder,
+  candidates,
   nhcPrimary
 }: Props) {
   const [q, setQ] = useState('');
-  const matches = useMemo(() => findPatientsByQuery(state, q), [state, q]);
-  const selected = state.patients.find((p) => p.id === patientId);
+  const pool = candidates ?? state.patients;
+  const scopedState = useMemo(() => ({ ...state, patients: pool }), [state, pool]);
+  const matches = useMemo(() => {
+    const list = findPatientsByQuery(scopedState, q);
+    return q.trim() ? list.slice(0, 10) : pool.slice(0, 10);
+  }, [scopedState, pool, q]);
+  const selected = pool.find((p) => p.id === patientId);
 
   function applyQuery() {
-    const id = findPatientIdByQuery(state, q);
+    const id = findPatientIdByQuery(scopedState, q);
     if (id) {
       onPatientId(id);
       setQ('');
@@ -57,7 +65,7 @@ export function PatientLookup({
           />
         </div>
       </Field>
-      {q.trim() && matches.length ? (
+      {matches.length ? (
         <ul className="patient-lookup__results">
           {matches.slice(0, 8).map((p) => (
             <li key={p.id}>
@@ -83,7 +91,11 @@ export function PatientLookup({
         </p>
       ) : (
         <p className="patient-lookup__hint">
-          {nhcPrimary ? 'Introduce el número NHC y pulsa Enter.' : 'NHC, DNI o nombre + Enter.'}
+          {pool.length
+            ? nhcPrimary
+              ? 'Introduce el número NHC y pulsa Enter, o elige de la lista.'
+              : 'Busca por NHC, DNI o nombre, o elige de la lista.'
+            : 'No hay pacientes registrados en esta clínica. Deben existir en el sistema (reserva online o alta acordada).'}
         </p>
       )}
     </div>
