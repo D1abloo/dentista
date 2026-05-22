@@ -5,7 +5,6 @@ import {
   CalendarPlus,
   CreditCard,
   FileText,
-  LogIn,
   Shield,
   ShieldCheck
 } from 'lucide-react';
@@ -76,16 +75,12 @@ export function LandingPage() {
                 Reserva, consulta informes y paga facturas desde un portal seguro para pacientes y clínicas.
               </p>
               <div className="lp-hero__ctas">
-                <a href="/reserva" className="btn btn--teal btn--lg">
+                <a href="/reserva" className="btn btn--teal btn--lg lp-hero__cta-primary">
                   <CalendarPlus className="h-5 w-5" aria-hidden />
                   Reservar cita
                 </a>
-                <a href="/login/paciente" className="btn btn--outline-teal btn--lg">
+                <a href="/login/paciente" className="btn btn--outline-teal btn--lg lp-hero__cta-secondary">
                   Entrar como paciente
-                </a>
-                <a href="/login" className="btn btn--ghost btn--lg">
-                  <LogIn className="h-5 w-5" aria-hidden />
-                  Iniciar sesión
                 </a>
               </div>
               <p className="lp-trust">

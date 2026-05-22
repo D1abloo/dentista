@@ -58,11 +58,11 @@ export function PublicHeader({ activeHref }: { activeHref?: string }) {
             </a>
           ))}
           <div className="pub-drawer__cta">
-            <a href="/login/paciente" className="btn btn--teal btn--block" onClick={() => setOpen(false)}>
-              Entrar como paciente
+            <a href="/reserva" className="btn btn--teal btn--block" onClick={() => setOpen(false)}>
+              Reservar cita
             </a>
-            <a href="/login" className="btn btn--outline-teal btn--block" onClick={() => setOpen(false)}>
-              Iniciar sesión
+            <a href="/login/paciente" className="btn btn--outline-teal btn--block" onClick={() => setOpen(false)}>
+              Entrar como paciente
             </a>
           </div>
         </nav>
