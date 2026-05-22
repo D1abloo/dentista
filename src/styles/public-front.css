@@ -1,301 +1,277 @@
-/* Frontend público — verde agua corporativo (#14b8a6) */
+/* Sitio público — header / footer */
 
 :root {
-  --aqua: #14b8a6;
-  --aqua-light: #5eead4;
-  --aqua-dark: #0d9488;
-  --aqua-glow: rgba(20, 184, 166, 0.35);
+  --pub-aqua: #14b8a6;
+  --pub-aqua-dark: #0f766e;
+  --pub-navy: #0f2742;
+  --pub-font: 'DM Sans', system-ui, sans-serif;
+  --pub-display: 'Fraunces', Georgia, serif;
 }
 
-/* —— Header (sitio público: /, reserva, ayuda, contacto) —— */
+/* —— Header —— */
 .pub-header.pub-header--corp {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: #fff !important;
-  border-bottom: 2px solid #14b8a6;
-  box-shadow: 0 2px 12px rgba(15, 39, 66, 0.08);
-  backdrop-filter: none;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 0 rgba(20, 184, 166, 0.15);
+  font-family: var(--pub-font);
 }
 
 .pub-header--corp::before {
   content: '';
   position: absolute;
-  inset: 0 auto auto 0;
-  width: 100%;
+  inset: 0 0 auto;
   height: 3px;
-  background: linear-gradient(90deg, var(--aqua-dark), var(--aqua), var(--aqua-light), var(--aqua));
-  background-size: 200% 100%;
-  animation: pub-aqua-shift 8s ease infinite;
-  opacity: 0.85;
+  background: linear-gradient(90deg, #0d9488, #14b8a6, #5eead4);
   pointer-events: none;
-}
-
-@keyframes pub-aqua-shift {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-.pub-header.pub-header--corp.pub-header--scrolled {
-  box-shadow: 0 6px 20px rgba(13, 148, 136, 0.15);
 }
 
 .pub-header--corp .pub-header__inner {
   position: relative;
   z-index: 1;
-  min-height: 3.75rem;
+  min-height: 4rem;
+  padding-block: 0.35rem;
 }
 
-.pub-header--corp .dentista-webp-lockup__name {
-  color: #0f2742;
-}
-
-.pub-header--corp .dentista-webp-lockup__tag {
-  color: var(--aqua-dark);
+@media (min-width: 1024px) {
+  .pub-header--corp .pub-header__inner {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 2rem;
+  }
 }
 
 .pub-header--corp .dentista-webp-lockup--header .dentista-webp-lockup__text {
   display: block !important;
 }
 
-.pub-header--corp .pub-nav a {
-  color: #0f2742;
+.pub-header--corp .dentista-webp-lockup__name {
+  font-family: var(--pub-display);
+  font-size: 1.12rem;
+  font-weight: 600;
+  color: var(--pub-navy);
+}
+
+.pub-header--corp .dentista-webp-lockup__tag {
+  font-family: var(--pub-font);
+  font-size: 0.6rem;
   font-weight: 700;
-  font-size: 0.88rem;
+  letter-spacing: 0.1em;
+  color: var(--pub-aqua-dark);
+}
+
+.pub-header--corp .pub-nav {
+  gap: 0.15rem;
+}
+
+.pub-header--corp .pub-nav a {
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  font-family: var(--pub-font);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+  letter-spacing: -0.01em;
 }
 
 .pub-header--corp .pub-nav a:hover {
-  color: #fff;
-  background: #14b8a6;
+  color: var(--pub-aqua-dark);
+  background: #f0fdfa;
 }
 
 .pub-header--corp .pub-nav__link--active {
-  color: #fff !important;
-  background: #0d9488 !important;
+  color: var(--pub-aqua-dark) !important;
+  background: #ccfbf1 !important;
+}
+
+.pub-header--corp .pub-actions {
+  gap: 0.55rem;
 }
 
 .pub-header--corp .pub-menu-btn {
-  background: rgba(20, 184, 166, 0.12);
-  color: var(--aqua-dark);
-  transition:
-    background 0.2s ease,
-    transform 0.15s ease;
+  border-radius: 0.75rem;
+  background: #f0fdfa;
+  color: var(--pub-aqua-dark);
+  border: 1px solid #99f6e4;
 }
 
-.pub-header--corp .pub-menu-btn:hover {
-  background: rgba(20, 184, 166, 0.22);
-}
-
-.pub-header--corp .pub-menu-btn:active {
-  transform: scale(0.96);
+.pub-header.pub-header--corp.pub-header--scrolled {
+  box-shadow: 0 8px 24px rgba(15, 39, 66, 0.08);
 }
 
 .pub-drawer--corp {
-  border-top: 1px solid rgba(20, 184, 166, 0.15);
-  background: linear-gradient(180deg, #fff, #f0fdfa);
-  padding: 0.75rem 1rem 1rem;
+  padding: 1rem 1.25rem 1.25rem;
+  background: #fff;
+  border-top: 1px solid #e2e8f0;
+  font-family: var(--pub-font);
 }
 
 .pub-drawer--corp a {
-  transition: background 0.2s ease;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.65rem;
+  font-weight: 600;
+  color: var(--pub-navy);
 }
 
 .pub-drawer--corp a:hover {
-  background: rgba(20, 184, 166, 0.1);
-  color: var(--aqua-dark);
+  background: #f0fdfa;
+  color: var(--pub-aqua-dark);
 }
 
 .pub-drawer--corp .pub-drawer__cta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid rgba(20, 184, 166, 0.12);
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid #e2e8f0;
+  gap: 0.55rem;
 }
 
-/* Botones verde agua */
 .btn--teal {
-  background: linear-gradient(135deg, #2dd4bf 0%, var(--aqua) 55%, var(--aqua-dark) 100%);
+  font-family: var(--pub-font);
+  font-weight: 700;
+  background: linear-gradient(135deg, #2dd4bf, #14b8a6);
   color: #fff;
-  box-shadow: 0 6px 22px var(--aqua-glow);
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.2s ease,
-    filter 0.2s ease;
-}
-
-.btn--teal:hover {
-  filter: brightness(1.05);
-  box-shadow: 0 10px 28px rgba(20, 184, 166, 0.45);
-  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(20, 184, 166, 0.3);
 }
 
 .btn--outline-teal {
+  font-family: var(--pub-font);
+  font-weight: 700;
+  color: var(--pub-aqua-dark);
   background: #fff;
-  color: var(--aqua-dark);
-  box-shadow: inset 0 0 0 2px rgba(20, 184, 166, 0.45);
-  transition:
-    background 0.2s ease,
-    transform 0.15s ease;
+  box-shadow: inset 0 0 0 1.5px #5eead4;
 }
 
-.btn--outline-teal:hover {
-  background: rgba(20, 184, 166, 0.08);
-  transform: translateY(-1px);
-}
-
-/* —— Footer (sitio público) —— */
+/* —— Footer —— */
 .lp-footer.lp-footer--corp {
-  padding: 2.5rem 0 5rem;
-  background: linear-gradient(180deg, #0f766e 0%, #14b8a6 50%, #0d9488 100%);
-  border-top: 3px solid #5eead4;
+  padding: 3rem 0 5.5rem;
+  font-family: var(--pub-font);
+  background: #0f2742;
+  border-top: 3px solid var(--pub-aqua);
 }
 
-.lp-footer--corp::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 70% 50% at 0% 100%, rgba(255, 255, 255, 0.12), transparent 55%),
-    radial-gradient(ellipse 50% 40% at 100% 0%, rgba(94, 234, 212, 0.2), transparent 50%);
-  pointer-events: none;
+.lp-footer--corp .lp-footer__grid {
+  display: grid;
+  gap: 2rem 2.5rem;
 }
 
-.lp-footer--corp .shell {
-  position: relative;
-  z-index: 1;
+@media (min-width: 768px) {
+  .lp-footer--corp .lp-footer__grid {
+    grid-template-columns: 1.35fr 1fr 1fr;
+    align-items: start;
+  }
 }
 
-.lp-footer--corp .lp-footer__brand p {
-  color: #fff;
-  font-size: 0.95rem;
-  line-height: 1.5;
-  max-width: 22rem;
+.lp-footer--corp .lp-footer__tagline {
+  margin-top: 0.85rem;
+  max-width: 20rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #cbd5e1;
 }
 
-.lp-footer--corp .lp-footer__copy {
-  color: #fff !important;
-  font-size: 0.82rem;
-  font-weight: 600;
-  opacity: 1;
-}
-
-.lp-footer--corp h4 {
-  color: rgba(255, 255, 255, 0.65);
-  font-size: 0.68rem;
-  letter-spacing: 0.1em;
+.lp-footer--corp .lp-footer__heading {
+  margin: 0 0 0.85rem;
+  font-family: var(--pub-font);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  color: #5eead4;
 }
 
+.lp-footer--corp .lp-footer__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.lp-footer--corp .lp-footer__nav a {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.lp-footer--corp .lp-footer__nav a:hover {
+  color: #fff;
+}
+
+.lp-footer--corp .lp-footer__social {
+  margin-top: 1.15rem;
+  gap: 0.55rem;
+}
 
 .lp-footer--corp .lp-footer__social a {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  color: #fff;
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 0.65rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
 }
 
 .lp-footer--corp .lp-footer__social a:hover {
-  background: rgba(255, 255, 255, 0.28);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  background: var(--pub-aqua);
+  border-color: var(--pub-aqua);
+  color: #fff;
 }
 
-.lp-footer--corp .lp-footer__copy {
-  border-top-color: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.75);
-}
-
-.lp-footer--corp .dentista-webp-lockup__name,
-.lp-footer--corp .dentista-webp-lockup__tag {
+.lp-footer--corp .dentista-webp-lockup__name {
+  font-family: var(--pub-display);
+  font-size: 1.1rem;
   color: #fff;
 }
 
 .lp-footer--corp .dentista-webp-lockup__tag {
-  color: rgba(255, 255, 255, 0.75);
+  color: #94a3b8;
 }
 
-/* Landing simplificada */
-.lp-hero--simple .lp-hero__visual {
-  min-height: 0;
+.lp-footer--corp .lp-footer__copy {
+  margin-top: 2.25rem;
+  padding-top: 1.15rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #94a3b8;
 }
 
+/* Landing (resto) */
 .lp-gradient-text {
-  background: linear-gradient(120deg, var(--aqua-dark), var(--aqua), #0ea5e9);
+  background: linear-gradient(120deg, var(--pub-aqua-dark), var(--pub-aqua));
   -webkit-background-clip: text;
   background-clip: text;
 }
 
 .lp-badge {
-  border: 1px solid rgba(20, 184, 166, 0.25);
-  background: rgba(20, 184, 166, 0.08);
-  color: var(--aqua-dark);
+  border: 1px solid #99f6e4;
+  background: #f0fdfa;
+  color: var(--pub-aqua-dark);
+  font-family: var(--pub-font);
 }
 
 .lp-cta-banner {
-  background: linear-gradient(135deg, var(--aqua-dark), var(--aqua));
-  border: none;
-  box-shadow: 0 16px 40px var(--aqua-glow);
+  background: linear-gradient(135deg, var(--pub-aqua-dark), var(--pub-aqua));
+  box-shadow: 0 12px 32px rgba(20, 184, 166, 0.25);
 }
 
 .lp-cta-banner .btn--white {
-  color: var(--aqua-dark);
+  color: var(--pub-aqua-dark);
 }
 
 .lp-price-card--featured {
-  border-color: var(--aqua);
-  box-shadow: 0 12px 36px var(--aqua-glow);
+  border-color: var(--pub-aqua);
 }
 
 .lp-price-card__tag {
-  background: var(--aqua);
+  background: var(--pub-aqua);
 }
 
-.lp-footer__grid--simple {
-  display: grid;
-  gap: 2rem;
-}
-
-@media (min-width: 768px) {
-  .lp-footer__grid--simple {
-    grid-template-columns: 1.2fr 1fr;
-    align-items: start;
-  }
-}
-
-.lp-footer__links {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.35rem 1.5rem;
-}
-
-.lp-footer--corp .lp-footer__links a {
-  display: block;
-  margin-top: 0;
-  padding: 0.5rem 0.7rem;
-  border-radius: 0.5rem;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #0f766e !important;
-  background: #fff;
-  border: 1px solid #ccfbf1;
-  text-decoration: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-}
-
-.lp-footer--corp .lp-footer__links a:hover {
-  color: #fff !important;
-  background: #0f766e;
-  border-color: #fff;
+.lp-hero--simple .lp-hero__visual {
+  min-height: 0;
 }
 
 .lp-section__foot {

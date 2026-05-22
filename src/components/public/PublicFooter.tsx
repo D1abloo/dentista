@@ -1,11 +1,15 @@
 import { Facebook, Instagram, Linkedin } from 'lucide-react';
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
 
-const links = [
+const navLinks = [
+  { href: '/', label: 'Inicio' },
   { href: '/reserva', label: 'Reservar cita' },
   { href: '/login/paciente', label: 'Portal paciente' },
-  { href: '/ayuda', label: 'Centro de ayuda' },
-  { href: '/contacto', label: 'Contacto' },
+  { href: '/ayuda', label: 'Ayuda' },
+  { href: '/contacto', label: 'Contacto' }
+];
+
+const legalLinks = [
   { href: '/privacidad', label: 'Privacidad' },
   { href: '/terminos', label: 'Términos' },
   { href: '/cookies', label: 'Cookies' }
@@ -14,12 +18,14 @@ const links = [
 export function PublicFooter() {
   return (
     <footer className="lp-footer lp-footer--corp">
-      <div className="shell lp-footer__grid lp-footer__grid--simple">
+      <div className="shell lp-footer__grid">
         <div className="lp-footer__brand">
           <a href="/" className="lp-footer__logo">
             <DentistaWebpLockup placement="footer" />
           </a>
-          <p>Citas, informes y facturas en un solo portal seguro para pacientes y clínicas.</p>
+          <p className="lp-footer__tagline">
+            Citas, informes y facturas en un portal seguro para pacientes y familias.
+          </p>
           <div className="lp-footer__social">
             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
               <Facebook className="h-4 w-4" />
@@ -32,13 +38,28 @@ export function PublicFooter() {
             </a>
           </div>
         </div>
-        <nav className="lp-footer__links" aria-label="Enlaces">
-          {links.map((l) => (
-            <a key={l.href} href={l.href}>
-              {l.label}
-            </a>
-          ))}
-        </nav>
+
+        <div className="lp-footer__col">
+          <h4 className="lp-footer__heading">Navegación</h4>
+          <nav className="lp-footer__nav" aria-label="Navegación">
+            {navLinks.map((l) => (
+              <a key={l.href} href={l.href}>
+                {l.label}
+              </a>
+            ))}
+          </nav>
+        </div>
+
+        <div className="lp-footer__col">
+          <h4 className="lp-footer__heading">Legal</h4>
+          <nav className="lp-footer__nav" aria-label="Legal">
+            {legalLinks.map((l) => (
+              <a key={l.href} href={l.href}>
+                {l.label}
+              </a>
+            ))}
+          </nav>
+        </div>
       </div>
       <div className="shell lp-footer__copy">© {new Date().getFullYear()} Dentista+. Todos los derechos reservados.</div>
     </footer>
