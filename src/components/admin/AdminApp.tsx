@@ -79,6 +79,8 @@ function AdminInner({ view, patientId }: { view: AdminView; patientId?: string }
   const isDashboard = view === 'dashboard' && !patientId;
   const isAgenda = view === 'agenda' && !patientId;
   const isPatients = view === 'pacientes' && !patientId;
+  const isDocuments = view === 'documentos' && !patientId;
+  const isInvoices = view === 'facturas' && !patientId;
   const title = patientId && view === 'pacientes' ? `Ficha ${patientId}` : isDashboard ? 'Resumen general' : adminTitles[view];
   const subtitle = patientId && view === 'pacientes' ? undefined : adminSubtitles[view];
   return (
@@ -88,6 +90,8 @@ function AdminInner({ view, patientId }: { view: AdminView; patientId?: string }
       compactNav
       agendaModule={isAgenda}
       patientsModule={isPatients}
+      documentsModule={isDocuments}
+      invoicesModule={isInvoices}
       dashboardToolbar={isDashboard ? <AdminDashboardToolbar /> : undefined}
     >
       <Toast notice={notice} onClose={clear} />

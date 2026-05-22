@@ -85,3 +85,16 @@ function buildMinimalPdf(lines: string[]): Uint8Array {
   pdf += `trailer << /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefStart}\n%%EOF`;
   return new TextEncoder().encode(pdf);
 }
+
+/** Informe PDF con listado de facturas (exportación masiva). */
+export async function generateInvoicesSummaryPdf(
+  _invoices: Invoice[],
+  lines: string[]
+): Promise<{ fileRef: string; fileName: string }> {
+  const pdfBytes = buildMinimalPdf(lines);
+  const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
+  const fileName = `informe-facturas-${new Date().toISOString().slice(0, 10)}.pdf`;
+  const file = new File([blob], fileName, { type: 'application/pdf' });
+  const fileRef = await saveDemoFile(file);
+  return { fileRef, fileName };
+}

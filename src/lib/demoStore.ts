@@ -389,6 +389,13 @@ export function saveInvoice(state: DemoState, invoice: Invoice): DemoState {
   };
 }
 
+export function deleteInvoice(state: DemoState, id: string): DemoState {
+  return {
+    ...state,
+    invoices: state.invoices.filter((i) => i.id !== id)
+  };
+}
+
 export function createInvoice(
   state: DemoState,
   data: Omit<Invoice, 'id' | 'tenantId'> & { id?: string; tenantId?: string }
@@ -443,15 +450,22 @@ export function savePatientDocument(state: DemoState, doc: PatientDocument): Dem
   };
 }
 
+export function deletePatientDocument(state: DemoState, id: string): DemoState {
+  return {
+    ...state,
+    patientDocuments: state.patientDocuments.filter((d) => d.id !== id)
+  };
+}
+
 export function createPatientDocument(
   state: DemoState,
-  data: Omit<PatientDocument, 'id' | 'createdAt' | 'tenantId'> & { tenantId?: string }
+  data: Omit<PatientDocument, 'id' | 'createdAt' | 'tenantId'> & { tenantId?: string; createdAt?: string }
 ): DemoState {
   const doc: PatientDocument = {
     ...data,
     tenantId: data.tenantId ?? getStoredTenantId(),
     id: nextDocumentId(state),
-    createdAt: todayIso()
+    createdAt: data.createdAt ?? todayIso()
   };
   return savePatientDocument(state, doc);
 }
