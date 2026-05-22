@@ -323,9 +323,9 @@
 
 .inv-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(300px, min(420px, 34vw));
+  grid-template-columns: minmax(0, 1fr) minmax(300px, min(400px, 32vw));
   gap: 1rem;
-  align-items: stretch;
+  align-items: start;
   width: 100%;
 }
 
@@ -549,25 +549,30 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  max-height: calc(100vh - 1.25rem);
-  overflow-y: auto;
-  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
   animation: inv-rise 0.55s ease 0.1s both;
-  scrollbar-gutter: stable;
 }
 
 .inv-form-card {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  width: 100%;
+  max-height: calc(100vh - 1.5rem);
+  overflow: hidden;
 }
 
 .inv-form__body {
-  padding: 1rem;
+  padding: 0.85rem 0.9rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.6rem;
   min-width: 0;
+  flex: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
 .inv-field label {
@@ -582,6 +587,8 @@
 .inv-field select,
 .inv-field textarea {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 0.48rem 0.6rem;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
@@ -592,16 +599,23 @@
 .inv-form-grid {
   display: grid;
   gap: 0.6rem;
+  min-width: 0;
+}
+
+.inv-form-grid > * {
+  min-width: 0;
 }
 
 .inv-form-grid--2 {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
 .inv-lines {
   border: 1px solid #e8eef4;
   border-radius: 10px;
   padding: 0.65rem;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .inv-lines h3 {
@@ -619,8 +633,8 @@
 }
 
 .inv-aside .inv-line-row {
-  grid-template-columns: 1fr 1fr;
-  gap: 0.4rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.35rem;
 }
 
 .inv-aside .inv-line-row input:first-of-type {
@@ -633,6 +647,10 @@
 }
 
 .inv-line-row input {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 0.4rem 0.45rem;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
@@ -691,7 +709,13 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.65rem;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.inv-switch-row > div:first-child {
+  min-width: 0;
+  flex: 1;
 }
 
 .inv-switch-row p {
@@ -746,6 +770,8 @@
   padding: 0.65rem;
   border: 1px solid #e8eef4;
   border-radius: 10px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .inv-pdf-section h3 {
@@ -756,10 +782,17 @@
 
 .inv-radio-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.65rem;
+  flex-direction: column;
+  gap: 0.4rem;
   font-size: 0.78rem;
   font-weight: 600;
+}
+
+.inv-radio-row label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  line-height: 1.35;
 }
 
 .inv-dropzone {

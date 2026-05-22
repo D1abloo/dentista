@@ -6,6 +6,7 @@ import { isClientLiveMode } from '@/lib/appMode';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useTenant } from '@/hooks/useTenant';
 import { getStaffProfile, organizationDisplayName, organizationSubtitle } from '@/lib/organization';
+import { unreadCount } from '@/lib/clinicNotifications';
 import { getStoredTenantId, settingsFor } from '@/lib/demoStore';
 import { AdminSearch } from './AdminSearch';
 import { adminNav } from './nav';
@@ -35,7 +36,8 @@ function AdminRail({
   onNav,
   onLogout,
   variant,
-  compact
+  compact,
+  unreadNotifications
 }: {
   path: string;
   tenant: { id: string; name: string; subtitle: string };
@@ -47,6 +49,7 @@ function AdminRail({
   onLogout: () => void;
   variant: 'drawer' | 'rail';
   compact?: boolean;
+  unreadNotifications: number;
 }) {
   const navSource = compact ? adminCompactNav : adminNav;
   const visibleNav = navSource.filter((item) => isNavItemVisible(item.view, staffRole));
@@ -72,7 +75,7 @@ function AdminRail({
       <nav className="portal-rail__nav flex-1 overflow-y-auto">
         {visibleNav.map((item) => {
           const active = path === item.href || (item.href !== '/admin' && path.startsWith(item.href));
-          const notify = 'notifyDot' in item && item.notifyDot;
+          const notify = item.view === 'notificaciones' && unreadNotifications > 0;
           return (
             <a
               key={`${item.href}-${item.label}`}
@@ -81,7 +84,7 @@ function AdminRail({
                 if (platformInspect) logInspectNav(item.href, item.label);
                 onNav();
               }}
-              className={`rail-link rail-link--admin ${active ? 'rail-link--active' : ''}`}
+              className={`rail-link rail-link--admin${active ? ' rail-link--active' : ''}${notify ? ' rail-link--has-unread' : ''}`}
               title={item.label}
             >
               <span className="rail-link__icon-wrap">
@@ -203,6 +206,7 @@ export function AdminShell({
   }
 
   const userLabel = sessionName || 'Usuario conectado';
+  const unreadNotifications = unreadCount(state, tenantId);
 
   return (
     <div className="portal portal--admin">
@@ -223,6 +227,7 @@ export function AdminShell({
         onLogout={logout}
         variant="rail"
         compact={compactNav}
+        unreadNotifications={unreadNotifications}
       />
       {open ? (
         <div
@@ -243,6 +248,7 @@ export function AdminShell({
               onLogout={logout}
               variant="drawer"
               compact={compactNav}
+              unreadNotifications={unreadNotifications}
             />
           </div>
         </div>

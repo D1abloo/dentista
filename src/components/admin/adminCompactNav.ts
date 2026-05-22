@@ -19,7 +19,6 @@ export type AdminCompactNavItem = {
   label: string;
   icon: LucideIcon;
   view: AdminView;
-  notifyDot?: boolean;
 };
 
 /** Navegación compacta del panel (iconos + etiqueta corta). */
@@ -32,6 +31,6 @@ export const adminCompactNav: AdminCompactNavItem[] = [
   { href: '/admin/facturas', label: 'Facturación', icon: Receipt, view: 'facturas' },
   { href: '/admin/pagos', label: 'Pagos', icon: CreditCard, view: 'pagos' },
   { href: '/admin/reportes', label: 'Estadísticas', icon: BarChart3, view: 'reportes' },
-  { href: '/admin/notificaciones', label: 'Notificaciones', icon: Bell, view: 'notificaciones', notifyDot: true },
+  { href: '/admin/notificaciones', label: 'Notificaciones', icon: Bell, view: 'notificaciones' },
   { href: '/admin/configuracion', label: 'Ajustes', icon: Settings, view: 'configuracion' }
 ];

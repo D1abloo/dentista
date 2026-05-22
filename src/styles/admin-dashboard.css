@@ -151,7 +151,7 @@
   animation: adm-pulse-dot 2s ease-in-out infinite;
 }
 
-.portal-rail--compact a[title='Notificaciones'] .rail-link__icon-wrap {
+.portal-rail--compact .rail-link--has-unread .rail-link__icon-wrap {
   animation: adm-bell-pulse 2.5s ease-in-out infinite;
 }
 
@@ -868,7 +868,7 @@
     animation: none;
   }
 
-  .portal-rail--compact a[title='Notificaciones'] .rail-link__icon-wrap {
+  .portal-rail--compact .rail-link--has-unread .rail-link__icon-wrap {
     animation: none;
   }
 }

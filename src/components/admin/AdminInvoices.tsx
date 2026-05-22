@@ -852,7 +852,7 @@ export function AdminInvoices() {
                 <h2>Nueva factura</h2>
               </div>
               <div className="inv-form__body">
-            <div className="inv-form-grid">
+                <div className="inv-form-grid">
               <InvPatientPicker
                 patients={clinicPatients}
                 patientId={form.patientId}
@@ -1127,7 +1127,7 @@ export function AdminInvoices() {
               >
                 Crear factura PDF
               </button>
-            </div>
+                </div>
               </div>
             </div>
           </aside>

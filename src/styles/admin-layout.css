@@ -4,7 +4,7 @@
   --admin-pad-x: clamp(0.65rem, 1.25vw, 1rem);
   --admin-pad-y: clamp(0.55rem, 1vw, 0.85rem);
   --admin-gap: 0.65rem;
-  --admin-aside: minmax(280px, min(28vw, 400px));
+  --admin-aside: minmax(300px, min(32vw, 420px));
 }
 
 .portal--admin .portal-main {
@@ -89,7 +89,7 @@
 .portal--admin .pt-layout,
 .portal--admin .ntf-layout {
   grid-template-columns: minmax(0, 1fr) var(--admin-aside);
-  align-items: stretch;
+  align-items: start;
 }
 
 .portal--admin .inv-list-col,
