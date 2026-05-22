@@ -37,7 +37,6 @@ import {
   type ReportRangeId
 } from '@/lib/reportsAnalytics';
 import { statusLabel, money } from '@/lib/format';
-import { useCountUp } from '@/hooks/useCountUp';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { useTenant } from '@/hooks/useTenant';
@@ -128,8 +127,9 @@ function RepKpi({
   tone: string;
   spark: number[];
 }) {
-  const n = useCountUp(typeof value === 'number' ? value : 0);
   const up = trend.includes('▲') || trend.includes('+');
+  const fallback =
+    label.includes('%') ? `${value}%` : label.includes('€') || label.includes('Ingresos') ? money(value) : String(value);
   return (
     <div className="rep-kpi">
       <div className="rep-kpi__top">
@@ -143,7 +143,7 @@ function RepKpi({
         </span>
       </div>
       <p className="rep-kpi__label">{label}</p>
-      <p className="rep-kpi__value">{display ?? (label.includes('%') ? `${n}%` : label.includes('€') ? money(n) : n)}</p>
+      <p className="rep-kpi__value">{display ?? fallback}</p>
       <p className={`rep-kpi__trend${up ? ' rep-kpi__trend--up' : ''}`}>{trend}</p>
       <Sparkline points={spark} tone={tone} />
     </div>
@@ -158,7 +158,6 @@ export function AdminReports() {
   const clinics = scope.clinics;
   const dentists = scope.dentists.filter((d) => d.active);
 
-  const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState<'csv' | 'pdf' | null>(null);
   const [incomeMode, setIncomeMode] = useState<'day' | 'week' | 'month'>('week');
   const [insightsOpen, setInsightsOpen] = useState(false);
@@ -180,15 +179,6 @@ export function AdminReports() {
     () => data.aggregateIncome(incomeMode),
     [data, incomeMode]
   );
-
-  const incomeAnim = useCountUp(Math.round(data.kpis.income));
-  const apptAnim = useCountUp(data.kpis.appointments);
-  const attendAnim = useCountUp(data.kpis.attendance);
-
-  useEffect(() => {
-    const t = window.setTimeout(() => setLoading(false), 350);
-    return () => window.clearTimeout(t);
-  }, []);
 
   function clearFilters() {
     setFilters({ rangeId: '30', clinicId: '', dentistId: '' });
@@ -259,7 +249,7 @@ export function AdminReports() {
     }
   }
 
-  if (!loading && !data.hasData) {
+  if (!data.hasData) {
     return (
       <div className="rep-module">
         <header className="rep-module__head">
@@ -347,18 +337,11 @@ export function AdminReports() {
         </div>
       </header>
 
-      {loading ? (
-        <div className="rep-kpis">
-          {[1, 2, 3, 4, 5, 6].map((n) => (
-            <div key={n} className="rep-skeleton" />
-          ))}
-        </div>
-      ) : (
-        <div className="rep-kpis">
+      <div className="rep-kpis">
           <RepKpi
             label="Ingresos totales"
             value={data.kpis.income}
-            display={money(incomeAnim)}
+            display={money(data.kpis.income)}
             trend={data.kpis.incomeTrend}
             tone="teal"
             spark={data.kpis.incomeSpark}
@@ -366,7 +349,7 @@ export function AdminReports() {
           <RepKpi
             label="Citas totales"
             value={data.kpis.appointments}
-            display={String(apptAnim)}
+            display={String(data.kpis.appointments)}
             trend={data.kpis.appointmentsTrend}
             tone="blue"
             spark={data.kpis.appointmentsSpark}
@@ -374,7 +357,7 @@ export function AdminReports() {
           <RepKpi
             label="Tasa de asistencia"
             value={data.kpis.attendance}
-            display={`${attendAnim}%`}
+            display={`${data.kpis.attendance}%`}
             trend={data.kpis.attendanceTrend}
             tone="green"
             spark={data.kpis.attendanceSpark}
@@ -406,10 +389,8 @@ export function AdminReports() {
             <p className="rep-kpi__trend">{data.kpis.topTreatmentSub}</p>
           </div>
         </div>
-      )}
 
-      {!loading ? (
-        <div className="rep-grid">
+      <div className="rep-grid">
           <section className="rep-card">
             <h2>Citas por estado</h2>
             <div className="rep-chart rep-chart--sm">
@@ -422,8 +403,7 @@ export function AdminReports() {
                     innerRadius={52}
                     outerRadius={72}
                     paddingAngle={2}
-                    animationBegin={0}
-                    animationDuration={800}
+                    isAnimationActive={false}
                   >
                     {data.byStatus.map((entry) => (
                       <Cell key={entry.status} fill={STATUS_CHART_COLORS[entry.status]} />
@@ -677,7 +657,6 @@ export function AdminReports() {
             </button>
           </section>
         </div>
-      ) : null}
 
       {insightsOpen ? (
         <Modal open title="Insights" onClose={() => setInsightsOpen(false)}>

@@ -28,7 +28,7 @@ import {
   type PatientRow,
   type PatientSort
 } from '@/lib/patientAdmin';
-import { useCountUp } from '@/hooks/useCountUp';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { useTenant } from '@/hooks/useTenant';
@@ -60,7 +60,6 @@ function badgeLabel(kind: PatientRow['badges'][number]) {
 }
 
 function PtKpi({ label, value, icon: Icon, tone }: { label: string; value: number; icon: typeof Users; tone: 'teal' | 'blue' | 'amber' | 'green' }) {
-  const n = useCountUp(value);
   return (
     <div className="pt-kpi">
       <span className={`pt-kpi__icon pt-kpi__icon--${tone}`}>
@@ -68,7 +67,7 @@ function PtKpi({ label, value, icon: Icon, tone }: { label: string; value: numbe
       </span>
       <div>
         <p className="pt-kpi__label">{label}</p>
-        <p className="pt-kpi__value">{n}</p>
+        <p className="pt-kpi__value">{value}</p>
       </div>
     </div>
   );
@@ -173,6 +172,7 @@ export function AdminPatients() {
   const loading = dataSource === 'loading';
 
   const [q, setQ] = useState('');
+  const debouncedQ = useDebouncedValue(q);
   const [filter, setFilter] = useState<PatientFilter>('all');
   const [sort, setSort] = useState<PatientSort>('next_appt');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -190,10 +190,10 @@ export function AdminPatients() {
   }, [state, scope.tenantId, clinic.id]);
 
   const visible = useMemo(() => {
-    let rows = searchPatientRows(state, baseRows, q);
+    let rows = searchPatientRows(state, baseRows, debouncedQ);
     rows = filterPatientRows(rows, filter);
     return sortPatientRows(rows, sort);
-  }, [state, baseRows, q, filter, sort]);
+  }, [state, baseRows, debouncedQ, filter, sort]);
 
   const kpis = useMemo(() => computePatientKpis(baseRows), [baseRows]);
   const selected = visible.find((r) => r.patient.id === selectedId) ?? visible[0] ?? null;

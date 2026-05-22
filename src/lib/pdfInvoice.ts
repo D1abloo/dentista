@@ -91,9 +91,17 @@ export async function generateInvoicesSummaryPdf(
   _invoices: Invoice[],
   lines: string[]
 ): Promise<{ fileRef: string; fileName: string }> {
+  return generateTextSummaryPdf('informe-facturas', lines);
+}
+
+/** Informe PDF genérico (pagos, listados administrativos). */
+export async function generateTextSummaryPdf(
+  namePrefix: string,
+  lines: string[]
+): Promise<{ fileRef: string; fileName: string }> {
   const pdfBytes = buildMinimalPdf(lines);
   const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
-  const fileName = `informe-facturas-${new Date().toISOString().slice(0, 10)}.pdf`;
+  const fileName = `${namePrefix}-${new Date().toISOString().slice(0, 10)}.pdf`;
   const file = new File([blob], fileName, { type: 'application/pdf' });
   const fileRef = await saveDemoFile(file);
   return { fileRef, fileName };

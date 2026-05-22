@@ -42,62 +42,6 @@ function CharCount({ value, limit = MSG_LIMIT }: { value: string; limit?: number
   );
 }
 
-function SettingsPreview({
-  mode,
-  form,
-  logoUrl
-}: {
-  mode: 'sidebar' | 'invoice' | 'portal';
-  form: AppSettings;
-  logoUrl: string;
-}) {
-  if (mode === 'sidebar') {
-    return (
-      <div className="set-preview-sidebar">
-        <img src={logoUrl} alt="" width={32} height={32} />
-        <div>
-          <p style={{ margin: 0, fontWeight: 800, fontSize: '0.82rem' }}>{form.clinicName}</p>
-          <p style={{ margin: 0, fontSize: '0.68rem', opacity: 0.8 }}>Panel clínico</p>
-        </div>
-      </div>
-    );
-  }
-  if (mode === 'invoice') {
-    return (
-      <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#334155' }}>
-        <p style={{ margin: '0 0 0.35rem', fontWeight: 800 }}>{form.legalName || form.clinicName}</p>
-        <p style={{ margin: 0 }}>NIF: {form.nif || '—'}</p>
-        <p style={{ margin: '0.5rem 0' }}>Factura {form.invoiceSeries ?? 'FAC'}-2026-0001</p>
-        <p style={{ margin: 0 }}>IVA {form.vatRate ?? 21}% · {form.defaultInvoiceConcept ?? 'Servicios'}</p>
-        <span
-          style={{
-            display: 'inline-block',
-            marginTop: '0.5rem',
-            padding: '0.25rem 0.5rem',
-            borderRadius: 6,
-            background: 'var(--set-primary)',
-            color: '#fff',
-            fontWeight: 800
-          }}
-        >
-          Total 121,00 €
-        </span>
-      </div>
-    );
-  }
-  return (
-    <div className="set-preview-portal">
-      <p style={{ margin: 0, fontWeight: 800, fontSize: '0.85rem' }}>{form.clinicName}</p>
-      <p style={{ margin: '0.35rem 0', fontSize: '0.75rem', color: '#64748b' }}>{form.welcomeMessage}</p>
-      <span className="set-preview-btn">Entrar al portal</span>
-      <div className="set-preview-appt">
-        <strong style={{ color: 'var(--set-primary)' }}>Próxima cita</strong>
-        <p style={{ margin: '0.2rem 0 0' }}>22 may · 10:30 · Revisión</p>
-      </div>
-    </div>
-  );
-}
-
 export function AdminSettings() {
   const { state, commit } = useDemoStore();
   const { setNotice } = useNotice();
@@ -107,10 +51,8 @@ export function AdminSettings() {
   const [saved, setSaved] = useState(baseline);
   const [form, setForm] = useState<AppSettings>(baseline);
   const [tab, setTab] = useState<SettingsTabId>('general');
-  const [previewTab, setPreviewTab] = useState<'sidebar' | 'invoice' | 'portal'>('sidebar');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showSavedBadge, setShowSavedBadge] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [logoUrl, setLogoUrl] = useState(form.logoUrl ?? '/brand/dentista-logo.svg');
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoPct, setLogoPct] = useState(0);
@@ -119,11 +61,6 @@ export function AdminSettings() {
 
   const dirty = settingsSignature(form) !== settingsSignature(saved);
   const primary = form.primaryColor ?? '#2d8b7d';
-
-  useEffect(() => {
-    const t = window.setTimeout(() => setLoading(false), 280);
-    return () => window.clearTimeout(t);
-  }, []);
 
   useEffect(() => {
     setLogoUrl(form.logoUrl ?? '/brand/dentista-logo.svg');
@@ -718,48 +655,24 @@ export function AdminSettings() {
         ))}
       </nav>
 
-      {loading ? (
-        <div className="set-skeleton" />
-      ) : (
-        <div className="set-grid">
-          <div>{renderTabContent()}</div>
+      <div className="set-grid">
+        <div>{renderTabContent()}</div>
 
-          <aside className="set-side">
-            <section className="set-card">
-              <h2>Vista previa</h2>
-              <p className="set-card__sub">Así se verá tu marca en diferentes lugares.</p>
-              <div className="set-preview-tabs">
-                {(['sidebar', 'invoice', 'portal'] as const).map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    className={previewTab === p ? 'button--active' : ''}
-                    onClick={() => setPreviewTab(p)}
-                  >
-                    {p === 'sidebar' ? 'Sidebar' : p === 'invoice' ? 'Factura PDF' : 'Portal paciente'}
-                  </button>
-                ))}
+        <aside className="set-side">
+          <section className="set-card">
+            <h2>Resumen de configuración</h2>
+            {summaryRows.map((r) => (
+              <div key={r.k} className="set-summary-row">
+                <span>{r.k}</span>
+                <strong>{r.v}</strong>
               </div>
-              <div className="set-preview-box">
-                <SettingsPreview mode={previewTab} form={form} logoUrl={logoUrl} />
-              </div>
-            </section>
-
-            <section className="set-card">
-              <h2>Resumen de configuración</h2>
-              {summaryRows.map((r) => (
-                <div key={r.k} className="set-summary-row">
-                  <span>{r.k}</span>
-                  <strong>{r.v}</strong>
-                </div>
-              ))}
-              <button type="button" className="set-link" onClick={() => setAllOpen(true)}>
-                Ver todas las configuraciones →
-              </button>
-            </section>
-          </aside>
-        </div>
-      )}
+            ))}
+            <button type="button" className="set-link" onClick={() => setAllOpen(true)}>
+              Ver todas las configuraciones →
+            </button>
+          </section>
+        </aside>
+      </div>
 
       <section>
         <h2 style={{ margin: '0 0 0.65rem', fontSize: '0.95rem', fontWeight: 800 }}>Atajos rápidos</h2>
@@ -778,13 +691,12 @@ export function AdminSettings() {
             type="button"
             className="set-quick"
             onClick={() => {
-              setPreviewTab('invoice');
-              setTab('marca');
+              window.location.href = '/admin/facturas';
             }}
           >
             <Receipt className="h-5 w-5 text-teal-600" />
-            <h3>Vista previa factura</h3>
-            <p>Previsualiza cómo se verán tus facturas.</p>
+            <h3>Ir a facturación</h3>
+            <p>Gestiona facturas y series desde el módulo financiero.</p>
           </button>
           <button
             type="button"

@@ -1,3 +1,4 @@
+import { lazy, Suspense, type ReactNode } from 'react';
 import { DemoStoreProvider } from '@/hooks/useDemoStore';
 import { NoticeProvider } from '@/hooks/useNotice';
 import { PasswordChangeGate } from '@/components/auth/PasswordChangeGate';
@@ -9,27 +10,42 @@ import { adminSubtitles, adminTitles } from './nav';
 import { AdminShell } from './AdminShell';
 import { AdminDashboardToolbar } from './AdminDashboardToolbar';
 import {
-  AdminAgenda,
   AdminAppointments,
   AdminClinicalReports,
   AdminClinics,
-  AdminSettings,
-  AdminDashboard,
   AdminDentists,
-  AdminDocuments,
-  AdminInvoices,
   AdminNormativa,
   AdminPatientDetail,
-  AdminPatients,
-  AdminNotifications,
-  AdminPayments,
-  AdminReports,
   AdminTreatments
 } from './views';
+import { AdminDashboard } from './AdminDashboard';
+import { AdminPatients } from './AdminPatients';
 import { AdminConsents } from './consents';
 import { AdminClinicUsers } from './clinicUsers';
 import { AdminPdpAudit } from './pdpAudit';
 import { AdminPortalAccess } from './portalAccess';
+
+const LazyAgenda = lazy(() => import('./AdminAgenda').then((m) => ({ default: m.AdminAgenda })));
+const LazyDocuments = lazy(() => import('./AdminDocuments').then((m) => ({ default: m.AdminDocuments })));
+const LazyInvoices = lazy(() => import('./AdminInvoices').then((m) => ({ default: m.AdminInvoices })));
+const LazyPayments = lazy(() => import('./AdminPayments').then((m) => ({ default: m.AdminPayments })));
+const LazyReports = lazy(() => import('./AdminReports').then((m) => ({ default: m.AdminReports })));
+const LazyNotifications = lazy(() =>
+  import('./AdminNotifications').then((m) => ({ default: m.AdminNotifications }))
+);
+const LazySettings = lazy(() => import('./AdminSettings').then((m) => ({ default: m.AdminSettings })));
+
+function PanelFallback() {
+  return (
+    <p className="portal-panel-loading" role="status" aria-live="polite">
+      Cargando módulo…
+    </p>
+  );
+}
+
+function LazyPanel({ children }: { children: ReactNode }) {
+  return <Suspense fallback={<PanelFallback />}>{children}</Suspense>;
+}
 
 function Body({ view, patientId }: { view: AdminView; patientId?: string }) {
   if (patientId && view === 'pacientes') {
@@ -37,7 +53,11 @@ function Body({ view, patientId }: { view: AdminView; patientId?: string }) {
   }
   switch (view) {
     case 'agenda':
-      return <AdminAgenda />;
+      return (
+        <LazyPanel>
+          <LazyAgenda />
+        </LazyPanel>
+      );
     case 'citas':
       return <AdminAppointments />;
     case 'pacientes':
@@ -45,11 +65,23 @@ function Body({ view, patientId }: { view: AdminView; patientId?: string }) {
     case 'informes':
       return <AdminClinicalReports />;
     case 'documentos':
-      return <AdminDocuments />;
+      return (
+        <LazyPanel>
+          <LazyDocuments />
+        </LazyPanel>
+      );
     case 'facturas':
-      return <AdminInvoices />;
+      return (
+        <LazyPanel>
+          <LazyInvoices />
+        </LazyPanel>
+      );
     case 'pagos':
-      return <AdminPayments />;
+      return (
+        <LazyPanel>
+          <LazyPayments />
+        </LazyPanel>
+      );
     case 'dentistas':
       return <AdminDentists />;
     case 'tratamientos':
@@ -57,13 +89,25 @@ function Body({ view, patientId }: { view: AdminView; patientId?: string }) {
     case 'clinicas':
       return <AdminClinics />;
     case 'reportes':
-      return <AdminReports />;
+      return (
+        <LazyPanel>
+          <LazyReports />
+        </LazyPanel>
+      );
     case 'normativa':
       return <AdminNormativa />;
     case 'notificaciones':
-      return <AdminNotifications />;
+      return (
+        <LazyPanel>
+          <LazyNotifications />
+        </LazyPanel>
+      );
     case 'configuracion':
-      return <AdminSettings />;
+      return (
+        <LazyPanel>
+          <LazySettings />
+        </LazyPanel>
+      );
     case 'acceso-portal':
       return <AdminPortalAccess />;
     case 'auditoria-pdp':

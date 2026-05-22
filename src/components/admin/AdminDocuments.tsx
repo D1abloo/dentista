@@ -52,7 +52,7 @@ import { todayIso } from '@/lib/format';
 import { getPrimaryClinic } from '@/lib/clinic';
 import { patientsForClinic } from '@/lib/tenant';
 import { required } from '@/lib/validation';
-import { useCountUp } from '@/hooks/useCountUp';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { useTenant } from '@/hooks/useTenant';
@@ -97,7 +97,6 @@ function DocKpi({
   icon: typeof FileText;
   tone: 'green' | 'teal' | 'amber' | 'blue';
 }) {
-  const n = useCountUp(value);
   return (
     <div className="doc-kpi">
       <span className={`doc-kpi__icon doc-kpi__icon--${tone}`}>
@@ -105,7 +104,7 @@ function DocKpi({
       </span>
       <div>
         <p className="doc-kpi__label">{label}</p>
-        <p className="doc-kpi__value">{display ?? n}</p>
+        <p className="doc-kpi__value">{display ?? value}</p>
       </div>
     </div>
   );
@@ -216,8 +215,8 @@ export function AdminDocuments() {
   );
   const dentists = scope.dentists;
 
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search);
   const [filter, setFilter] = useState<DocFilter>('todos');
   const [sort, setSort] = useState<DocSort>('fecha');
   const [page, setPage] = useState(1);
@@ -253,9 +252,9 @@ export function AdminDocuments() {
   );
 
   const filtered = useMemo(() => {
-    const f = filterDocuments(tenantDocs, state, filter, search);
+    const f = filterDocuments(tenantDocs, state, filter, debouncedSearch);
     return sortDocuments(f, state, sort);
-  }, [tenantDocs, state, filter, search, sort]);
+  }, [tenantDocs, state, filter, debouncedSearch, sort]);
 
   const kpis = useMemo(() => computeDocumentKpis(tenantDocs), [tenantDocs]);
 
@@ -268,12 +267,7 @@ export function AdminDocuments() {
     return pageItems[0] ?? filtered[0] ?? null;
   }, [selectedId, filtered, pageItems, tenantDocs]);
 
-  useEffect(() => {
-    const t = window.setTimeout(() => setLoading(false), 320);
-    return () => window.clearTimeout(t);
-  }, []);
-
-  useEffect(() => setPage(1), [search, filter, sort]);
+  useEffect(() => setPage(1), [debouncedSearch, filter, sort]);
 
   useEffect(() => {
     if (!docFile) {
@@ -465,20 +459,12 @@ export function AdminDocuments() {
         </button>
       </header>
 
-      {loading ? (
-        <div className="doc-kpis">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="doc-skeleton" />
-          ))}
-        </div>
-      ) : (
-        <div className="doc-kpis">
-          <DocKpi label="Documentos totales" value={kpis.total} icon={FileText} tone="green" />
-          <DocKpi label="Visibles para paciente" value={kpis.visible} icon={Users} tone="teal" />
-          <DocKpi label="Pendientes de revisar" value={kpis.pending} icon={Clock} tone="amber" />
-          <DocKpi label="Última subida" value={0} display={lastUploadLabel(kpis.latest)} icon={Calendar} tone="blue" />
-        </div>
-      )}
+      <div className="doc-kpis">
+        <DocKpi label="Documentos totales" value={kpis.total} icon={FileText} tone="green" />
+        <DocKpi label="Visibles para paciente" value={kpis.visible} icon={Users} tone="teal" />
+        <DocKpi label="Pendientes de revisar" value={kpis.pending} icon={Clock} tone="amber" />
+        <DocKpi label="Última subida" value={0} display={lastUploadLabel(kpis.latest)} icon={Calendar} tone="blue" />
+      </div>
 
       <div className="doc-toolbar">
         <div className="doc-search">
@@ -524,12 +510,7 @@ export function AdminDocuments() {
           <div className="doc-card__head">
             <h2>Listado de documentos</h2>
           </div>
-          {loading ? (
-            <div style={{ padding: '1rem' }}>
-              <div className="doc-skeleton" />
-            </div>
-          ) : (
-            <>
+          <>
               <div className="doc-table-wrap">
                 <table className="doc-table">
                   <thead>
@@ -621,8 +602,7 @@ export function AdminDocuments() {
                   No hay documentos con estos filtros.
                 </p>
               ) : null}
-            </>
-          )}
+          </>
           <footer className="doc-card__foot">
             <span>
               Mostrando {from} a {to} de {filtered.length} documento{filtered.length === 1 ? '' : 's'}

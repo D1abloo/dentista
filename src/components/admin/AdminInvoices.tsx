@@ -53,7 +53,7 @@ import { getPatientById, patientName } from '@/lib/selectors';
 import { nextInvoiceId } from '@/lib/ids';
 import { money, todayIso } from '@/lib/format';
 import { patientsForClinic } from '@/lib/tenant';
-import { useCountUp } from '@/hooks/useCountUp';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { useTenant } from '@/hooks/useTenant';
@@ -197,8 +197,8 @@ export function AdminInvoices() {
     [state, clinic]
   );
 
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search);
   const [filter, setFilter] = useState<InvoiceFilter>('todas');
   const [sort, setSort] = useState<InvoiceSort>('vencimiento');
   const [page, setPage] = useState(1);
@@ -236,8 +236,8 @@ export function AdminInvoices() {
   const today = todayIso();
 
   const filtered = useMemo(
-    () => sortInvoices(filterInvoices(invoices, state, filter, search, today), state, sort, today),
-    [invoices, state, filter, search, sort, today]
+    () => sortInvoices(filterInvoices(invoices, state, filter, debouncedSearch, today), state, sort, today),
+    [invoices, state, filter, debouncedSearch, sort, today]
   );
 
   const kpis = useMemo(() => computeInvoiceKpis(invoices, today), [invoices, today]);
@@ -253,18 +253,7 @@ export function AdminInvoices() {
   }, [selectedId, invoices, pageItems, filtered]);
 
   const totals = useMemo(() => calcInvoiceTotals(form.lines, form.discount), [form.lines, form.discount]);
-  const billedAnim = useCountUp(Math.round(kpis.billed));
-  const pendingAnim = useCountUp(Math.round(kpis.pendingAmount));
-  const overdueAnim = useCountUp(kpis.overdueCount);
-  const paidAnim = useCountUp(kpis.paidCount);
-  const avgAnim = useCountUp(Math.round(kpis.avgAmount));
-
-  useEffect(() => {
-    const t = window.setTimeout(() => setLoading(false), 300);
-    return () => window.clearTimeout(t);
-  }, []);
-
-  useEffect(() => setPage(1), [search, filter, sort]);
+  useEffect(() => setPage(1), [debouncedSearch, filter, sort]);
 
   useEffect(() => {
     if (!pdfFile) {
@@ -454,6 +443,29 @@ export function AdminInvoices() {
     setNotice({ type: 'ok', message: 'Factura marcada como pagada.' });
   }
 
+  function bulkMarkPaid(rows: Invoice[]) {
+    if (!rows.length) return;
+    let next = state;
+    for (const inv of rows) {
+      next = saveInvoice(next, { ...inv, status: 'pagada' });
+    }
+    commit(next);
+    setNotice({ type: 'ok', message: `${rows.length} factura(s) marcada(s) como pagada(s).` });
+  }
+
+  function bulkDelete(rows: Invoice[]) {
+    if (!rows.length) return;
+    if (!window.confirm(`¿Eliminar ${rows.length} factura(s)? No se puede deshacer.`)) return;
+    let next = state;
+    for (const inv of rows) {
+      next = deleteInvoice(next, inv.id);
+    }
+    commit(next);
+    setChecked(new Set());
+    if (selectedId && rows.some((i) => i.id === selectedId)) setSelectedId(null);
+    setNotice({ type: 'ok', message: 'Facturas eliminadas.' });
+  }
+
   async function sendReminder(inv: Invoice) {
     await notifyPatient(
       inv.patientId,
@@ -594,14 +606,7 @@ export function AdminInvoices() {
         </div>
       </header>
 
-      {loading ? (
-        <div className="inv-kpis">
-          {[1, 2, 3, 4, 5].map((n) => (
-            <div key={n} className="inv-skeleton" />
-          ))}
-        </div>
-      ) : (
-        <div className="inv-kpis">
+      <div className="inv-kpis">
           <div className="inv-kpi">
             <div className="inv-kpi__row">
               <span className="inv-kpi__icon inv-kpi__icon--green">
@@ -609,7 +614,7 @@ export function AdminInvoices() {
               </span>
               <div>
                 <p className="inv-kpi__label">Facturado este mes</p>
-                <p className="inv-kpi__value">{money(billedAnim)}</p>
+                <p className="inv-kpi__value">{money(kpis.billed)}</p>
                 <p className={`inv-kpi__trend${kpis.trendPct >= 0 ? ' inv-kpi__trend--up' : ''}`}>
                   {kpis.trendPct >= 0 ? '+' : ''}
                   {kpis.trendPct}% vs mes anterior
@@ -624,7 +629,7 @@ export function AdminInvoices() {
               </span>
               <div>
                 <p className="inv-kpi__label">Pendiente de cobro</p>
-                <p className="inv-kpi__value">{money(pendingAnim)}</p>
+                <p className="inv-kpi__value">{money(kpis.pendingAmount)}</p>
                 <p className="inv-kpi__trend">{kpis.pendingCount} facturas pendientes</p>
               </div>
             </div>
@@ -636,7 +641,7 @@ export function AdminInvoices() {
               </span>
               <div>
                 <p className="inv-kpi__label">Facturas vencidas</p>
-                <p className="inv-kpi__value">{overdueAnim}</p>
+                <p className="inv-kpi__value">{kpis.overdueCount}</p>
                 <p className="inv-kpi__trend">Requiere revisión</p>
               </div>
             </div>
@@ -648,7 +653,7 @@ export function AdminInvoices() {
               </span>
               <div>
                 <p className="inv-kpi__label">Pagadas</p>
-                <p className="inv-kpi__value">{paidAnim}</p>
+                <p className="inv-kpi__value">{kpis.paidCount}</p>
                 <p className="inv-kpi__trend">{kpis.paidPct}% del total</p>
               </div>
             </div>
@@ -660,13 +665,12 @@ export function AdminInvoices() {
               </span>
               <div>
                 <p className="inv-kpi__label">Importe medio</p>
-                <p className="inv-kpi__value">{money(avgAnim)}</p>
+                <p className="inv-kpi__value">{money(kpis.avgAmount)}</p>
                 <p className="inv-kpi__trend">Por factura</p>
               </div>
             </div>
           </div>
         </div>
-      )}
 
       <div className="inv-toolbar">
         <div className="inv-search">
@@ -703,13 +707,15 @@ export function AdminInvoices() {
         </div>
       </div>
 
-      <div className="inv-grid">
-        <section className="inv-card">
-          <div className="inv-card__head">
-            <h2>Listado de facturas</h2>
-          </div>
+      <div className="inv-workspace">
+        <div className="inv-grid">
+          <div className="inv-list-col">
+            <section className="inv-card inv-list-card">
+              <div className="inv-card__head">
+                <h2>Listado de facturas</h2>
+              </div>
           <div className="inv-bulk">
-            <button type="button" disabled={!bulkOn} onClick={() => selectedRows.forEach(markPaid)}>
+            <button type="button" disabled={!bulkOn} onClick={() => bulkMarkPaid(selectedRows)}>
               Marcar como pagadas
             </button>
             <button type="button" disabled={!bulkOn} onClick={() => void Promise.all(selectedRows.map(sendReminder))}>
@@ -718,15 +724,7 @@ export function AdminInvoices() {
             <button type="button" disabled={!bulkOn} onClick={() => exportCsvFile(selectedRows)}>
               Exportar selección
             </button>
-            <button
-              type="button"
-              disabled={!bulkOn}
-              onClick={() => {
-                selectedRows.forEach((i) => commit(deleteInvoice(state, i.id)));
-                setChecked(new Set());
-                setNotice({ type: 'ok', message: 'Facturas eliminadas.' });
-              }}
-            >
+            <button type="button" disabled={!bulkOn} onClick={() => bulkDelete(selectedRows)}>
               Eliminar selección
             </button>
           </div>
@@ -845,11 +843,15 @@ export function AdminInvoices() {
               </button>
             </div>
           </footer>
-        </section>
+            </section>
+          </div>
 
-        <aside className="inv-side" ref={formRef}>
-          <div className="inv-card inv-form">
-            <h2>Nueva factura</h2>
+          <aside className="inv-aside" ref={formRef}>
+            <div className="inv-card inv-form-card">
+              <div className="inv-card__head">
+                <h2>Nueva factura</h2>
+              </div>
+              <div className="inv-form__body">
             <div className="inv-form-grid">
               <InvPatientPicker
                 patients={clinicPatients}
@@ -1119,58 +1121,19 @@ export function AdminInvoices() {
               </div>
               <button
                 type="button"
-                className="inv-btn-primary"
-                style={{ width: '100%' }}
+                className="inv-btn-primary inv-btn-primary--block"
                 disabled={saving}
                 onClick={() => void createInvoicePdf()}
               >
                 Crear factura PDF
               </button>
             </div>
-          </div>
-
-          {selected ? (
-            <div className="inv-card inv-preview-card">
-              <h3>Vista previa</h3>
-              <div className="inv-preview-card__thumb">
-                <FileText className="h-10 w-10 text-slate-300" />
-              </div>
-              <p style={{ fontSize: '0.78rem', fontWeight: 600, color: '#64748b' }}>
-                Factura seleccionada: <strong style={{ color: '#0f2742' }}>{displayInvoiceId(selected)}</strong>
-              </p>
-              <p style={{ fontSize: '0.78rem', fontWeight: 600, color: '#64748b' }}>
-                Paciente: <strong style={{ color: '#0f2742' }}>{patientName(state, selected.patientId)}</strong>
-              </p>
-              <p style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0f2742' }}>Total: {money(selected.amount)}</p>
-              <p>
-                {selected.fileRef ? <span className="inv-badge inv-badge--pdf">PDF</span> : null}{' '}
-                <span className={`inv-badge ${statusBadgeClass(effectiveStatus(selected, today))}`}>
-                  {statusLabel(effectiveStatus(selected, today))}
-                </span>
-              </p>
-              <div className="inv-preview-card__actions">
-                <button
-                  type="button"
-                  disabled={!selected.fileRef}
-                  onClick={() => selected.fileRef && downloadDemoFileRef(selected.fileRef, selected.fileName)}
-                >
-                  Descargar
-                </button>
-                <button type="button" onClick={() => void sendToPatient(selected)}>
-                  Enviar al paciente
-                </button>
-                {effectiveStatus(selected, today) !== 'pagada' ? (
-                  <button type="button" className="inv-btn-primary" onClick={() => markPaid(selected)}>
-                    Marcar pagada
-                  </button>
-                ) : null}
               </div>
             </div>
-          ) : null}
-        </aside>
-      </div>
+          </aside>
+        </div>
 
-      <div className="inv-util-grid">
+        <div className="inv-util-grid">
         <div className="inv-util-card inv-util-card--teal">
           <h3>Automatiza tu facturación</h3>
           <p>Configura series, IVA y plantillas PDF desde ajustes de clínica.</p>
@@ -1205,6 +1168,58 @@ export function AdminInvoices() {
           {!reminders.overdue.length && !reminders.soon.length ? (
             <p>No hay recordatorios pendientes.</p>
           ) : null}
+        </div>
+
+        <div className="inv-util-card inv-preview-util">
+          <h3>Vista previa</h3>
+          {selected ? (
+            <>
+              <div className="inv-preview-util__thumb">
+                <FileText className="h-10 w-10 text-slate-300" aria-hidden />
+              </div>
+              <dl className="inv-preview-util__meta">
+                <div>
+                  <dt>Factura</dt>
+                  <dd>{displayInvoiceId(selected)}</dd>
+                </div>
+                <div>
+                  <dt>Paciente</dt>
+                  <dd>{patientName(state, selected.patientId)}</dd>
+                </div>
+                <div>
+                  <dt>Total</dt>
+                  <dd className="inv-preview-util__total">{money(selected.amount)}</dd>
+                </div>
+              </dl>
+              <p className="inv-preview-util__badges">
+                {selected.fileRef ? <span className="inv-badge inv-badge--pdf">PDF</span> : null}
+                <span className={`inv-badge ${statusBadgeClass(effectiveStatus(selected, today))}`}>
+                  {statusLabel(effectiveStatus(selected, today))}
+                </span>
+              </p>
+              <div className="inv-preview-util__actions">
+                <button
+                  type="button"
+                  className="inv-btn-secondary"
+                  disabled={!selected.fileRef}
+                  onClick={() => selected.fileRef && downloadDemoFileRef(selected.fileRef, selected.fileName)}
+                >
+                  Descargar
+                </button>
+                <button type="button" className="inv-btn-secondary" onClick={() => void sendToPatient(selected)}>
+                  Enviar al paciente
+                </button>
+                {effectiveStatus(selected, today) !== 'pagada' ? (
+                  <button type="button" className="inv-btn-primary" onClick={() => markPaid(selected)}>
+                    Marcar pagada
+                  </button>
+                ) : null}
+              </div>
+            </>
+          ) : (
+            <p className="inv-preview-util__empty">Selecciona una factura del listado para ver el detalle.</p>
+          )}
+        </div>
         </div>
       </div>
 

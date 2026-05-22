@@ -14,8 +14,16 @@ import {
 } from 'lucide-react';
 import { getPrimaryClinic } from '@/lib/clinic';
 import { isClientDemoMode } from '@/lib/appMode';
-import { createPayment, exportCsv, getStoredTenantId } from '@/lib/demoStore';
-import { saveDemoFile } from '@/lib/demoFiles';
+import {
+  addMessage,
+  createPayment,
+  exportCsv,
+  getStoredTenantId,
+  saveInvoice,
+  settingsFor
+} from '@/lib/demoStore';
+import { downloadDemoFileRef, saveDemoFile } from '@/lib/demoFiles';
+import { generateTextSummaryPdf } from '@/lib/pdfInvoice';
 import {
   computePaymentKpis,
   displayPaymentId,
@@ -32,7 +40,7 @@ import {
 } from '@/lib/paymentAdmin';
 import { money, todayIso } from '@/lib/format';
 import { patientsForClinic } from '@/lib/tenant';
-import { useCountUp } from '@/hooks/useCountUp';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { useTenant } from '@/hooks/useTenant';
@@ -74,8 +82,8 @@ export function AdminPayments() {
     [state, clinic]
   );
 
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search);
   const [filter, setFilter] = useState<PaymentFilter>('todos');
   const [sort, setSort] = useState<PaymentSort>('fecha');
   const [page, setPage] = useState(1);
@@ -98,9 +106,10 @@ export function AdminPayments() {
 
   const payments = scope.payments;
   const filtered = useMemo(
-    () => sortPayments(filterPayments(payments, state, filter, search), state, sort),
-    [payments, state, filter, search, sort]
+    () => sortPayments(filterPayments(payments, state, filter, debouncedSearch), state, sort),
+    [payments, state, filter, debouncedSearch, sort]
   );
+  const clinicSettings = settingsFor(state, tenantId);
   const kpis = useMemo(() => computePaymentKpis(payments), [payments]);
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageSafe = Math.min(page, totalPages);
@@ -110,17 +119,7 @@ export function AdminPayments() {
     return pageItems[0] ?? null;
   }, [selectedId, payments, pageItems]);
 
-  const pendingAnim = useCountUp(kpis.pendingCount);
-  const completedAnim = useCountUp(kpis.completedCount);
-  const failedAnim = useCountUp(kpis.failedCount);
-  const avgAnim = useCountUp(Math.round(kpis.avgAmount));
-
-  useEffect(() => {
-    const t = window.setTimeout(() => setLoading(false), 280);
-    return () => window.clearTimeout(t);
-  }, []);
-
-  useEffect(() => setPage(1), [search, filter, sort]);
+  useEffect(() => setPage(1), [debouncedSearch, filter, sort]);
 
   const patientInvoices = state.invoices.filter((i) => i.patientId === form.patientId);
 
@@ -198,6 +197,72 @@ export function AdminPayments() {
     setNotice({ type: 'ok', message: 'CSV exportado.' });
   }
 
+  async function exportPdfReport(rows: Payment[]) {
+    const lines = [
+      clinicSettings.clinicName ?? 'Clínica',
+      'INFORME DE PAGOS',
+      `Generado: ${formatPayDate(todayIso())}`,
+      '',
+      ...rows.flatMap((p) => [
+        displayPaymentId(p),
+        patientLine(state, p.patientId),
+        invoiceLabel(state, p.invoiceId),
+        paymentMethodLabel(p.method),
+        money(p.amount),
+        paymentStatusLabel(p.status),
+        ''
+      ])
+    ];
+    const { fileRef, fileName } = await generateTextSummaryPdf('informe-pagos', lines);
+    downloadDemoFileRef(fileRef, fileName);
+    setNotice({ type: 'ok', message: 'Informe PDF descargado.' });
+  }
+
+  async function notifyPatient(patientId: string, subject: string, body: string) {
+    const patient = state.patients.find((p) => p.id === patientId);
+    const clinicId = patient?.preferredClinicId;
+    if (!isClientDemoMode() && clinicId) {
+      await fetch('/api/records/message', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ clinicId, patientId, subject, body, channel: 'email', type: 'clinica' })
+      });
+      return;
+    }
+    commit(
+      addMessage(state, {
+        patientId,
+        subject,
+        body,
+        channel: 'email',
+        type: 'clinica',
+        read: false,
+        sentAt: new Date().toISOString()
+      })
+    );
+  }
+
+  function markLinkedInvoicePaid(payment: Payment) {
+    if (!payment.invoiceId) return;
+    const inv = state.invoices.find((i) => i.id === payment.invoiceId);
+    if (!inv) {
+      setNotice({ type: 'error', message: 'No se encontró la factura vinculada.' });
+      return;
+    }
+    commit(saveInvoice(state, { ...inv, status: 'pagada' }));
+    setNotice({ type: 'ok', message: 'Factura marcada como pagada.' });
+  }
+
+  function downloadReceipt(payment: Payment) {
+    if (!payment.receiptRef) {
+      setNotice({ type: 'error', message: 'Este pago no tiene justificante adjunto.' });
+      return;
+    }
+    downloadDemoFileRef(payment.receiptRef, payment.receiptFileName ?? `recibo-${payment.id}.pdf`);
+    setNotice({ type: 'ok', message: 'Recibo descargado.' });
+  }
+
   const from = filtered.length ? (pageSafe - 1) * PAGE_SIZE + 1 : 0;
   const to = Math.min(pageSafe * PAGE_SIZE, filtered.length);
 
@@ -212,7 +277,7 @@ export function AdminPayments() {
           <button type="button" className="pay-btn-secondary" onClick={() => exportCsvFile(filtered)}>
             <FileText className="h-4 w-4" /> Exportar CSV
           </button>
-          <button type="button" className="pay-btn-secondary" onClick={() => exportCsvFile(filtered)}>
+          <button type="button" className="pay-btn-secondary" onClick={() => void exportPdfReport(filtered)}>
             <Download className="h-4 w-4" /> Exportar PDF
           </button>
           <button type="button" className="pay-btn-primary" onClick={() => formRef.current?.scrollIntoView({ behavior: 'smooth' })}>
@@ -221,21 +286,14 @@ export function AdminPayments() {
         </div>
       </header>
 
-      {loading ? (
-        <div className="pay-kpis">
-          {[1, 2, 3, 4, 5].map((n) => (
-            <div key={n} className="pay-skeleton" />
-          ))}
-        </div>
-      ) : (
-        <div className="pay-kpis">
+      <div className="pay-kpis">
           <div className="pay-kpi">
             <span className="pay-kpi__icon pay-kpi__icon--amber">
               <Clock className="h-4 w-4" />
             </span>
             <div>
               <p className="pay-kpi__label">Pagos pendientes</p>
-              <p className="pay-kpi__value">{pendingAnim}</p>
+              <p className="pay-kpi__value">{kpis.pendingCount}</p>
               <p className="pay-kpi__trend">{money(kpis.pendingAmount)}</p>
             </div>
           </div>
@@ -245,7 +303,7 @@ export function AdminPayments() {
             </span>
             <div>
               <p className="pay-kpi__label">Completados</p>
-              <p className="pay-kpi__value">{completedAnim}</p>
+              <p className="pay-kpi__value">{kpis.completedCount}</p>
               <p className="pay-kpi__trend">{money(kpis.monthTotal)} este mes</p>
             </div>
           </div>
@@ -255,7 +313,7 @@ export function AdminPayments() {
             </span>
             <div>
               <p className="pay-kpi__label">Fallidos</p>
-              <p className="pay-kpi__value">{failedAnim}</p>
+              <p className="pay-kpi__value">{kpis.failedCount}</p>
               <p className="pay-kpi__trend">Requiere revisión</p>
             </div>
           </div>
@@ -265,7 +323,7 @@ export function AdminPayments() {
             </span>
             <div>
               <p className="pay-kpi__label">Importe medio</p>
-              <p className="pay-kpi__value">{money(avgAnim)}</p>
+              <p className="pay-kpi__value">{money(kpis.avgAmount)}</p>
               <p className="pay-kpi__trend">Por pago</p>
             </div>
           </div>
@@ -281,7 +339,6 @@ export function AdminPayments() {
             </div>
           </div>
         </div>
-      )}
 
       <div className="pay-toolbar">
         <div className="pay-search">
@@ -480,20 +537,24 @@ export function AdminPayments() {
               <p>Hora: {formatPayTime(selected.paidAt ?? selected.createdAt)}</p>
               <span className={`pay-badge ${statusClass(selected.status)}`}>{paymentStatusLabel(selected.status)}</span>
               <div className="pay-preview__actions">
-                <button type="button" className="pay-btn-secondary" onClick={() => setNotice({ type: 'ok', message: 'Recibo descargado.' })}>
+                <button type="button" className="pay-btn-secondary" onClick={() => downloadReceipt(selected)}>
                   Descargar recibo
                 </button>
-                <button type="button" className="pay-btn-secondary" onClick={() => setNotice({ type: 'ok', message: 'Recibo enviado al paciente.' })}>
+                <button
+                  type="button"
+                  className="pay-btn-secondary"
+                  onClick={() =>
+                    void notifyPatient(
+                      selected.patientId,
+                      'Recibo de pago',
+                      `Recibo ${displayPaymentId(selected)} por ${money(selected.amount)} registrado en la clínica.`
+                    ).then(() => setNotice({ type: 'ok', message: 'Recibo enviado al paciente.' }))
+                  }
+                >
                   Enviar al paciente
                 </button>
                 {selected.invoiceId ? (
-                  <button
-                    type="button"
-                    className="pay-btn-secondary"
-                    onClick={() => {
-                      window.location.href = '/admin/facturas';
-                    }}
-                  >
+                  <button type="button" className="pay-btn-secondary" onClick={() => markLinkedInvoicePaid(selected)}>
                     <Check className="h-4 w-4" /> Marcar factura como pagada
                   </button>
                 ) : null}
