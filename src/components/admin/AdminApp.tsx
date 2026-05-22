@@ -81,6 +81,7 @@ function AdminInner({ view, patientId }: { view: AdminView; patientId?: string }
   const isPatients = view === 'pacientes' && !patientId;
   const isDocuments = view === 'documentos' && !patientId;
   const isInvoices = view === 'facturas' && !patientId;
+  const isReports = view === 'reportes' && !patientId;
   const title = patientId && view === 'pacientes' ? `Ficha ${patientId}` : isDashboard ? 'Resumen general' : adminTitles[view];
   const subtitle = patientId && view === 'pacientes' ? undefined : adminSubtitles[view];
   return (
@@ -92,6 +93,7 @@ function AdminInner({ view, patientId }: { view: AdminView; patientId?: string }
       patientsModule={isPatients}
       documentsModule={isDocuments}
       invoicesModule={isInvoices}
+      reportsModule={isReports}
       dashboardToolbar={isDashboard ? <AdminDashboardToolbar /> : undefined}
     >
       <Toast notice={notice} onClose={clear} />

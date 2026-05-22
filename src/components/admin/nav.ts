@@ -96,7 +96,7 @@ export const adminSubtitles: Record<AdminView, string> = {
   dentistas: 'Equipo clínico de la sede',
   tratamientos: 'Catálogo y precios',
   clinicas: 'Organización y sedes',
-  reportes: 'Métricas e ingresos',
+  reportes: 'Analiza citas, tratamientos, ingresos, ocupación y rendimiento de tu clínica.',
   normativa: 'Textos legales visibles al paciente',
   configuracion: 'Datos de contacto, perfil y recordatorios',
   'acceso-portal': 'Tokens de acceso al portal del paciente (sin historial)',

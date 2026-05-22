@@ -457,41 +457,7 @@ export function AdminClinics() {
   );
 }
 
-export function AdminReports() {
-  const { state } = useDemoStore();
-  const scope = useTenant();
-  const byStatus = ['pendiente', 'confirmada', 'completada', 'cancelada', 'no_asistio'] as const;
-  const max = Math.max(1, ...byStatus.map((s) => scope.appointments.filter((a) => a.status === s).length));
-  const top = [...scope.treatments].map((t) => ({
-    t,
-    n: scope.appointments.filter((a) => a.treatmentId === t.id).length
-  })).sort((a, b) => b.n - a.n).slice(0, 3);
-  const income = scope.payments.filter((p) => p.status === 'completado').reduce((s, p) => s + p.amount, 0);
-
-  return (
-    <div className="space-y-4">
-      <Card title="Citas por estado">
-        <div className="bar-chart">
-          {byStatus.map((s) => {
-            const n = scope.appointments.filter((a) => a.status === s).length;
-            return (
-              <div key={s} className="flex flex-1 flex-col items-center gap-1">
-                <div className="bar-chart__bar w-full" style={{ height: `${(n / max) * 100}%` }} title={`${n}`} />
-                <span className="text-[10px] font-bold text-slate-500">{statusLabel(s)}</span>
-              </div>
-            );
-          })}
-        </div>
-      </Card>
-      <Card title="Tratamientos más reservados">
-        <ul className="space-y-2">{top.map(({ t, n }) => (
-          <li key={t.id} className="flex justify-between text-sm font-semibold"><span>{t.name}</span><span>{n} citas</span></li>
-        ))}</ul>
-      </Card>
-      <StatCard label={modeCopy('Ingresos demo', 'Ingresos')} value={money(income)} />
-    </div>
-  );
-}
+export { AdminReports } from './AdminReports';
 
 export function AdminNormativa() {
   const { state, commit } = useDemoStore();
