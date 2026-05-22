@@ -77,72 +77,7 @@ import {
 
 export { AdminClinicalReports, AdminDocuments, AdminInvoices, AdminPatientDetail, AdminPayments };
 
-export function AdminDashboard() {
-  const { state } = useDemoStore();
-  const scope = useTenant();
-  const today = todayIso();
-  const appts = scope.appointments;
-  const income = scope.payments.filter((p) => p.status === 'completado').reduce((s, p) => s + p.amount, 0);
-  const pending = appts.filter((a) => a.status === 'pendiente').length;
-  const confirmed = appts.filter((a) => a.status === 'confirmada').length;
-  const activity = recentPatientActivity(state, 8, scope.tenantId);
-  const occupancy = scope.dentists.length
-    ? Math.min(100, Math.round((appts.filter((a) => a.date === today).length / (scope.dentists.length * 8)) * 100))
-    : 0;
-
-  return (
-    <div className="space-y-5">
-      <p className="admin-intro">
-        Resumen de actividad de tu organización. Consulta la <a href="/ayuda#panel-admin">guía de uso</a> para el panel y el portal del paciente.
-      </p>
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Citas hoy" value={appts.filter((a) => a.date === today).length} tone="accent" />
-        <StatCard label="Citas pendientes" value={pending} tone="warn" />
-        <StatCard label="Citas confirmadas" value={confirmed} tone="success" />
-        <StatCard label="Pacientes en clínica" value={patientsForTenant(state, scope.tenantId).length} />
-        <StatCard label="Informes emitidos" value={scope.reports.length} />
-        <StatCard label="Documentos subidos" value={scope.documents.length} />
-        <StatCard label="Facturas pendientes" value={scope.invoices.filter((i) => i.status === 'pendiente').length} tone="warn" />
-        <StatCard label="Pagos completados" value={scope.payments.filter((p) => p.status === 'completado').length} />
-        <StatCard label={modeCopy('Ingresos demo', 'Ingresos')} value={money(income)} />
-        <StatCard label="Ocupación agenda hoy" value={`${occupancy}%`} hint={modeCopy('estimación demo', 'hoy')} />
-        <StatCard label="Alertas" value={scope.invoices.filter((i) => i.status === 'vencida').length} tone="warn" hint="facturas vencidas" />
-      </div>
-
-      
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card title="Próximas citas">
-          <ul className="space-y-2 text-sm">
-            {[...appts]
-              .filter((a) => a.date >= today && isActiveStatus(a.status))
-              .slice(0, 5)
-              .map((a) => (
-                <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2">
-                  <span>
-                    <IdBadge id={a.id} kind="cita" /> {patientName(state, a.patientId)} · {fmtDateTime(a.date, a.time)}
-                  </span>
-                  <Badge status={a.status} label={statusLabel(a.status)} />
-                </li>
-              ))}
-          </ul>
-        </Card>
-        <Card title="Actividad reciente">
-          <ul className="feed">
-            {activity.map((a) => (
-              <li key={`${a.kind}-${a.id}`} className="feed__item">
-                <IdBadge id={a.id} kind={a.kind === 'factura' ? 'factura' : a.kind === 'informe' ? 'informe' : a.kind === 'pago' ? 'pago' : 'documento'} />
-                <span className="text-sm font-semibold">{a.label}</span>
-              </li>
-            ))}
-          </ul>
-          {!activity.length ? <Empty title="Sin actividad" text="Crea registros para ver el historial." /> : null}
-        </Card>
-      </div>
-</div>
-  );
-}
+export { AdminDashboard } from './AdminDashboard';
 
 export function AdminAppointments() {
   const { state, commit, refresh } = useDemoStore();

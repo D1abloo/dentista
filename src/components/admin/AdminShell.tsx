@@ -9,6 +9,7 @@ import { getStaffProfile, organizationDisplayName, organizationSubtitle } from '
 import { getStoredTenantId, settingsFor } from '@/lib/demoStore';
 import { AdminSearch } from './AdminSearch';
 import { adminNav } from './nav';
+import { adminCompactNav } from './adminCompactNav';
 import { isNavItemVisible } from '@/lib/adminNav';
 import { useStaffContext } from '@/hooks/useStaffContext';
 import { ClinicBranchSwitcher } from './ClinicBranchSwitcher';
@@ -32,7 +33,8 @@ function AdminRail({
   staffRole,
   onNav,
   onLogout,
-  variant
+  variant,
+  compact
 }: {
   path: string;
   tenant: { id: string; name: string; subtitle: string };
@@ -43,47 +45,58 @@ function AdminRail({
   onNav: () => void;
   onLogout: () => void;
   variant: 'drawer' | 'rail';
+  compact?: boolean;
 }) {
-  const visibleNav = adminNav.filter((item) => isNavItemVisible(item.view, staffRole));
+  const navSource = compact ? adminCompactNav : adminNav;
+  const visibleNav = navSource.filter((item) => isNavItemVisible(item.view, staffRole));
   const cls =
     variant === 'drawer'
-      ? 'portal-rail portal-rail--admin portal-rail--drawer'
-      : 'portal-rail portal-rail--admin';
+      ? `portal-rail portal-rail--admin portal-rail--drawer${compact ? ' portal-rail--compact' : ''}`
+      : `portal-rail portal-rail--admin${compact ? ' portal-rail--compact' : ''}`;
   return (
     <aside className={cls}>
-      <a href="/admin" className="admin-brand mb-6 px-2 no-underline" onClick={onNav}>
+      <a href="/admin" className={`admin-brand no-underline${compact ? ' admin-brand--compact' : ' mb-6 px-2'}`} onClick={onNav}>
         <span className="clinic-brand-logo-shine admin-brand__clinic-logo-wrap">
           <img src={clinicLogoUrl} alt="" className="admin-brand__clinic-logo clinic-brand-logo-shine__img" width={56} height={56} />
         </span>
         <span className="admin-brand__label">Dentista+</span>
       </a>
-      <div className="admin-org-card mb-4">
-        <p className="admin-org-card__name">{tenant.name}</p>
-        <p className="admin-org-card__sub">{tenant.subtitle}</p>
-        <p className="admin-org-card__user">{userLabel}</p>
-      </div>
-      <nav className="flex-1 overflow-y-auto">
+      {!compact ? (
+        <div className="admin-org-card mb-4">
+          <p className="admin-org-card__name">{tenant.name}</p>
+          <p className="admin-org-card__sub">{tenant.subtitle}</p>
+          <p className="admin-org-card__user">{userLabel}</p>
+        </div>
+      ) : null}
+      <nav className="portal-rail__nav flex-1 overflow-y-auto">
         {visibleNav.map((item) => {
           const active = path === item.href || (item.href !== '/admin' && path.startsWith(item.href));
+          const notify = 'notifyDot' in item && item.notifyDot;
           return (
             <a
-              key={item.href}
+              key={`${item.href}-${item.label}`}
               href={item.href}
               onClick={() => {
                 if (platformInspect) logInspectNav(item.href, item.label);
                 onNav();
               }}
               className={`rail-link rail-link--admin ${active ? 'rail-link--active' : ''}`}
+              title={item.label}
             >
-              <item.icon className="h-4 w-4" />
-              {item.label}
+              <span className="rail-link__icon-wrap">
+                <item.icon className="h-5 w-5" />
+                {notify ? <span className="rail-link__dot" aria-label="Avisos pendientes" /> : null}
+              </span>
+              <span className="rail-link__text">{item.label}</span>
             </a>
           );
         })}
       </nav>
-      <a href="/" className="rail-link rail-link--admin text-white/50" onClick={onNav}>
-        ← Inicio público
-      </a>
+      {!compact ? (
+        <a href="/" className="rail-link rail-link--admin text-white/50" onClick={onNav}>
+          ← Inicio público
+        </a>
+      ) : null}
       <button type="button" className="admin-logout-btn mt-2" onClick={onLogout}>
         <LogOut className="h-4 w-4" /> Cerrar sesión
       </button>
@@ -94,11 +107,15 @@ function AdminRail({
 export function AdminShell({
   title,
   subtitle,
-  children
+  children,
+  dashboardToolbar,
+  compactNav = true
 }: {
   title: string;
   subtitle?: string;
   children: ReactNode;
+  dashboardToolbar?: ReactNode;
+  compactNav?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const path = typeof window !== 'undefined' ? window.location.pathname : '';
@@ -188,6 +205,7 @@ export function AdminShell({
         onNav={close}
         onLogout={logout}
         variant="rail"
+        compact={compactNav}
       />
       {open ? (
         <div
@@ -207,52 +225,47 @@ export function AdminShell({
               onNav={close}
               onLogout={logout}
               variant="drawer"
+              compact={compactNav}
             />
           </div>
         </div>
       ) : null}
       <div className="portal-main">
-        <header className="portal-top portal-top--admin admin-topbar">
+        <header className={`portal-top portal-top--admin admin-topbar${dashboardToolbar ? ' admin-topbar--dashboard' : ''}`}>
           <div className="admin-topbar__brand">
             <div className="admin-topbar__title-wrap">
               <span className="admin-topbar__accent" aria-hidden />
               <h1 className="admin-topbar__title">{title}</h1>
             </div>
-            <p className="admin-topbar__meta">
-              {subtitle ? (
-                <>
-                  <span className="admin-topbar__subtitle">{subtitle}</span>
-                  <span className="admin-topbar__sep" aria-hidden>
-                    ·
-                  </span>
-                </>
-              ) : null}
-              <span className="admin-topbar__org">
-                {tenant.subtitle} · {tenant.name}
-              </span>
-            </p>
+            {subtitle ? <p className="admin-topbar__subtitle">{subtitle}</p> : null}
           </div>
 
-          <div className="admin-topbar__search">
-            <AdminSearch />
-          </div>
+          {dashboardToolbar ? (
+            <div className="admin-topbar__dashboard-tools">{dashboardToolbar}</div>
+          ) : (
+            <>
+              <div className="admin-topbar__search">
+                <AdminSearch />
+              </div>
+              <div className="admin-topbar__actions">
+                <AdminQuickAccess />
+                <div className="hidden lg:block">
+                  <ClinicBranchSwitcher />
+                </div>
+                <button type="button" className="admin-logout-btn admin-logout-btn--compact" onClick={logout}>
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden sm:inline">Cerrar sesión</span>
+                  <span className="sm:hidden">Salir</span>
+                </button>
+              </div>
+            </>
+          )}
 
-          <div className="admin-topbar__actions">
-            <AdminQuickAccess />
-            <div className="hidden lg:block">
-              <ClinicBranchSwitcher />
-            </div>
-            <button type="button" className="admin-logout-btn admin-logout-btn--compact" onClick={logout}>
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Cerrar sesión</span>
-              <span className="sm:hidden">Salir</span>
-            </button>
-            <button type="button" className="pub-menu-btn lg:hidden" onClick={() => setOpen(true)} aria-label="Menú">
-              <Menu className="h-5 w-5" />
-            </button>
-          </div>
+          <button type="button" className="pub-menu-btn lg:hidden admin-topbar__menu" onClick={() => setOpen(true)} aria-label="Menú">
+            <Menu className="h-5 w-5" />
+          </button>
         </header>
-        <main className="portal-body portal-body--corp portal-body--admin">{children}</main>
+        <main className="portal-body portal-body--corp portal-body--admin portal-body--dashboard">{children}</main>
       </div>
     </div>
   );

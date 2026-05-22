@@ -7,6 +7,7 @@ import { useNotice } from '@/hooks/useNotice';
 import type { AdminView } from './nav';
 import { adminSubtitles, adminTitles } from './nav';
 import { AdminShell } from './AdminShell';
+import { AdminDashboardToolbar } from './AdminDashboardToolbar';
 import {
   AdminAgenda,
   AdminAppointments,
@@ -75,10 +76,16 @@ function Body({ view, patientId }: { view: AdminView; patientId?: string }) {
 
 function AdminInner({ view, patientId }: { view: AdminView; patientId?: string }) {
   const { notice, clear } = useNotice();
-  const title = patientId && view === 'pacientes' ? `Ficha ${patientId}` : adminTitles[view];
+  const isDashboard = view === 'dashboard' && !patientId;
+  const title = patientId && view === 'pacientes' ? `Ficha ${patientId}` : isDashboard ? 'Resumen general' : adminTitles[view];
   const subtitle = patientId && view === 'pacientes' ? undefined : adminSubtitles[view];
   return (
-    <AdminShell title={title} subtitle={subtitle}>
+    <AdminShell
+      title={title}
+      subtitle={subtitle}
+      compactNav
+      dashboardToolbar={isDashboard ? <AdminDashboardToolbar /> : undefined}
+    >
       <Toast notice={notice} onClose={clear} />
       <Body view={view} patientId={patientId} />
     </AdminShell>

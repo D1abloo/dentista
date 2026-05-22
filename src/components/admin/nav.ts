@@ -62,7 +62,7 @@ export const adminNav: { href: string; label: string; icon: LucideIcon; view: Ad
 ];
 
 export const adminTitles: Record<AdminView, string> = {
-  dashboard: 'Dashboard',
+  dashboard: 'Resumen general',
   agenda: 'Agenda',
   citas: 'Gestión de citas',
   pacientes: 'Pacientes',
@@ -83,7 +83,8 @@ export const adminTitles: Record<AdminView, string> = {
 };
 
 export const adminSubtitles: Record<AdminView, string> = {
-  dashboard: 'Resumen de actividad de tu clínica',
+  dashboard:
+    'Resumen de actividad de tu organización. Consulta la guía de uso para el panel y el portal del paciente.',
   agenda: 'Vista día, semana o mes',
   citas: 'CIT-XXXX vinculadas a paciente',
   pacientes: 'PAT-XXXX conecta citas, informes, facturas y documentos',
