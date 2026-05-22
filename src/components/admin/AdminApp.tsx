@@ -77,6 +77,7 @@ function Body({ view, patientId }: { view: AdminView; patientId?: string }) {
 function AdminInner({ view, patientId }: { view: AdminView; patientId?: string }) {
   const { notice, clear } = useNotice();
   const isDashboard = view === 'dashboard' && !patientId;
+  const isAgenda = view === 'agenda' && !patientId;
   const title = patientId && view === 'pacientes' ? `Ficha ${patientId}` : isDashboard ? 'Resumen general' : adminTitles[view];
   const subtitle = patientId && view === 'pacientes' ? undefined : adminSubtitles[view];
   return (
@@ -84,6 +85,7 @@ function AdminInner({ view, patientId }: { view: AdminView; patientId?: string }
       title={title}
       subtitle={subtitle}
       compactNav
+      agendaModule={isAgenda}
       dashboardToolbar={isDashboard ? <AdminDashboardToolbar /> : undefined}
     >
       <Toast notice={notice} onClose={clear} />

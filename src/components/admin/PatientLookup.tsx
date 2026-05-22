@@ -10,11 +10,19 @@ type Props = {
   patientId: string;
   onPatientId: (id: string) => void;
   label?: string;
+  placeholder?: string;
   /** Prioriza búsqueda por número NHC (campo numérico). */
   nhcPrimary?: boolean;
 };
 
-export function PatientLookup({ state, patientId, onPatientId, label = 'Buscar paciente', nhcPrimary }: Props) {
+export function PatientLookup({
+  state,
+  patientId,
+  onPatientId,
+  label = 'Buscar paciente',
+  placeholder,
+  nhcPrimary
+}: Props) {
   const [q, setQ] = useState('');
   const matches = useMemo(() => findPatientsByQuery(state, q), [state, q]);
   const selected = state.patients.find((p) => p.id === patientId);
@@ -42,7 +50,7 @@ export function PatientLookup({ state, patientId, onPatientId, label = 'Buscar p
             className="!pl-10"
             type={nhcPrimary && isNumeric ? 'number' : 'search'}
             inputMode={nhcPrimary ? 'numeric' : 'search'}
-            placeholder={nhcPrimary ? 'Número NHC (ej. 12)' : 'NHC, DNI o nombre…'}
+            placeholder={placeholder ?? (nhcPrimary ? 'Número NHC (ej. 12)' : 'NHC, DNI o nombre…')}
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), applyQuery())}

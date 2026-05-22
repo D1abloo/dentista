@@ -109,12 +109,14 @@ export function AdminShell({
   subtitle,
   children,
   dashboardToolbar,
+  agendaModule = false,
   compactNav = true
 }: {
   title: string;
   subtitle?: string;
   children: ReactNode;
   dashboardToolbar?: ReactNode;
+  agendaModule?: boolean;
   compactNav?: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -265,7 +267,11 @@ export function AdminShell({
             <Menu className="h-5 w-5" />
           </button>
         </header>
-        <main className="portal-body portal-body--corp portal-body--admin portal-body--dashboard">{children}</main>
+        <main
+          className={`portal-body portal-body--corp portal-body--admin${dashboardToolbar ? ' portal-body--dashboard' : ''}${agendaModule ? ' portal-body--agenda-module' : ''}`}
+        >
+          {children}
+        </main>
       </div>
     </div>
   );

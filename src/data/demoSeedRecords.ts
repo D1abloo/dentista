@@ -104,7 +104,7 @@ export const demoAppointments: Appointment[] = [
     cabinetId: 'g-c2',
     treatmentId: 'TRA-0002',
     date: offsetDate(0),
-    time: '10:15',
+    time: '10:00',
     status: 'confirmada',
     createdAt: offsetDate(-5)
   },
@@ -117,7 +117,7 @@ export const demoAppointments: Appointment[] = [
     cabinetId: 'g-c1',
     treatmentId: 'TRA-0001',
     date: offsetDate(0),
-    time: '12:30',
+    time: '14:00',
     status: 'pendiente',
     createdAt: offsetDate(-1)
   },

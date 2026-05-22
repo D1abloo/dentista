@@ -273,7 +273,21 @@ export const demoSeed: DemoState = {
     [TENANT_NORTE]: defaultNormative(),
     [TENANT_SUR]: defaultNormative()
   },
-  blockedSlots: [],
+  blockedSlots: [
+    {
+      id: 'BLK-0001',
+      tenantId: TENANT_CENTRO,
+      clinicId: 'CLI-0001',
+      dentistId: 'DEN-0001',
+      cabinetId: 'g-c1',
+      date: (() => {
+        const d = new Date();
+        return d.toISOString().slice(0, 10);
+      })(),
+      time: '13:00',
+      reason: 'Comida'
+    }
+  ],
   informedConsents: demoInformedConsents
 };
 

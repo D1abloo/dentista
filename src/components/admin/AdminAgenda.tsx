@@ -1,105 +1,361 @@
-import { useEffect, useMemo, useState } from 'react';
-import { CalendarClock, Lock } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Bell,
+  Calendar,
+  CalendarClock,
+  CheckCircle2,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Lock,
+  MoreHorizontal,
+  Plus,
+  Search,
+  UserPlus,
+  Users
+} from 'lucide-react';
 import { dentistsForClinic, getPrimaryClinic } from '@/lib/clinic';
 import { isClientDemoMode } from '@/lib/appMode';
 import { appointmentsInRange, monthPrefix, weekRange } from '@/lib/appointments';
-import { addBlockedSlot, removeBlockedSlot, tryCreateAppointment, updateAppointmentStatus } from '@/lib/demoStore';
-import { fmtDate, fmtDateTime, statusLabel, todayIso } from '@/lib/format';
+import {
+  addBlockedSlot,
+  createPatient,
+  removeBlockedSlot,
+  rescheduleAppointment,
+  tryCreateAppointment,
+  updateAppointmentStatus
+} from '@/lib/demoStore';
+import { fmtDate, statusLabel, todayIso } from '@/lib/format';
 import { patientName } from '@/lib/selectors';
 import { required } from '@/lib/validation';
 import { createAppointmentLive, patchAppointmentLive } from '@/lib/clinicApi';
+import { useCountUp } from '@/hooks/useCountUp';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { useStaffContext } from '@/hooks/useStaffContext';
 import { useTenant } from '@/hooks/useTenant';
-import type { Appointment, AppointmentStatus } from '@/types/demo';
-import { Badge, Button, Empty, Field, Input, Select } from '@/components/ui';
-import { IdBadge } from '@/components/ui/IdBadge';
+import { useLogout } from '@/components/auth/RoleGate';
+import type { Appointment, AppointmentStatus, BlockedSlot } from '@/types/demo';
+import { Button, Field, Input, Select, Textarea } from '@/components/ui';
 import { PatientLookup } from './PatientLookup';
 
-function AgendaRow({ a, onAction }: { a: Appointment; onAction: (m: string) => void }) {
-  const { state, commit, refresh } = useDemoStore();
-  const { setNotice } = useNotice();
-  const setStatus = async (status: AppointmentStatus) => {
-    commit(updateAppointmentStatus(state, a.id, status));
-    if (!isClientDemoMode()) {
-      const live = await patchAppointmentLive({
-        clinicId: a.clinicId,
-        appointmentId: a.id,
-        status,
-        date: a.date,
-        time: a.time
-      });
-      if (!live.ok) {
-        setNotice({ type: 'error', message: live.message });
-        return;
-      }
-      await refresh();
-    }
-    onAction(`Cita ${statusLabel(status).toLowerCase()}.`);
-  };
-  const patient = state.patients.find((p) => p.id === a.patientId);
+const TIMELINE_HOURS = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'] as const;
+const DURATIONS = [15, 30, 45, 60] as const;
+
+function shiftDate(iso: string, days: number) {
+  const d = new Date(`${iso}T12:00:00`);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+function hourOf(time: string) {
+  return time.slice(0, 2);
+}
+
+function appointmentAtHour(appts: Appointment[], hour: string) {
+  const h = hour.slice(0, 2);
+  return appts.find((a) => hourOf(a.time) === h);
+}
+
+function blockAtHour(blocks: BlockedSlot[], hour: string, dentistId: string) {
+  const h = hour.slice(0, 2);
+  return blocks.find((b) => hourOf(b.time) === h && (!dentistId || b.dentistId === dentistId));
+}
+
+function nextFreeHour(appts: Appointment[], blocks: BlockedSlot[], dentistId: string) {
+  for (const hour of TIMELINE_HOURS) {
+    const h = hour.slice(0, 2);
+    const taken = appts.some((a) => hourOf(a.time) === h);
+    const blocked = blocks.some((b) => hourOf(b.time) === h && (!dentistId || b.dentistId === dentistId));
+    if (!taken && !blocked) return hour;
+  }
+  return '—';
+}
+
+function statusPillClass(status: AppointmentStatus) {
+  if (status === 'confirmada' || status === 'completada') return 'agd-pill agd-pill--ok';
+  if (status === 'pendiente') return 'agd-pill agd-pill--warn';
+  return 'agd-pill agd-pill--muted';
+}
+
+function AgdKpi({
+  label,
+  value,
+  icon: Icon,
+  tone,
+  delay = 0,
+  slotLabel
+}: {
+  label: string;
+  value: number | string;
+  icon: typeof Calendar;
+  tone: 'teal' | 'amber' | 'green' | 'blue' | 'purple';
+  delay?: number;
+  slotLabel?: boolean;
+}) {
+  const num = typeof value === 'number' ? value : 0;
+  const animated = useCountUp(num, 700);
+  const display = typeof value === 'string' ? value : animated;
   return (
-    <article className="agenda-appointment">
-      <div className="agenda-appointment__main">
-        <p className="agenda-appointment__patient">
-          {patient?.nhc ? <span className="agenda-appointment__nhc">NHC {patient.nhc}</span> : null}
-          {patientName(state, a.patientId)}
-        </p>
-        <p className="agenda-appointment__time">{fmtDateTime(a.date, a.time)}</p>
-        <IdBadge id={a.id} kind="cita" />
+    <div className={`agd-kpi${slotLabel ? ' agd-kpi--slot' : ''}`} style={{ animationDelay: `${delay}ms` }}>
+      <span className={`agd-kpi__icon agd-kpi__icon--${tone}`}>
+        <Icon className="h-4 w-4" aria-hidden />
+      </span>
+      <div>
+        <p className="agd-kpi__label">{label}</p>
+        <p className="agd-kpi__value">{display}</p>
       </div>
-      <Badge status={a.status} label={statusLabel(a.status)} />
-      <div className="agenda-appointment__actions">
-        <Button tone="ghost" className="!py-1 !text-xs" onClick={() => void setStatus('confirmada')}>
-          Confirmar
-        </Button>
-        <Button tone="ghost" className="!py-1 !text-xs" onClick={() => void setStatus('completada')}>
-          Completar
-        </Button>
-        <Button tone="ghost" className="!py-1 !text-xs" onClick={() => void setStatus('cancelada')}>
-          Cancelar
-        </Button>
-      </div>
-    </article>
+    </div>
   );
 }
 
-const MODE_LABEL = { dia: 'del día', semana: 'de la semana', mes: 'del mes' } as const;
+function AppointmentMenu({
+  appointment,
+  onReschedule,
+  onCancel,
+  onConfirm
+}: {
+  appointment: Appointment;
+  onReschedule: () => void;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function close(e: MouseEvent) {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [open]);
+
+  return (
+    <div className="agd-menu-wrap" ref={ref}>
+      <button type="button" className="agd-menu-btn" aria-label="Acciones" onClick={() => setOpen((v) => !v)}>
+        <MoreHorizontal className="h-4 w-4" />
+      </button>
+      {open ? (
+        <ul className="agd-menu" role="menu">
+          {appointment.status === 'pendiente' ? (
+            <li>
+              <button type="button" role="menuitem" onClick={() => { onConfirm(); setOpen(false); }}>
+                Confirmar
+              </button>
+            </li>
+          ) : null}
+          <li>
+            <button type="button" role="menuitem" onClick={() => { onReschedule(); setOpen(false); }}>
+              Reprogramar
+            </button>
+          </li>
+          <li>
+            <button type="button" role="menuitem" onClick={() => { onCancel(); setOpen(false); }}>
+              Cancelar
+            </button>
+          </li>
+        </ul>
+      ) : null}
+    </div>
+  );
+}
 
 export function AdminAgenda() {
-  const { state, commit, refresh } = useDemoStore();
+  const { state, commit, refresh, dataSource } = useDemoStore();
   const scope = useTenant();
   const { setNotice } = useNotice();
   const { staff, loading: staffLoading } = useStaffContext();
+  const logout = useLogout();
+  const loading = dataSource === 'loading';
+  const formRef = useRef<HTMLDivElement>(null);
+
   const [mode, setMode] = useState<'dia' | 'semana' | 'mes'>('dia');
   const [date, setDate] = useState(todayIso());
   const primaryClinic = getPrimaryClinic(state, scope.tenantId);
   const [clinicId, setClinicId] = useState(primaryClinic.id);
   const [dentistId, setDentistId] = useState('');
   const ownAgenda = staff?.agendaScope === 'own' && Boolean(staff.dentistId);
-  const [blockTime, setBlockTime] = useState('13:00');
-  const [blockReason, setBlockReason] = useState('');
+  const [timelineView, setTimelineView] = useState<'hora' | 'dentista'>('hora');
+  const [leftTab, setLeftTab] = useState<'book' | 'block'>('book');
+  const [clinicOpen, setClinicOpen] = useState(false);
+  const [dentistOpen, setDentistOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [userLabel, setUserLabel] = useState('Usuario conectado');
+  const [rescheduleTarget, setRescheduleTarget] = useState<Appointment | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState('');
+  const [rescheduleTime, setRescheduleTime] = useState('10:00');
+
   const [bookPatientId, setBookPatientId] = useState('');
   const [bookTime, setBookTime] = useState('10:00');
+  const [bookDuration, setBookDuration] = useState<number>(30);
+  const [bookDentistId, setBookDentistId] = useState('');
   const [bookTreatmentId, setBookTreatmentId] = useState(scope.treatments[0]?.id ?? '');
+  const [bookNotes, setBookNotes] = useState('');
+  const [blockTime, setBlockTime] = useState('13:00');
+  const [blockReason, setBlockReason] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const clinicRef = useRef<HTMLDivElement>(null);
+  const dentistRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!staffLoading && ownAgenda && staff?.dentistId) setDentistId(staff.dentistId);
   }, [staffLoading, ownAgenda, staff?.dentistId]);
 
-  const filtered = useMemo(() => {
+  useEffect(() => {
+    void fetch('/api/auth/me', { credentials: 'include' })
+      .then((r) => r.json())
+      .then((j: { data?: { name?: string; email?: string } }) => {
+        if (j.data?.name) setUserLabel(j.data.name);
+        else if (j.data?.email) setUserLabel(j.data.email);
+      })
+      .catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    function onDoc(e: MouseEvent) {
+      const t = e.target as Node;
+      if (!clinicRef.current?.contains(t)) setClinicOpen(false);
+      if (!dentistRef.current?.contains(t)) setDentistOpen(false);
+      if (!profileRef.current?.contains(t)) setProfileOpen(false);
+    }
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, []);
+
+  const activeClinic = scope.clinics.find((c) => c.id === clinicId) ?? primaryClinic;
+  const clinicDentists = dentistsForClinic(state, clinicId);
+
+  const dayAppts = useMemo(() => {
+    let list = scope.appointments.filter((a) => a.clinicId === clinicId && a.date === date);
+    if (dentistId) list = list.filter((a) => a.dentistId === dentistId);
+    return list.filter((a) => a.status !== 'cancelada');
+  }, [scope.appointments, clinicId, date, dentistId]);
+
+  const blockedForDay = useMemo(() => {
+    let list = scope.blockedSlots.filter((b) => b.clinicId === clinicId && b.date === date);
+    if (dentistId) list = list.filter((b) => b.dentistId === dentistId);
+    return list;
+  }, [scope.blockedSlots, clinicId, date, dentistId]);
+
+  const rangeAppts = useMemo(() => {
     let list = scope.appointments.filter((a) => a.clinicId === clinicId);
     if (dentistId) list = list.filter((a) => a.dentistId === dentistId);
-    if (mode === 'dia') return list.filter((a) => a.date === date);
     if (mode === 'semana') {
       const { from, to } = weekRange(date);
-      return appointmentsInRange(list, from, to);
+      return appointmentsInRange(list, from, to).filter((a) => a.status !== 'cancelada');
     }
-    return list.filter((a) => a.date.startsWith(monthPrefix(date)));
-  }, [scope.appointments, mode, date, clinicId, dentistId]);
+    if (mode === 'mes') {
+      return list.filter((a) => a.date.startsWith(monthPrefix(date)) && a.status !== 'cancelada');
+    }
+    return dayAppts;
+  }, [scope.appointments, clinicId, dentistId, mode, date, dayAppts]);
 
-  const blockedForDay = scope.blockedSlots.filter((b) => b.clinicId === clinicId && b.date === date);
+  const kpi = useMemo(() => {
+    const citas = dayAppts.length;
+    const pendientes = dayAppts.filter((a) => a.status === 'pendiente').length;
+    const confirmadas = dayAppts.filter((a) => a.status === 'confirmada' || a.status === 'completada').length;
+    const pacientes = new Set(dayAppts.map((a) => a.patientId)).size;
+    const bloqueos = blockedForDay.length;
+    const libre = nextFreeHour(dayAppts, blockedForDay, dentistId);
+    return { citas, pendientes, confirmadas, pacientes, bloqueos, libre };
+  }, [dayAppts, blockedForDay, dentistId]);
+
+  const distribution = useMemo(() => {
+    const total = Math.max(dayAppts.length + blockedForDay.length, 1);
+    const confirmadas = dayAppts.filter((a) => a.status === 'confirmada' || a.status === 'completada').length;
+    const pendientes = dayAppts.filter((a) => a.status === 'pendiente').length;
+    const canceladas = scope.appointments.filter(
+      (a) => a.clinicId === clinicId && a.date === date && a.status === 'cancelada'
+    ).length;
+    const bloqueos = blockedForDay.length;
+    const pct = (n: number) => Math.round((n / total) * 100);
+    const cPct = pct(confirmadas);
+    const pPct = pct(pendientes);
+    const xPct = pct(canceladas);
+    const bPct = pct(bloqueos);
+    const rest = Math.max(0, 100 - cPct - pPct - xPct - bPct);
+    const gradient =
+      total === 1 && !dayAppts.length && !blockedForDay.length
+        ? '#e2e8f0'
+        : `conic-gradient(
+          #16a34a 0 ${cPct}%,
+          #f59e0b ${cPct}% ${cPct + pPct}%,
+          #ef4444 ${cPct + pPct}% ${cPct + pPct + xPct}%,
+          #8b5cf6 ${cPct + pPct + xPct}% ${cPct + pPct + xPct + bPct}%,
+          #e2e8f0 ${cPct + pPct + xPct + bPct}% 100%
+        )`;
+    return { confirmadas, pendientes, canceladas, bloqueos, cPct, pPct, xPct, bPct, gradient, rest };
+  }, [dayAppts, blockedForDay, scope.appointments, clinicId, date]);
+
+  const initials = userLabel
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
+  function focusForm(tab: 'book' | 'block' = 'book') {
+    setLeftTab(tab);
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function pickSlot(hour: string) {
+    setBookTime(hour);
+    setLeftTab('book');
+    focusForm('book');
+  }
+
+  async function setStatus(appt: Appointment, status: AppointmentStatus, patch?: { date?: string; time?: string }) {
+    if (!isClientDemoMode()) {
+      const live = await patchAppointmentLive({
+        clinicId: appt.clinicId,
+        appointmentId: appt.id,
+        status,
+        date: patch?.date ?? appt.date,
+        time: patch?.time ?? appt.time
+      });
+      if (!live.ok) {
+        setNotice({ type: 'error', message: live.message });
+        return;
+      }
+      await refresh();
+    } else {
+      commit(updateAppointmentStatus(state, appt.id, status, patch));
+    }
+    setNotice({ type: 'ok', message: `Cita ${statusLabel(status).toLowerCase()}.` });
+  }
+
+  async function submitReschedule() {
+    if (!rescheduleTarget) return;
+    const err = required(rescheduleDate, 'Fecha') || required(rescheduleTime, 'Hora');
+    if (err) {
+      setNotice({ type: 'error', message: err });
+      return;
+    }
+    if (!isClientDemoMode()) {
+      const live = await patchAppointmentLive({
+        clinicId: rescheduleTarget.clinicId,
+        appointmentId: rescheduleTarget.id,
+        status: 'reprogramada',
+        date: rescheduleDate,
+        time: rescheduleTime
+      });
+      if (!live.ok) {
+        setNotice({ type: 'error', message: live.message });
+        return;
+      }
+      await refresh();
+    } else {
+      commit(rescheduleAppointment(state, rescheduleTarget.id, rescheduleDate, rescheduleTime));
+    }
+    setNotice({ type: 'ok', message: 'Cita reprogramada.' });
+    setRescheduleTarget(null);
+  }
 
   async function createAppointment() {
     const err =
@@ -110,117 +366,319 @@ export function AdminAgenda() {
       setNotice({ type: 'error', message: err });
       return;
     }
-    const patient = state.patients.find((p) => p.id === bookPatientId);
-    const activeDentist = dentistId || scope.dentists[0]?.id;
+    const activeDentist = bookDentistId || dentistId || clinicDentists[0]?.id;
     if (!activeDentist) {
       setNotice({ type: 'error', message: 'Selecciona un dentista.' });
       return;
     }
-    if (!isClientDemoMode()) {
-      const live = await createAppointmentLive({
-        clinicId,
-        patientId: bookPatientId,
-        patientName: patient?.fullName ?? 'Paciente',
-        patientEmail: patient?.email,
-        patientPhone: patient?.phone,
-        dentistId: activeDentist,
-        treatmentId: bookTreatmentId,
-        roomName: 'Gabinete 1',
-        date,
-        time: bookTime
-      });
-      if (!live.ok) {
-        setNotice({ type: 'error', message: live.message });
-        return;
+    setSubmitting(true);
+    try {
+      const patient = state.patients.find((p) => p.id === bookPatientId);
+      if (!isClientDemoMode()) {
+        const live = await createAppointmentLive({
+          clinicId,
+          patientId: bookPatientId,
+          patientName: patient?.fullName ?? 'Paciente',
+          patientEmail: patient?.email,
+          patientPhone: patient?.phone,
+          dentistId: activeDentist,
+          treatmentId: bookTreatmentId,
+          roomName: activeClinic.cabinets[0]?.name ?? 'Gabinete 1',
+          date,
+          time: bookTime
+        });
+        if (!live.ok) {
+          setNotice({ type: 'error', message: live.message });
+          return;
+        }
+        await refresh();
+      } else {
+        const result = tryCreateAppointment(state, {
+          patientId: bookPatientId,
+          dentistId: activeDentist,
+          clinicId,
+          cabinetId: activeClinic.cabinets[0]?.id ?? 'g-1',
+          treatmentId: bookTreatmentId,
+          date,
+          time: bookTime,
+          notes: bookNotes,
+          status: 'pendiente'
+        });
+        if (!result.ok) {
+          setNotice({ type: 'error', message: result.message ?? 'Horario ocupado.' });
+          return;
+        }
+        commit(result.state);
       }
-      await refresh();
-      setNotice({ type: 'ok', message: 'Cita creada. Visible en el PdP del paciente.' });
-      return;
+      setNotice({ type: 'ok', message: 'Cita creada. Visible en el portal del paciente.' });
+      setBookNotes('');
+    } finally {
+      setSubmitting(false);
     }
-    const result = tryCreateAppointment(state, {
-      patientId: bookPatientId,
-      dentistId: activeDentist,
-      clinicId,
-      cabinetId: 'g-1',
-      treatmentId: bookTreatmentId,
-      date,
-      time: bookTime,
-      notes: '',
-      status: 'pendiente'
-    });
-    if (!result.ok) {
-      setNotice({ type: 'error', message: result.message ?? 'Horario ocupado.' });
-      return;
-    }
-    commit(result.state);
-    setNotice({ type: 'ok', message: 'Cita creada. Visible en el PdP del paciente.' });
   }
 
+  function quickPatient() {
+    const next = createPatient(state, {
+      fullName: 'Nuevo paciente',
+      email: 'nuevo@example.com',
+      phone: '+34 600 000 000',
+      birthDate: '1990-01-01',
+      allergies: 'Ninguna',
+      medication: 'Ninguna',
+      reminderChannels: ['email'],
+      primaryDentistId: bookDentistId || (clinicDentists[0]?.id ?? ''),
+      preferredClinicId: clinicId,
+      emergencyContactName: '',
+      emergencyContactPhone: '',
+      notes: ''
+    });
+    commit(next);
+    const created = next.patients[next.patients.length - 1];
+    if (created) setBookPatientId(created.id);
+    setNotice({ type: 'ok', message: 'Paciente creado. Completa sus datos en Pacientes.' });
+  }
+
+  function submitBlock() {
+    if (!blockReason.trim()) {
+      setNotice({ type: 'error', message: 'Indica un motivo.' });
+      return;
+    }
+    const dId = dentistId || bookDentistId || (clinicDentists[0]?.id ?? '');
+    if (!dId) {
+      setNotice({ type: 'error', message: 'Selecciona un dentista.' });
+      return;
+    }
+    commit(
+      addBlockedSlot(state, {
+        clinicId,
+        dentistId: dId,
+        cabinetId: activeClinic.cabinets[0]?.id ?? 'g-1',
+        date,
+        time: blockTime.slice(0, 5),
+        reason: blockReason
+      })
+    );
+    setBlockReason('');
+    setNotice({ type: 'ok', message: 'Horario bloqueado.' });
+  }
+
+  const selectedTreatment = scope.treatments.find((t) => t.id === bookTreatmentId);
+
   return (
-    <div className="agenda-page">
-      <header className="agenda-toolbar">
-        <div className="agenda-toolbar__modes">
+    <div className={`agd-module${loading ? ' agd-module--loading' : ''}`}>
+      <header className="agd-toolbar">
+        <div className="agd-segment" role="tablist" aria-label="Vista de agenda">
           {(['dia', 'semana', 'mes'] as const).map((m) => (
             <button
               key={m}
               type="button"
-              className={`agenda-toolbar__mode ${mode === m ? 'agenda-toolbar__mode--active' : ''}`}
+              role="tab"
+              aria-selected={mode === m}
+              className={`agd-segment__btn${mode === m ? ' agd-segment__btn--active' : ''}`}
               onClick={() => setMode(m)}
             >
               {m === 'dia' ? 'Día' : m === 'semana' ? 'Semana' : 'Mes'}
             </button>
           ))}
         </div>
-        <Input type="date" className="agenda-toolbar__date field-control" value={date} onChange={(e) => setDate(e.target.value)} />
-        <Select className="agenda-toolbar__select field-control" value={clinicId} onChange={(e) => setClinicId(e.target.value)}>
-          {scope.clinics.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </Select>
-        <Select
-          className="agenda-toolbar__select field-control"
-          value={dentistId}
-          disabled={ownAgenda}
-          onChange={(e) => setDentistId(e.target.value)}
-        >
-          {ownAgenda ? (
-            <option value={staff?.dentistId ?? ''}>Mi agenda</option>
-          ) : (
-            <>
-              <option value="">Todos los dentistas</option>
-              {dentistsForClinic(state, clinicId).map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.fullName}
-                </option>
+
+        <div className="agd-nav-date">
+          <button type="button" className="agd-icon-btn" aria-label="Día anterior" onClick={() => setDate(shiftDate(date, -1))}>
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <Input
+            type="date"
+            className="agd-date-input field-control"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            aria-label="Fecha"
+          />
+          <button type="button" className="agd-icon-btn" aria-label="Día siguiente" onClick={() => setDate(shiftDate(date, 1))}>
+            <ChevronRight className="h-4 w-4" />
+          </button>
+          <button type="button" className="agd-btn-today" onClick={() => setDate(todayIso())}>
+            Hoy
+          </button>
+        </div>
+
+        <div className={`agd-dropdown${clinicOpen ? ' is-open' : ''}`} ref={clinicRef}>
+          <button type="button" className="agd-chip" aria-expanded={clinicOpen} onClick={() => setClinicOpen((v) => !v)}>
+            {activeClinic.name}
+            <ChevronDown className="h-4 w-4 agd-chip__chev" aria-hidden />
+          </button>
+          {clinicOpen ? (
+            <ul className="agd-dropdown__menu" role="listbox">
+              {scope.clinics.map((c) => (
+                <li key={c.id}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={c.id === clinicId}
+                    onClick={() => {
+                      setClinicId(c.id);
+                      setClinicOpen(false);
+                    }}
+                  >
+                    {c.name}
+                  </button>
+                </li>
               ))}
-            </>
-          )}
-        </Select>
+            </ul>
+          ) : null}
+        </div>
+
+        <div className={`agd-dropdown${dentistOpen ? ' is-open' : ''}`} ref={dentistRef}>
+          <button
+            type="button"
+            className="agd-chip"
+            aria-expanded={dentistOpen}
+            disabled={ownAgenda}
+            onClick={() => setDentistOpen((v) => !v)}
+          >
+            {dentistId ? clinicDentists.find((d) => d.id === dentistId)?.fullName ?? 'Dentista' : 'Todos los dentistas'}
+            <ChevronDown className="h-4 w-4 agd-chip__chev" aria-hidden />
+          </button>
+          {dentistOpen && !ownAgenda ? (
+            <ul className="agd-dropdown__menu" role="listbox">
+              <li>
+                <button type="button" role="option" aria-selected={!dentistId} onClick={() => { setDentistId(''); setDentistOpen(false); }}>
+                  Todos los dentistas
+                </button>
+              </li>
+              {clinicDentists.map((d) => (
+                <li key={d.id}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={d.id === dentistId}
+                    onClick={() => {
+                      setDentistId(d.id);
+                      setDentistOpen(false);
+                    }}
+                  >
+                    {d.fullName}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+
+        <span className="agd-toolbar__spacer" />
+
+        <button type="button" className="agd-btn-primary" onClick={() => focusForm('book')}>
+          <Plus className="h-4 w-4" aria-hidden />
+          Nueva cita
+        </button>
+
+        <a href="/admin/configuracion" className="agd-bell" aria-label="Notificaciones">
+          <Bell className="h-4 w-4" />
+          <span className="agd-bell__dot" aria-hidden />
+        </a>
+
+        <div className={`agd-dropdown${profileOpen ? ' is-open' : ''}`} ref={profileRef}>
+          <button type="button" className="agd-avatar" aria-expanded={profileOpen} onClick={() => setProfileOpen((v) => !v)}>
+            <span>{initials || 'EM'}</span>
+            <ChevronDown className="h-3.5 w-3.5 text-slate-500" aria-hidden />
+          </button>
+          {profileOpen ? (
+            <ul className="agd-dropdown__menu agd-dropdown__menu--right" role="menu">
+              <li>
+                <span className="block px-2 py-1 text-xs font-bold text-slate-500">{userLabel}</span>
+              </li>
+              <li>
+                <a href="/admin/configuracion" role="menuitem">
+                  Mi perfil
+                </a>
+              </li>
+              <li>
+                <a href="/ayuda#panel-admin" role="menuitem">
+                  Guía de uso
+                </a>
+              </li>
+              <li>
+                <button type="button" role="menuitem" onClick={logout}>
+                  Cerrar sesión
+                </button>
+              </li>
+            </ul>
+          ) : null}
+        </div>
       </header>
 
-      <div className="agenda-layout">
-        <aside className="agenda-sidebar">
-          <section className="agenda-panel agenda-panel--primary">
-            <header className="agenda-panel__head">
-              <CalendarClock className="h-5 w-5" aria-hidden />
-              <div>
-                <h2 className="agenda-panel__title">Nueva cita</h2>
-                <p className="agenda-panel__sub">Busca por número NHC. La cita se publica en el portal del paciente.</p>
+      <div className="agd-kpis">
+        <AgdKpi label="Citas del día" value={kpi.citas} icon={Calendar} tone="teal" delay={0} />
+        <AgdKpi label="Pendientes" value={kpi.pendientes} icon={Clock} tone="amber" delay={40} />
+        <AgdKpi label="Confirmadas" value={kpi.confirmadas} icon={CheckCircle2} tone="green" delay={80} />
+        <AgdKpi label="Pacientes" value={kpi.pacientes} icon={Users} tone="blue" delay={120} />
+        <AgdKpi label="Bloqueos" value={kpi.bloqueos} icon={Lock} tone="purple" delay={160} />
+        <AgdKpi label="Próximo hueco libre" value={kpi.libre} icon={CalendarClock} tone="green" delay={200} slotLabel />
+      </div>
+
+      <div className="agd-layout">
+        <div className="agd-form-card" ref={formRef}>
+          <div className="agd-tabs" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={leftTab === 'book'}
+              className={`agd-tabs__btn${leftTab === 'book' ? ' agd-tabs__btn--active' : ''}`}
+              onClick={() => setLeftTab('book')}
+            >
+              Nueva cita
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={leftTab === 'block'}
+              className={`agd-tabs__btn${leftTab === 'block' ? ' agd-tabs__btn--active' : ''}`}
+              onClick={() => setLeftTab('block')}
+            >
+              Bloquear horario
+            </button>
+          </div>
+
+          {leftTab === 'book' ? (
+            <div className="agd-form-body">
+              <PatientLookup
+                state={state}
+                patientId={bookPatientId}
+                onPatientId={setBookPatientId}
+                label="Paciente"
+                placeholder="Buscar por NHC, nombre o teléfono…"
+              />
+              <button type="button" className="agd-link" onClick={quickPatient}>
+                <UserPlus className="inline h-3.5 w-3.5" aria-hidden /> Crear paciente rápido
+              </button>
+              <div className="agd-form-row">
+                <Field label="Fecha">
+                  <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+                </Field>
+                <Field label="Hora">
+                  <Input type="time" value={bookTime} onChange={(e) => setBookTime(e.target.value)} />
+                </Field>
               </div>
-            </header>
-            <PatientLookup
-              state={state}
-              patientId={bookPatientId}
-              onPatientId={setBookPatientId}
-              label="Número NHC"
-              nhcPrimary
-            />
-            <div className="agenda-panel__fields">
-              <Field label="Hora">
-                <Input type="time" value={bookTime} onChange={(e) => setBookTime(e.target.value)} />
-              </Field>
+              <div className="agd-form-row">
+                <Field label="Duración">
+                  <Select value={String(bookDuration)} onChange={(e) => setBookDuration(Number(e.target.value))}>
+                    {DURATIONS.map((m) => (
+                      <option key={m} value={m}>
+                        {m} min
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+                <Field label="Dentista">
+                  <Select value={bookDentistId} onChange={(e) => setBookDentistId(e.target.value)} disabled={ownAgenda}>
+                    <option value="">Todos los dentistas</option>
+                    {clinicDentists.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.fullName}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              </div>
               <Field label="Tratamiento">
                 <Select value={bookTreatmentId} onChange={(e) => setBookTreatmentId(e.target.value)}>
                   {scope.treatments.map((tr) => (
@@ -230,85 +688,305 @@ export function AdminAgenda() {
                   ))}
                 </Select>
               </Field>
-            </div>
-            <Button className="agenda-panel__cta" onClick={() => void createAppointment()}>
-              Crear cita en agenda
-            </Button>
-          </section>
-
-          <section className="agenda-panel agenda-panel--secondary">
-            <header className="agenda-panel__head agenda-panel__head--compact">
-              <Lock className="h-4 w-4" aria-hidden />
-              <div>
-                <h2 className="agenda-panel__title">Bloquear horario</h2>
-                <p className="agenda-panel__sub">Marca huecos no disponibles en la agenda.</p>
-              </div>
-            </header>
-            <div className="agenda-panel__fields agenda-panel__fields--inline">
-              <Field label="Hora">
-                <Input type="time" value={blockTime} onChange={(e) => setBlockTime(e.target.value)} />
+              <Field label="Observaciones internas">
+                <Textarea
+                  className="agd-textarea field-control"
+                  placeholder="Ej. Detalles adicionales de la cita…"
+                  value={bookNotes}
+                  onChange={(e) => setBookNotes(e.target.value)}
+                />
               </Field>
+              <Button className="agd-submit" onClick={() => void createAppointment()} disabled={submitting}>
+                {submitting ? 'Guardando…' : 'Crear cita'}
+              </Button>
+              <p className="agd-helper">
+                <Calendar className="h-4 w-4" aria-hidden />
+                La cita se publicará automáticamente en el portal del paciente.
+                {selectedTreatment ? ` Duración estimada: ${bookDuration || selectedTreatment.durationMinutes} min.` : null}
+              </p>
+            </div>
+          ) : (
+            <div className="agd-form-body">
+              <div className="agd-form-row">
+                <Field label="Fecha">
+                  <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+                </Field>
+                <Field label="Hora">
+                  <Input type="time" value={blockTime} onChange={(e) => setBlockTime(e.target.value)} />
+                </Field>
+              </div>
               <Field label="Motivo">
                 <Input value={blockReason} onChange={(e) => setBlockReason(e.target.value)} placeholder="Ej. Comida" />
               </Field>
+              <Button tone="secondary" className="agd-submit" onClick={submitBlock}>
+                Bloquear franja
+              </Button>
+              {blockedForDay.length ? (
+                <ul className="agenda-blocks">
+                  {blockedForDay.map((b) => (
+                    <li key={b.id} className="agenda-blocks__item">
+                      <span>
+                        {b.time} — {b.reason}
+                      </span>
+                      <button type="button" onClick={() => commit(removeBlockedSlot(state, b.id))}>
+                        Quitar
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </div>
-            <Button
-              tone="secondary"
-              className="w-full"
-              onClick={() => {
-                if (!blockReason.trim()) {
-                  setNotice({ type: 'error', message: 'Indica un motivo.' });
-                  return;
-                }
-                commit(
-                  addBlockedSlot(state, {
-                    clinicId,
-                    dentistId: dentistId || (scope.dentists[0]?.id ?? ''),
-                    cabinetId: 'g-1',
-                    date,
-                    time: blockTime.slice(0, 5),
-                    reason: blockReason
-                  })
-                );
-                setBlockReason('');
-                setNotice({ type: 'ok', message: 'Horario bloqueado.' });
-              }}
-            >
-              Bloquear franja
-            </Button>
-            {blockedForDay.length ? (
-              <ul className="agenda-blocks">
-                {blockedForDay.map((b) => (
-                  <li key={b.id} className="agenda-blocks__item">
-                    <span>
-                      {b.time} — {b.reason}
-                    </span>
-                    <button type="button" onClick={() => commit(removeBlockedSlot(state, b.id))}>
-                      Quitar
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </section>
-        </aside>
+          )}
+        </div>
 
-        <section className="agenda-main">
-          <header className="agenda-main__head">
-            <h2 className="agenda-main__title">Citas {MODE_LABEL[mode]}</h2>
-            <span className="agenda-main__count">{filtered.length}</span>
+        <section className="agd-timeline-card">
+          <header className="agd-timeline-head">
+            <h2>{mode === 'dia' ? 'Agenda del día' : mode === 'semana' ? 'Agenda de la semana' : 'Agenda del mes'}</h2>
+            {mode === 'dia' ? (
+              <div className="agd-segment" role="tablist" aria-label="Vista timeline">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={timelineView === 'hora'}
+                  className={`agd-segment__btn${timelineView === 'hora' ? ' agd-segment__btn--active' : ''}`}
+                  onClick={() => setTimelineView('hora')}
+                >
+                  Por hora
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={timelineView === 'dentista'}
+                  className={`agd-segment__btn${timelineView === 'dentista' ? ' agd-segment__btn--active' : ''}`}
+                  onClick={() => setTimelineView('dentista')}
+                >
+                  Por dentista
+                </button>
+              </div>
+            ) : null}
           </header>
-          <div className="agenda-main__body">
-            {filtered.length ? (
-              filtered.map((a) => (
-                <AgendaRow key={a.id} a={a} onAction={(msg) => setNotice({ type: 'ok', message: msg })} />
-              ))
+
+          <div className="agd-timeline-body">
+            {mode !== 'dia' ? (
+              <div className="agd-week-list">
+                {rangeAppts.length ? (
+                  Object.entries(
+                    rangeAppts.reduce<Record<string, Appointment[]>>((acc, a) => {
+                      (acc[a.date] ??= []).push(a);
+                      return acc;
+                    }, {})
+                  ).map(([d, list]) => (
+                    <div key={d} className="agd-week-day">
+                      <h4>
+                        {fmtDate(d)} · {list.length} cita{list.length === 1 ? '' : 's'}
+                      </h4>
+                      {list.map((a) => (
+                        <p key={a.id} className="text-xs font-semibold text-slate-600">
+                          {a.time} — {patientName(state, a.patientId)} ({statusLabel(a.status)})
+                        </p>
+                      ))}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm font-semibold text-slate-500">Sin citas en este periodo.</p>
+                )}
+              </div>
+            ) : timelineView === 'hora' ? (
+              <>
+                {TIMELINE_HOURS.map((hour, i) => {
+                  const appt = appointmentAtHour(dayAppts, hour);
+                  const block = blockAtHour(blockedForDay, hour, dentistId);
+                  if (appt) {
+                    const treatment = scope.treatments.find((t) => t.id === appt.treatmentId)?.name ?? 'Consulta';
+                    const dentist = scope.dentists.find((d) => d.id === appt.dentistId)?.fullName ?? 'Profesional';
+                    const tone = appt.status === 'pendiente' ? 'warn' : 'ok';
+                    return (
+                      <div key={hour} className="agd-slot" style={{ animationDelay: `${i * 30}ms` }}>
+                        <span className="agd-slot__time">{hour}</span>
+                        <div className={`agd-slot__cell agd-appt agd-appt--${tone}`}>
+                          <span className="agd-appt__badge">{hour}</span>
+                          <div className="agd-appt__main">
+                            <strong>{patientName(state, appt.patientId)}</strong>
+                            <span>
+                              {treatment} · {dentist}
+                            </span>
+                          </div>
+                          <span className={statusPillClass(appt.status)}>{statusLabel(appt.status)}</span>
+                          <AppointmentMenu
+                            appointment={appt}
+                            onConfirm={() => void setStatus(appt, 'confirmada')}
+                            onReschedule={() => {
+                              setRescheduleTarget(appt);
+                              setRescheduleDate(appt.date);
+                              setRescheduleTime(appt.time);
+                            }}
+                            onCancel={() => void setStatus(appt, 'cancelada')}
+                          />
+                        </div>
+                      </div>
+                    );
+                  }
+                  if (block) {
+                    return (
+                      <div key={hour} className="agd-slot" style={{ animationDelay: `${i * 30}ms` }}>
+                        <span className="agd-slot__time">{hour}</span>
+                        <div className="agd-slot__cell agd-appt agd-block">
+                          <span className="agd-appt__badge">{hour}</span>
+                          <div className="agd-appt__main">
+                            <strong>Bloqueo: {block.reason}</strong>
+                          </div>
+                          <span className="agd-pill agd-pill--block">Bloqueado</span>
+                          <button
+                            type="button"
+                            className="agd-menu-btn"
+                            aria-label="Quitar bloqueo"
+                            onClick={() => commit(removeBlockedSlot(state, block.id))}
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={hour} className="agd-slot agd-slot--free" style={{ animationDelay: `${i * 30}ms` }}>
+                      <span className="agd-slot__time">{hour}</span>
+                      <button type="button" className="agd-slot__cell" onClick={() => pickSlot(hour)}>
+                        Disponible
+                      </button>
+                    </div>
+                  );
+                })}
+                <p className="agd-dropzone">Haz clic en un horario disponible para crear una cita</p>
+              </>
             ) : (
-              <Empty title="Sin citas" text="No hay citas en este periodo. Crea una desde el panel izquierdo." />
+              <div className="agd-dentist-grid">
+                {(dentistId ? clinicDentists.filter((d) => d.id === dentistId) : clinicDentists).map((dentist) => {
+                  const dAppts = dayAppts.filter((a) => a.dentistId === dentist.id);
+                  const dBlocks = blockedForDay.filter((b) => b.dentistId === dentist.id);
+                  return (
+                    <div key={dentist.id} className="agd-dentist-col">
+                      <h3>{dentist.fullName}</h3>
+                      {dAppts.length || dBlocks.length ? (
+                        <>
+                          {dAppts.map((a) => (
+                            <p key={a.id} className="mb-1 text-xs font-semibold text-slate-700">
+                              {a.time} — {patientName(state, a.patientId)} ({statusLabel(a.status)})
+                            </p>
+                          ))}
+                          {dBlocks.map((b) => (
+                            <p key={b.id} className="mb-1 text-xs font-semibold text-violet-700">
+                              {b.time} — Bloqueo: {b.reason}
+                            </p>
+                          ))}
+                        </>
+                      ) : (
+                        <p className="text-xs text-slate-500">Sin citas este día.</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         </section>
+
+        <aside className="agd-aside">
+          <div className="agd-summary-card">
+            <h3>Resumen del día</h3>
+            <ul className="agd-metrics">
+              <li>
+                <span>Citas</span>
+                <strong>{kpi.citas}</strong>
+              </li>
+              <li>
+                <span>Confirmadas</span>
+                <strong>{kpi.confirmadas}</strong>
+              </li>
+              <li>
+                <span>Pendientes</span>
+                <strong>{kpi.pendientes}</strong>
+              </li>
+              <li>
+                <span>Canceladas</span>
+                <strong>{distribution.canceladas}</strong>
+              </li>
+              <li>
+                <span>Bloqueos</span>
+                <strong>{kpi.bloqueos}</strong>
+              </li>
+              <li>
+                <span>Pacientes únicos</span>
+                <strong>{kpi.pacientes}</strong>
+              </li>
+            </ul>
+          </div>
+
+          <div className="agd-summary-card">
+            <h3>Distribución del día</h3>
+            <div className="agd-donut" style={{ background: distribution.gradient }} aria-hidden />
+            <ul className="agd-legend">
+              <li>
+                <span className="agd-legend__dot" style={{ background: '#16a34a' }} />
+                Confirmadas {distribution.cPct}%
+              </li>
+              <li>
+                <span className="agd-legend__dot" style={{ background: '#f59e0b' }} />
+                Pendientes {distribution.pPct}%
+              </li>
+              <li>
+                <span className="agd-legend__dot" style={{ background: '#ef4444' }} />
+                Canceladas {distribution.xPct}%
+              </li>
+              <li>
+                <span className="agd-legend__dot" style={{ background: '#8b5cf6' }} />
+                Bloqueos {distribution.bPct}%
+              </li>
+            </ul>
+          </div>
+
+          <div className="agd-summary-card">
+            <h3>Acciones rápidas</h3>
+            <div className="agd-quick-actions">
+              <button type="button" className="agd-quick-btn" onClick={() => focusForm('block')}>
+                <Lock className="h-4 w-4 text-violet-600" aria-hidden />
+                Bloquear franja horaria
+              </button>
+              <button type="button" className="agd-quick-btn" onClick={() => setMode('semana')}>
+                <Calendar className="h-4 w-4 text-teal-600" aria-hidden />
+                Ver agenda semanal
+              </button>
+              <button type="button" className="agd-quick-btn" onClick={() => focusForm('book')}>
+                <Search className="h-4 w-4 text-slate-600" aria-hidden />
+                Buscar paciente
+              </button>
+            </div>
+          </div>
+        </aside>
       </div>
+
+      {rescheduleTarget ? (
+        <div className="agd-modal-backdrop" role="presentation" onClick={() => setRescheduleTarget(null)}>
+          <div className="agd-modal" role="dialog" aria-labelledby="agd-reschedule-title" onClick={(e) => e.stopPropagation()}>
+            <h3 id="agd-reschedule-title">Reprogramar cita</h3>
+            <p className="mb-3 text-sm font-semibold text-slate-600">{patientName(state, rescheduleTarget.patientId)}</p>
+            <div className="agd-form-row">
+              <Field label="Nueva fecha">
+                <Input type="date" value={rescheduleDate} onChange={(e) => setRescheduleDate(e.target.value)} />
+              </Field>
+              <Field label="Nueva hora">
+                <Input type="time" value={rescheduleTime} onChange={(e) => setRescheduleTime(e.target.value)} />
+              </Field>
+            </div>
+            <div className="agd-modal__actions">
+              <Button tone="ghost" onClick={() => setRescheduleTarget(null)}>
+                Cancelar
+              </Button>
+              <Button onClick={() => void submitReschedule()}>Guardar</Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
