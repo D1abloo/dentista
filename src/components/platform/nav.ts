@@ -39,6 +39,7 @@ export const platformNavSections: PlatformNavSection[] = [
     items: [
       { href: '/platform/organizaciones', label: 'Organizaciones', icon: Building2, description: 'Multi-sede por tenant' },
       { href: '/platform/clinicas', label: 'Clínicas', icon: Building2, description: 'Estado, plan y suspensión' },
+      { href: '/platform/organizaciones', label: 'Tenants', icon: Lock, description: 'Tenants y aislamiento' },
       { href: '/platform/usuarios', label: 'Usuarios', icon: Users, description: 'Alta de personal y pacientes por clínica' },
       { href: '/platform/incidencias', label: 'Incidencias', icon: Eye, description: 'Revisar panel clínica y PdP con auditoría' },
       { href: '/platform/aislamiento', label: 'Aislamiento', icon: Lock, description: 'Política multi-tenant' }
@@ -66,7 +67,8 @@ export const platformNavSections: PlatformNavSection[] = [
     title: 'Sistema',
     items: [
       { href: '/platform/configuracion', label: 'Configuración', icon: Settings, description: 'Branding y registro' },
-      { href: '/platform/seguridad', label: 'Seguridad', icon: ShieldCheck, description: 'RLS y acceso' }
+      { href: '/platform/seguridad', label: 'Seguridad', icon: ShieldCheck, description: 'RLS y acceso' },
+      { href: '/platform/seguridad', label: 'Auditoría', icon: Eye, description: 'Registro de actividad' }
     ]
   }
 ];

@@ -31,72 +31,7 @@ async function api<T>(url: string, init?: RequestInit): Promise<T> {
   return json.data as T;
 }
 
-export function PlatformDashboard() {
-  const [overview, setOverview] = useState<PlatformOverview | null>(null);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    api<PlatformOverview>('/api/platform/overview')
-      .then(setOverview)
-      .catch((e) => setError(e instanceof Error ? e.message : 'Error'));
-  }, []);
-
-  const stats = [
-    { label: 'Clínicas totales', value: overview?.clinicsTotal ?? '—', icon: Building2 },
-    { label: 'Clínicas activas', value: overview?.clinicsActive ?? '—', icon: CheckCircle2 },
-    { label: 'Tenants vinculados', value: overview?.tenantsLinked ?? '—', icon: Lock },
-    { label: 'Registros pendientes', value: overview?.registrationsPending ?? '—', icon: ClipboardList },
-    { label: 'Usuarios staff', value: overview?.staffUsers ?? '—', icon: Users },
-    { label: 'Soporte abierto', value: overview?.supportOpen ?? '—', icon: LifeBuoy }
-  ];
-
-  return (
-    <PlatformShell title="Resumen de plataforma" subtitle="Operación global sin mezclar datos clínicos entre organizaciones">
-      {error ? <p className="mb-4 rounded-xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">{error}</p> : null}
-      <Card className="mb-6 border border-[var(--teal)]/30 bg-[var(--teal)]/5 p-5">
-        <div className="flex gap-3">
-          <Lock className="h-6 w-6 shrink-0 text-[var(--teal)]" />
-          <div>
-            <p className="font-bold text-[var(--ink)]">Aislamiento por clínica</p>
-            <p className="mt-1 text-sm text-[var(--muted)]">
-              Cada alta aprobada genera un tenant propio y credenciales para <strong>/admin</strong>. Los pacientes y el
-              personal de una clínica no ven ni contactan a otras organizaciones. Revisa el estado en{' '}
-              <a href="/platform/aislamiento" className="font-semibold text-[var(--blue)]">
-                Aislamiento
-              </a>
-              .
-            </p>
-          </div>
-        </div>
-      </Card>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {stats.map((s) => (
-          <Card key={s.label} className="p-5">
-            <s.icon className="h-6 w-6 text-[var(--blue)]" aria-hidden />
-            <p className="mt-3 text-2xl font-extrabold text-[var(--ink)]">{s.value}</p>
-            <p className="text-sm text-[var(--muted)]">{s.label}</p>
-          </Card>
-        ))}
-      </div>
-      <Card className="mt-6 p-6" title="Acciones rápidas">
-        <div className="flex flex-wrap gap-3">
-          <a href="/platform/registros" className="btn btn--primary btn--sm">
-            Revisar registros
-          </a>
-          <a href="/platform/clinicas" className="btn btn--outline btn--sm">
-            Gestionar clínicas
-          </a>
-          <a href="/platform/usuarios" className="btn btn--outline btn--sm">
-            Usuarios y accesos
-          </a>
-          <a href="/platform/suscripciones" className="btn btn--outline btn--sm">
-            Suscripciones
-          </a>
-        </div>
-      </Card>
-    </PlatformShell>
-  );
-}
+export { PlatformDashboard } from './PlatformDashboard';
 
 export function PlatformClinics() {
   const [list, setList] = useState<PlatformClinic[]>([]);
