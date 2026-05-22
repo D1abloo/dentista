@@ -12,7 +12,6 @@ import {
   MoreHorizontal,
   Plus,
   Search,
-  UserPlus,
   Users
 } from 'lucide-react';
 import { dentistsForClinic, getPrimaryClinic } from '@/lib/clinic';
@@ -20,7 +19,6 @@ import { isClientDemoMode } from '@/lib/appMode';
 import { appointmentsInRange, monthPrefix, weekRange } from '@/lib/appointments';
 import {
   addBlockedSlot,
-  createPatient,
   removeBlockedSlot,
   rescheduleAppointment,
   tryCreateAppointment,
@@ -417,27 +415,6 @@ export function AdminAgenda() {
     }
   }
 
-  function quickPatient() {
-    const next = createPatient(state, {
-      fullName: 'Nuevo paciente',
-      email: 'nuevo@example.com',
-      phone: '+34 600 000 000',
-      birthDate: '1990-01-01',
-      allergies: 'Ninguna',
-      medication: 'Ninguna',
-      reminderChannels: ['email'],
-      primaryDentistId: bookDentistId || (clinicDentists[0]?.id ?? ''),
-      preferredClinicId: clinicId,
-      emergencyContactName: '',
-      emergencyContactPhone: '',
-      notes: ''
-    });
-    commit(next);
-    const created = next.patients[next.patients.length - 1];
-    if (created) setBookPatientId(created.id);
-    setNotice({ type: 'ok', message: 'Paciente creado. Completa sus datos en Pacientes.' });
-  }
-
   function submitBlock() {
     if (!blockReason.trim()) {
       setNotice({ type: 'error', message: 'Indica un motivo.' });
@@ -647,9 +624,9 @@ export function AdminAgenda() {
                 label="Paciente"
                 placeholder="Buscar por NHC, nombre o teléfono…"
               />
-              <button type="button" className="agd-link" onClick={quickPatient}>
-                <UserPlus className="inline h-3.5 w-3.5" aria-hidden /> Crear paciente rápido
-              </button>
+              <p className="text-xs font-semibold text-slate-500">
+                Solo pacientes ya registrados (reserva online, alta previa o importación). En PRO no se crean fichas desde agenda.
+              </p>
               <div className="agd-form-row">
                 <Field label="Fecha">
                   <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />

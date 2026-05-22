@@ -47,6 +47,13 @@ export const POST: APIRoute = async (context) => {
     const parsed = clinicUserCreateSchema.safeParse({ ...body, clinicId });
     if (!parsed.success) return fail('Datos inválidos.', 422, parsed.error.flatten());
 
+    if (body?.accessType === 'patient' || body?.role === 'patient') {
+      return fail(
+        'En Dentista+ PRO los pacientes no se crean desde el panel. Usa reserva online o el proceso de alta acordado.',
+        403
+      );
+    }
+
     const created = await createClinicUser({
       email: parsed.data.email,
       password: parsed.data.password,

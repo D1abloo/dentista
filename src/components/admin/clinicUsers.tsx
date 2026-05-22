@@ -34,7 +34,6 @@ export function AdminClinicUsers() {
   const [form, setForm] = useState({
     fullName: '',
     email: '',
-    accessType: 'clinic' as 'clinic' | 'patient',
     role: 'dentist',
     specialty: 'General',
     permission: 'write',
@@ -83,8 +82,8 @@ export function AdminClinicUsers() {
         body: JSON.stringify({
           fullName: form.fullName.trim(),
           email: form.email.trim(),
-          accessType: form.accessType,
-          role: form.accessType === 'patient' ? 'patient' : form.role,
+          accessType: 'clinic',
+          role: form.role,
           permission: form.permission,
           specialty: form.role === 'dentist' ? form.specialty : undefined,
           sendEmail: form.sendEmail
@@ -125,45 +124,27 @@ export function AdminClinicUsers() {
           <Field label="Email">
             <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </Field>
-          <Field label="Tipo de acceso">
-            <Select
-              value={form.accessType}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  accessType: e.target.value as 'clinic' | 'patient',
-                  role: e.target.value === 'patient' ? 'patient' : 'dentist'
-                })
-              }
-            >
-              <option value="clinic">Panel administrativo (/admin)</option>
-              <option value="patient">Portal paciente (/paciente)</option>
+          <Field label="Rol en el panel">
+            <Select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
+              {STAFF_ROLES.map((r) => (
+                <option key={r.value} value={r.value}>
+                  {r.label}
+                </option>
+              ))}
             </Select>
           </Field>
-          {form.accessType === 'clinic' ? (
-            <>
-              <Field label="Rol">
-                <Select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
-                  {STAFF_ROLES.map((r) => (
-                    <option key={r.value} value={r.value}>
-                      {r.label}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              {form.role === 'dentist' ? (
-                <Field label="Especialidad">
-                  <Input value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })} />
-                </Field>
-              ) : null}
-            </>
+          {form.role === 'dentist' ? (
+            <Field label="Especialidad">
+              <Input value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })} />
+            </Field>
           ) : null}
           <Button className="md:col-span-2" onClick={() => void createUser()}>
             <UserPlus className="h-4 w-4" /> Dar de alta usuario
           </Button>
         </div>
         <p className="mt-3 text-xs text-slate-500">
-          Al registrar un dentista se crea automáticamente su ficha en Dentistas y su agenda queda asignada solo a él.
+          Solo personal de clínica (panel /admin). Los pacientes no se dan de alta aquí: entran por reserva online o proceso acordado.
+          Al registrar un dentista se crea su ficha en Dentistas y agenda propia.
         </p>
       </Card>
 

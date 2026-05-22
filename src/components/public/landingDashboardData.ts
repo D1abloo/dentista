@@ -51,7 +51,7 @@ export const landingDashQuickModules = [
 ] as const;
 
 export const landingDashActions = [
-  { label: 'Nuevo paciente', href: '/admin/pacientes' },
+  { label: 'Pacientes', href: '/admin/pacientes' },
   { label: 'Nueva cita', href: '/admin/citas' },
   { label: 'Emitir factura', href: '/admin/facturas' }
 ] as const;

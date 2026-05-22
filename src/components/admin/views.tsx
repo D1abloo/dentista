@@ -17,7 +17,6 @@ import {
   registerOrganization,
   setDemoSession,
   createDentist,
-  createPatient,
   createTreatment,
   deleteAppointment,
   getStoredTenantId,
@@ -204,30 +203,12 @@ export function AdminPatients() {
   const tenantPatients = state.patients.filter((p) => tenantPatientIds.includes(p.id));
   const list = q.trim() ? findPatientsByQuery(state, q).filter((p) => tenantPatientIds.includes(p.id)) : tenantPatients;
 
-  function newPatient() {
-    commit(
-      createPatient(state, {
-        fullName: 'Nuevo paciente',
-        email: 'nuevo@example.com',
-        phone: '+34 600 000 000',
-        birthDate: '1990-01-01',
-        allergies: 'Ninguna',
-        medication: 'Ninguna',
-        reminderChannels: ['email'],
-        primaryDentistId: scope.dentists[0]?.id ?? '',
-        preferredClinicId: getPrimaryClinic(state, scope.tenantId).id,
-        emergencyContactName: '',
-        emergencyContactPhone: '',
-        notes: ''
-      })
-    );
-    setNotice({ type: 'ok', message: 'Paciente creado con ID automático.' });
-  }
-
   return (
     <div className="space-y-4">
 <SearchInput value={q} onChange={setQ} placeholder="Buscar por NHC, DNI, nombre o email…" />
-      <Button onClick={newPatient}>Crear paciente</Button>
+      <p className="text-sm font-semibold text-slate-600">
+        Las fichas de paciente se generan con la reserva online o el alta acordada con la clínica. En PRO no se crean desde este panel.
+      </p>
       <div className="table-cards">
         {list.map((p) => {
           const rec = recordsForPatient(state, p.id);
