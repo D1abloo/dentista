@@ -150,9 +150,19 @@ export function defaultAppSettings(clinicName = 'Clínica'): AppSettings {
     remindersEnabled: true,
     welcomeMessage: `Bienvenido a ${clinicName}`,
     appointmentConfirmMessage: 'Cita registrada correctamente.',
-    primaryColor: '#2563EB',
-    accentColor: '#14B8A6',
-    logoUrl: '/brand/clinic-shield.svg'
+    primaryColor: '#2d8b7d',
+    accentColor: '#2d8b7d',
+    logoUrl: '/brand/clinic-shield.svg',
+    website: '',
+    instagram: '',
+    facebook: '',
+    openTime: '08:30',
+    closeTime: '20:00',
+    workDays: [1, 2, 3, 4, 5],
+    nif: '',
+    vatRate: 21,
+    invoiceSeries: 'FAC',
+    defaultInvoiceConcept: 'Servicios odontológicos'
   };
 }
 

@@ -13,7 +13,7 @@ import {
   AdminAppointments,
   AdminClinicalReports,
   AdminClinics,
-  AdminConfig,
+  AdminSettings,
   AdminDashboard,
   AdminDentists,
   AdminDocuments,
@@ -60,7 +60,7 @@ function Body({ view, patientId }: { view: AdminView; patientId?: string }) {
     case 'normativa':
       return <AdminNormativa />;
     case 'configuracion':
-      return <AdminConfig />;
+      return <AdminSettings />;
     case 'acceso-portal':
       return <AdminPortalAccess />;
     case 'auditoria-pdp':
@@ -82,6 +82,7 @@ function AdminInner({ view, patientId }: { view: AdminView; patientId?: string }
   const isDocuments = view === 'documentos' && !patientId;
   const isInvoices = view === 'facturas' && !patientId;
   const isReports = view === 'reportes' && !patientId;
+  const isSettings = view === 'configuracion' && !patientId;
   const title = patientId && view === 'pacientes' ? `Ficha ${patientId}` : isDashboard ? 'Resumen general' : adminTitles[view];
   const subtitle = patientId && view === 'pacientes' ? undefined : adminSubtitles[view];
   return (
@@ -94,6 +95,7 @@ function AdminInner({ view, patientId }: { view: AdminView; patientId?: string }
       documentsModule={isDocuments}
       invoicesModule={isInvoices}
       reportsModule={isReports}
+      settingsModule={isSettings}
       dashboardToolbar={isDashboard ? <AdminDashboardToolbar /> : undefined}
     >
       <Toast notice={notice} onClose={clear} />

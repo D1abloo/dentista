@@ -458,6 +458,7 @@ export function AdminClinics() {
 }
 
 export { AdminReports } from './AdminReports';
+export { AdminSettings } from './AdminSettings';
 
 export function AdminNormativa() {
   const { state, commit } = useDemoStore();

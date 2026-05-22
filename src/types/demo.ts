@@ -239,6 +239,13 @@ export interface AppSettings {
   invoiceSeries?: string;
   defaultInvoiceConcept?: string;
   logoUrl?: string;
+  website?: string;
+  instagram?: string;
+  facebook?: string;
+  openTime?: string;
+  closeTime?: string;
+  /** 1=Lun … 7=Dom (ISO weekday) */
+  workDays?: number[];
 }
 
 export type ConsentStatus = 'pendiente' | 'firmado';

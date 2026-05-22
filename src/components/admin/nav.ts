@@ -98,7 +98,7 @@ export const adminSubtitles: Record<AdminView, string> = {
   clinicas: 'Organización y sedes',
   reportes: 'Analiza citas, tratamientos, ingresos, ocupación y rendimiento de tu clínica.',
   normativa: 'Textos legales visibles al paciente',
-  configuracion: 'Datos de contacto, perfil y recordatorios',
+  configuracion: 'Identidad, facturación, portal del paciente y preferencias',
   'acceso-portal': 'Tokens de acceso al portal del paciente (sin historial)',
   'auditoria-pdp': 'Registro de actividad por profesional · exportar Excel',
   usuarios: 'Alta de personal vinculado a la clínica',
