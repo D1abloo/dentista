@@ -1,22 +1,27 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
 
 const links = [
   { href: '/', label: 'Inicio' },
-  { href: '/#caracteristicas', label: 'Características' },
-  { href: '/registro-clinica', label: 'Registrar clínica' },
-  { href: '/#precios', label: 'Precios' },
+  { href: '/#caracteristicas', label: 'Funciones' },
   { href: '/ayuda', label: 'Ayuda' },
   { href: '/contacto', label: 'Contacto' }
 ];
 
 export function PublicHeader({ activeHref }: { activeHref?: string }) {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   return (
-    <header className="pub-header pub-header--brand">
-      <div className="pub-header__clinic-bg" aria-hidden />
+    <header className={`pub-header pub-header--corp${scrolled ? ' pub-header--scrolled' : ''}`}>
       <div className="shell pub-header__inner">
         <a href="/" className="pub-header__brand">
           <DentistaWebpLockup placement="header" />
@@ -34,10 +39,10 @@ export function PublicHeader({ activeHref }: { activeHref?: string }) {
           ))}
         </nav>
         <div className="pub-actions">
-          <a href="/login" className="btn btn--outline btn--sm hidden sm:inline-flex">
-            Iniciar sesión
+          <a href="/login/paciente" className="btn btn--outline-teal btn--sm hidden md:inline-flex">
+            Entrar como paciente
           </a>
-          <a href="/reserva" className="btn btn--primary btn--sm">
+          <a href="/reserva" className="btn btn--teal btn--sm">
             Reservar cita
           </a>
           <button type="button" className="pub-menu-btn lg:hidden" onClick={() => setOpen((v) => !v)} aria-label="Menú">
@@ -46,15 +51,20 @@ export function PublicHeader({ activeHref }: { activeHref?: string }) {
         </div>
       </div>
       {open ? (
-        <nav className="pub-drawer lg:hidden" aria-label="Menú móvil">
+        <nav className="pub-drawer pub-drawer--corp lg:hidden" aria-label="Menú móvil">
           {links.map((l) => (
             <a key={l.href} href={l.href} onClick={() => setOpen(false)}>
               {l.label}
             </a>
           ))}
-          <a href="/login" className="mt-2 block" onClick={() => setOpen(false)}>
-            Iniciar sesión
-          </a>
+          <div className="pub-drawer__cta">
+            <a href="/login/paciente" className="btn btn--teal btn--block" onClick={() => setOpen(false)}>
+              Entrar como paciente
+            </a>
+            <a href="/login" className="btn btn--outline-teal btn--block" onClick={() => setOpen(false)}>
+              Iniciar sesión
+            </a>
+          </div>
         </nav>
       ) : null}
     </header>
