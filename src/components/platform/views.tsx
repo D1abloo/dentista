@@ -33,68 +33,7 @@ async function api<T>(url: string, init?: RequestInit): Promise<T> {
 
 export { PlatformDashboard } from './PlatformDashboard';
 
-export function PlatformClinics() {
-  const [list, setList] = useState<PlatformClinic[]>([]);
-  const [msg, setMsg] = useState('');
-
-  async function load() {
-    setList(await api<PlatformClinic[]>('/api/platform/clinics'));
-  }
-
-  useEffect(() => {
-    void load().catch(() => setMsg('No se pudieron cargar las clínicas.'));
-  }, []);
-
-  async function patchStatus(id: string, status: PlatformClinic['status']) {
-    await api('/api/platform/clinics', { method: 'PATCH', body: JSON.stringify({ clinicId: id, status }) });
-    setMsg('Estado actualizado.');
-    await load();
-  }
-
-  async function patchPlan(id: string, plan: PlatformClinic['subscription_plan']) {
-    await api('/api/platform/clinics', { method: 'PATCH', body: JSON.stringify({ clinicId: id, plan }) });
-    setMsg('Plan actualizado.');
-    await load();
-  }
-
-  return (
-    <PlatformShell title="Clínicas registradas" subtitle="Todas las sedes; agrupa por organización en Organizaciones">
-      {msg ? <p className="mb-4 text-sm font-bold text-emerald-700">{msg}</p> : null}
-      <div className="table-cards">
-        {list.map((c) => (
-          <Card key={c.id} className="p-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h3 className="font-bold text-[var(--ink)]">{c.name}</h3>
-                <p className="text-sm text-[var(--muted)]">{c.email ?? '—'} · {c.slug}</p>
-                <p className="mt-1 text-xs font-bold uppercase text-[var(--blue)]">{c.status} · plan {c.subscription_plan}</p>
-                <p className="mt-1 text-xs text-[var(--muted)]">
-                  {c.city ? `${c.city} · ` : ''}
-                  {c.is_main_branch ? 'Sede principal · ' : 'Sede · '}
-                  Tenant {c.tenant_id ? c.tenant_id.slice(0, 8) + '…' : '—'}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Select className="field-control !w-auto" value={c.status} onChange={(e) => void patchStatus(c.id, e.target.value as PlatformClinic['status'])}>
-                  <option value="pending">pending</option>
-                  <option value="active">active</option>
-                  <option value="suspended">suspended</option>
-                  <option value="rejected">rejected</option>
-                </Select>
-                <Select className="field-control !w-auto" value={c.subscription_plan} onChange={(e) => void patchPlan(c.id, e.target.value as PlatformClinic['subscription_plan'])}>
-                  <option value="essential">essential</option>
-                  <option value="professional">professional</option>
-                  <option value="enterprise">enterprise</option>
-                </Select>
-              </div>
-            </div>
-          </Card>
-        ))}
-        {!list.length ? <Empty title="Sin clínicas" text="Aprueba registros para crear clínicas en producción." /> : null}
-      </div>
-    </PlatformShell>
-  );
-}
+export { PlatformClinics } from './PlatformClinics';
 
 export function PlatformRegistrations() {
   const [list, setList] = useState<ClinicRegistration[]>([]);
