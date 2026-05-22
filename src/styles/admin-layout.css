@@ -5,7 +5,7 @@
   --admin-pad-y: clamp(0.55rem, 1vw, 0.85rem);
   --admin-gap: 0.65rem;
   --admin-aside: minmax(300px, min(32vw, 420px));
-  --admin-rail-w: 4.5rem;
+  --admin-rail-w: 6.75rem;
 }
 
 .portal--admin:not(.portal--admin-compact) {
