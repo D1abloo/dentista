@@ -1,20 +1,17 @@
 import { useState, type ReactNode } from 'react';
+
+export type PlatformShellProps = {
+  title: ReactNode;
+  subtitle?: string;
+  headerActions?: ReactNode;
+  children: ReactNode;
+};
 import { ExternalLink, LogOut, Menu, Shield } from 'lucide-react';
 import { LogoMark } from '@/components/brand/Logo';
 import { useLogout } from '@/components/auth/RoleGate';
 import { platformNavSections } from './nav';
 
-export function PlatformShell({
-  title,
-  subtitle,
-  headerActions,
-  children
-}: {
-  title: string;
-  subtitle?: string;
-  headerActions?: ReactNode;
-  children: ReactNode;
-}) {
+export function PlatformShell({ title, subtitle, headerActions, children }: PlatformShellProps) {
   const [open, setOpen] = useState(false);
   const path = typeof window !== 'undefined' ? window.location.pathname : '';
   const logout = useLogout();

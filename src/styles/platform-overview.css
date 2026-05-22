@@ -221,6 +221,22 @@
   color: #0f2742;
 }
 
+.plt-btn--danger {
+  background: #fff;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.plt-btn--danger:hover {
+  background: #fef2f2;
+  border-color: #f87171;
+}
+
+.plt-btn--sm {
+  padding: 0.4rem 0.65rem;
+  font-size: 0.72rem;
+}
+
 .plt-btn--ghost {
   background: #fff;
   border-color: #e2e8f0;
