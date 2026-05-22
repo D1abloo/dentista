@@ -678,6 +678,8 @@ body {
 
 .portal-body--admin {
   padding-top: 1rem;
+  max-width: none;
+  width: 100%;
 }
 
 .portal-drawer-backdrop {
@@ -6711,12 +6713,17 @@ a.cp-channel:hover {
     --rail: 17rem;
   }
 
-  .portal-body--admin,
   .portal-body--patient {
     max-width: 1400px;
     margin-left: auto;
     margin-right: auto;
     width: 100%;
+  }
+
+  .portal-body--admin {
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
   }
 
   .portal-top__title {
@@ -6725,7 +6732,6 @@ a.cp-channel:hover {
 }
 
 @media (min-width: 1536px) {
-  .portal-body--admin,
   .portal-body--patient {
     max-width: 1520px;
   }

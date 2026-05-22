@@ -1,0 +1,208 @@
+/* Panel admin — ancho completo, espaciado compacto y rejillas alineadas */
+
+.portal--admin {
+  --admin-pad-x: clamp(0.65rem, 1.25vw, 1rem);
+  --admin-pad-y: clamp(0.55rem, 1vw, 0.85rem);
+  --admin-gap: 0.65rem;
+  --admin-aside: minmax(280px, min(28vw, 400px));
+}
+
+.portal--admin .portal-main {
+  width: 100%;
+  min-width: 0;
+}
+
+.portal--admin .portal-body,
+.portal--admin .portal-body.portal-body--admin,
+.portal--admin .portal-body[class*='-module'],
+.portal--admin .portal-body--dashboard {
+  width: 100%;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding: var(--admin-pad-y) var(--admin-pad-x) 1rem !important;
+  box-sizing: border-box;
+}
+
+/* Módulos PRO: raíz a todo el ancho */
+.portal--admin .inv-module,
+.portal--admin .pay-module,
+.portal--admin .doc-module,
+.portal--admin .pt-module,
+.portal--admin .rep-module,
+.portal--admin .set-module,
+.portal--admin .ntf-module,
+.portal--admin .agd-module,
+.portal--admin .adm-dash {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  gap: var(--admin-gap);
+}
+
+/* Cabeceras de módulo sin límite estrecho en subtítulos */
+.portal--admin .inv-module__head p,
+.portal--admin .pay-module__head p,
+.portal--admin .doc-module__head p,
+.portal--admin .pt-module__head p,
+.portal--admin .rep-module__head p,
+.portal--admin .set-module__head p,
+.portal--admin .ntf-module__head p {
+  max-width: none;
+}
+
+/* KPIs y barras de herramientas a ancho completo */
+.portal--admin .inv-kpis,
+.portal--admin .pay-kpis,
+.portal--admin .doc-kpis,
+.portal--admin .pt-kpis,
+.portal--admin .rep-kpis,
+.portal--admin .ntf-kpis,
+.portal--admin .inv-toolbar,
+.portal--admin .pay-toolbar,
+.portal--admin .doc-toolbar,
+.portal--admin .pt-toolbar,
+.portal--admin .ntf-toolbar,
+.portal--admin .inv-workspace,
+.portal--admin .inv-util-grid,
+.portal--admin .pay-widgets {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Rejillas principales listado + lateral */
+.portal--admin .inv-grid,
+.portal--admin .inv-workspace,
+.portal--admin .doc-grid,
+.portal--admin .pay-grid,
+.portal--admin .pt-layout,
+.portal--admin .ntf-layout {
+  width: 100%;
+  max-width: 100%;
+  gap: var(--admin-gap);
+}
+
+.portal--admin .inv-grid,
+.portal--admin .doc-grid,
+.portal--admin .pay-grid,
+.portal--admin .pt-layout,
+.portal--admin .ntf-layout {
+  grid-template-columns: minmax(0, 1fr) var(--admin-aside);
+  align-items: stretch;
+}
+
+.portal--admin .inv-list-col,
+.portal--admin .inv-aside,
+.portal--admin .doc-side,
+.portal--admin .pay-side,
+.portal--admin .pt-side {
+  min-width: 0;
+}
+
+.portal--admin .inv-util-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--admin-gap);
+}
+
+/* Ajustes: formulario ancho + resumen en fila compacta */
+.portal--admin .set-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--admin-gap);
+  width: 100%;
+}
+
+.portal--admin .set-side {
+  position: static;
+  top: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--admin-gap);
+  width: 100%;
+}
+
+.portal--admin .set-quick-grid {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--admin-gap);
+}
+
+/* Reportes: rejilla 12 columnas ocupa todo */
+.portal--admin .rep-grid {
+  width: 100%;
+  gap: var(--admin-gap);
+}
+
+.portal--admin .rep-module__head {
+  width: 100%;
+}
+
+/* Dashboard */
+.portal--admin .adm-kpi-grid,
+.portal--admin .adm-kpi-wide-grid,
+.portal--admin .adm-panels {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Vistas legacy (citas, clínicas, informes clínicos, etc.) */
+.portal--admin .portal-body--admin > .grid,
+.portal--admin .portal-body--admin > .space-y-4,
+.portal--admin .portal-body--admin > .space-y-5 {
+  width: 100%;
+  max-width: 100%;
+}
+
+.portal--admin .portal-body--admin .grid {
+  width: 100%;
+}
+
+.portal--admin .portal-body--admin .card,
+.portal--admin .portal-body--admin .ui-card,
+.portal--admin .portal-body--admin .table-cards {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Tablas con scroll horizontal sin desbordar el panel */
+.portal--admin .inv-table-wrap,
+.portal--admin .doc-table-wrap,
+.portal--admin .pay-table-wrap {
+  width: 100%;
+}
+
+@media (max-width: 1280px) {
+  .portal--admin {
+    --admin-aside: minmax(260px, 32vw);
+  }
+}
+
+@media (max-width: 1100px) {
+  .portal--admin .inv-grid,
+  .portal--admin .doc-grid,
+  .portal--admin .pay-grid,
+  .portal--admin .pt-layout,
+  .portal--admin .ntf-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .portal--admin .inv-aside {
+    position: static;
+    max-height: none;
+  }
+
+  .portal--admin .inv-util-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .portal--admin .inv-kpis,
+  .portal--admin .pay-kpis,
+  .portal--admin .doc-kpis,
+  .portal--admin .pt-kpis,
+  .portal--admin .rep-kpis,
+  .portal--admin .ntf-kpis {
+    gap: 0.45rem;
+  }
+}
