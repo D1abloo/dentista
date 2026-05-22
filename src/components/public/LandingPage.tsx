@@ -8,9 +8,11 @@ import {
   Shield,
   ShieldCheck
 } from 'lucide-react';
+import { clinicShowcases, patientShowcases } from '@/data/landingShowcases';
 import { PublicFooter } from './PublicFooter';
 import { PublicHeader } from './PublicHeader';
 import { CookieBanner } from './CookieBanner';
+import { LandingShowcase } from './LandingShowcase';
 
 const features = [
   {
@@ -133,6 +135,10 @@ export function LandingPage() {
         <section id="caracteristicas" className="lp-section lp-section--alt shell">
           <header className="lp-section__head">
             <h2>Todo en un solo lugar</h2>
+            <p>
+              Reserva online, gestión clínica con agenda multi-profesional, informes PDF, facturación FAC-XXXX y
+              portal del paciente sincronizado en tiempo real.
+            </p>
           </header>
           <div className="lp-features">
             {features.map((f) => (
@@ -146,6 +152,20 @@ export function LandingPage() {
             ))}
           </div>
         </section>
+
+        <LandingShowcase
+          id="portal-paciente"
+          title="Portal del paciente"
+          lead="Capturas reales del móvil: citas, informes, documentos, facturas y pagos con identificadores CIT-, FAC- y PAG-."
+          items={patientShowcases}
+        />
+
+        <LandingShowcase
+          id="panel-clinica"
+          title="Panel de clínica"
+          lead="Agenda, pacientes con NHC, facturación, dashboard y acceso supervisado al portal del paciente."
+          items={clinicShowcases}
+        />
 
         <section className="lp-section shell">
           <header className="lp-section__head">

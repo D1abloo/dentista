@@ -228,6 +228,16 @@
   color: #5eead4;
 }
 
+.lp-footer--corp .dentista-webp-lockup__img {
+  width: 2.35rem;
+  height: 2.35rem;
+  max-width: none;
+  border-radius: 50%;
+  object-fit: cover;
+  background: transparent;
+  filter: none;
+}
+
 .lp-footer--corp .dentista-webp-lockup__name {
   font-family: var(--pub-display);
   font-size: 1.1rem;
@@ -335,4 +345,311 @@
 
 .lp-portals .lp-portal-card__media {
   display: none;
+}
+
+/* Showcase capturas */
+.lp-showcase {
+  padding-top: 2.5rem;
+}
+
+.lp-showcase__grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .lp-showcase__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.lp-showcase__card {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 24px rgba(15, 39, 66, 0.06);
+}
+
+@media (min-width: 640px) {
+  .lp-showcase__card {
+    grid-template-columns: 9rem 1fr;
+    align-items: start;
+  }
+}
+
+.lp-showcase__img-wrap {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: #f1f5f9;
+  line-height: 0;
+}
+
+.lp-showcase__img-wrap img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.lp-showcase__body h3 {
+  margin: 0;
+  font-family: var(--pub-display);
+  font-size: 1.05rem;
+  color: var(--pub-navy);
+}
+
+.lp-showcase__body p {
+  margin: 0.45rem 0 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #64748b;
+}
+
+.lp-showcase__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.65rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-showcase__tags li {
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--pub-aqua-dark);
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+}
+
+/* Ayuda documentación */
+.help-hub--docs {
+  background: #f8fafc;
+  padding-bottom: 3rem;
+}
+
+.help-docs__intro {
+  padding: 2rem 0 1.5rem;
+}
+
+.help-docs__intro h1 {
+  font-family: var(--pub-display);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  color: var(--pub-navy);
+}
+
+.help-docs__intro > p {
+  max-width: 42rem;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.help-docs__toc {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: 0.85rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+}
+
+@media (min-width: 640px) {
+  .help-docs__toc {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.help-docs__toc-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pub-aqua-dark);
+}
+
+.help-docs__toc a {
+  display: block;
+  padding: 0.25rem 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--pub-navy);
+  text-decoration: none;
+}
+
+.help-docs__toc a:hover {
+  color: var(--pub-aqua-dark);
+}
+
+.help-docs__group-title {
+  margin: 2rem 0 1rem;
+  font-family: var(--pub-display);
+  font-size: 1.35rem;
+  color: var(--pub-navy);
+}
+
+.help-doc {
+  margin-bottom: 2rem;
+  padding: 1.25rem;
+  border-radius: 1rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+}
+
+.help-doc__title {
+  margin: 0;
+  font-family: var(--pub-display);
+  font-size: 1.2rem;
+  color: var(--pub-navy);
+}
+
+.help-doc__summary {
+  margin: 0.5rem 0 0;
+  font-size: 0.95rem;
+  color: #334155;
+  line-height: 1.55;
+}
+
+.help-doc__goal,
+.help-doc__audience {
+  margin: 0.65rem 0 0;
+  font-size: 0.88rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.help-doc__figure {
+  margin: 1rem 0 0;
+  max-width: 16rem;
+}
+
+.help-doc__figure img {
+  width: 100%;
+  border-radius: 0.65rem;
+  border: 1px solid #e2e8f0;
+}
+
+.help-doc__figure figcaption {
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.help-doc__block {
+  margin-top: 1rem;
+}
+
+.help-doc__block h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pub-aqua-dark);
+}
+
+.help-doc__block ul,
+.help-doc__steps {
+  margin: 0;
+  padding-left: 1.15rem;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #475569;
+}
+
+.help-doc__steps li + li {
+  margin-top: 0.65rem;
+}
+
+.help-doc__steps p {
+  margin: 0.2rem 0 0;
+  font-weight: 400;
+}
+
+.help-doc__block--tip {
+  padding: 0.75rem;
+  border-radius: 0.65rem;
+  background: #f0fdfa;
+}
+
+.help-doc__block--warn {
+  padding: 0.75rem;
+  border-radius: 0.65rem;
+  background: #fff7ed;
+}
+
+/* Contacto solo formulario */
+.cp--form-only {
+  padding: 2rem 0 3rem;
+  background: #f8fafc;
+}
+
+.cp--form-only .cp-form-panel {
+  display: grid;
+  gap: 2rem;
+}
+
+@media (min-width: 900px) {
+  .cp--form-only .cp-form-panel {
+    grid-template-columns: 1.2fr 0.8fr;
+    align-items: start;
+  }
+}
+
+.cp-form-intro {
+  margin: 0.5rem 0 1.25rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: #64748b;
+}
+
+.cp-info-list {
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cp-info-list li {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.cp-info-list li svg {
+  flex-shrink: 0;
+  color: var(--pub-aqua);
+}
+
+.cp-info-list strong {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--pub-navy);
+}
+
+.cp-info-list a,
+.cp-info-list span {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--pub-aqua-dark);
+}
+
+.cp-info-list small {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.cp-info-note {
+  margin-top: 1rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: #64748b;
 }
