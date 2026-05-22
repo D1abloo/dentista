@@ -16,6 +16,7 @@ import { useStaffContext } from '@/hooks/useStaffContext';
 import { ClinicBranchSwitcher } from './ClinicBranchSwitcher';
 import { AdminQuickAccess } from './AdminQuickAccess';
 import { AdminNotificationBell } from './AdminNotificationBell';
+import { AdminTopbarUser } from './AdminTopbarUser';
 
 function logInspectNav(href: string, label: string) {
   void fetch('/api/platform/inspect', {
@@ -258,9 +259,21 @@ export function AdminShell({
           <div className="admin-topbar__brand">
             <div className="admin-topbar__title-wrap">
               <span className="admin-topbar__accent" aria-hidden />
-              <h1 className="admin-topbar__title">{title}</h1>
+              <div className="admin-topbar__titles">
+                <h1 className="admin-topbar__title">{title}</h1>
+                <p className="admin-topbar__org-line">
+                  <span className="admin-topbar__org-name">{tenant.name}</span>
+                  {subtitle ? (
+                    <>
+                      <span className="admin-topbar__sep" aria-hidden>
+                        ·
+                      </span>
+                      <span className="admin-topbar__page-hint">{subtitle}</span>
+                    </>
+                  ) : null}
+                </p>
+              </div>
             </div>
-            {subtitle ? <p className="admin-topbar__subtitle">{subtitle}</p> : null}
           </div>
 
           {dashboardToolbar ? (
@@ -270,20 +283,19 @@ export function AdminShell({
               <div className="admin-topbar__search">
                 <AdminSearch />
               </div>
-              <div className="admin-topbar__actions">
+              <div className="admin-topbar__tools">
                 <AdminNotificationBell />
                 <AdminQuickAccess />
-                <div className="hidden lg:block">
+                <div className="hidden md:block">
                   <ClinicBranchSwitcher />
                 </div>
-                <button type="button" className="admin-logout-btn admin-logout-btn--compact" onClick={logout}>
-                  <LogOut className="h-4 w-4" />
-                  <span className="hidden sm:inline">Cerrar sesión</span>
-                  <span className="sm:hidden">Salir</span>
-                </button>
               </div>
             </>
           )}
+
+          <div className="admin-topbar__user">
+            <AdminTopbarUser fallbackName={userLabel} />
+          </div>
 
           <button type="button" className="pub-menu-btn lg:hidden admin-topbar__menu" onClick={() => setOpen(true)} aria-label="Menú">
             <Menu className="h-5 w-5" />
