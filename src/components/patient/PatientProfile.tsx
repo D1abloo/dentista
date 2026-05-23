@@ -18,7 +18,8 @@ import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { usePatient } from '@/hooks/usePatient';
 import { logPortalAudit, usePortalAccess } from '@/hooks/usePortalAccess';
-import { savePatient } from '@/lib/demoStore';
+
+import { usePatientMutations } from '@/hooks/usePatientMutations';
 import type { Patient, ReminderChannel } from '@/types/demo';
 import {
   clinicNameForPatient,
@@ -77,7 +78,8 @@ function fieldClass(err?: string) {
 }
 
 export function PatientProfile() {
-  const { state, commit } = useDemoStore();
+  const { state } = useDemoStore();
+  const { savePatientProfile } = usePatientMutations();
   const base = usePatient();
   const { setNotice } = useNotice();
   const portalAccess = usePortalAccess();
@@ -141,12 +143,11 @@ export function PatientProfile() {
         ...form,
         profileUpdatedAt: new Date().toISOString()
       };
-      commit(savePatient(state, updated));
+      savePatientProfile(updated);
       setSavedSnap(profileSnapshot(updated));
       setForm(updated);
       setSaveOk(true);
       setTimeout(() => setSaveOk(false), 2000);
-      setNotice({ type: 'ok', message: 'Cambios guardados correctamente.' });
       if (portalAccess.active) {
         void logPortalAudit({
           eventType: 'other',

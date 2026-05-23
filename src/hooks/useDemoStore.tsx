@@ -10,7 +10,8 @@ import {
 import { createEmptyDemoState } from '@/lib/emptyState';
 import { fetchClinicBootstrap } from '@/lib/clinicApi';
 import * as store from '@/lib/demoStore';
-import { STORAGE_TENANT_ID } from '@/lib/storage/keys';
+import { applyPatientPortalOverlay, savePatientPortalOverlay } from '@/lib/patient/portalOverlay';
+import { STORAGE_PATIENT_ID, STORAGE_TENANT_ID } from '@/lib/storage/keys';
 import type { DemoState } from '@/types/demo';
 
 type DataSource = 'supabase' | 'loading' | 'empty';
@@ -43,7 +44,13 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
         error?: { message?: string };
       };
       if (res.ok && json.data?.state) {
-        setState(json.data.state);
+        const patientId =
+          typeof window !== 'undefined' ? localStorage.getItem(STORAGE_PATIENT_ID) : null;
+        const merged =
+          patientId && typeof window !== 'undefined' && window.location.pathname.startsWith('/paciente')
+            ? applyPatientPortalOverlay(json.data.state, patientId)
+            : json.data.state;
+        setState(merged);
         if (json.data.tenantId) localStorage.setItem(STORAGE_TENANT_ID, json.data.tenantId);
         setDataSource('supabase');
       } else {
@@ -62,12 +69,22 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
 
   const commit = useCallback((next: DemoState) => {
     setState(next);
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/paciente')) {
+      const patientId = localStorage.getItem(STORAGE_PATIENT_ID);
+      if (patientId) savePatientPortalOverlay(next, patientId);
+    }
   }, []);
 
   const refresh = useCallback(async () => {
     const remote = await fetchClinicBootstrap();
     if (remote?.state) {
-      setState(remote.state);
+      const patientId =
+        typeof window !== 'undefined' ? localStorage.getItem(STORAGE_PATIENT_ID) : null;
+      const merged =
+        patientId && typeof window !== 'undefined' && window.location.pathname.startsWith('/paciente')
+          ? applyPatientPortalOverlay(remote.state, patientId)
+          : remote.state;
+      setState(merged);
       if (remote.tenantId) localStorage.setItem(STORAGE_TENANT_ID, remote.tenantId);
       setDataSource('supabase');
     }

@@ -12,9 +12,7 @@ import {
   Stethoscope,
   User
 } from 'lucide-react';
-import { dentistsForClinic, getPrimaryClinic, treatmentsForClinic } from '@/lib/clinic';
-import { clinicTenantId } from '@/lib/clinic';
-import { tryCreateAppointment } from '@/lib/demoStore';
+import { dentistsForClinic, getPrimaryClinic, treatmentsForClinic, clinicTenantId } from '@/lib/clinic';
 import { fmtDate, todayIso } from '@/lib/format';
 import { daySlotMap } from '@/lib/slots';
 import {
@@ -34,6 +32,7 @@ import {
 import { BookingDayCalendar } from '@/components/shared/BookingDayCalendar';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
+import { usePatientMutations } from '@/hooks/usePatientMutations';
 import { usePatient } from '@/hooks/usePatient';
 import { logPortalAudit, usePortalAccess } from '@/hooks/usePortalAccess';
 import { Field, Textarea } from '@/components/ui';
@@ -45,7 +44,8 @@ const FOOTER_TIPS = [
 ] as const;
 
 export function PatientBook() {
-  const { state, commit } = useDemoStore();
+  const { state } = useDemoStore();
+  const { bookAppointment } = usePatientMutations();
   const patient = usePatient();
   const { setNotice } = useNotice();
   const portalAccess = usePortalAccess();
@@ -262,25 +262,22 @@ export function PatientBook() {
 
     setBusy(true);
     try {
-      const result = tryCreateAppointment(state, {
-        patientId: patient.id,
-        tenantId: clinicTenantId(state, clinicId),
-        dentistId: finalDentist,
+      const result = await bookAppointment({
         clinicId,
+        dentistId: finalDentist,
         cabinetId: activeCabinet,
         treatmentId,
         date,
         time,
         notes,
-        status: 'pendiente'
+        tenantId: clinicTenantId(state, clinicId)
       });
       if (!result.ok) {
-        setNotice({ type: 'error', message: result.message ?? 'No se pudo reservar la cita. Inténtalo de nuevo.' });
+        setNotice({ type: 'error', message: result.message ?? 'No se pudo reservar la cita.' });
         setErrors({ time: 'La cita ya no está disponible. Elige otro horario.' });
         goStep(4);
         return;
       }
-      commit(result.state);
       if (portalAccess.active) {
         void logPortalAudit({
           eventType: 'other',
@@ -289,9 +286,8 @@ export function PatientBook() {
         });
       }
       setSuccess(true);
-      setNotice({ type: 'ok', message: 'Acción completada correctamente.' });
     } catch {
-      setNotice({ type: 'error', message: 'No se pudo reservar la cita. Inténtalo de nuevo.' });
+      setNotice({ type: 'error', message: 'No se pudo reservar la cita.' });
     } finally {
       setBusy(false);
     }
