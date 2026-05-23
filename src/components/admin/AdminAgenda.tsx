@@ -31,14 +31,18 @@ import { useStaffContext } from '@/hooks/useStaffContext';
 import { useTenant } from '@/hooks/useTenant';
 import { useLogout } from '@/components/auth/RoleGate';
 import type { Appointment, AppointmentStatus, BlockedSlot } from '@/types/demo';
-import { Button, Field, Input, Select, Textarea } from '@/components/ui';
-import { PatientLookup } from './PatientLookup';
+import { blockCoversHour, blocksForDay } from '@/lib/agenda/availability';
+import { Button, Field, Input } from '@/components/ui';
 import { AGENDA_HOURS, AgendaDayCalendar, AgendaWeekMonthCalendar } from './AgendaCalendarViews';
-import { AgendaAppointmentModal } from './AgendaAppointmentModal';
+import {
+  AgendaApptDetailDrawer,
+  AgendaBlockDetailDrawer,
+  AgendaBlockDrawer,
+  AgendaBookDrawer,
+  validateAppointmentSlot
+} from './agenda/AgendaDrawers';
 
 const TIMELINE_HOURS = AGENDA_HOURS;
-const DURATIONS = [15, 30, 45, 60] as const;
-
 function shiftDate(iso: string, days: number) {
   const d = new Date(`${iso}T12:00:00`);
   d.setDate(d.getDate() + days);
@@ -53,7 +57,7 @@ function nextFreeHour(appts: Appointment[], blocks: BlockedSlot[], dentistId: st
   for (const hour of TIMELINE_HOURS) {
     const h = hour.slice(0, 2);
     const taken = appts.some((a) => hourOf(a.time) === h);
-    const blocked = blocks.some((b) => hourOf(b.time) === h && (!dentistId || b.dentistId === dentistId));
+    const blocked = blocks.some((b) => blockCoversHour(b, hour, dentistId || b.dentistId));
     if (!taken && !blocked) return hour;
   }
   return '—';
@@ -97,7 +101,6 @@ export function AdminAgenda() {
   const { staff, loading: staffLoading } = useStaffContext();
   const logout = useLogout();
   const loading = dataSource === 'loading';
-  const formRef = useRef<HTMLDivElement>(null);
 
   const [mode, setMode] = useState<'dia' | 'semana' | 'mes'>('dia');
   const [date, setDate] = useState(todayIso());
@@ -106,7 +109,11 @@ export function AdminAgenda() {
   const [dentistId, setDentistId] = useState('');
   const ownAgenda = staff?.agendaScope === 'own' && Boolean(staff.dentistId);
   const [timelineView, setTimelineView] = useState<'hora' | 'dentista'>('hora');
-  const [leftTab, setLeftTab] = useState<'book' | 'block'>('book');
+  const [bookOpen, setBookOpen] = useState(false);
+  const [blockOpen, setBlockOpen] = useState(false);
+  const [bookPrefillTime, setBookPrefillTime] = useState('10:00');
+  const [blockPrefillTime, setBlockPrefillTime] = useState('13:00');
+  const [detailBlock, setDetailBlock] = useState<BlockedSlot | null>(null);
   const [clinicOpen, setClinicOpen] = useState(false);
   const [dentistOpen, setDentistOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -116,14 +123,6 @@ export function AdminAgenda() {
   const [rescheduleDate, setRescheduleDate] = useState('');
   const [rescheduleTime, setRescheduleTime] = useState('10:00');
 
-  const [bookPatientId, setBookPatientId] = useState('');
-  const [bookTime, setBookTime] = useState('10:00');
-  const [bookDuration, setBookDuration] = useState<number>(30);
-  const [bookDentistId, setBookDentistId] = useState('');
-  const [bookTreatmentId, setBookTreatmentId] = useState(scope.treatments[0]?.id ?? '');
-  const [bookNotes, setBookNotes] = useState('');
-  const [blockTime, setBlockTime] = useState('13:00');
-  const [blockReason, setBlockReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const clinicRef = useRef<HTMLDivElement>(null);
@@ -143,8 +142,7 @@ export function AdminAgenda() {
   useEffect(() => {
     const pre = consumeBookingPatientPrefill();
     if (pre) {
-      setBookPatientId(pre);
-      setLeftTab('book');
+      setBookOpen(true);
     }
   }, []);
 
@@ -179,11 +177,15 @@ export function AdminAgenda() {
     return list.filter((a) => a.status !== 'cancelada');
   }, [scope.appointments, clinicId, date, dentistId]);
 
-  const blockedForDay = useMemo(() => {
-    let list = scope.blockedSlots.filter((b) => b.clinicId === clinicId && b.date === date);
-    if (dentistId) list = list.filter((b) => b.dentistId === dentistId);
-    return list;
-  }, [scope.blockedSlots, clinicId, date, dentistId]);
+  const blockedForDay = useMemo(
+    () => blocksForDay(state, { clinicId, date, dentistId: dentistId || undefined }),
+    [state, clinicId, date, dentistId]
+  );
+
+  const allBlocksForDay = useMemo(
+    () => scope.blockedSlots.filter((b) => b.clinicId === clinicId && b.date === date),
+    [scope.blockedSlots, clinicId, date]
+  );
 
   const rangeAppts = useMemo(() => {
     let list = scope.appointments.filter((a) => a.clinicId === clinicId);
@@ -242,15 +244,18 @@ export function AdminAgenda() {
     .slice(0, 2)
     .toUpperCase();
 
-  function focusForm(tab: 'book' | 'block' = 'book') {
-    setLeftTab(tab);
-    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  function openBookDrawer(hour?: string) {
+    if (hour) setBookPrefillTime(hour.length <= 5 ? hour : `${hour.slice(0, 2)}:00`);
+    setBookOpen(true);
+  }
+
+  function openBlockDrawer(hour?: string) {
+    if (hour) setBlockPrefillTime(hour.length <= 5 ? hour : `${hour.slice(0, 2)}:00`);
+    setBlockOpen(true);
   }
 
   function pickSlot(hour: string) {
-    setBookTime(hour);
-    setLeftTab('book');
-    focusForm('book');
+    openBookDrawer(hour);
   }
 
   function openDay(iso: string) {
@@ -299,21 +304,41 @@ export function AdminAgenda() {
     setRescheduleTarget(null);
   }
 
-  async function createAppointment() {
+  async function createAppointmentFromDrawer(data: {
+    patientId: string;
+    date: string;
+    time: string;
+    duration: number;
+    dentistId: string;
+    treatmentId: string;
+    notes: string;
+    visibleToPatient: boolean;
+  }) {
     const err =
-      required(bookPatientId, 'Paciente') ||
-      required(bookTime, 'Hora') ||
-      required(bookTreatmentId, 'Tratamiento');
+      required(data.patientId, 'Paciente') ||
+      required(data.time, 'Hora') ||
+      required(data.treatmentId, 'Tratamiento');
     if (err) {
       setNotice({ type: 'error', message: err });
       return;
     }
-    const activeDentist = bookDentistId || dentistId || clinicDentists[0]?.id;
+    const activeDentist = data.dentistId || dentistId || clinicDentists[0]?.id;
     if (!activeDentist) {
       setNotice({ type: 'error', message: 'Selecciona un dentista.' });
       return;
     }
-    const patient = clinicPatients.find((p) => p.id === bookPatientId) ?? state.patients.find((p) => p.id === bookPatientId);
+    const slotErr = validateAppointmentSlot(state, {
+      clinicId,
+      dentistId: activeDentist,
+      date: data.date,
+      time: data.time
+    });
+    if (slotErr) {
+      setNotice({ type: 'error', message: slotErr });
+      return;
+    }
+    const patient =
+      clinicPatients.find((p) => p.id === data.patientId) ?? state.patients.find((p) => p.id === data.patientId);
     if (!patient) {
       setNotice({ type: 'error', message: 'Selecciona un paciente registrado en la clínica.' });
       return;
@@ -324,16 +349,16 @@ export function AdminAgenda() {
         state,
         clinicId,
         cabinetId: activeClinic.cabinets[0]?.id ?? 'g-1',
-        patientId: bookPatientId,
+        patientId: data.patientId,
         patientName: patient.fullName,
         patientEmail: patient.email,
         patientPhone: patient.phone,
         dentistId: activeDentist,
-        treatmentId: bookTreatmentId,
+        treatmentId: data.treatmentId,
         roomName: activeClinic.cabinets[0]?.name ?? 'Gabinete 1',
-        date,
-        time: bookTime,
-        notes: bookNotes,
+        date: data.date,
+        time: data.time,
+        notes: data.notes,
         status: 'pendiente'
       });
       if (!result.ok) {
@@ -342,30 +367,40 @@ export function AdminAgenda() {
       }
       if (result.demoState) commit(result.demoState);
       else await refresh();
-      setNotice({ type: 'ok', message: 'Cita creada. Visible en el portal del paciente.' });
-      setBookNotes('');
+      setNotice({ type: 'ok', message: 'Cita creada correctamente.' });
+      setBookOpen(false);
     } finally {
       setSubmitting(false);
     }
   }
 
-  async function submitBlock() {
-    if (!blockReason.trim()) {
+  async function submitBlockFromDrawer(data: {
+    dentistId: string;
+    appliesToAll: boolean;
+    date: string;
+    startTime: string;
+    endTime: string;
+    reason: string;
+    notes: string;
+  }) {
+    if (!data.reason.trim()) {
       setNotice({ type: 'error', message: 'Indica un motivo.' });
       return;
     }
-    const dId = dentistId || bookDentistId || (clinicDentists[0]?.id ?? '');
-    if (!dId) {
+    const dId = data.appliesToAll ? clinicDentists[0]?.id ?? '' : data.dentistId || dentistId || clinicDentists[0]?.id;
+    if (!dId && !data.appliesToAll) {
       setNotice({ type: 'error', message: 'Selecciona un dentista.' });
       return;
     }
+    const start = data.startTime.slice(0, 5);
+    const end = data.endTime.slice(0, 5);
     if (!isClientDemoMode()) {
       const live = await createScheduleBlockLive({
         dentistId: dId,
-        date,
-        time: blockTime.slice(0, 5),
-        reason: blockReason,
-        durationMinutes: bookDuration
+        date: data.date,
+        time: start,
+        reason: data.reason,
+        durationMinutes: 60
       });
       if (!live.ok) {
         setNotice({ type: 'error', message: live.message });
@@ -378,14 +413,17 @@ export function AdminAgenda() {
           clinicId,
           dentistId: dId,
           cabinetId: activeClinic.cabinets[0]?.id ?? 'g-1',
-          date,
-          time: blockTime.slice(0, 5),
-          reason: blockReason
+          date: data.date,
+          time: start,
+          endTime: end >= start ? end : start,
+          reason: data.reason,
+          notes: data.notes,
+          appliesToAll: data.appliesToAll
         })
       );
     }
-    setBlockReason('');
-    setNotice({ type: 'ok', message: 'Horario bloqueado.' });
+    setBlockOpen(false);
+    setNotice({ type: 'ok', message: 'Horario bloqueado correctamente.' });
   }
 
   async function removeBlock(blockId: string) {
@@ -401,8 +439,6 @@ export function AdminAgenda() {
     }
     setNotice({ type: 'ok', message: 'Bloqueo eliminado.' });
   }
-
-  const selectedTreatment = scope.treatments.find((t) => t.id === bookTreatmentId);
 
   return (
     <div className={`agd-module${loading ? ' agd-module--loading' : ''}`}>
@@ -506,9 +542,14 @@ export function AdminAgenda() {
 
         <span className="agd-toolbar__spacer" />
 
-        <button type="button" className="agd-btn-primary" onClick={() => focusForm('book')}>
+        <button type="button" className="agd-btn-primary" onClick={() => openBookDrawer()}>
           <Plus className="h-4 w-4" aria-hidden />
           Nueva cita
+        </button>
+
+        <button type="button" className="agd-btn-block" onClick={() => openBlockDrawer()}>
+          <Lock className="h-4 w-4" aria-hidden />
+          Bloquear horario
         </button>
 
         <div className="agd-bell-wrap">
@@ -554,131 +595,7 @@ export function AdminAgenda() {
         <AgdKpi label="Próximo hueco libre" value={kpi.libre} icon={CalendarClock} tone="green" delay={200} slotLabel />
       </div>
 
-      <div className="agd-layout">
-        <div className="agd-form-card" ref={formRef}>
-          <div className="agd-tabs" role="tablist">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={leftTab === 'book'}
-              className={`agd-tabs__btn${leftTab === 'book' ? ' agd-tabs__btn--active' : ''}`}
-              onClick={() => setLeftTab('book')}
-            >
-              Nueva cita
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={leftTab === 'block'}
-              className={`agd-tabs__btn${leftTab === 'block' ? ' agd-tabs__btn--active' : ''}`}
-              onClick={() => setLeftTab('block')}
-            >
-              Bloquear horario
-            </button>
-          </div>
-
-          {leftTab === 'book' ? (
-            <div className="agd-form-body">
-              <PatientLookup
-                state={state}
-                patientId={bookPatientId}
-                onPatientId={setBookPatientId}
-                label="Paciente"
-                placeholder="Buscar por NHC, nombre o teléfono…"
-                candidates={clinicPatients}
-              />
-              <p className="text-xs font-semibold text-slate-500">
-                La administración puede agendar citas para pacientes ya registrados. Busca por NHC, nombre o teléfono.
-              </p>
-              <div className="agd-form-row">
-                <Field label="Fecha">
-                  <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-                </Field>
-                <Field label="Hora">
-                  <Input type="time" value={bookTime} onChange={(e) => setBookTime(e.target.value)} />
-                </Field>
-              </div>
-              <div className="agd-form-row">
-                <Field label="Duración">
-                  <Select value={String(bookDuration)} onChange={(e) => setBookDuration(Number(e.target.value))}>
-                    {DURATIONS.map((m) => (
-                      <option key={m} value={m}>
-                        {m} min
-                      </option>
-                    ))}
-                  </Select>
-                </Field>
-                <Field label="Dentista">
-                  <Select value={bookDentistId} onChange={(e) => setBookDentistId(e.target.value)} disabled={ownAgenda}>
-                    <option value="">Todos los dentistas</option>
-                    {clinicDentists.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.fullName}
-                      </option>
-                    ))}
-                  </Select>
-                </Field>
-              </div>
-              <Field label="Tratamiento">
-                <Select value={bookTreatmentId} onChange={(e) => setBookTreatmentId(e.target.value)}>
-                  {scope.treatments.map((tr) => (
-                    <option key={tr.id} value={tr.id}>
-                      {tr.name}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field label="Observaciones internas">
-                <Textarea
-                  className="agd-textarea field-control"
-                  placeholder="Ej. Detalles adicionales de la cita…"
-                  value={bookNotes}
-                  onChange={(e) => setBookNotes(e.target.value)}
-                />
-              </Field>
-              <Button className="agd-submit" onClick={() => void createAppointment()} disabled={submitting}>
-                {submitting ? 'Guardando…' : 'Crear cita'}
-              </Button>
-              <p className="agd-helper">
-                <Calendar className="h-4 w-4" aria-hidden />
-                La cita se publicará automáticamente en el portal del paciente.
-                {selectedTreatment ? ` Duración estimada: ${bookDuration || selectedTreatment.durationMinutes} min.` : null}
-              </p>
-            </div>
-          ) : (
-            <div className="agd-form-body">
-              <div className="agd-form-row">
-                <Field label="Fecha">
-                  <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-                </Field>
-                <Field label="Hora">
-                  <Input type="time" value={blockTime} onChange={(e) => setBlockTime(e.target.value)} />
-                </Field>
-              </div>
-              <Field label="Motivo">
-                <Input value={blockReason} onChange={(e) => setBlockReason(e.target.value)} placeholder="Ej. Comida" />
-              </Field>
-              <Button tone="secondary" className="agd-submit" onClick={submitBlock}>
-                Bloquear franja
-              </Button>
-              {blockedForDay.length ? (
-                <ul className="agenda-blocks">
-                  {blockedForDay.map((b) => (
-                    <li key={b.id} className="agenda-blocks__item">
-                      <span>
-                        {b.time} — {b.reason}
-                      </span>
-                      <button type="button" onClick={() => void removeBlock(b.id)}>
-                        Quitar
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </div>
-          )}
-        </div>
-
+      <div className="agd-layout agd-layout--pro">
         <section className="agd-timeline-card">
           <header className="agd-timeline-head">
             <h2>{mode === 'dia' ? 'Agenda del día' : mode === 'semana' ? 'Agenda de la semana' : 'Agenda del mes'}</h2>
@@ -712,7 +629,7 @@ export function AdminAgenda() {
                 state={state}
                 date={date}
                 appointments={dayAppts}
-                blocks={blockedForDay}
+                blocks={allBlocksForDay}
                 dentistId={dentistId}
                 dentists={clinicDentists.map((d) => ({ id: d.id, fullName: d.fullName }))}
                 treatments={scope.treatments.map((t) => ({ id: t.id, name: t.name }))}
@@ -722,7 +639,7 @@ export function AdminAgenda() {
                 onCancel={(appt) => void setStatus(appt, 'cancelada')}
                 onReschedule={startReschedule}
                 onOpenAppointment={setDetailAppt}
-                onRemoveBlock={(id) => void removeBlock(id)}
+                onOpenBlock={setDetailBlock}
               />
             ) : (
               <AgendaWeekMonthCalendar
@@ -793,7 +710,7 @@ export function AdminAgenda() {
           <div className="agd-summary-card">
             <h3>Acciones rápidas</h3>
             <div className="agd-quick-actions">
-              <button type="button" className="agd-quick-btn" onClick={() => focusForm('block')}>
+              <button type="button" className="agd-quick-btn" onClick={() => openBlockDrawer()}>
                 <Lock className="h-4 w-4 text-violet-600" aria-hidden />
                 Bloquear franja horaria
               </button>
@@ -801,7 +718,7 @@ export function AdminAgenda() {
                 <Calendar className="h-4 w-4 text-teal-600" aria-hidden />
                 Ver agenda semanal
               </button>
-              <button type="button" className="agd-quick-btn" onClick={() => focusForm('book')}>
+              <button type="button" className="agd-quick-btn" onClick={() => openBookDrawer()}>
                 <Search className="h-4 w-4 text-slate-600" aria-hidden />
                 Buscar paciente
               </button>
@@ -810,7 +727,35 @@ export function AdminAgenda() {
         </aside>
       </div>
 
-      <AgendaAppointmentModal
+      <AgendaBookDrawer
+        open={bookOpen}
+        state={state}
+        clinicId={clinicId}
+        cabinetId={activeClinic.cabinets[0]?.id ?? 'g-1'}
+        patients={clinicPatients}
+        dentists={clinicDentists.map((d) => ({ id: d.id, fullName: d.fullName }))}
+        treatments={scope.treatments.map((t) => ({ id: t.id, name: t.name }))}
+        date={date}
+        initialTime={bookPrefillTime}
+        ownAgenda={ownAgenda}
+        defaultDentistId={(dentistId || clinicDentists[0]?.id) ?? ''}
+        submitting={submitting}
+        onClose={() => setBookOpen(false)}
+        onSubmit={(data) => void createAppointmentFromDrawer(data)}
+      />
+
+      <AgendaBlockDrawer
+        open={blockOpen}
+        dentists={clinicDentists.map((d) => ({ id: d.id, fullName: d.fullName }))}
+        date={date}
+        initialTime={blockPrefillTime}
+        defaultDentistId={(dentistId || clinicDentists[0]?.id) ?? ''}
+        ownAgenda={ownAgenda}
+        onClose={() => setBlockOpen(false)}
+        onSubmit={(data) => void submitBlockFromDrawer(data)}
+      />
+
+      <AgendaApptDetailDrawer
         open={Boolean(detailAppt)}
         state={state}
         appointment={detailAppt}
@@ -823,9 +768,6 @@ export function AdminAgenda() {
           detailAppt
             ? (scope.dentists.find((d) => d.id === detailAppt.dentistId)?.fullName ?? 'Profesional')
             : ''
-        }
-        clinicName={
-          detailAppt ? (scope.clinics.find((c) => c.id === detailAppt.clinicId)?.name ?? activeClinic.name) : ''
         }
         onClose={() => setDetailAppt(null)}
         onConfirm={() => {
@@ -848,6 +790,24 @@ export function AdminAgenda() {
           if (!detailAppt) return;
           startReschedule(detailAppt);
           setDetailAppt(null);
+        }}
+      />
+
+      <AgendaBlockDetailDrawer
+        open={Boolean(detailBlock)}
+        block={detailBlock}
+        dentistName={
+          detailBlock
+            ? detailBlock.appliesToAll
+              ? 'Todos'
+              : (scope.dentists.find((d) => d.id === detailBlock.dentistId)?.fullName ?? 'Profesional')
+            : ''
+        }
+        onClose={() => setDetailBlock(null)}
+        onRemove={() => {
+          if (!detailBlock) return;
+          void removeBlock(detailBlock.id);
+          setDetailBlock(null);
         }}
       />
 

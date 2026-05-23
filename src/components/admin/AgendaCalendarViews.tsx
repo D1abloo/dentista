@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Calendar, Check, MoreHorizontal, X } from 'lucide-react';
+import { Calendar, Check, Eye, MoreHorizontal, X } from 'lucide-react';
+import { blockCoversHour, hourInClinicRange } from '@/lib/agenda/availability';
 import { statusLabel } from '@/lib/format';
 import { patientName } from '@/lib/selectors';
 import type { Appointment, AppointmentStatus, BlockedSlot } from '@/types/demo';
@@ -29,7 +30,7 @@ function apptAtHour(appts: Appointment[], hour: string) {
 }
 
 function blockAtHour(blocks: BlockedSlot[], hour: string, dentistId: string) {
-  return blocks.find((b) => hourKey(b.time) === hourKey(hour) && (!dentistId || b.dentistId === dentistId));
+  return blocks.find((b) => blockCoversHour(b, hour, dentistId));
 }
 
 function statusClass(status: AppointmentStatus) {
@@ -52,7 +53,7 @@ type DayViewProps = {
   onCancel: (appt: Appointment) => void;
   onReschedule: (appt: Appointment) => void;
   onOpenAppointment: (appt: Appointment) => void;
-  onRemoveBlock: (blockId: string) => void;
+  onOpenBlock: (block: BlockedSlot) => void;
 };
 
 function EventMenu({
@@ -215,7 +216,7 @@ export function AgendaDayCalendar({
   onCancel,
   onReschedule,
   onOpenAppointment,
-  onRemoveBlock
+  onOpenBlock
 }: DayViewProps) {
   const cols = multiDentist
     ? dentists.length
@@ -242,15 +243,15 @@ export function AgendaDayCalendar({
               const colAppts = multiDentist
                 ? appointments.filter((a) => a.dentistId === col.id)
                 : appointments;
-              const colBlocks = multiDentist
-                ? blocks.filter((b) => b.dentistId === col.id)
-                : blocks;
               const appt = apptAtHour(colAppts, hour);
-              const block = blockAtHour(colBlocks, hour, colDentistId);
+              const block = blockAtHour(blocks, hour, colDentistId);
+              const outOfHours = !hourInClinicRange(hour);
 
               return (
                 <div key={`${col.id}-${hour}`} className="agd-cal__cell">
-                  {appt ? (
+                  {outOfHours ? (
+                    <span className="agd-cal__closed">Fuera de horario</span>
+                  ) : appt ? (
                     <AppointmentEvent
                       appt={appt}
                       state={state}
@@ -262,16 +263,35 @@ export function AgendaDayCalendar({
                       onOpen={() => onOpenAppointment(appt)}
                     />
                   ) : block ? (
-                    <article className="agd-event agd-event--block">
+                    <article
+                      className="agd-event agd-event--block agd-event--clickable"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => onOpenBlock(block)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          onOpenBlock(block);
+                        }
+                      }}
+                    >
                       <header className="agd-event__head">
                         <div className="agd-event__title-wrap">
-                          <strong>Bloqueo</strong>
+                          <strong>Bloqueado</strong>
                           <span className="agd-event__meta">{block.reason}</span>
                         </div>
                         <span className="agd-event__status agd-event__status--block">Bloqueado</span>
                       </header>
-                      <button type="button" className="agd-event__btn agd-event__btn--ghost" onClick={() => onRemoveBlock(block.id)}>
-                        Quitar bloqueo
+                      <button
+                        type="button"
+                        className="agd-event__btn agd-event__btn--ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onOpenBlock(block);
+                        }}
+                      >
+                        <Eye className="h-3.5 w-3.5" aria-hidden />
+                        Ver detalle
                       </button>
                     </article>
                   ) : (
@@ -285,6 +305,23 @@ export function AgendaDayCalendar({
           </div>
         ))}
       </div>
+      <footer className="agd-cal__legend">
+        <span>
+          <i className="agd-cal__legend-dot agd-cal__legend-dot--free" /> Disponible
+        </span>
+        <span>
+          <i className="agd-cal__legend-dot agd-cal__legend-dot--ok" /> Confirmada
+        </span>
+        <span>
+          <i className="agd-cal__legend-dot agd-cal__legend-dot--warn" /> Pendiente
+        </span>
+        <span>
+          <i className="agd-cal__legend-dot agd-cal__legend-dot--block" /> Bloqueado
+        </span>
+        <span>
+          <i className="agd-cal__legend-dot agd-cal__legend-dot--muted" /> Fuera de horario
+        </span>
+      </footer>
     </div>
   );
 }

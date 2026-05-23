@@ -1,6 +1,22 @@
 import type { DemoState } from '@/types/demo';
 import { isActiveStatus } from '@/lib/appointments';
+import { blockCoversTime, blocksForDay } from '@/lib/agenda/availability';
 import { clinicTenantId } from '@/lib/clinic';
+
+function activeTakenTimes(
+  state: DemoState,
+  opts: { clinicId: string; dentistId: string; date: string }
+) {
+  return state.appointments
+    .filter(
+      (a) =>
+        a.clinicId === opts.clinicId &&
+        a.date === opts.date &&
+        a.dentistId === opts.dentistId &&
+        isActiveStatus(a.status)
+    )
+    .map((a) => a.time);
+}
 
 export type SlotStatus = 'libre' | 'ocupado' | 'bloqueado';
 
@@ -30,25 +46,14 @@ function slotContext(
   const interval = settings?.slotIntervalMinutes || 15;
   const all = generateTimeSlots(interval);
   const taken = new Set(
-    state.appointments
-      .filter(
-        (a) =>
-          a.clinicId === opts.clinicId &&
-          a.date === opts.date &&
-          isActiveStatus(a.status)
-      )
-      .map((a) => a.time)
+    activeTakenTimes(state, opts)
   );
   const blocked = new Set(
-    state.blockedSlots
-      .filter(
-        (b) =>
-          b.clinicId === opts.clinicId &&
-          b.dentistId === opts.dentistId &&
-          b.date === opts.date &&
-          (b.cabinetId === opts.cabinetId || !b.cabinetId)
+    all.filter((time) =>
+      blocksForDay(state, { clinicId: opts.clinicId, date: opts.date, dentistId: opts.dentistId }).some((b) =>
+        blockCoversTime(b, time, opts.dentistId)
       )
-      .map((b) => b.time)
+    )
   );
   const duration = treatment?.durationMinutes ?? settings?.defaultDuration ?? 45;
   const blocks = Math.max(1, Math.ceil(duration / interval));

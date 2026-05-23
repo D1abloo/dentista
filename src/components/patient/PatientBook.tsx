@@ -30,6 +30,7 @@ import {
   type BookStep
 } from '@/lib/patient/bookingFlow';
 import { BookingDayCalendar } from '@/components/shared/BookingDayCalendar';
+import { SlotCalendar } from '@/components/shared/SlotCalendar';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { usePatientMutations } from '@/hooks/usePatientMutations';
@@ -515,24 +516,33 @@ export function PatientBook() {
                     {date ? (
                       <>
                         <p className="text-sm font-bold text-slate-700 m-0">{formatSlotsHeader(date)}</p>
-                        {slots.length ? (
-                          <div className="slot-cal mt-2">
-                            <div className="slot-cal__grid" role="listbox" aria-label="Horas disponibles">
-                              {slotCells
-                                .filter((s) => s.selectable)
-                                .map((s) => (
-                                  <button
-                                    key={s.time}
-                                    type="button"
-                                    role="option"
-                                    aria-selected={time === s.time}
-                                    className={`slot-cal__cell slot-cal__cell--free ${time === s.time ? 'slot-cal__cell--picked' : ''}`}
-                                    onClick={() => setTime(s.time)}
-                                  >
-                                    {s.time}
-                                  </button>
-                                ))}
-                            </div>
+                        {slotCells.length ? (
+                          <div className="mt-2">
+                            <SlotCalendar
+                              slots={slotCells}
+                              value={time}
+                              onChange={(t) => {
+                                const cell = slotCells.find((s) => s.time === t);
+                                if (cell?.status === 'bloqueado') {
+                                  const msg = 'Este horario no está disponible. Elige otro hueco.';
+                                  setErrors({ time: msg });
+                                  setNotice({ type: 'error', message: msg });
+                                  return;
+                                }
+                                if (cell && !cell.selectable) {
+                                  const msg = 'Este horario ya está ocupado. Elige otro hueco.';
+                                  setErrors({ time: msg });
+                                  setNotice({ type: 'error', message: msg });
+                                  return;
+                                }
+                                setTime(t);
+                                setErrors((e) => {
+                                  const next = { ...e };
+                                  delete next.time;
+                                  return next;
+                                });
+                              }}
+                            />
                           </div>
                         ) : (
                           <div className="pb-empty-slots mt-2">

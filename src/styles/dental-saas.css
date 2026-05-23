@@ -2416,7 +2416,8 @@ body {
   cursor: not-allowed;
   font-weight: 800;
 }
-.slot-cal__cell--block { background: #fffbeb; color: #b45309; cursor: not-allowed; }
+.slot-cal__cell--bloqueado,
+.slot-cal__cell--block { background: #fee2e2; color: #b91c1c; border-color: #fecaca; cursor: not-allowed; }
 .slot-cal__cell--picked { outline: 2px solid var(--teal); outline-offset: 1px; }
 .slot-cal__cell--busy.slot-cal__cell--picked {
   outline-color: #b91c1c;

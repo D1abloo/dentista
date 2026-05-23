@@ -386,7 +386,11 @@ export interface BlockedSlot {
   cabinetId: string;
   date: string;
   time: string;
+  /** Hora fin inclusive (HH:mm). Si falta, bloquea solo `time`. */
+  endTime?: string;
   reason: string;
+  notes?: string;
+  appliesToAll?: boolean;
 }
 
 export interface DemoState {

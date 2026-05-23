@@ -1,5 +1,6 @@
 import { isClientDemoMode } from '@/lib/appMode';
 import { isClinicSlotTaken } from '@/lib/appointments';
+import { validateAppointmentSlot } from '@/lib/agenda/availability';
 import { createAppointmentLive, patchAppointmentLive } from '@/lib/clinicApi';
 import { tryCreateAppointment, updateAppointmentStatus } from '@/lib/demoStore';
 import type { AppointmentStatus, DemoState } from '@/types/demo';
@@ -41,8 +42,10 @@ export async function createAdminAppointment(
     status = 'pendiente'
   } = input;
 
+  const slotErr = validateAppointmentSlot(state, { clinicId, dentistId, date, time });
+  if (slotErr) return { ok: false, message: slotErr };
   if (isClinicSlotTaken(state, { clinicId, date, time })) {
-    return { ok: false, message: 'Ese horario ya está reservado. Elige otra hora o día.' };
+    return { ok: false, message: 'Este horario ya está ocupado.' };
   }
 
   if (!isClientDemoMode()) {
