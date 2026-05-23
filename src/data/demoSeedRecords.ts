@@ -789,6 +789,26 @@ export const demoPayments: Payment[] = [
     status: 'completado',
     paidAt: offsetDate(-6),
     createdAt: offsetDate(-6)
+  },
+  {
+    id: 'PAG-0004',
+    tenantId: TENANT_NORTE,
+    patientId: DEMO_PATIENT_ID,
+    invoiceId: 'FAC-0002',
+    amount: 600,
+    method: 'transferencia',
+    status: 'pendiente',
+    createdAt: offsetDate(-1)
+  },
+  {
+    id: 'PAG-0005',
+    tenantId: TENANT_SUR,
+    patientId: DEMO_PATIENT_ID,
+    invoiceId: 'FAC-0007',
+    amount: 450,
+    method: 'tarjeta',
+    status: 'fallido',
+    createdAt: offsetDate(-18)
   }
 ];
 

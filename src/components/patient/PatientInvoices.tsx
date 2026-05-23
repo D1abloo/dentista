@@ -85,10 +85,23 @@ export function PatientInvoices() {
   const [page, setPage] = useState(1);
 
   const urlInvoice = useMemo(() => {
-    if (typeof window === 'undefined') return '';
+    if (typeof window === 'undefined') return { factura: '', filtro: '' as InvoiceChip | '' };
     const p = new URLSearchParams(window.location.search);
-    return p.get('factura') ?? p.get('invoice') ?? '';
+    const filtro = p.get('filtro') ?? '';
+    const chipMap: Record<string, InvoiceChip> = {
+      pendiente: 'pendiente',
+      pagada: 'pagada',
+      vencida: 'vencida'
+    };
+    return {
+      factura: p.get('factura') ?? p.get('invoice') ?? '',
+      filtro: chipMap[filtro] ?? ''
+    };
   }, []);
+
+  useEffect(() => {
+    if (urlInvoice.filtro) setChip(urlInvoice.filtro);
+  }, [urlInvoice.filtro]);
 
   const baseInvoices = useMemo(() => visibleInvoicesForPatient(state, patient.id), [state, patient.id]);
 
@@ -124,8 +137,8 @@ export function PatientInvoices() {
   }, [q, chip, sort]);
 
   useEffect(() => {
-    if (urlInvoice) {
-      const match = views.find((v) => v.invoice.id === urlInvoice || v.displayId === urlInvoice);
+    if (urlInvoice.factura) {
+      const match = views.find((v) => v.invoice.id === urlInvoice.factura || v.displayId === urlInvoice.factura);
       if (match) setSelectedId(match.invoice.id);
       return;
     }
@@ -133,7 +146,7 @@ export function PatientInvoices() {
     if (selectedId && !filtered.some((v) => v.invoice.id === selectedId) && pageRows[0]) {
       setSelectedId(pageRows[0].invoice.id);
     }
-  }, [filtered, pageRows, selectedId, urlInvoice, views]);
+  }, [filtered, pageRows, selectedId, urlInvoice.factura, views]);
 
   const openDetail = useCallback(
     (v: PatientInvoiceView) => {

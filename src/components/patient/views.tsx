@@ -33,10 +33,10 @@ import {
   Select,
   Textarea
 } from '@/components/ui';
-export { PatientPayments } from './records';
 export { PatientReports } from './PatientReports';
 export { PatientDocuments } from './PatientDocuments';
 export { PatientInvoices } from './PatientInvoices';
+export { PatientPayments } from './PatientPayments';
 export { PatientBook } from './PatientBook';
 
 function useApptMeta(state: ReturnType<typeof useDemoStore>['state'], a: Appointment) {
