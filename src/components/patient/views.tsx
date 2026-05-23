@@ -1,29 +1,17 @@
-import { useMemo, useState } from 'react';
-import { CalendarPlus } from 'lucide-react';
-import { dentistsForClinic, getPrimaryClinic } from '@/lib/clinic';
-import { treatmentsForClinic } from '@/lib/clinic';
+import { useState } from 'react';
 import {
-  appointmentPrice,
   filterAppointments,
   isActiveStatus,
   isClinicSlotTaken
 } from '@/lib/appointments';
 import {
-  tryCreateAppointment,
-  downloadDemoFile,
-  normativeFor,
   rescheduleAppointment,
   savePatient,
   settingsFor,
   updateAppointmentStatus
 } from '@/lib/demoStore';
-import { clinicTenantId } from '@/lib/clinic';
-import { tenantName } from '@/lib/tenant';
-import { fmtDate, fmtDateTime, money, statusLabel, todayIso, uid } from '@/lib/format';
-import { daySlotMap } from '@/lib/slots';
-import { BookingDayCalendar } from '@/components/shared/BookingDayCalendar';
+import { fmtDate, fmtDateTime, money, statusLabel } from '@/lib/format';
 import { HelpEmbedded } from '@/components/help/HelpEmbedded';
-import { SlotCalendar } from '@/components/shared/SlotCalendar';
 import { PatientConsents } from './consents';
 import { PatientIdentity } from './PatientIdentity';
 import { email, phone, required } from '@/lib/validation';
@@ -43,12 +31,10 @@ import {
   PageHeader,
   SearchInput,
   Select,
-  Stepper,
   Textarea
 } from '@/components/ui';
 export { PatientDocuments, PatientInvoices, PatientPayments, PatientReports } from './records';
-
-const bookSteps = ['Clínica', 'Tratamiento', 'Dentista', 'Fecha y hora', 'Resumen', 'Confirmar'];
+export { PatientBook } from './PatientBook';
 
 function useApptMeta(state: ReturnType<typeof useDemoStore>['state'], a: Appointment) {
   const t = state.treatments.find((x) => x.id === a.treatmentId);
@@ -58,182 +44,6 @@ function useApptMeta(state: ReturnType<typeof useDemoStore>['state'], a: Appoint
 }
 
 export { PatientDashboard } from './PatientHome';
-
-export function PatientBook() {
-  const { state, commit } = useDemoStore();
-  const patient = usePatient();
-  const { setNotice } = useNotice();
-  const [step, setStep] = useState(1);
-  const defaultClinic = patient.preferredClinicId
-    ? (state.clinics.find((c) => c.id === patient.preferredClinicId) ??
-        getPrimaryClinic(state, clinicTenantId(state, patient.preferredClinicId)))
-    : getPrimaryClinic(state);
-  const [clinicId, setClinicId] = useState(patient.preferredClinicId || defaultClinic.id);
-  const [treatmentId, setTreatmentId] = useState('');
-  const [dentistId, setDentistId] = useState('');
-  const initialCabinet =
-    state.clinics.find((c) => c.id === (patient.preferredClinicId || defaultClinic.id))?.cabinets.find((g) => g.active)?.id ??
-    defaultClinic.cabinets[0]?.id ??
-    'g-1';
-  const [cabinetId, setCabinetId] = useState(initialCabinet);
-  const [date, setDate] = useState(todayIso());
-  const [time, setTime] = useState('');
-  const [notes, setNotes] = useState('');
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const clinic = state.clinics.find((c) => c.id === clinicId);
-  const treatment = state.treatments.find((t) => t.id === treatmentId);
-  const dentists = dentistsForClinic(state, clinicId);
-  const slotCells = useMemo(
-    () =>
-      date && treatmentId && dentistId
-        ? daySlotMap(state, { clinicId, dentistId, cabinetId, date, treatmentId })
-        : [],
-    [state, clinicId, dentistId, cabinetId, date, treatmentId]
-  );
-  const slots = useMemo(
-    () => slotCells.filter((s) => s.selectable).map((s) => s.time),
-    [slotCells]
-  );
-
-  function validateStep() {
-    const e: Record<string, string> = {};
-    if (step === 1) { const err = required(clinicId, 'Clínica'); if (err) e.clinicId = err; }
-    if (step === 2) { const err = required(treatmentId, 'Tratamiento'); if (err) e.treatmentId = err; }
-    if (step === 3) { const err = required(dentistId, 'Dentista'); if (err) e.dentistId = err; }
-    if (step === 4) {
-      const errD = required(date, 'Fecha');
-      const errT = required(time, 'Hora');
-      if (errD) e.date = errD;
-      if (errT) e.time = errT;
-    }
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  }
-
-  async function confirm() {
-    const result = tryCreateAppointment(state, {
-      patientId: patient.id,
-      tenantId: clinicTenantId(state, clinicId),
-      dentistId,
-      clinicId,
-      cabinetId,
-      treatmentId,
-      date,
-      time,
-      notes,
-      status: 'pendiente'
-    });
-    if (!result.ok) {
-      setNotice({ type: 'error', message: result.message ?? 'Horario no disponible.' });
-      setStep(4);
-      return;
-    }
-    commit(result.state);
-    setNotice({ type: 'ok', message: settingsFor(state).appointmentConfirmMessage });
-    window.location.href = '/paciente/citas';
-  }
-
-  const cancelPolicy = normativeFor(state).find((n) => n.id === 'cancelacion')?.body;
-
-  return (
-    <Card>
-      <PageHeader title="Reservar cita" subtitle="Elige día en el calendario y después tu hora libre" />
-      <Stepper steps={bookSteps} current={step} />
-      {step === 1 && (
-        <Field label="Clínica" error={errors.clinicId}>
-          <Select
-            value={clinicId}
-            onChange={(e) => {
-              const id = e.target.value;
-              setClinicId(id);
-              const c = state.clinics.find((x) => x.id === id);
-              setCabinetId(c?.cabinets.find((g) => g.active)?.id ?? c?.cabinets[0]?.id ?? 'g-1');
-            }}
-          >
-            {state.clinics.filter((c) => c.active).map((c) => (
-              <option key={c.id} value={c.id}>{c.name} — {tenantName(state, c.tenantId)}</option>
-            ))}
-          </Select>
-        </Field>
-      )}
-      {step === 2 && (
-        <Field label="Tratamiento" error={errors.treatmentId}>
-          <Select value={treatmentId} onChange={(e) => setTreatmentId(e.target.value)}>
-            <option value="">Selecciona…</option>
-            {treatmentsForClinic(state, clinicId).map((t) => (
-              <option key={t.id} value={t.id}>{t.name} · {money(t.price)} · {t.durationMinutes} min</option>
-            ))}
-          </Select>
-        </Field>
-      )}
-      {step === 3 && (
-        <Field label="Dentista" error={errors.dentistId}>
-          <Select value={dentistId} onChange={(e) => setDentistId(e.target.value)}>
-            <option value="">Selecciona…</option>
-            {dentists.map((d) => (
-              <option key={d.id} value={d.id}>{d.fullName} — {d.specialty}</option>
-            ))}
-          </Select>
-        </Field>
-      )}
-      {step === 4 && treatmentId && dentistId ? (
-        <div className="space-y-5">
-          <Field label="Elige el día" error={errors.date}>
-            <BookingDayCalendar
-              state={state}
-              clinicId={clinicId}
-              dentistId={dentistId}
-              cabinetId={cabinetId}
-              treatmentId={treatmentId}
-              value={date}
-              onChange={(d) => {
-                setDate(d);
-                setTime('');
-              }}
-            />
-          </Field>
-          {date ? (
-            <Field label={`Horas del ${fmtDate(date)}`} error={errors.time}>
-              <SlotCalendar slots={slotCells} value={time} onChange={setTime} />
-              {!slots.length ? (
-                <p className="text-xs font-semibold text-amber-700">No hay huecos libres ese día. Elige otro día en el calendario.</p>
-              ) : null}
-            </Field>
-          ) : (
-            <p className="text-sm font-semibold text-[var(--muted)]">Selecciona un día marcado en verde o ámbar en el calendario.</p>
-          )}
-        </div>
-      ) : null}
-      {step === 4 && (!treatmentId || !dentistId) ? (
-        <p className="text-sm font-semibold text-amber-800">Vuelve atrás y completa tratamiento y dentista antes de elegir fecha.</p>
-      ) : null}
-      {step === 5 && treatment && (
-        <ul className="space-y-2 rounded-xl bg-slate-50 p-4 text-sm font-semibold text-slate-700">
-          <li>Clínica: {clinic?.name}</li>
-          <li>Tratamiento: {treatment.name} ({money(treatment.price)})</li>
-          <li>Dentista: {dentists.find((d) => d.id === dentistId)?.fullName}</li>
-          <li>Fecha: {fmtDate(date)} · {time}</li>
-          <li>Duración: {treatment.durationMinutes} min</li>
-        </ul>
-      )}
-      {step === 6 && (
-        <div className="space-y-3">
-          <p className="text-sm text-slate-600">Confirma tu reserva. Podrás cancelar o reprogramar desde Mis citas.</p>
-          <Field label="Notas (opcional)"><Textarea value={notes} onChange={(e) => setNotes(e.target.value)} /></Field>
-        </div>
-      )}
-      <div className="mt-6 flex flex-wrap gap-2">
-        {step > 1 ? <Button tone="secondary" onClick={() => setStep((s) => s - 1)}>Atrás</Button> : null}
-        {step < 6 ? (
-          <Button onClick={() => { if (validateStep()) setStep((s) => s + 1); }}>Continuar</Button>
-        ) : (
-          <Button onClick={confirm}>Confirmar cita</Button>
-        )}
-      </div>
-    </Card>
-  );
-}
 
 function AppointmentRow({ a }: { a: Appointment }) {
   const { state, commit } = useDemoStore();
