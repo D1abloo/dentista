@@ -9,12 +9,40 @@ const defaultNavLinks = [
   { href: '/contacto', label: 'Contacto' }
 ];
 
-const proNavLinks = [
-  { href: '/#funcionalidades', label: 'Funciones' },
-  { href: '/#precios', label: 'Precios' },
-  { href: '/login/admin', label: 'Acceso clínica' },
-  { href: '/ayuda', label: 'Ayuda' },
-  { href: '/#contacto-pro', label: 'Solicitar PRO' }
+const premiumColumns = [
+  {
+    title: 'Producto',
+    links: [
+      { href: '/#funcionalidades', label: 'Funciones' },
+      { href: '/login/paciente', label: 'Portal paciente' },
+      { href: '/login/admin', label: 'Panel clínica' },
+      { href: '/platform/login', label: 'Plataforma' }
+    ]
+  },
+  {
+    title: 'Empresa',
+    links: [
+      { href: '/contacto', label: 'Contacto' },
+      { href: '/registro-clinica', label: 'Registrar clínica' },
+      { href: '/#contacto-pro', label: 'Solicitar demo' }
+    ]
+  },
+  {
+    title: 'Recursos',
+    links: [
+      { href: '/ayuda', label: 'Centro de ayuda' },
+      { href: '/reserva', label: 'Reservar cita' },
+      { href: '/login', label: 'Acceso portales' }
+    ]
+  },
+  {
+    title: 'Seguridad y legal',
+    links: [
+      { href: '/privacidad', label: 'Privacidad' },
+      { href: '/terminos', label: 'Términos' },
+      { href: '/cookies', label: 'Cookies' }
+    ]
+  }
 ];
 
 const legalLinks = [
@@ -23,12 +51,55 @@ const legalLinks = [
   { href: '/cookies', label: 'Cookies' }
 ];
 
-export function PublicFooter({ variant = 'default' }: { variant?: 'default' | 'pro' }) {
-  const navLinks = variant === 'pro' ? proNavLinks : defaultNavLinks;
-  const tagline =
-    variant === 'pro'
-      ? 'Software PRO para clínicas dentales: agenda, expedientes, facturación y portal del paciente.'
-      : 'Citas, informes y facturas en un portal seguro para pacientes y familias.';
+export function PublicFooter({ variant = 'default' }: { variant?: 'default' | 'pro' | 'premium' }) {
+  const isPremium = variant === 'premium' || variant === 'pro';
+  const tagline = isPremium
+    ? 'Plataforma dental SaaS: agenda, portal paciente, facturación y operación multi-tenant.'
+    : 'Citas, informes y facturas en un portal seguro para pacientes y familias.';
+
+  if (variant === 'premium') {
+    return (
+      <footer className="df-lp-footer">
+        <div className="shell df-lp-footer__grid">
+          <div className="df-lp-footer__brand">
+            <a href="/" className="df-lp-footer__logo">
+              <DentistaWebpLockup placement="footer" />
+            </a>
+            <p>{tagline}</p>
+            <div className="df-lp-footer__social">
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                <Facebook className="h-4 w-4" />
+              </a>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <Instagram className="h-4 w-4" />
+              </a>
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+                <Linkedin className="h-4 w-4" />
+              </a>
+            </div>
+          </div>
+          {premiumColumns.map((col) => (
+            <div key={col.title} className="df-lp-footer__col">
+              <h4>{col.title}</h4>
+              <nav aria-label={col.title}>
+                {col.links.map((l) => (
+                  <a key={l.href} href={l.href}>
+                    {l.label}
+                  </a>
+                ))}
+              </nav>
+            </div>
+          ))}
+        </div>
+        <div className="shell df-lp-footer__bottom">
+          <span>© {new Date().getFullYear()} Dentista+. Todos los derechos reservados.</span>
+          <span className="df-lp-footer__certs">RGPD · SSL · Multi-tenant</span>
+        </div>
+      </footer>
+    );
+  }
+
+  const navLinks = variant === 'pro' ? premiumColumns[0].links : defaultNavLinks;
 
   return (
     <footer className={`lp-footer lp-footer--corp${variant === 'pro' ? ' lp-footer--pro' : ''}`}>

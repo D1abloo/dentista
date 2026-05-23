@@ -1,5 +1,5 @@
 import { useEffect, useState, type MouseEvent } from 'react';
-import { Lock, Menu, X } from 'lucide-react';
+import { LogIn, Menu, X } from 'lucide-react';
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
 import { handleLandingHashLink } from '@/lib/publicScroll';
 
@@ -11,6 +11,16 @@ const proLinks = [
   { href: '/#contacto-pro', label: 'Contacto' }
 ];
 
+const premiumLinks = [
+  { href: '/', label: 'Inicio' },
+  { href: '/#funcionalidades', label: 'Funciones' },
+  { href: '/login/paciente', label: 'Portal paciente' },
+  { href: '/login/admin', label: 'Panel clínica' },
+  { href: '/platform/login', label: 'Plataforma' },
+  { href: '/ayuda', label: 'Ayuda' },
+  { href: '/contacto', label: 'Contacto' }
+];
+
 const defaultLinks = [
   { href: '/', label: 'Inicio' },
   { href: '/#funcionalidades', label: 'Funciones' },
@@ -20,15 +30,19 @@ const defaultLinks = [
 
 type Props = {
   activeHref?: string;
-  variant?: 'default' | 'pro';
+  variant?: 'default' | 'pro' | 'premium';
   onWantPro?: () => void;
+  onWantDemo?: () => void;
 };
 
-export function PublicHeader({ activeHref, variant = 'default', onWantPro }: Props) {
+export function PublicHeader({ activeHref, variant = 'default', onWantPro, onWantDemo }: Props) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const links = variant === 'pro' ? proLinks : defaultLinks;
+  const links =
+    variant === 'premium' ? premiumLinks : variant === 'pro' ? proLinks : defaultLinks;
   const isPro = variant === 'pro';
+  const isPremium = variant === 'premium';
+  const onDemo = onWantDemo ?? onWantPro;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -42,10 +56,10 @@ export function PublicHeader({ activeHref, variant = 'default', onWantPro }: Pro
     setOpen(false);
   }
 
-  function wantProClick() {
+  function wantDemoClick() {
     setOpen(false);
-    if (window.location.pathname === '/' && onWantPro) {
-      onWantPro();
+    if (window.location.pathname === '/' && onDemo) {
+      onDemo();
       return;
     }
     window.location.href = '/?plan=pro_clinica#contacto-pro';
@@ -53,7 +67,7 @@ export function PublicHeader({ activeHref, variant = 'default', onWantPro }: Pro
 
   return (
     <header
-      className={`pub-header pub-header--corp${isPro ? ' pub-header--pro' : ''}${scrolled ? ' pub-header--scrolled' : ''}`}
+      className={`pub-header pub-header--corp${isPro || isPremium ? ' pub-header--pro pub-header--premium' : ''}${scrolled ? ' pub-header--scrolled' : ''}`}
     >
       <div className="shell pub-header__inner">
         <a href="/" className="pub-header__brand">
@@ -73,13 +87,22 @@ export function PublicHeader({ activeHref, variant = 'default', onWantPro }: Pro
           ))}
         </nav>
         <div className="pub-actions">
-          {isPro ? (
+          {isPremium ? (
             <>
-              <button type="button" className="btn btn--coral btn--sm hidden md:inline-flex" onClick={wantProClick}>
+              <button type="button" className="df-lp-btn df-lp-btn--primary df-lp-btn--sm hidden md:inline-flex" onClick={wantDemoClick}>
+                Solicitar demo
+              </button>
+              <a href="/login" className="df-lp-btn df-lp-btn--secondary df-lp-btn--sm hidden md:inline-flex">
+                <LogIn className="h-3.5 w-3.5" aria-hidden />
+                Entrar
+              </a>
+            </>
+          ) : isPro ? (
+            <>
+              <button type="button" className="btn btn--coral btn--sm hidden md:inline-flex" onClick={wantDemoClick}>
                 Quiero PRO
               </button>
               <a href="/login/admin" className="pub-link-clinic hidden md:inline-flex">
-                <Lock className="h-3.5 w-3.5" aria-hidden />
                 Acceso clínica
               </a>
             </>
@@ -112,9 +135,18 @@ export function PublicHeader({ activeHref, variant = 'default', onWantPro }: Pro
             </a>
           ))}
           <div className="pub-drawer__cta">
-            {isPro ? (
+            {isPremium ? (
               <>
-                <button type="button" className="btn btn--coral btn--block" onClick={wantProClick}>
+                <button type="button" className="df-lp-btn df-lp-btn--primary df-lp-btn--block" onClick={wantDemoClick}>
+                  Solicitar demo
+                </button>
+                <a href="/login" className="df-lp-btn df-lp-btn--secondary df-lp-btn--block" onClick={() => setOpen(false)}>
+                  Entrar
+                </a>
+              </>
+            ) : isPro ? (
+              <>
+                <button type="button" className="btn btn--coral btn--block" onClick={wantDemoClick}>
                   Quiero PRO
                 </button>
                 <a href="/login/admin" className="btn btn--outline-teal btn--block" onClick={() => setOpen(false)}>
