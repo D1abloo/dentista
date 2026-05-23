@@ -47,6 +47,7 @@ export const landingWhoCards = [
   {
     id: 'patient',
     icon: UserRound,
+    tone: 'mint',
     title: 'Soy paciente',
     text: 'Reserva citas, consulta informes, descarga documentos, revisa facturas, pagos y consentimientos desde tu portal privado.',
     cta: 'Entrar al portal paciente',
@@ -55,6 +56,7 @@ export const landingWhoCards = [
   {
     id: 'clinic',
     icon: Building2,
+    tone: 'sky',
     title: 'Soy clínica',
     text: 'Gestiona agenda, pacientes, informes, documentos, facturación, pagos y comunicación con pacientes.',
     cta: 'Ver panel clínica',
@@ -63,6 +65,7 @@ export const landingWhoCards = [
   {
     id: 'platform',
     icon: ShieldCheck,
+    tone: 'violet',
     title: 'Soy administrador',
     text: 'Controla organizaciones, clínicas, usuarios, suscripciones, seguridad, auditoría y monitorización.',
     cta: 'Ver plataforma',
@@ -185,26 +188,30 @@ export const landingPlans: LandingPlan[] = [
 ];
 
 export const landingTrustLogos = [
-  'Clínica Dental Nova',
-  'Sonrisa Clínica Dental',
-  'Dental Horizonte',
-  'Clínica Mediterráneo',
-  'Dental Plus'
+  { name: 'Clínica Dental Nova', short: 'NOVA' },
+  { name: 'Sonrisa Clínica Dental', short: 'SONRISA' },
+  { name: 'Dental Horizonte', short: 'HORIZONTE' },
+  { name: 'Clínica Mediterráneo', short: 'MEDITERRÁNEO' },
+  { name: 'Dental Plus', short: 'DENTAL PLUS' }
 ] as const;
 
+/** Laptop centro (agenda), tablet atrás-izq (plataforma), móvil delante-dcha (paciente) */
 export const landingHeroDevices = [
   {
+    label: 'Plataforma',
+    variant: 'tablet',
+    src: '/images/guides/mobile/admin-dashboard.png',
+    alt: 'Panel de plataforma con estadísticas en tablet'
+  },
+  {
     label: 'Panel clínica',
-    src: '/images/guides/mobile/admin-agenda.png',
+    variant: 'laptop',
+    src: '/images/guides/landing/admin-dashboard-hero.png',
     alt: 'Agenda del panel clínica en portátil'
   },
   {
-    label: 'Plataforma',
-    src: '/images/guides/landing/admin-dashboard-hero.png',
-    alt: 'Estadísticas de plataforma en tablet'
-  },
-  {
     label: 'Portal paciente',
+    variant: 'phone',
     src: '/images/guides/mobile/pdp-inicio.png',
     alt: 'Portal del paciente en móvil'
   }

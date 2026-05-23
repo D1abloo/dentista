@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowRight, X } from 'lucide-react';
+import { ArrowRight, Check, X } from 'lucide-react';
 import { scrollToSection } from '@/lib/publicScroll';
 import { useReveal } from '@/hooks/useReveal';
 import {
@@ -60,43 +60,43 @@ export function LandingPage() {
           <div className={`shell df-lp-hero__grid ${heroR.className}`} ref={heroR.ref}>
             <div className="df-lp-hero__copy">
               <h1 id="df-lp-hero-title">
-                La plataforma dental para digitalizar{' '}
-                <span>citas, pacientes y facturación</span>
+                La plataforma dental para digitalizar citas, pacientes y facturación
               </h1>
               <p className="df-lp-hero__lead">
                 Agenda, portal paciente, informes, documentos, facturas, pagos, consentimientos y soporte en una
                 sola plataforma segura.
               </p>
               <div className="df-lp-hero__ctas">
-                <button type="button" className="df-lp-btn df-lp-btn--primary" onClick={() => openDemo()}>
+                <button type="button" className="df-lp-btn df-lp-btn--primary df-lp-btn--lg" onClick={() => openDemo()}>
                   Solicitar demo para clínica
                   <ArrowRight className="h-4 w-4" aria-hidden />
                 </button>
-                <a href="/login/paciente" className="df-lp-btn df-lp-btn--secondary">
+                <a href="/login/paciente" className="df-lp-btn df-lp-btn--outline df-lp-btn--lg">
                   Entrar como paciente
                 </a>
               </div>
-              <ul className="df-lp-hero__badges">
-                {landingHeroBadges.map(({ icon: Icon, label }, i) => (
-                  <li key={label} style={{ animationDelay: `${i * 60}ms` }}>
-                    <Icon className="h-4 w-4 shrink-0" aria-hidden />
-                    {label}
-                  </li>
-                ))}
-              </ul>
             </div>
             <div className="df-lp-hero__devices" aria-label="Vistas del producto Dentista+">
               {landingHeroDevices.map((d, i) => (
                 <figure
                   key={d.label}
-                  className={`df-lp-device df-lp-device--${i + 1}`}
-                  style={{ animationDelay: `${0.12 * i}s` }}
+                  className={`df-lp-device df-lp-device--${d.variant}`}
+                  style={{ animationDelay: `${0.1 * i}s` }}
                 >
-                  <img src={d.src} alt={d.alt} loading={i === 0 ? 'eager' : 'lazy'} decoding="async" />
-                  <figcaption>{d.label}</figcaption>
+                  <img src={d.src} alt={d.alt} loading={i === 1 ? 'eager' : 'lazy'} decoding="async" />
                 </figure>
               ))}
             </div>
+          </div>
+          <div className="shell df-lp-hero__badges-wrap">
+            <ul className="df-lp-hero__badges">
+              {landingHeroBadges.map(({ icon: Icon, label }, i) => (
+                <li key={label} style={{ animationDelay: `${i * 60}ms` }}>
+                  <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  {label}
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
 
@@ -108,13 +108,17 @@ export function LandingPage() {
             {landingWhoCards.map((card, i) => {
               const Icon = card.icon;
               return (
-                <article key={card.id} className="df-lp-who-card" style={{ transitionDelay: `${i * 70}ms` }}>
+                <article
+                  key={card.id}
+                  className={`df-lp-who-card df-lp-who-card--${card.tone}`}
+                  style={{ transitionDelay: `${i * 70}ms` }}
+                >
                   <span className="df-lp-who-card__icon" aria-hidden>
                     <Icon className="h-6 w-6" />
                   </span>
                   <h3>{card.title}</h3>
                   <p>{card.text}</p>
-                  <a href={card.href} className="df-lp-who-card__link">
+                  <a href={card.href} className="df-lp-who-card__btn">
                     {card.cta}
                     <ArrowRight className="h-4 w-4" aria-hidden />
                   </a>
@@ -134,7 +138,7 @@ export function LandingPage() {
               return (
                 <article key={f.title} className="df-lp-feature" style={{ transitionDelay: `${i * 40}ms` }}>
                   <span className="df-lp-feature__icon" aria-hidden>
-                    <Icon className="h-5 w-5" />
+                    <Icon className="h-4 w-4" />
                   </span>
                   <h3>{f.title}</h3>
                   <p>{f.text}</p>
@@ -144,46 +148,47 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section id="precios" className="df-lp-section shell">
+        <section id="precios" className="df-lp-section df-lp-section--plans shell">
+          <header className="df-lp-section__head">
+            <h2>Planes para clínicas dentales</h2>
+          </header>
           <div className={`df-lp-plans-block ${priceR.className}`} ref={priceR.ref}>
-            <div className="df-lp-plans-block__main">
-              <header className="df-lp-section__head df-lp-section__head--left">
-                <h2>Planes para clínicas dentales</h2>
-              </header>
-              <div className="df-lp-pricing">
-                {landingPlans.map((p) => (
-                  <article key={p.id} className={`df-lp-price${p.featured ? ' df-lp-price--featured' : ''}`}>
-                    {p.badge ? <span className="df-lp-price__badge">{p.badge}</span> : null}
-                    <h3>{p.name}</h3>
-                    <p className="df-lp-price__amount">
-                      {p.price}
-                      {p.period ? <small>{p.period}</small> : null}
-                    </p>
-                    {p.blurb ? <p className="df-lp-price__blurb">{p.blurb}</p> : null}
-                    <ul>
-                      {p.features.map((f) => (
-                        <li key={f}>{f}</li>
-                      ))}
-                    </ul>
-                    {p.demoPlan ? (
-                      <button
-                        type="button"
-                        className={`df-lp-btn ${p.featured ? 'df-lp-btn--primary' : 'df-lp-btn--secondary'} df-lp-btn--block`}
-                        onClick={() => openDemo(p.demoPlan!)}
-                      >
-                        {p.cta}
-                      </button>
-                    ) : (
-                      <a
-                        href={p.href}
-                        className={`df-lp-btn ${p.featured ? 'df-lp-btn--primary' : 'df-lp-btn--secondary'} df-lp-btn--block`}
-                      >
-                        {p.cta}
-                      </a>
-                    )}
-                  </article>
-                ))}
-              </div>
+            <div className="df-lp-pricing">
+              {landingPlans.map((p) => (
+                <article key={p.id} className={`df-lp-price${p.featured ? ' df-lp-price--featured' : ''}`}>
+                  {p.badge ? <span className="df-lp-price__badge">{p.badge}</span> : null}
+                  <h3>{p.name}</h3>
+                  <p className="df-lp-price__amount">
+                    {p.price}
+                    {p.period ? <small>{p.period}</small> : null}
+                  </p>
+                  {p.blurb ? <p className="df-lp-price__blurb">{p.blurb}</p> : null}
+                  <ul>
+                    {p.features.map((f) => (
+                      <li key={f}>
+                        <Check className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                  {p.demoPlan ? (
+                    <button
+                      type="button"
+                      className={`df-lp-btn ${p.featured ? 'df-lp-btn--primary' : 'df-lp-btn--outline'} df-lp-btn--block`}
+                      onClick={() => openDemo(p.demoPlan!)}
+                    >
+                      {p.cta}
+                    </button>
+                  ) : (
+                    <a
+                      href={p.href}
+                      className={`df-lp-btn ${p.featured ? 'df-lp-btn--primary' : 'df-lp-btn--outline'} df-lp-btn--block`}
+                    >
+                      {p.cta}
+                    </a>
+                  )}
+                </article>
+              ))}
             </div>
             <aside className="df-lp-security-panel" aria-labelledby="seguridad-title">
               <h2 id="seguridad-title">Seguridad y privacidad desde el diseño</h2>
@@ -192,7 +197,9 @@ export function LandingPage() {
                   const Icon = c.icon;
                   return (
                     <li key={c.title}>
-                      <Icon className="h-5 w-5 shrink-0" aria-hidden />
+                      <span className="df-lp-security-panel__icon" aria-hidden>
+                        <Icon className="h-4 w-4" />
+                      </span>
                       <div>
                         <strong>{c.title}</strong>
                         <p>{c.text}</p>
@@ -208,8 +215,13 @@ export function LandingPage() {
         <section className={`df-lp-trust shell ${trustR.className}`} ref={trustR.ref} aria-label="Clínicas que confían">
           <p className="df-lp-trust__title">Clínicas que ya confían en Dentista+</p>
           <ul className="df-lp-trust__logos">
-            {landingTrustLogos.map((name) => (
-              <li key={name}>{name}</li>
+            {landingTrustLogos.map((logo) => (
+              <li key={logo.name}>
+                <span className="df-lp-trust__mark" aria-hidden>
+                  {logo.short.slice(0, 1)}
+                </span>
+                <span>{logo.name}</span>
+              </li>
             ))}
           </ul>
         </section>
@@ -225,12 +237,13 @@ export function LandingPage() {
                 <button type="button" className="df-lp-btn df-lp-btn--primary" onClick={() => openDemo()}>
                   Solicitar demo
                 </button>
-                <a href="/login/paciente" className="df-lp-btn df-lp-btn--ghost">
+                <a href="/login/paciente" className="df-lp-btn df-lp-btn--outline-light">
                   Entrar al portal
+                  <ArrowRight className="h-4 w-4" aria-hidden />
                 </a>
               </div>
             </div>
-            <div className="df-lp-final-cta__visual" aria-hidden>
+            <div className="df-lp-final-cta__visual">
               <img
                 src="/images/login-dentista-paciente.jpg"
                 alt="Profesionales sanitarios usando Dentista+ en tablet"

@@ -1,11 +1,14 @@
 /* Landing premium Dentista+ — SaaS dental */
 
-.df-lp {
+:root {
   --df-lp-navy: #0f2742;
   --df-lp-teal: #14b8a6;
   --df-lp-teal-dark: #0d9488;
   --df-lp-bg: #f8fafc;
   --df-lp-bg-alt: #f0f9ff;
+}
+
+.df-lp {
   background: #fff;
   color: var(--df-lp-navy);
 }
@@ -89,6 +92,34 @@
   width: 100%;
 }
 
+.df-lp-btn--lg {
+  padding: 0.78rem 1.35rem;
+  font-size: 0.92rem;
+}
+
+.df-lp-btn--outline {
+  color: var(--df-lp-teal-dark);
+  background: #fff;
+  border: 1.5px solid var(--df-lp-teal);
+  box-shadow: none;
+}
+
+.df-lp-btn--outline:hover {
+  background: #f0fdfa;
+  border-color: var(--df-lp-teal-dark);
+}
+
+.df-lp-btn--outline-light {
+  color: #fff;
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+}
+
+.df-lp-btn--outline-light:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #fff;
+}
+
 /* Hero */
 .df-lp-hero {
   position: relative;
@@ -114,16 +145,16 @@
 
 .df-lp-hero__copy h1 {
   margin: 0;
-  font-family: var(--display), Fraunces, serif;
-  font-size: clamp(1.85rem, 4.5vw, 2.85rem);
-  font-weight: 600;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  font-family: var(--pub-font, 'DM Sans', system-ui, sans-serif);
+  font-size: clamp(1.85rem, 4.2vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
   color: var(--df-lp-navy);
 }
 
 .df-lp-hero__copy h1 span {
-  color: var(--df-lp-teal-dark);
+  color: var(--df-lp-navy);
 }
 
 .df-lp-hero__lead {
@@ -141,11 +172,19 @@
   margin-top: 1.35rem;
 }
 
+.df-lp-hero__badges-wrap {
+  position: relative;
+  z-index: 1;
+  margin-top: 1.75rem;
+  padding-bottom: 0.5rem;
+}
+
 .df-lp-hero__badges {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 1rem;
-  margin: 1.5rem 0 0;
+  justify-content: center;
+  gap: 0.55rem;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -154,10 +193,19 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.78rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  font-size: 0.72rem;
   font-weight: 600;
   color: #475569;
+  box-shadow: 0 2px 8px rgba(15, 39, 66, 0.04);
   animation: df-lp-badge-in 0.5s ease backwards;
+}
+
+.df-lp-hero__badges li svg {
+  color: var(--df-lp-teal-dark);
 }
 
 @keyframes df-lp-badge-in {
@@ -199,59 +247,49 @@
 
 .df-lp-hero__devices {
   position: relative;
-  min-height: 16rem;
+  min-height: 18rem;
 }
 
 .df-lp-device {
   position: absolute;
   margin: 0;
-  border-radius: 1rem;
+  border-radius: 0.85rem;
   overflow: hidden;
-  box-shadow: 0 20px 50px rgba(15, 39, 66, 0.18);
-  border: 3px solid #fff;
+  box-shadow: 0 24px 56px rgba(15, 39, 66, 0.2);
+  border: 4px solid #fff;
+  background: #fff;
   animation:
     df-lp-float 5s ease-in-out infinite,
     df-lp-slide-in 0.7s ease backwards;
+}
+
+.df-lp-device--tablet {
+  width: 34%;
+  left: 0;
+  top: 12%;
+  z-index: 1;
+  transform: rotate(-4deg);
+}
+
+.df-lp-device--laptop {
+  width: 62%;
+  left: 18%;
+  top: 0;
+  z-index: 2;
+}
+
+.df-lp-device--phone {
+  width: 28%;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  transform: rotate(3deg);
 }
 
 .df-lp-device img {
   display: block;
   width: 100%;
   height: auto;
-}
-
-.df-lp-device figcaption {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 0.35rem 0.5rem;
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-align: center;
-  color: #fff;
-  background: linear-gradient(transparent, rgba(15, 39, 66, 0.75));
-}
-
-.df-lp-device--1 {
-  width: 38%;
-  left: 0;
-  top: 8%;
-  z-index: 3;
-}
-
-.df-lp-device--2 {
-  width: 52%;
-  left: 24%;
-  top: 0;
-  z-index: 2;
-}
-
-.df-lp-device--3 {
-  width: 42%;
-  right: 0;
-  bottom: 0;
-  z-index: 1;
 }
 
 @keyframes df-lp-float {
@@ -285,10 +323,11 @@
 
 .df-lp-section__head h2 {
   margin: 0;
-  font-family: var(--display), Fraunces, serif;
+  font-family: var(--pub-font, 'DM Sans', system-ui, sans-serif);
   font-size: clamp(1.45rem, 3vw, 2rem);
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: -0.02em;
+  color: var(--df-lp-navy);
 }
 
 .df-lp-section__head p {
@@ -311,7 +350,11 @@
 }
 
 .df-lp-who-card {
-  padding: 1.35rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.5rem 1.25rem 1.25rem;
   border-radius: 1rem;
   background: #fff;
   border: 1px solid #e2e8f0;
@@ -330,11 +373,24 @@
 
 .df-lp-who-card__icon {
   display: inline-flex;
-  padding: 0.55rem;
-  border-radius: 0.65rem;
-  background: #f0fdfa;
-  color: var(--df-lp-teal-dark);
-  margin-bottom: 0.75rem;
+  padding: 0.65rem;
+  border-radius: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.df-lp-who-card--mint .df-lp-who-card__icon {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.df-lp-who-card--sky .df-lp-who-card__icon {
+  background: #eff6ff;
+  color: #0284c7;
+}
+
+.df-lp-who-card--violet .df-lp-who-card__icon {
+  background: #f5f3ff;
+  color: #7c3aed;
 }
 
 .df-lp-who-card h3 {
@@ -343,20 +399,32 @@
 }
 
 .df-lp-who-card p {
-  margin: 0.45rem 0 0.85rem;
-  font-size: 0.88rem;
+  margin: 0.45rem 0 1rem;
+  font-size: 0.84rem;
   color: #64748b;
-  line-height: 1.45;
+  line-height: 1.5;
+  flex: 1;
 }
 
-.df-lp-who-card__link {
+.df-lp-who-card__btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.85rem;
+  justify-content: center;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 0.62rem 0.85rem;
+  border-radius: 0.65rem;
+  border: 1.5px solid var(--df-lp-teal);
+  background: #fff;
+  font-size: 0.82rem;
   font-weight: 700;
   color: var(--df-lp-teal-dark);
   text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.df-lp-who-card__btn:hover {
+  background: #f0fdfa;
 }
 
 /* Features grid */
@@ -671,12 +739,12 @@
 .df-lp-plans-block {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.5rem;
-  align-items: start;
+  gap: 1.25rem;
+  align-items: stretch;
 }
 
-.df-lp-plans-block__main .df-lp-section__head {
-  margin-bottom: 1.25rem;
+.df-lp-section--plans {
+  background: var(--df-lp-bg);
 }
 
 .df-lp-price__blurb {
@@ -693,8 +761,21 @@
 .df-lp-security-panel {
   padding: 1.35rem 1.15rem;
   border-radius: 1rem;
-  background: linear-gradient(165deg, #f0f9ff 0%, #ecfeff 100%);
-  border: 1px solid #bae6fd;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  height: 100%;
+}
+
+.df-lp-security-panel__icon {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.45rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  color: var(--df-lp-teal-dark);
+  flex-shrink: 0;
 }
 
 .df-lp-security-panel h2 {
@@ -763,18 +844,29 @@
 }
 
 .df-lp-trust__logos li {
-  font-size: 0.88rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.65rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  font-size: 0.78rem;
   font-weight: 700;
   color: #94a3b8;
-  opacity: 0.85;
   filter: grayscale(1);
-  transition: opacity 0.2s ease, color 0.2s ease;
 }
 
-.df-lp-trust__logos li:hover {
-  opacity: 1;
-  color: var(--df-lp-teal-dark);
-  filter: grayscale(0.4);
+.df-lp-trust__mark {
+  display: grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 0.35rem;
+  background: #f1f5f9;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #64748b;
 }
 
 /* Final CTA */
@@ -982,6 +1074,39 @@
   backdrop-filter: blur(10px);
 }
 
+.pub-header--premium .pub-actions .df-lp-btn--outline {
+  color: var(--df-lp-teal-dark) !important;
+  background: #fff !important;
+  border: 1.5px solid var(--df-lp-teal) !important;
+  box-shadow: none !important;
+}
+
+.pub-header--premium .pub-actions .df-lp-enter-dd__trigger {
+  color: #fff !important;
+  background: linear-gradient(135deg, #2dd4bf, var(--df-lp-teal) 55%, var(--df-lp-teal-dark)) !important;
+  border: none !important;
+  box-shadow: 0 6px 18px rgba(20, 184, 166, 0.35) !important;
+}
+
+.pub-header--premium .pub-nav a {
+  font-weight: 600;
+  color: #475569;
+}
+
+@media (min-width: 1024px) {
+  .df-lp-header-demo,
+  .df-lp-header-enter {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 1023px) {
+  .df-lp-header-demo,
+  .df-lp-header-enter {
+    display: none;
+  }
+}
+
 /* Footer */
 .df-lp-footer {
   background: var(--df-lp-navy);
@@ -1106,59 +1231,45 @@
 
 @media (min-width: 1100px) {
   .df-lp-plans-block {
-    grid-template-columns: 1fr 19rem;
+    grid-template-columns: 1fr 16.5rem;
   }
 
   .df-lp-pricing {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .df-lp-features {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
 
 @media (min-width: 900px) {
   .df-lp-hero__grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1.05fr 0.95fr;
   }
 
   .df-lp-hero {
-    padding: 3rem 0 4rem;
+    padding: 2.5rem 0 1.5rem;
   }
 
-  .df-lp-product {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .df-lp-product--reverse .df-lp-product__copy {
-    order: 2;
-  }
-
-  .df-lp-product--reverse .df-lp-product__visual {
-    order: 1;
-  }
-
-  .df-lp-features {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .df-lp-pricing {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .df-lp-plans-block {
-    grid-template-columns: 1fr 17.5rem;
-    gap: 1.25rem;
+  .df-lp-hero__devices {
+    min-height: 22rem;
   }
 
   .df-lp-final-cta__grid {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr min(38%, 22rem);
+    gap: 2.5rem;
   }
 
   .df-lp-final-cta__visual {
     margin: 0;
+    align-self: stretch;
   }
 
-  .df-lp-security-head {
-    grid-template-columns: 1fr 18rem;
-    align-items: start;
+  .df-lp-final-cta__visual img {
+    height: 100%;
+    min-height: 14rem;
+    object-fit: cover;
   }
 
   .df-lp-footer__grid {
@@ -1174,21 +1285,22 @@
 
 @media (max-width: 899px) {
   .df-lp-hero__devices {
-    min-height: 12rem;
-    max-width: 20rem;
+    min-height: 14rem;
+    max-width: 22rem;
     margin: 0 auto;
   }
 
-  .df-lp-device--1 {
-    width: 42%;
+  .df-lp-device--tablet {
+    width: 38%;
   }
 
-  .df-lp-device--2 {
-    width: 55%;
+  .df-lp-device--laptop {
+    width: 58%;
+    left: 20%;
   }
 
-  .df-lp-device--3 {
-    width: 45%;
+  .df-lp-device--phone {
+    width: 32%;
   }
 
   .df-lp-checklist--cols {

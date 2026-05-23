@@ -81,12 +81,12 @@ export function PublicHeader({ activeHref, variant = 'default', onWantDemo }: Pr
             <>
               <button
                 type="button"
-                className="df-lp-btn df-lp-btn--secondary df-lp-btn--sm hidden md:inline-flex"
+                className="df-lp-btn df-lp-btn--outline df-lp-btn--sm df-lp-header-demo"
                 onClick={wantDemoClick}
               >
                 Solicitar demo
               </button>
-              <div className="hidden md:block">
+              <div className="df-lp-header-enter">
                 <EnterPortalDropdown onNavigate={() => setOpen(false)} />
               </div>
             </>
