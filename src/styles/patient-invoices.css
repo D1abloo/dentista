@@ -1,0 +1,510 @@
+/* Portal paciente — Mis documentos (extiende estilos de informes) */
+
+.pinv-page {
+  animation: corp-fade-in 0.35s ease;
+}
+
+.pinv-header h2 {
+  margin: 0;
+  font-family: var(--display), 'Fraunces', Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--corp-navy);
+}
+
+.pinv-header p {
+  margin: 0.3rem 0 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.pinv-security {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.9rem;
+  background: linear-gradient(90deg, rgba(20, 184, 166, 0.1), rgba(14, 165, 233, 0.05));
+  border: 1px solid rgba(20, 184, 166, 0.22);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.pinv-kpis {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 1rem 0;
+}
+
+.pinv-kpi {
+  border-radius: 0.9rem;
+  background: #fff;
+  border: 1px solid #e8eef4;
+  box-shadow: var(--corp-shadow);
+  padding: 0.65rem 0.7rem;
+  animation: pinv-fade-up 0.45s ease both;
+}
+
+.pinv-kpi__label {
+  margin: 0;
+  font-size: 0.58rem;
+  font-weight: 800;
+  color: #64748b;
+  line-height: 1.2;
+}
+
+.pinv-kpi__value {
+  margin: 0.15rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--corp-navy);
+}
+
+.pinv-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+}
+
+.pinv-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.85rem;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.pinv-search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 0.82rem;
+}
+
+.pinv-toolbar__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pinv-chips {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
+}
+
+.pinv-chip {
+  flex-shrink: 0;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.pinv-chip--active {
+  background: linear-gradient(135deg, #0ea5e9, #14b8a6);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(20, 184, 166, 0.28);
+}
+
+.pinv-sort select {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.65rem;
+  font-size: 0.72rem;
+  padding: 0.35rem 0.5rem;
+  background: #fff;
+}
+
+.pinv-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+  gap: 1rem;
+  align-items: start;
+}
+
+.pinv-list-title {
+  margin: 0 0 0.65rem;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--corp-navy);
+}
+
+.pinv-card {
+  border-radius: 1rem;
+  background: #fff;
+  border: 1px solid #e8eef4;
+  box-shadow: var(--corp-shadow);
+  padding: 1rem;
+  margin-bottom: 0.65rem;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  animation: pinv-fade-up 0.4s ease both;
+}
+
+.pinv-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--corp-shadow-lift);
+}
+
+.pinv-card--active {
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.18), var(--corp-shadow-lift);
+}
+
+.pinv-card__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.pinv-card h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--corp-navy);
+}
+
+.pinv-status {
+  padding: 0.18rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.pinv-status--new {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.pinv-status--read {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.pinv-card__meta {
+  margin: 0.45rem 0 0;
+  font-size: 0.72rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.pinv-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.65rem;
+  align-items: center;
+}
+
+.pinv-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 0.65rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  background: transparent;
+}
+
+.pinv-btn--primary {
+  background: linear-gradient(135deg, #0ea5e9, #14b8a6);
+  color: #fff;
+}
+
+.pinv-btn--outline {
+  background: #fff;
+  border-color: #cbd5e1;
+  color: var(--corp-navy);
+}
+
+.pinv-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.pinv-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.pinv-menu-wrap {
+  position: relative;
+  margin-left: auto;
+}
+
+.pinv-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 20;
+  min-width: 10rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.65rem;
+  box-shadow: var(--corp-shadow-lift);
+  padding: 0.25rem;
+}
+
+.pinv-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.45rem 0.55rem;
+  border: none;
+  background: none;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 0.4rem;
+}
+
+.pinv-menu button:hover {
+  background: #f0fdfa;
+}
+
+.pinv-detail {
+  position: sticky;
+  top: 1rem;
+  border-radius: 1.1rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  box-shadow: var(--corp-shadow-lift);
+  padding: 1rem 1.1rem;
+  animation: pinv-slide-in 0.35s ease;
+}
+
+.pinv-detail h3 {
+  margin: 0 0 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--corp-navy);
+}
+
+.pinv-detail dl {
+  margin: 0;
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.74rem;
+}
+
+.pinv-detail dt {
+  color: #94a3b8;
+  font-weight: 800;
+}
+
+.pinv-detail dd {
+  margin: 0;
+  color: var(--corp-navy);
+  font-weight: 700;
+}
+
+.pinv-preview {
+  margin-top: 0.75rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  min-height: 6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pinv-preview img {
+  max-height: 8rem;
+  width: 100%;
+  object-fit: contain;
+}
+
+.pinv-preview--pdf {
+  padding: 1.5rem;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.pinv-related {
+  margin-top: 0.75rem;
+  padding: 0.65rem;
+  border-radius: 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  font-size: 0.74rem;
+}
+
+.pinv-related p {
+  margin: 0.25rem 0;
+}
+
+.pinv-related a {
+  color: #0d9488;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.pinv-detail__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+}
+
+.pinv-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.pinv-privacy {
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border-radius: 0.9rem;
+  background: linear-gradient(135deg, #f8fafc, #fff);
+  border: 1px solid #e8eef4;
+}
+
+.pinv-empty {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  border-radius: 1.1rem;
+  background: #fff;
+  border: 1px dashed #cbd5e1;
+  animation: pinv-fade-up 0.5s ease;
+}
+
+.pinv-detail__backdrop {
+  display: none;
+}
+
+@keyframes pinv-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pinv-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 1200px) {
+  .pinv-kpis {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1024px) {
+  .pinv-layout {
+    grid-template-columns: 1fr;
+  }
+  .pinv-detail {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    top: 0;
+    border-radius: 0;
+    overflow-y: auto;
+  }
+  .pinv-detail__backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    background: rgba(15, 23, 42, 0.45);
+  }
+}
+
+@media (max-width: 640px) {
+  .pinv-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.pinv-status--pending {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.pinv-status--paid {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.pinv-status--overdue {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.pinv-card__concept {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--corp-navy);
+}
+
+.pinv-pdf-ok {
+  color: #15803d;
+  font-weight: 800;
+}
+
+.pinv-helper {
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border-radius: 0.9rem;
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.08), #fff);
+  border: 1px solid rgba(20, 184, 166, 0.2);
+}
+
+.pinv-help {
+  margin-top: 0.75rem;
+  padding: 0.65rem;
+  border-radius: 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+}
+
+.pinv-detail a {
+  color: #0d9488;
+  font-weight: 800;
+  text-decoration: none;
+}

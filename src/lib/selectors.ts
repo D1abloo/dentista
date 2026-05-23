@@ -35,6 +35,12 @@ export function visibleDocumentsForPatient(state: DemoState, patientId: string):
   return state.patientDocuments.filter((d) => d.patientId === patientId && d.visibility === 'paciente');
 }
 
+export function visibleInvoicesForPatient(state: DemoState, patientId: string): Invoice[] {
+  return state.invoices.filter(
+    (i) => i.patientId === patientId && i.portalVisible !== false && i.status !== 'cancelada'
+  );
+}
+
 export function pendingInvoicesForPatient(state: DemoState, patientId: string): Invoice[] {
   return state.invoices.filter((i) => i.patientId === patientId && (i.status === 'pendiente' || i.status === 'vencida'));
 }
