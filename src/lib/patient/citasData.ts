@@ -1,5 +1,6 @@
 import { filterAppointments, isActiveStatus } from '@/lib/appointments';
 import { fmtDateTime, money, statusLabel } from '@/lib/format';
+import { invoiceDetailHref, messageContextHref, reportDetailHref } from '@/lib/patient/portalLinks';
 import type { Appointment, AppointmentStatus, DemoState } from '@/types/demo';
 
 export type ApptChip =
@@ -70,9 +71,9 @@ export function enrichPatientAppointments(state: DemoState, patientId: string): 
       hasReport: Boolean(report),
       invoiceId: invoice?.id,
       reportId: report?.id,
-      invoiceHref: invoice ? `/paciente/facturas?focus=${invoice.id}` : undefined,
-      reportHref: report ? `/paciente/informes?focus=${report.id}` : undefined,
-      messageHref: `/paciente/mensajes?context=appointment&appointmentId=${a.id}`
+      invoiceHref: invoice ? invoiceDetailHref(invoice.id) : undefined,
+      reportHref: report ? reportDetailHref(report.id) : undefined,
+      messageHref: messageContextHref({ contexto: 'cita', appointmentId: a.id })
     };
   });
 }

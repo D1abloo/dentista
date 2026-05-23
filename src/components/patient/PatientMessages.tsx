@@ -17,6 +17,7 @@ import {
   X
 } from 'lucide-react';
 import { useCountUp } from '@/hooks/useCountUp';
+import { usePatientUrlParams } from '@/hooks/usePatientUrlParams';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { usePatient } from '@/hooks/usePatient';
@@ -101,17 +102,29 @@ export function PatientMessages() {
   const [sendOk, setSendOk] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
-  const contexto = useMemo(() => {
-    if (typeof window === 'undefined') return '';
-    return new URLSearchParams(window.location.search).get('contexto') ?? '';
-  }, []);
+  const urlParams = usePatientUrlParams();
 
   useEffect(() => {
-    if (contexto) {
-      setReply(contexto);
+    const asunto = urlParams.get('asunto');
+    const contexto = urlParams.get('contexto');
+    const factura = urlParams.get('factura');
+    const documento = urlParams.get('documento');
+    const informe = urlParams.get('informe');
+    const cita = urlParams.get('cita');
+    const consentimiento = urlParams.get('consentimiento');
+
+    let draft = asunto?.trim() ?? contexto?.trim() ?? '';
+    if (!draft && factura) draft = 'Hola, tengo una consulta sobre mi factura.';
+    if (!draft && documento) draft = 'Hola, tengo una consulta sobre un documento compartido.';
+    if (!draft && informe) draft = 'Hola, tengo una consulta sobre mi informe clínico.';
+    if (!draft && cita) draft = 'Hola, tengo una consulta sobre mi cita.';
+    if (!draft && consentimiento) draft = 'Hola, tengo una duda sobre un consentimiento informado.';
+
+    if (draft) {
+      setReply(draft);
       setReplyOpen(true);
     }
-  }, [contexto]);
+  }, [urlParams]);
 
   const baseMessages = useMemo(() => visibleMessagesForPatient(state, patient.id), [state, patient.id]);
 
@@ -303,13 +316,29 @@ export function PatientMessages() {
     openDetail(v);
   }
 
+  const contextBanner = urlParams.get('informe')
+    ? { text: 'Respondiendo en contexto de un informe clínico.', backHref: '/paciente/informes', backLabel: 'Volver a informes' }
+    : urlParams.get('factura')
+      ? { text: 'Respondiendo en contexto de una factura.', backHref: '/paciente/facturas', backLabel: 'Volver a facturas' }
+      : urlParams.get('documento')
+        ? { text: 'Respondiendo en contexto de un documento.', backHref: '/paciente/documentos', backLabel: 'Volver a documentos' }
+        : urlParams.get('cita')
+          ? { text: 'Respondiendo en contexto de una cita.', backHref: '/paciente/citas', backLabel: 'Volver a mis citas' }
+          : urlParams.get('consentimiento')
+            ? {
+                text: 'Respondiendo en contexto de un consentimiento.',
+                backHref: '/paciente/consentimientos',
+                backLabel: 'Volver a consentimientos'
+              }
+            : null;
+
   return (
     <div className="pmsg-page">
-      {contexto ? (
+      {contextBanner ? (
         <div className="banner-alert flex flex-wrap items-center justify-between gap-2 mb-3">
-          <span>{contexto}</span>
-          <a href="/paciente/informes" className="text-xs font-bold text-teal-800 underline">
-            Volver a informes
+          <span>{contextBanner.text}</span>
+          <a href={contextBanner.backHref} className="text-xs font-bold text-teal-800 underline">
+            {contextBanner.backLabel}
           </a>
         </div>
       ) : null}

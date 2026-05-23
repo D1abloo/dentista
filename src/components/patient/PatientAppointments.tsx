@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { isClinicSlotTaken } from '@/lib/appointments';
 import { useCountUp } from '@/hooks/useCountUp';
+import { resolveFocusId, usePatientUrlParams } from '@/hooks/usePatientUrlParams';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { usePatient } from '@/hooks/usePatient';
@@ -65,6 +66,8 @@ export function PatientAppointments() {
   const [reschedTime, setReschedTime] = useState('');
   const [busy, setBusy] = useState(false);
   const [certLoading, setCertLoading] = useState(false);
+  const urlParams = usePatientUrlParams();
+  const focusId = resolveFocusId(urlParams, ['focus', 'cita']);
 
   const views = useMemo(() => enrichPatientAppointments(state, patient.id), [state, patient.id]);
   const kpis = useMemo(() => buildAppointmentKpis(views), [views]);
@@ -89,11 +92,18 @@ export function PatientAppointments() {
   }, [portalAccess.active]);
 
   useEffect(() => {
+    if (focusId) {
+      const match = views.find((v) => v.appointment.id === focusId);
+      if (match) {
+        setSelectedId(match.appointment.id);
+        return;
+      }
+    }
     if (!selectedId && filtered[0]) setSelectedId(filtered[0].appointment.id);
     if (selectedId && !filtered.some((v) => v.appointment.id === selectedId) && filtered[0]) {
       setSelectedId(filtered[0].appointment.id);
     }
-  }, [filtered, selectedId]);
+  }, [filtered, selectedId, focusId, views]);
 
   useEffect(() => {
     if (selected) {

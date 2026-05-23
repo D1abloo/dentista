@@ -19,6 +19,7 @@ import { PatientPortalGate } from '@/components/auth/PatientPortalGate';
 import { Toast } from '@/components/ui';
 import { useNotice } from '@/hooks/useNotice';
 import { PatientShell } from './PatientShell';
+import { PatientPortalStatus } from './PatientPortalStatus';
 import {
   PatientAppointments,
   PatientBook,
@@ -112,7 +113,9 @@ function PatientInner({ view }: { view: PatientView }) {
   return (
     <PatientShell title={titles[view]} nav={nav}>
       <Toast notice={notice} onClose={clear} />
-      <Body view={view} />
+      <PatientPortalStatus>
+        <Body view={view} />
+      </PatientPortalStatus>
     </PatientShell>
   );
 }

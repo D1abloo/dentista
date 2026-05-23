@@ -1,0 +1,436 @@
+/* Portal paciente — sistema visual unificado (todas las secciones) */
+
+.portal--patient .portal-body--patient {
+  background: linear-gradient(180deg, #f8fafc 0%, #f0f9ff 42%, #f8fafc 100%);
+}
+
+.portal--patient .portal-body--patient > .pdp-status {
+  margin-bottom: 1rem;
+}
+
+/* —— Páginas de listado —— */
+.portal--patient .prt-page,
+.portal--patient .pdoc-page,
+.portal--patient .pinv-page,
+.portal--patient .ppay-page,
+.portal--patient .phis-page,
+.portal--patient .pmsg-page,
+.portal--patient .pcon-page {
+  animation: corp-fade-in 0.35s ease;
+}
+
+/* —— Cabeceras —— */
+.portal--patient .prt-header h2,
+.portal--patient .pdoc-header h2,
+.portal--patient .pinv-header h2,
+.portal--patient .ppay-header h2,
+.portal--patient .phis-header h2,
+.portal--patient .pmsg-header h2,
+.portal--patient .pcon-header h2 {
+  margin: 0;
+  font-family: var(--display), 'Fraunces', Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--corp-navy);
+}
+
+.portal--patient .prt-header p,
+.portal--patient .pdoc-header p,
+.portal--patient .pinv-header p,
+.portal--patient .ppay-header p,
+.portal--patient .phis-header p,
+.portal--patient .pmsg-header p,
+.portal--patient .pcon-header p {
+  margin: 0.3rem 0 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* —— Banda seguridad —— */
+.portal--patient .prt-security,
+.portal--patient .pdoc-security,
+.portal--patient .pinv-security,
+.portal--patient .ppay-security,
+.portal--patient .phis-security,
+.portal--patient .pmsg-security,
+.portal--patient .pcon-security {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.9rem;
+  background: linear-gradient(90deg, rgba(20, 184, 166, 0.1), rgba(14, 165, 233, 0.05));
+  border: 1px solid rgba(20, 184, 166, 0.22);
+}
+
+/* —— KPIs (misma rejilla en todas las secciones) —— */
+.portal--patient .prt-kpis,
+.portal--patient .pdoc-kpis,
+.portal--patient .pinv-kpis,
+.portal--patient .ppay-kpis,
+.portal--patient .phis-kpis,
+.portal--patient .pmsg-kpis,
+.portal--patient .pcon-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 1rem 0;
+}
+
+.portal--patient .prt-kpi,
+.portal--patient .pdoc-kpi,
+.portal--patient .pinv-kpi,
+.portal--patient .ppay-kpi,
+.portal--patient .phis-kpi,
+.portal--patient .pmsg-kpi,
+.portal--patient .pcon-kpi {
+  border-radius: 0.95rem;
+  background: #fff;
+  border: 1px solid #e8eef4;
+  box-shadow: var(--corp-shadow);
+  padding: 0.75rem 0.85rem;
+  animation: pdp-fade-up 0.45s ease both;
+}
+
+.portal--patient .prt-kpi__label,
+.portal--patient .pdoc-kpi__label,
+.portal--patient .pinv-kpi__label,
+.portal--patient .ppay-kpi__label,
+.portal--patient .phis-kpi__label,
+.portal--patient .pmsg-kpi__label,
+.portal--patient .pcon-kpi__label {
+  margin: 0;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #64748b;
+  line-height: 1.25;
+}
+
+.portal--patient .prt-kpi__value,
+.portal--patient .pdoc-kpi__value,
+.portal--patient .pinv-kpi__value,
+.portal--patient .ppay-kpi__value,
+.portal--patient .phis-kpi__value,
+.portal--patient .pmsg-kpi__value,
+.portal--patient .pcon-kpi__value {
+  margin: 0.2rem 0 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--corp-navy);
+}
+
+/* —— Búsqueda y chips —— */
+.portal--patient .prt-search,
+.portal--patient .pdoc-search,
+.portal--patient .pinv-search,
+.portal--patient .ppay-search,
+.portal--patient .phis-search,
+.portal--patient .pmsg-search,
+.portal--patient .pcon-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.85rem;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  box-shadow: var(--corp-shadow);
+}
+
+.portal--patient .prt-search input,
+.portal--patient .pdoc-search input,
+.portal--patient .pinv-search input,
+.portal--patient .ppay-search input,
+.portal--patient .phis-search input,
+.portal--patient .pmsg-search input,
+.portal--patient .pcon-search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 0.82rem;
+  background: transparent;
+}
+
+.portal--patient .prt-chip,
+.portal--patient .pdoc-chip,
+.portal--patient .pinv-chip,
+.portal--patient .ppay-chip,
+.portal--patient .phis-chip,
+.portal--patient .pmsg-chip,
+.portal--patient .pcon-chip {
+  flex-shrink: 0;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.portal--patient .prt-chip--active,
+.portal--patient .pdoc-chip--active,
+.portal--patient .pinv-chip--active,
+.portal--patient .ppay-chip--active,
+.portal--patient .phis-chip--active,
+.portal--patient .pmsg-chip--active,
+.portal--patient .pcon-chip--active {
+  background: linear-gradient(135deg, #0ea5e9, #14b8a6);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(20, 184, 166, 0.28);
+}
+
+/* —— Cards de listado —— */
+.portal--patient .prt-card,
+.portal--patient .pdoc-card,
+.portal--patient .pinv-card,
+.portal--patient .ppay-card,
+.portal--patient .phis-card,
+.portal--patient .pmsg-card,
+.portal--patient .pcon-card {
+  border-radius: 1rem;
+  background: #fff;
+  border: 1px solid #e8eef4;
+  box-shadow: var(--corp-shadow);
+  padding: 1rem;
+  margin-bottom: 0.65rem;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.portal--patient .prt-card:hover,
+.portal--patient .pdoc-card:hover,
+.portal--patient .pinv-card:hover,
+.portal--patient .ppay-card:hover,
+.portal--patient .phis-card:hover,
+.portal--patient .pmsg-card:hover,
+.portal--patient .pcon-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--corp-shadow-lift);
+}
+
+.portal--patient .prt-card--active,
+.portal--patient .pdoc-card--active,
+.portal--patient .pinv-card--active,
+.portal--patient .ppay-card--active,
+.portal--patient .phis-card--active,
+.portal--patient .pmsg-card--active,
+.portal--patient .pcon-card--active {
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.18), var(--corp-shadow-lift);
+}
+
+/* —— Botones primarios / secundarios —— */
+.portal--patient .prt-btn--primary,
+.portal--patient .pdoc-btn--primary,
+.portal--patient .pinv-btn--primary,
+.portal--patient .ppay-btn--primary,
+.portal--patient .phis-btn--primary,
+.portal--patient .pmsg-btn--primary,
+.portal--patient .pcon-btn--primary,
+.portal--patient .ph-btn--primary {
+  background: linear-gradient(135deg, #0ea5e9, #14b8a6);
+  color: #fff;
+  border-color: transparent;
+}
+
+.portal--patient .prt-btn--outline,
+.portal--patient .pdoc-btn--outline,
+.portal--patient .pinv-btn--outline,
+.portal--patient .ppay-btn--outline,
+.portal--patient .phis-btn--outline,
+.portal--patient .pmsg-btn--outline,
+.portal--patient .pcon-btn--outline,
+.portal--patient .ph-btn--outline {
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  color: var(--corp-navy);
+}
+
+.portal--patient .prt-btn,
+.portal--patient .pdoc-btn,
+.portal--patient .pinv-btn,
+.portal--patient .ppay-btn,
+.portal--patient .phis-btn,
+.portal--patient .pmsg-btn,
+.portal--patient .pcon-btn,
+.portal--patient .ph-btn {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.portal--patient .prt-btn:hover:not(:disabled),
+.portal--patient .pdoc-btn:hover:not(:disabled),
+.portal--patient .pinv-btn:hover:not(:disabled),
+.portal--patient .ppay-btn:hover:not(:disabled),
+.portal--patient .phis-btn:hover:not(:disabled),
+.portal--patient .pmsg-btn:hover:not(:disabled),
+.portal--patient .pcon-btn:hover:not(:disabled),
+.portal--patient .ph-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+/* —— Layout listado + detalle —— */
+.portal--patient .prt-layout,
+.portal--patient .pdoc-layout,
+.portal--patient .pinv-layout,
+.portal--patient .ppay-layout,
+.portal--patient .phis-layout,
+.portal--patient .pmsg-layout,
+.portal--patient .pcon-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+  gap: 1rem;
+  align-items: start;
+}
+
+.portal--patient .prt-detail,
+.portal--patient .pdoc-detail,
+.portal--patient .pinv-detail,
+.portal--patient .ppay-detail,
+.portal--patient .phis-detail,
+.portal--patient .pmsg-detail,
+.portal--patient .pcon-detail {
+  border-radius: 1.1rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  box-shadow: var(--corp-shadow-lift);
+  animation: pdp-slide-in 0.35s ease;
+}
+
+/* —— Estados vacíos —— */
+.portal--patient .prt-empty,
+.portal--patient .pdoc-empty,
+.portal--patient .pinv-empty,
+.portal--patient .ppay-empty,
+.portal--patient .phis-empty,
+.portal--patient .pmsg-empty,
+.portal--patient .pcon-empty {
+  text-align: center;
+  padding: 2rem 1rem;
+  border-radius: 1rem;
+  background: #fff;
+  border: 1px dashed #cbd5e1;
+}
+
+/* —— Skeleton portal —— */
+.pdp-skeleton {
+  border-radius: 1rem;
+  background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
+  background-size: 200% 100%;
+  animation: pdp-shimmer 1.2s ease-in-out infinite;
+  min-height: 4rem;
+}
+
+.pdp-status {
+  border-radius: 0.85rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.pdp-status--error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.pdp-status--loading {
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  color: #0f766e;
+}
+
+@keyframes pdp-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pdp-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pdp-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@media (max-width: 1024px) {
+  .portal--patient .prt-kpis,
+  .portal--patient .pdoc-kpis,
+  .portal--patient .pinv-kpis,
+  .portal--patient .ppay-kpis,
+  .portal--patient .phis-kpis,
+  .portal--patient .pmsg-kpis,
+  .portal--patient .pcon-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .portal--patient .prt-layout,
+  .portal--patient .pdoc-layout,
+  .portal--patient .pinv-layout,
+  .portal--patient .ppay-layout,
+  .portal--patient .phis-layout,
+  .portal--patient .pmsg-layout,
+  .portal--patient .pcon-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .portal--patient .prt-detail,
+  .portal--patient .pdoc-detail,
+  .portal--patient .pinv-detail,
+  .portal--patient .ppay-detail,
+  .portal--patient .phis-detail,
+  .portal--patient .pmsg-detail,
+  .portal--patient .pcon-detail {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 60;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 1.1rem 1.1rem 0 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .portal--patient .prt-kpis,
+  .portal--patient .pdoc-kpis,
+  .portal--patient .pinv-kpis,
+  .portal--patient .ppay-kpis,
+  .portal--patient .phis-kpis,
+  .portal--patient .pmsg-kpis,
+  .portal--patient .pcon-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .portal--patient .prt-card__actions .prt-btn,
+  .portal--patient .pdoc-card__actions .pdoc-btn,
+  .portal--patient .pinv-card__actions .pinv-btn,
+  .portal--patient .ppay-card__actions .ppay-btn,
+  .portal--patient .phis-card__actions .phis-btn,
+  .portal--patient .pmsg-card__actions .pmsg-btn,
+  .portal--patient .pcon-card__actions .pcon-btn {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}

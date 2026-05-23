@@ -15,6 +15,7 @@ import {
   X
 } from 'lucide-react';
 import { useCountUp } from '@/hooks/useCountUp';
+import { resolveFocusId, usePatientUrlParams } from '@/hooks/usePatientUrlParams';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { usePatient } from '@/hooks/usePatient';
@@ -85,11 +86,15 @@ export function PatientDocuments() {
   const [menuId, setMenuId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
-  const urlFilter = useMemo(() => {
-    if (typeof window === 'undefined') return { informe: '', cita: '' };
-    const p = new URLSearchParams(window.location.search);
-    return { informe: p.get('informe') ?? '', cita: p.get('cita') ?? '' };
-  }, []);
+  const urlParams = usePatientUrlParams();
+  const focusId = resolveFocusId(urlParams, ['documento', 'focus']);
+  const urlFilter = useMemo(
+    () => ({
+      informe: urlParams.get('informe') ?? '',
+      cita: urlParams.get('cita') ?? ''
+    }),
+    [urlParams]
+  );
 
   const baseDocs = useMemo(() => {
     let d = visibleDocumentsForPatient(state, patient.id);
@@ -133,11 +138,18 @@ export function PatientDocuments() {
   }, [q, chip, sort]);
 
   useEffect(() => {
+    if (focusId) {
+      const match = views.find((v) => v.document.id === focusId);
+      if (match) {
+        setSelectedId(match.document.id);
+        return;
+      }
+    }
     if (!selectedId && pageRows[0]) setSelectedId(pageRows[0].document.id);
     if (selectedId && !filtered.some((v) => v.document.id === selectedId) && pageRows[0]) {
       setSelectedId(pageRows[0].document.id);
     }
-  }, [filtered, pageRows, selectedId]);
+  }, [filtered, pageRows, selectedId, focusId, views]);
 
   const openDetail = useCallback(
     (v: PatientDocumentView) => {

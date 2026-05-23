@@ -1,6 +1,12 @@
 import { isActiveStatus } from '@/lib/appointments';
 import { fmtDate, fmtDateTime, money, statusLabel } from '@/lib/format';
 import {
+  appointmentDetailHref,
+  documentDetailHref,
+  invoiceDetailHref,
+  reportDetailHref
+} from '@/lib/patient/portalLinks';
+import {
   pendingInvoicesForPatient,
   visibleDocumentsForPatient,
   visibleReportsForPatient
@@ -98,7 +104,7 @@ export function buildPatientHomeUpdates(state: DemoState, patientId: string, lim
       id: `appt-${upcoming[0].id}`,
       title: 'Cita confirmada',
       subtitle: `${meta.treatment} · ${meta.dateTimeLabel}`,
-      href: '/paciente/citas',
+      href: appointmentDetailHref(upcoming[0].id),
       kind: 'cita',
       at: `${upcoming[0].date}T${upcoming[0].time}`
     });
@@ -113,7 +119,7 @@ export function buildPatientHomeUpdates(state: DemoState, patientId: string, lim
       id: `doc-${d.id}`,
       title: 'Nuevo documento disponible',
       subtitle: d.title,
-      href: '/paciente/documentos',
+      href: documentDetailHref(d.id),
       kind: 'documento',
       at: d.createdAt
     });
@@ -125,7 +131,7 @@ export function buildPatientHomeUpdates(state: DemoState, patientId: string, lim
       id: `inv-${invoices[0].id}`,
       title: 'Factura enviada al portal',
       subtitle: invoices[0].id,
-      href: '/paciente/facturas',
+      href: invoiceDetailHref(invoices[0].id),
       kind: 'factura',
       at: invoices[0].issuedAt
     });
@@ -137,7 +143,7 @@ export function buildPatientHomeUpdates(state: DemoState, patientId: string, lim
       id: `rep-${reports[0].id}`,
       title: 'Nuevo informe disponible',
       subtitle: reports[0].title,
-      href: '/paciente/informes',
+      href: reportDetailHref(reports[0].id),
       kind: 'informe',
       at: reports[0].createdAt
     });

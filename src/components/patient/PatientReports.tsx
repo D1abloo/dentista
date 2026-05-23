@@ -11,6 +11,7 @@ import {
   X
 } from 'lucide-react';
 import { useCountUp } from '@/hooks/useCountUp';
+import { resolveFocusId, usePatientUrlParams } from '@/hooks/usePatientUrlParams';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { usePatient } from '@/hooks/usePatient';
@@ -61,7 +62,8 @@ export function PatientReports() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [readVersion, setReadVersion] = useState(0);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
-  const [loadError] = useState(false);
+  const urlParams = usePatientUrlParams();
+  const focusId = resolveFocusId(urlParams, ['focus', 'informe', 'report']);
 
   const baseReports = useMemo(() => visibleReportsForPatient(state, patient.id), [state, patient.id]);
 
@@ -101,11 +103,18 @@ export function PatientReports() {
   }, [portalAccess.active]);
 
   useEffect(() => {
+    if (focusId) {
+      const match = views.find((v) => v.report.id === focusId);
+      if (match) {
+        setSelectedId(match.report.id);
+        return;
+      }
+    }
     if (!selectedId && filtered[0]) setSelectedId(filtered[0].report.id);
     if (selectedId && !filtered.some((v) => v.report.id === selectedId) && filtered[0]) {
       setSelectedId(filtered[0].report.id);
     }
-  }, [filtered, selectedId]);
+  }, [filtered, selectedId, focusId, views]);
 
   const openDetail = useCallback((v: PatientReportView) => {
     setSelectedId(v.report.id);
@@ -150,14 +159,6 @@ export function PatientReports() {
     markPatientReportRead(patient.id, v.report.id);
     setReadVersion((n) => n + 1);
     setNotice({ type: 'ok', message: 'Informe marcado como leído.' });
-  }
-
-  if (loadError) {
-    return (
-      <div className="prt-page">
-        <p className="banner-alert">No se pudieron cargar tus informes.</p>
-      </div>
-    );
   }
 
   const showEmpty = views.length === 0;

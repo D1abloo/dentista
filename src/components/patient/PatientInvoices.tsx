@@ -20,7 +20,7 @@ import { logPortalAudit, usePortalAccess } from '@/hooks/usePortalAccess';
 import { createPayment } from '@/lib/demoStore';
 import { openDemoFilePreview, resolveDemoFileUrl } from '@/lib/demoFiles';
 import { money } from '@/lib/format';
-import { isClientDemoMode } from '@/lib/appMode';
+import { resolveFocusId, usePatientUrlParams } from '@/hooks/usePatientUrlParams';
 import {
   buildInvoiceKpis,
   downloadPatientInvoicePdf,
@@ -84,20 +84,19 @@ export function PatientInvoices() {
   const [payingId, setPayingId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
+  const urlParams = usePatientUrlParams();
   const urlInvoice = useMemo(() => {
-    if (typeof window === 'undefined') return { factura: '', filtro: '' as InvoiceChip | '' };
-    const p = new URLSearchParams(window.location.search);
-    const filtro = p.get('filtro') ?? '';
+    const filtro = urlParams.get('filtro') ?? '';
     const chipMap: Record<string, InvoiceChip> = {
       pendiente: 'pendiente',
       pagada: 'pagada',
       vencida: 'vencida'
     };
     return {
-      factura: p.get('factura') ?? p.get('invoice') ?? '',
-      filtro: chipMap[filtro] ?? ''
+      factura: resolveFocusId(urlParams, ['factura', 'invoice', 'focus']),
+      filtro: chipMap[filtro] ?? ('' as InvoiceChip | '')
     };
-  }, []);
+  }, [urlParams]);
 
   useEffect(() => {
     if (urlInvoice.filtro) setChip(urlInvoice.filtro);
@@ -200,25 +199,21 @@ export function PatientInvoices() {
     }
     setPayingId(v.invoice.id);
     try {
-      if (!isClientDemoMode()) {
-        const res = await fetch('/api/billing/stripe-checkout', {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            clinicId: patient.preferredClinicId,
-            patientId: patient.id,
-            invoiceId: v.invoice.id,
-            amount: v.invoice.amount,
-            concept: v.invoice.concept
-          })
-        });
-        const json = (await res.json()) as { data?: { checkoutUrl?: string }; error?: { message?: string } };
-        if (res.ok && json.data?.checkoutUrl) {
-          window.location.href = json.data.checkoutUrl;
-          return;
-        }
-        setNotice({ type: 'error', message: json.error?.message ?? 'No se pudo iniciar el pago. Inténtalo de nuevo.' });
+      const res = await fetch('/api/billing/stripe-checkout', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          clinicId: patient.preferredClinicId ?? state.clinics.find((c) => c.tenantId === v.invoice.tenantId)?.id,
+          patientId: patient.id,
+          invoiceId: v.invoice.id,
+          amount: v.invoice.amount,
+          concept: v.invoice.concept
+        })
+      });
+      const json = (await res.json()) as { data?: { checkoutUrl?: string }; error?: { message?: string } };
+      if (res.ok && json.data?.checkoutUrl) {
+        window.location.href = json.data.checkoutUrl;
         return;
       }
       commit(

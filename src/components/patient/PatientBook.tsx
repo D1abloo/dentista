@@ -77,9 +77,19 @@ export function PatientBook() {
     const clinica = p.get('clinica');
     const tratamiento = p.get('tratamiento');
     const seguimiento = p.get('seguimiento');
-    if (clinica && state.clinics.some((c) => c.id === clinica)) setClinicId(clinica);
-    if (tratamiento && state.treatments.some((t) => t.id === tratamiento)) setTreatmentId(tratamiento);
-    if (seguimiento) setNotes(`Seguimiento de visita ${seguimiento}`);
+    if (clinica && state.clinics.some((c) => c.id === clinica)) {
+      setClinicId(clinica);
+      if (!tratamiento && !seguimiento) setStep(2);
+    }
+    if (tratamiento && state.treatments.some((t) => t.id === tratamiento)) {
+      setTreatmentId(tratamiento);
+      setStep(3);
+    }
+    if (seguimiento) {
+      setNotes(`Seguimiento de visita ${seguimiento}`);
+      if (clinica && tratamiento) setStep(4);
+      else if (clinica) setStep(2);
+    }
   }, [state.clinics, state.treatments]);
 
   const clinic = state.clinics.find((c) => c.id === clinicId);
