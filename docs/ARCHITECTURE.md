@@ -53,7 +53,7 @@ Entidades principales:
 
 - clinics
 - profiles
-- dentists
+- dentists (`collegiate_number`, `email`, `phone` — obligatorio al alta de Dr/Dra para pie de informes)
 - treatments
 - rooms
 - appointments
