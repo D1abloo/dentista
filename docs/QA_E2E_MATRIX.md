@@ -1,7 +1,7 @@
 # Matriz QA E2E — Dentista+
 
-Última revisión: 2026-05-20.  
-Script automatizado: `npm run qa:audit` · Unitarios: `npm run test:unit`
+Última revisión: 2026-05-23.  
+Scripts: `npm run qa:audit` (estructura) · `npm run qa:live` (E2E API en vivo) · `npm run test:unit`
 
 ## Leyenda de estado
 
@@ -20,7 +20,8 @@ Script automatizado: `npm run qa:audit` · Unitarios: `npm run test:unit`
 | RLS Supabase | **FIX** — migración `0028_rls_records_gaps.sql` |
 | Bloqueos agenda | **FIX** — inserción robusta + fin de tramo válido |
 | Multi-sede UI | **PASS-C** — `useActiveClinic` + `ClinicBranchSwitcher` |
-| E2E datos reales multi-org | **MANUAL** — requiere Supabase configurado |
+| E2E API live (auth, agenda, plataforma) | **PASS-L** — ver `docs/QA_E2E_LIVE_RESULTS.json` |
+| E2E datos reales multi-org | **MANUAL** — crear Mediterráneo + 3 clínicas en UI |
 
 ## Matriz por módulo
 
@@ -32,6 +33,7 @@ Script automatizado: `npm run qa:audit` · Unitarios: `npm run test:unit`
 | Paciente A/B | No ve informes B | Paciente A | Solo propios | Filtro `patientId` + RLS | PASS-C | `0028`, APIs records |
 | Agenda | Crear / cancelar / reprogramar cita | Admin | Sincronía panel + PdP | — | MANUAL | `appointments.ts` async scope |
 | Agenda | Bloquear horario Dr/Dra | Admin | Rojo en agenda + PdP | — | MANUAL | `scheduleBlocks.ts` |
+| Agenda | Eliminar bloqueo (ids) | Admin | Eliminado en API + UI | `npm run qa:live` | PASS-L | `e2e-live-full.mjs` |
 | Agenda | Eliminar bloqueo grupo | Admin | Grupo eliminado | — | MANUAL | `deleteScheduleBlockGroup` |
 | Multi-sede | Cambiar sede activa | Admin org | Datos de sede B | `useActiveClinic` | PASS-C | `AdminAgenda`, switcher |
 | PdP | Reservar sin slot ocupado | Paciente | 422 / no disponible | `isSlotBlocked` | PASS-C | `availability.ts` |
@@ -93,12 +95,17 @@ npm run qa:audit       # auditoría + API live opcional
 npm run build          # build producción
 ```
 
-API live (servidor en marcha):
+API live (servidor en marcha; Astro suele escuchar en `[::1]:4321`):
 
 ```bash
 npm run dev
-BASE_URL=http://127.0.0.1:4321 ADMIN_EMAIL=... ADMIN_PASSWORD=... npm run qa:audit
+npm run qa:live
+# Opcional paciente:
+PATIENT_EMAIL=maria@... PATIENT_PASSWORD=... npm run qa:live
+npm run qa:audit
 ```
+
+Informe JSON: `docs/QA_E2E_LIVE_RESULTS.json`
 
 ## Pendiente manual (no automatizable sin entorno)
 

@@ -14,6 +14,7 @@
     "smoke": "node scripts/smoke-test.mjs",
     "test:unit": "node --test scripts/unit/agenda-security.mjs",
     "qa:audit": "node scripts/e2e-qa-audit.mjs",
+    "qa:live": "node scripts/e2e-live-full.mjs",
     "seed:sql": "node scripts/print-seed.mjs",
     "seed:demo-assets": "node scripts/seed-demo-assets.mjs",
     "users": "node scripts/manage-users.mjs",

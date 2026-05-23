@@ -9,7 +9,20 @@ import { resolve, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
-const BASE = process.env.BASE_URL ?? 'http://127.0.0.1:4321';
+async function resolveBaseUrl() {
+  if (process.env.BASE_URL) return process.env.BASE_URL;
+  for (const base of ['http://127.0.0.1:4321', 'http://[::1]:4321', 'http://localhost:4321']) {
+    try {
+      const res = await fetch(`${base}/`, { signal: AbortSignal.timeout(3000) });
+      if (res.ok || res.status < 500) return base;
+    } catch {
+      /* try next */
+    }
+  }
+  return 'http://127.0.0.1:4321';
+}
+
+let BASE = process.env.BASE_URL ?? 'http://127.0.0.1:4321';
 
 function loadEnv() {
   try {
@@ -158,7 +171,9 @@ function runStructuralChecks() {
 }
 
 async function main() {
+  BASE = await resolveBaseUrl();
   console.log('=== Dentista+ QA Audit ===\n');
+  console.log(`Base: ${BASE}\n`);
   runStructuralChecks();
   try {
     await runLiveApiChecks();

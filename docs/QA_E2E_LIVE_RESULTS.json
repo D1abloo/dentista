@@ -1,0 +1,193 @@
+{
+  "generatedAt": "2026-05-23T17:19:18.628Z",
+  "baseUrl": "http://[::1]:4321",
+  "summary": {
+    "pass": 25,
+    "fail": 0,
+    "warn": 1
+  },
+  "results": [
+    {
+      "module": "Landing",
+      "test": "GET /",
+      "status": "PASS",
+      "note": "status=200",
+      "at": "2026-05-23T17:19:15.267Z"
+    },
+    {
+      "module": "Landing",
+      "test": "GET /api/public/clinics",
+      "status": "PASS",
+      "note": "status=200",
+      "at": "2026-05-23T17:19:15.446Z"
+    },
+    {
+      "module": "Seguridad",
+      "test": "GET /api/auth/me sin sesión",
+      "status": "PASS",
+      "note": "status=401",
+      "at": "2026-05-23T17:19:15.481Z"
+    },
+    {
+      "module": "Seguridad",
+      "test": "GET métricas sin sesión",
+      "status": "PASS",
+      "note": "status=401",
+      "at": "2026-05-23T17:19:15.521Z"
+    },
+    {
+      "module": "Seguridad",
+      "test": "POST notificación cita sin sesión",
+      "status": "PASS",
+      "note": "status=401",
+      "at": "2026-05-23T17:19:15.534Z"
+    },
+    {
+      "module": "Auth",
+      "test": "Login admin clínica",
+      "status": "PASS",
+      "note": "admin@dentista.app",
+      "at": "2026-05-23T17:19:16.438Z"
+    },
+    {
+      "module": "Auth",
+      "test": "GET /api/auth/me con sesión admin",
+      "status": "PASS",
+      "note": "admin",
+      "at": "2026-05-23T17:19:16.440Z"
+    },
+    {
+      "module": "Bootstrap",
+      "test": "GET /api/clinic/bootstrap",
+      "status": "PASS",
+      "note": "clinic=0858d185…",
+      "at": "2026-05-23T17:19:16.950Z"
+    },
+    {
+      "module": "Clínica",
+      "test": "GET staff-context",
+      "status": "PASS",
+      "note": "status=200",
+      "at": "2026-05-23T17:19:17.192Z"
+    },
+    {
+      "module": "Profesionales",
+      "test": "GET clinical-professionals",
+      "status": "PASS",
+      "note": "status=200",
+      "at": "2026-05-23T17:19:17.253Z"
+    },
+    {
+      "module": "Seguridad",
+      "test": "Pacientes sede ajena",
+      "status": "PASS",
+      "note": "status=403",
+      "at": "2026-05-23T17:19:17.321Z"
+    },
+    {
+      "module": "Seguridad",
+      "test": "Métricas sede ajena",
+      "status": "PASS",
+      "note": "status=403",
+      "at": "2026-05-23T17:19:17.379Z"
+    },
+    {
+      "module": "Seguridad",
+      "test": "Admin clínica no accede plataforma",
+      "status": "PASS",
+      "note": "status=403",
+      "at": "2026-05-23T17:19:17.400Z"
+    },
+    {
+      "module": "Agenda",
+      "test": "POST bloqueo horario",
+      "status": "PASS",
+      "note": "ok",
+      "at": "2026-05-23T17:19:17.525Z"
+    },
+    {
+      "module": "Agenda",
+      "test": "GET bloqueos del día",
+      "status": "PASS",
+      "note": "count=2",
+      "at": "2026-05-23T17:19:17.858Z"
+    },
+    {
+      "module": "Agenda",
+      "test": "DELETE desbloquear (ids)",
+      "status": "PASS",
+      "note": "removed=1",
+      "at": "2026-05-23T17:19:17.921Z"
+    },
+    {
+      "module": "Agenda",
+      "test": "Bloqueo eliminado en listado",
+      "status": "PASS",
+      "note": "left=0",
+      "at": "2026-05-23T17:19:18.035Z"
+    },
+    {
+      "module": "Citas",
+      "test": "GET citas clínica",
+      "status": "PASS",
+      "note": "status=200",
+      "at": "2026-05-23T17:19:18.103Z"
+    },
+    {
+      "module": "Reserva",
+      "test": "GET disponibilidad pública",
+      "status": "PASS",
+      "note": "slots=0",
+      "at": "2026-05-23T17:19:18.168Z"
+    },
+    {
+      "module": "Facturación",
+      "test": "Stripe checkout paciente ajeno bloqueado",
+      "status": "PASS",
+      "note": "status=422",
+      "at": "2026-05-23T17:19:18.175Z"
+    },
+    {
+      "module": "Plataforma",
+      "test": "Login super admin",
+      "status": "PASS",
+      "note": "admin@dentista.app",
+      "at": "2026-05-23T17:19:18.237Z"
+    },
+    {
+      "module": "Plataforma",
+      "test": "GET organizaciones",
+      "status": "PASS",
+      "note": "status=200",
+      "at": "2026-05-23T17:19:18.351Z"
+    },
+    {
+      "module": "Plataforma",
+      "test": "GET clínicas registradas",
+      "status": "PASS",
+      "note": "status=200",
+      "at": "2026-05-23T17:19:18.421Z"
+    },
+    {
+      "module": "Plataforma",
+      "test": "GET suscripciones",
+      "status": "PASS",
+      "note": "status=200",
+      "at": "2026-05-23T17:19:18.496Z"
+    },
+    {
+      "module": "Plataforma",
+      "test": "GET aislamiento",
+      "status": "PASS",
+      "note": "status=200",
+      "at": "2026-05-23T17:19:18.627Z"
+    },
+    {
+      "module": "Portal Paciente",
+      "test": "Login paciente",
+      "status": "SKIP",
+      "note": "Definir PATIENT_EMAIL y PATIENT_PASSWORD",
+      "at": "2026-05-23T17:19:18.627Z"
+    }
+  ]
+}
