@@ -50,7 +50,7 @@ export const platformNavSections: PlatformNavSection[] = [
     title: 'Altas',
     items: [
       { href: '/platform/registros', label: 'Pendientes', icon: ClipboardList, description: 'Solicitudes por aprobar' },
-      { href: '/platform/historial', label: 'Historial', icon: History, description: 'Aprobadas y rechazadas' }
+      { href: '/platform/historial', label: 'Historial de altas', icon: History, description: 'Aprobadas y rechazadas' },
     ]
   },
   {

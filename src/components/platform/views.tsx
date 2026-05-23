@@ -80,47 +80,7 @@ export function PlatformSupport() {
   );
 }
 
-export function PlatformRegistrationHistory() {
-  const [list, setList] = useState<ClinicRegistration[]>([]);
-  const [status, setStatus] = useState<'all' | 'approved' | 'rejected'>('all');
-
-  useEffect(() => {
-    const q = status === 'all' ? '' : `?status=${status}`;
-    void api<ClinicRegistration[]>(`/api/platform/registrations${q}`)
-      .then(setList)
-      .catch(() => undefined);
-  }, [status]);
-
-  return (
-    <PlatformShell title="Historial de altas" subtitle="Solicitudes ya procesadas">
-      <div className="mb-4 flex flex-wrap gap-2">
-        {(['all', 'approved', 'rejected'] as const).map((s) => (
-          <button
-            key={s}
-            type="button"
-            className={`btn btn--sm ${status === s ? 'btn--primary' : 'btn--outline'}`}
-            onClick={() => setStatus(s)}
-          >
-            {s === 'all' ? 'Todas' : s}
-          </button>
-        ))}
-      </div>
-      <div className="space-y-3">
-        {list.map((r) => (
-          <Card key={r.id} className="p-4">
-            <p className="text-xs font-bold uppercase text-[var(--muted)]">{r.status}</p>
-            <h3 className="font-bold">{r.clinic_name}</h3>
-            <p className="text-sm text-[var(--muted)]">
-              {r.owner_name} · {r.email}
-              {r.clinic_id ? ` · clínica ${r.clinic_id.slice(0, 8)}…` : ''}
-            </p>
-          </Card>
-        ))}
-        {!list.length ? <Empty title="Sin registros" text="No hay solicitudes con este filtro." /> : null}
-      </div>
-    </PlatformShell>
-  );
-}
+export { PlatformRegistrationHistory } from './PlatformRegistrationHistory';
 
 export function PlatformSubscriptions() {
   const [list, setList] = useState<PlatformSubscription[]>([]);

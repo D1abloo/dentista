@@ -1,0 +1,164 @@
+/* Super Admin — Historial de altas */
+
+.hist-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  min-width: 0;
+}
+
+.hist-kpi {
+  animation: hist-fade-in 0.5s ease both;
+}
+
+.hist-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.65rem;
+  padding: 2rem 1.5rem;
+  background: #fff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+  animation: hist-slide-up 0.45s ease both;
+}
+
+.hist-empty__icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  color: #94a3b8;
+}
+
+.hist-empty__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.hist-empty__text {
+  margin: 0;
+  max-width: 28rem;
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.hist-empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 0.35rem;
+}
+
+.hist-badge--approved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.hist-badge--rejected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.hist-table tbody tr {
+  animation: cln-row-in 0.4s ease both;
+}
+
+.hist-timeline {
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hist-timeline__item {
+  display: flex;
+  gap: 0.65rem;
+  padding: 0.45rem 0;
+  position: relative;
+  animation: hist-timeline-in 0.4s ease both;
+}
+
+.hist-timeline__item:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 0.42rem;
+  top: 1.35rem;
+  bottom: -0.2rem;
+  width: 2px;
+  background: #e2e8f0;
+}
+
+.hist-timeline__dot {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  background: #fff;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+}
+
+.hist-timeline__item--done .hist-timeline__dot {
+  border-color: #14b8a6;
+  background: #ccfbf1;
+}
+
+.hist-timeline__item--active .hist-timeline__dot {
+  border-color: #0d9488;
+  background: #14b8a6;
+  transform: scale(1.08);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+}
+
+.hist-timeline__label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.hist-timeline__item--active .hist-timeline__label {
+  color: #0f766e;
+  font-weight: 800;
+}
+
+.hist-card-count {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-left: 0.35rem;
+}
+
+@keyframes hist-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hist-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hist-timeline-in {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
