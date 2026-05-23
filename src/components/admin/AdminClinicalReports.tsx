@@ -1,14 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  CheckCircle2,
-  Download,
-  Eye,
-  FileText,
-  Lock,
-  Plus,
-  Trash2,
-  Upload
-} from 'lucide-react';
+import { Eye, FileText, Lock, Plus, Trash2, Upload } from 'lucide-react';
 import { isClientDemoMode } from '@/lib/appMode';
 import {
   applyReportTemplate,
@@ -28,7 +19,12 @@ import {
   type ClinicalReportFormState,
   type ClinicalReportSections
 } from '@/lib/clinical/reportForm';
-import { ReportSectionBox, ReportSectionGroup } from './ReportSectionBox';
+import {
+  fieldsForComposeTab,
+  REPORT_COMPOSE_TABS,
+  type ReportComposeTab
+} from '@/lib/clinical/reportFormUi';
+import { ReportSectionBox } from './ReportSectionBox';
 import {
   addMessage,
   createClinicalReport,
@@ -44,7 +40,6 @@ import {
 import { fmtDateTime } from '@/lib/format';
 import { mapClinicalReportRow, type ClinicalReportRow } from '@/lib/records/clinicalReportMapper';
 import { recordMatchesPatientQuery } from '@/lib/patientSearch';
-import { patientDisplayCode } from '@/lib/nhc';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import type { ClinicalReport } from '@/types/demo';
@@ -64,11 +59,13 @@ export function AdminClinicalReports() {
   const { state, commit, refresh } = useDemoStore();
   const { setNotice } = useNotice();
   const [tab, setTab] = useState<'compose' | 'list'>('compose');
+  const [composeTab, setComposeTab] = useState<ReportComposeTab>('clinical');
   const [listQ, setListQ] = useState('');
   const [patientQ, setPatientQ] = useState('');
   const [templateId, setTemplateId] = useState<ReportTemplateId>('revision_general');
   const [reportFile, setReportFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showLegal, setShowLegal] = useState(false);
   const [form, setForm] = useState<ClinicalReportFormState>(() => ({
     ...EMPTY_REPORT_FORM,
     patientId: state.patients[0]?.id ?? ''
@@ -147,6 +144,27 @@ export function AdminClinicalReports() {
       uploadedBy: `${ctx.dentistHonorific} ${ctx.dentistName}`
     }));
     applyTemplate(suggested, ctx);
+  }
+
+  function previewDraft() {
+    const profLine = apptContext
+      ? `Profesional responsable: ${apptContext.dentistHonorific} ${apptContext.dentistName} · Colegiado n.º ${apptContext.dentistCollegiateNumber}`
+      : undefined;
+    const persistedPreview = formToPersistedFields(form, profLine);
+    const draft: ClinicalReport = {
+      id: 'preview',
+      tenantId: state.clinics.find((c) => c.id === apptContext?.clinicId)?.tenantId ?? '',
+      patientId: form.patientId,
+      appointmentId: form.appointmentId,
+      title: form.title,
+      description: persistedPreview.description,
+      diagnosis: persistedPreview.diagnosis,
+      recommendations: persistedPreview.recommendations,
+      uploadedBy: form.uploadedBy,
+      visibleToPatient: form.visibleToPatient,
+      createdAt: new Date().toISOString()
+    };
+    openClinicalReportPrintView(buildClinicalReportPrintHtmlFromState(state, draft), true);
   }
 
   async function saveReport() {
@@ -229,9 +247,6 @@ export function AdminClinicalReports() {
           if (!fileRef) {
             const ensured = await ensureClinicalReportPdf(state, mapped);
             mapped = ensured.report;
-            fileRef = ensured.fileRef;
-            fileName = ensured.fileName;
-            mimeType = 'application/pdf';
           }
           let next = saveClinicalReport(state, mapped);
           if (form.visibleToPatient) {
@@ -247,10 +262,7 @@ export function AdminClinicalReports() {
           }
           commit(next);
           await refresh();
-          setNotice({
-            type: 'ok',
-            message: form.visibleToPatient ? 'Informe guardado correctamente.' : 'Informe guardado (solo clínica).'
-          });
+          setNotice({ type: 'ok', message: 'Informe guardado.' });
           resetForm();
           setTab('list');
           return;
@@ -276,7 +288,7 @@ export function AdminClinicalReports() {
         });
       }
       commit(next);
-      setNotice({ type: 'ok', message: 'Informe guardado correctamente.' });
+      setNotice({ type: 'ok', message: 'Informe guardado.' });
       resetForm();
       setTab('list');
     } catch (e) {
@@ -293,13 +305,15 @@ export function AdminClinicalReports() {
     setForm({ ...EMPTY_REPORT_FORM, patientId: state.patients[0]?.id ?? '' });
     setReportFile(null);
     setTemplateId('revision_general');
+    setComposeTab('clinical');
+    setShowLegal(false);
   }
-
-  const previewPatient = state.patients.find((p) => p.id === form.patientId);
 
   function patchSection<K extends keyof ClinicalReportSections>(key: K, value: ClinicalReportSections[K]) {
     setForm((f) => ({ ...f, sections: { ...f.sections, [key]: value } }));
   }
+
+  const composeFields = fieldsForComposeTab(composeTab);
 
   return (
     <div className="cr-module">
@@ -307,13 +321,8 @@ export function AdminClinicalReports() {
         <div>
           <h1 className="cr-module__title">
             <FileText className="h-6 w-6 text-teal-700" aria-hidden />
-            {tab === 'compose' ? 'Nuevo informe odontológico' : 'Informes clínicos'}
+            Informes clínicos
           </h1>
-          <p className="cr-module__subtitle">
-            {tab === 'compose'
-              ? 'Completa la información del informe. El paciente podrá verlo en su portal si lo marcas como visible.'
-              : 'Consulta, descarga y gestiona la visibilidad de los informes publicados.'}
-          </p>
         </div>
         <div className="cr-module__tabs">
           <button
@@ -322,7 +331,7 @@ export function AdminClinicalReports() {
             onClick={() => setTab('compose')}
           >
             <Plus className="h-4 w-4" aria-hidden />
-            Nuevo informe
+            Nuevo
           </button>
           <button
             type="button"
@@ -337,8 +346,8 @@ export function AdminClinicalReports() {
       {tab === 'list' ? (
         <section className="cr-list-panel">
           <div className="cr-list-toolbar">
-            <SearchInput value={patientQ} onChange={setPatientQ} placeholder="Filtrar por DNI, NHC o paciente…" />
-            <SearchInput value={listQ} onChange={setListQ} placeholder="Buscar por título o ID…" />
+            <SearchInput value={patientQ} onChange={setPatientQ} placeholder="Paciente, DNI o NHC…" />
+            <SearchInput value={listQ} onChange={setListQ} placeholder="Título o ID…" />
           </div>
           {list.length ? (
             <div className="cr-table">
@@ -348,8 +357,7 @@ export function AdminClinicalReports() {
             </div>
           ) : (
             <div className="cr-empty">
-              <FileText className="h-8 w-8 text-teal-600" aria-hidden />
-              <p>No hay informes registrados.</p>
+              <p>No hay informes.</p>
               <button type="button" className="cr-btn cr-btn--primary" onClick={() => setTab('compose')}>
                 Crear informe
               </button>
@@ -357,336 +365,162 @@ export function AdminClinicalReports() {
           )}
         </section>
       ) : (
-        <div className="cr-compose-grid">
+        <div className="cr-compose">
           <section className="cr-form-panel">
-            <div className="cr-form-row cr-form-row--3">
-              <div className="cr-field-block">
+            <div className="cr-setup">
+              <div className="cr-setup__row">
                 <PatientLookup
                   state={state}
                   patientId={form.patientId}
                   onPatientId={(id) => setForm({ ...form, patientId: id, appointmentId: '' })}
                   label="Paciente *"
-                  placeholder="Buscar por NHC, DNI o nombre…"
+                  placeholder="NHC, DNI o nombre…"
                   nhcPrimary
                 />
-                {previewPatient ? (
-                  <p className="cr-hint">
-                    {previewPatient.fullName} · {patientDisplayCode(previewPatient)}
-                  </p>
-                ) : null}
+                <Field label="Cita *">
+                  <Select value={form.appointmentId} onChange={(e) => onSelectAppointment(e.target.value)}>
+                    <option value="">Seleccionar…</option>
+                    {state.appointments
+                      .filter((a) => a.patientId === form.patientId)
+                      .sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`))
+                      .map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {appointmentLabel(state, a.id)}
+                        </option>
+                      ))}
+                  </Select>
+                </Field>
               </div>
-              <Field label="Cita (motivo del informe) *">
-                <Select value={form.appointmentId} onChange={(e) => onSelectAppointment(e.target.value)}>
-                  <option value="">Seleccionar cita…</option>
-                  {state.appointments
-                    .filter((a) => a.patientId === form.patientId)
-                    .sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`))
-                    .map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {appointmentLabel(state, a.id)}
-                      </option>
-                    ))}
-                </Select>
-                <p className="cr-hint">El título y la plantilla se completan según la cita seleccionada.</p>
-              </Field>
-              <Field label="Profesional">
-                <Input value={form.dentistName} readOnly placeholder="Selecciona una cita…" />
-              </Field>
-            </div>
 
-            {apptContext ? (
-              <div className="cr-letterhead" aria-label="Membrete de la clínica">
-                <img src={apptContext.clinicLogoUrl} alt="" className="cr-letterhead__logo" width={56} height={56} />
-                <div className="cr-letterhead__body">
-                  <p className="cr-letterhead__name">{apptContext.clinicName}</p>
-                  <p className="cr-letterhead__line">
-                    {apptContext.clinicAddress}, {apptContext.clinicCity}
-                  </p>
-                  <p className="cr-letterhead__line">
-                    Tel. {apptContext.clinicPhone} · {apptContext.clinicEmail}
-                  </p>
-                  <p className="cr-letterhead__pro">
-                    {apptContext.dentistHonorific} {apptContext.dentistName} · Col. n.º{' '}
-                    {apptContext.dentistCollegiateNumber}
-                  </p>
-                </div>
-              </div>
-            ) : null}
+              {apptContext ? (
+                <p className="cr-context-bar">
+                  {apptContext.clinicName} · {apptContext.dentistHonorific} {apptContext.dentistName} · Col.{' '}
+                  {apptContext.dentistCollegiateNumber}
+                </p>
+              ) : null}
 
-            <div className="cr-title-box">
-              <Field label="Título del informe *">
+              <Field label="Título *">
                 <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-                <p className="cr-hint">Sugerencia: Informe odontológico - [Tratamiento] - [Fecha]</p>
               </Field>
-            </div>
 
-            <div className="cr-sections">
-              <ReportSectionGroup
-                title="Cuerpo del informe"
-                subtitle="Completa cada recuadro. El texto se ordenará automáticamente al guardar."
-              >
-                <ReportSectionBox
-                  step="1"
-                  title="Antecedentes"
-                  hint="Historia médica, alergias, medicación y hábitos relevantes."
-                  required
-                  rows={5}
-                  value={form.sections.antecedentes}
-                  onChange={(v) => patchSection('antecedentes', v)}
-                />
-                <ReportSectionBox
-                  step="2"
-                  title="Informe clínico sobre tratamiento"
-                  hint="Motivo de consulta, contexto de la visita y actuación programada."
-                  required
-                  rows={4}
-                  value={form.sections.informeTratamiento}
-                  onChange={(v) => patchSection('informeTratamiento', v)}
-                />
-                <ReportSectionBox
-                  step="3"
-                  title="Fuentes del informe"
-                  hint="Historia clínica, exploración, radiografías, fotografías, etc."
-                  rows={4}
-                  value={form.sections.fuentesInforme}
-                  onChange={(v) => patchSection('fuentesInforme', v)}
-                />
-                <ReportSectionBox
-                  step="4"
-                  title="Anamnesis y exploración"
-                  hint="Motivo, hallazgos, piezas revisadas, actuación realizada y observaciones."
-                  required
-                  rows={8}
-                  value={form.sections.anamnesisExploracion}
-                  onChange={(v) => patchSection('anamnesisExploracion', v)}
-                />
-                <ReportSectionBox
-                  step="5"
-                  title="Tratamientos presupuestados y no ejecutados"
-                  hint="Tratamientos propuestos que el paciente no realizó en esta visita."
-                  rows={4}
-                  value={form.sections.tratamientosNoEjecutados}
-                  onChange={(v) => patchSection('tratamientosNoEjecutados', v)}
-                />
-              </ReportSectionGroup>
-
-              <ReportSectionGroup title="Diagnóstico" subtitle="Valoración clínica y estado del paciente.">
-                <ReportSectionBox
-                  step="A"
-                  title="Diagnóstico principal"
-                  required
-                  rows={3}
-                  value={form.sections.diagnosticoPrincipal}
-                  onChange={(v) => patchSection('diagnosticoPrincipal', v)}
-                />
-                <ReportSectionBox
-                  step="B"
-                  title="Hallazgos secundarios"
-                  hint="Lista de hallazgos adicionales."
-                  rows={4}
-                  value={form.sections.hallazgosSecundarios}
-                  onChange={(v) => patchSection('hallazgosSecundarios', v)}
-                />
-                <ReportSectionBox
-                  step="C"
-                  title="Estado general"
-                  hint="Estable, en seguimiento, requiere tratamiento, etc."
-                  rows={2}
-                  value={form.sections.estadoGeneral}
-                  onChange={(v) => patchSection('estadoGeneral', v)}
-                />
-              </ReportSectionGroup>
-
-              <ReportSectionGroup title="Recomendaciones y seguimiento" subtitle="Indicaciones para el paciente y controles.">
-                <ReportSectionBox
-                  step="I"
-                  title="Recomendaciones al paciente"
-                  required
-                  rows={4}
-                  value={form.sections.recomendacionesPaciente}
-                  onChange={(v) => patchSection('recomendacionesPaciente', v)}
-                />
-                <ReportSectionBox
-                  step="II"
-                  title="Tratamiento recomendado"
-                  rows={3}
-                  value={form.sections.tratamientoRecomendado}
-                  onChange={(v) => patchSection('tratamientoRecomendado', v)}
-                />
-                <div className="cr-section-duo">
-                  <ReportSectionBox
-                    step="III"
-                    title="Seguimiento"
-                    rows={3}
-                    value={form.sections.seguimiento}
-                    onChange={(v) => patchSection('seguimiento', v)}
-                  />
-                  <ReportSectionBox
-                    step="IV"
-                    title="Próxima revisión sugerida"
-                    rows={2}
-                    value={form.sections.proximaRevision}
-                    onChange={(v) => patchSection('proximaRevision', v)}
-                  />
-                </div>
-                <ReportSectionBox
-                  step="V"
-                  title="Indicaciones adicionales"
-                  rows={3}
-                  value={form.sections.indicacionesAdicionales}
-                  onChange={(v) => patchSection('indicacionesAdicionales', v)}
-                />
-                <ReportSectionBox
-                  step="§"
-                  title="Aviso legal (Colegio de Dentistas)"
-                  hint="Texto en tamaño reducido para impresión en membrete. Editable."
-                  variant="legal"
-                  rows={4}
-                  value={form.sections.avisoLegal}
-                  onChange={(v) => patchSection('avisoLegal', v)}
-                />
-              </ReportSectionGroup>
-            </div>
-
-            <div className="cr-upload-block">
-              <p className="cr-upload-label">Adjuntar informe (PDF)</p>
-              {reportFile ? (
-                <div className="cr-file-chip">
-                  <FileText className="h-4 w-4 text-teal-700 shrink-0" aria-hidden />
-                  <span className="min-w-0 truncate">{reportFile.name}</span>
-                  <span className="text-xs text-slate-500">{(reportFile.size / 1024).toFixed(0)} KB</span>
-                  <button type="button" className="cr-icon-btn" onClick={() => setReportFile(null)} aria-label="Quitar archivo">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              ) : (
-                <label className="cr-upload-zone">
-                  <Upload className="h-5 w-5 text-teal-700" aria-hidden />
-                  <span>Subir PDF</span>
-                  <input
-                    type="file"
-                    accept="application/pdf,.pdf"
-                    className="sr-only"
-                    onChange={(e) => setReportFile(e.target.files?.[0] ?? null)}
-                  />
-                </label>
-              )}
-            </div>
-
-            <label className="cr-check">
-              <input
-                type="checkbox"
-                checked={form.visibleToPatient}
-                onChange={(e) => setForm({ ...form, visibleToPatient: e.target.checked })}
-              />
-              <span>
-                <strong>Visible en portal del paciente</strong>
-                <small>El paciente podrá ver y descargar este informe en su portal.</small>
-              </span>
-            </label>
-
-            <div className="cr-form-actions">
-              <button type="button" className="cr-btn cr-btn--outline" onClick={resetForm}>
-                Cancelar
-              </button>
-              <button type="button" className="cr-btn cr-btn--primary" disabled={saving} onClick={() => void saveReport()}>
-                <Lock className="h-4 w-4" aria-hidden />
-                {saving ? 'Guardando…' : 'Guardar informe'}
-              </button>
-            </div>
-
-            <p className="cr-save-note">
-              <CheckCircle2 className="inline h-4 w-4 text-teal-700 mr-1" aria-hidden />
-              Al guardar el informe, quedará vinculado al paciente y a la cita seleccionada y se publicará en su portal si
-              está marcado como visible.
-            </p>
-          </section>
-
-          <aside className="cr-aside">
-            <div className="cr-aside-card">
-              <h3>Plantillas rápidas</h3>
-              <ul className="cr-templates">
-                {REPORT_TEMPLATES.map((t) => (
-                  <li key={t.id}>
+              <div className="cr-templates-bar">
+                <span className="cr-templates-bar__label">Plantilla</span>
+                <div className="cr-templates-bar__chips">
+                  {REPORT_TEMPLATES.map((t) => (
                     <button
+                      key={t.id}
                       type="button"
-                      className={`cr-template${templateId === t.id ? ' cr-template--active' : ''}`}
+                      className={`cr-tpl-chip${templateId === t.id ? ' cr-tpl-chip--active' : ''}`}
                       onClick={() => applyTemplate(t.id)}
+                      title={t.label}
                     >
                       <span aria-hidden>{t.icon}</span>
                       {t.label}
                     </button>
-                  </li>
-                ))}
-              </ul>
+                  ))}
+                </div>
+              </div>
             </div>
 
-            <div className="cr-aside-card cr-preview">
-              <h3>Vista previa del paciente</h3>
-              {form.title ? (
-                <>
-                  {apptContext ? (
-                    <div className="cr-preview__letterhead">
-                      <img src={apptContext.clinicLogoUrl} alt="" className="cr-preview__logo" width={48} height={48} />
-                      <div>
-                        <p className="cr-preview__clinic">{apptContext.clinicName}</p>
-                        <p className="cr-preview__addr">
-                          {apptContext.clinicAddress}, {apptContext.clinicCity}
-                        </p>
-                        <p className="cr-preview__addr">
-                          {apptContext.dentistHonorific} {apptContext.dentistName} · Col. {apptContext.dentistCollegiateNumber}
-                        </p>
-                      </div>
-                    </div>
-                  ) : null}
-                  <div className="cr-preview__head">
-                    <span className="cr-preview__badge">Nuevo</span>
-                    <p className="cr-preview__title">{form.title}</p>
-                  </div>
-                  <p className="cr-preview__meta">
-                    {apptContext?.dateLabel ?? '—'} · {apptContext?.clinicName ?? 'Clínica'}
-                  </p>
-                  <p className="cr-preview__snippet">{form.sections.diagnosticoPrincipal.slice(0, 120)}</p>
-                  <p className="cr-preview__snippet cr-preview__snippet--legal">
-                    {form.sections.avisoLegal.includes('colegio@dentistascadiz.com')
-                      ? 'Incluye aviso legal para el Colegio de Dentistas de Cádiz.'
-                      : form.sections.recomendacionesPaciente.split('\n')[0]}
-                  </p>
-                  <div className="cr-preview__actions">
-                    <button
-                      type="button"
-                      className="cr-btn cr-btn--outline cr-btn--sm"
-                      onClick={() => {
-                        const profLine = apptContext
-                          ? `Profesional responsable: ${apptContext.dentistHonorific} ${apptContext.dentistName} · Colegiado n.º ${apptContext.dentistCollegiateNumber}`
-                          : undefined;
-                        const persistedPreview = formToPersistedFields(form, profLine);
-                        const draft: ClinicalReport = {
-                          id: 'preview',
-                          tenantId: state.clinics.find((c) => c.id === apptContext?.clinicId)?.tenantId ?? '',
-                          patientId: form.patientId,
-                          appointmentId: form.appointmentId,
-                          title: form.title,
-                          description: persistedPreview.description,
-                          diagnosis: persistedPreview.diagnosis,
-                          recommendations: persistedPreview.recommendations,
-                          uploadedBy: form.uploadedBy,
-                          visibleToPatient: form.visibleToPatient,
-                          createdAt: new Date().toISOString()
-                        };
-                        openClinicalReportPrintView(buildClinicalReportPrintHtmlFromState(state, draft), true);
-                      }}
-                    >
-                      <Eye className="h-3 w-3" aria-hidden />
-                      Ver PDF
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <p className="text-sm text-slate-500 m-0">Selecciona una cita y una plantilla para ver la vista previa.</p>
-              )}
+            <div className="cr-body-tabs" role="tablist">
+              {REPORT_COMPOSE_TABS.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={composeTab === t.id}
+                  className={`cr-body-tab${composeTab === t.id ? ' cr-body-tab--active' : ''}`}
+                  onClick={() => setComposeTab(t.id)}
+                >
+                  {t.label}
+                </button>
+              ))}
             </div>
-          </aside>
+
+            <div className="cr-body-fields" role="tabpanel">
+              {composeFields.map((f) => (
+                <ReportSectionBox
+                  key={f.key}
+                  title={f.label}
+                  rows={f.rows}
+                  required={f.required}
+                  value={form.sections[f.key]}
+                  onChange={(v) => patchSection(f.key, v)}
+                />
+              ))}
+              {composeTab === 'care' ? (
+                <details
+                  className="cr-legal-details"
+                  open={showLegal}
+                  onToggle={(e) => setShowLegal((e.target as HTMLDetailsElement).open)}
+                >
+                  <summary>Aviso legal (opcional)</summary>
+                  <ReportSectionBox
+                    title="Texto legal"
+                    rows={2}
+                    variant="legal"
+                    value={form.sections.avisoLegal}
+                    onChange={(v) => patchSection('avisoLegal', v)}
+                  />
+                </details>
+              ) : null}
+            </div>
+
+            <footer className="cr-compose-footer">
+              <label className="cr-check-inline">
+                <input
+                  type="checkbox"
+                  checked={form.visibleToPatient}
+                  onChange={(e) => setForm({ ...form, visibleToPatient: e.target.checked })}
+                />
+                Visible en portal del paciente
+              </label>
+
+              <div className="cr-compose-footer__row">
+                {reportFile ? (
+                  <span className="cr-file-mini">
+                    <FileText className="h-3.5 w-3.5" aria-hidden />
+                    {reportFile.name}
+                    <button type="button" className="cr-icon-btn" onClick={() => setReportFile(null)} aria-label="Quitar">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </span>
+                ) : (
+                  <label className="cr-upload-mini">
+                    <Upload className="h-3.5 w-3.5" aria-hidden />
+                    PDF
+                    <input
+                      type="file"
+                      accept="application/pdf,.pdf"
+                      className="sr-only"
+                      onChange={(e) => setReportFile(e.target.files?.[0] ?? null)}
+                    />
+                  </label>
+                )}
+                <button
+                  type="button"
+                  className="cr-btn cr-btn--outline cr-btn--sm"
+                  disabled={!form.title.trim()}
+                  onClick={previewDraft}
+                >
+                  <Eye className="h-3.5 w-3.5" aria-hidden />
+                  Ver PDF
+                </button>
+                <button type="button" className="cr-btn cr-btn--outline cr-btn--sm" onClick={resetForm}>
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="cr-btn cr-btn--primary cr-btn--sm"
+                  disabled={saving}
+                  onClick={() => void saveReport()}
+                >
+                  <Lock className="h-3.5 w-3.5" aria-hidden />
+                  {saving ? 'Guardando…' : 'Guardar'}
+                </button>
+              </div>
+            </footer>
+          </section>
         </div>
       )}
     </div>
@@ -704,26 +538,22 @@ function ReportListRow({ report }: { report: ClinicalReport }) {
       <div className="cr-row__main">
         <p className="cr-row__title">{row.report.title}</p>
         <p className="cr-row__meta">
-          {row.patientName} · {row.nhc} · {row.clinicName}
-        </p>
-        <p className="cr-row__meta">
-          {row.dateLabel} · {row.appointmentLabel} · {row.dentistName}
+          {row.patientName} · {row.dateLabel} · {row.dentistName}
         </p>
         <span className={`cr-visibility${row.report.visibleToPatient ? ' cr-visibility--on' : ''}`}>
-          Portal: {row.visibleLabel}
+          {row.report.visibleToPatient ? 'En portal' : 'Solo clínica'}
         </span>
       </div>
       <div className="cr-row__actions">
-        <FileActions fileRef={row.report.fileRef} fileName={row.report.fileName} mimeType={row.report.mimeType} />
         <button
           type="button"
           className="cr-btn cr-btn--outline cr-btn--sm"
-          title="Ver PDF con membrete"
           onClick={() => printClinicalReportFromState(state, row.report, true)}
         >
           <Eye className="h-3.5 w-3.5" aria-hidden />
-          Ver PDF
+          PDF
         </button>
+        <FileActions fileRef={row.report.fileRef} fileName={row.report.fileName} mimeType={row.report.mimeType} />
         <button
           type="button"
           className="cr-btn cr-btn--outline cr-btn--sm"
@@ -742,13 +572,13 @@ function ReportListRow({ report }: { report: ClinicalReport }) {
                     body: JSON.stringify({ clinicId, id: row.report.id, visibleToPatient: nextVisible })
                   });
                   if (!res.ok) {
-                    setNotice({ type: 'error', message: 'No se pudo actualizar la visibilidad.' });
+                    setNotice({ type: 'error', message: 'No se pudo actualizar.' });
                     return;
                   }
                 }
               }
               commit(saveClinicalReport(state, { ...row.report, visibleToPatient: nextVisible }));
-              setNotice({ type: 'ok', message: 'Visibilidad actualizada.' });
+              setNotice({ type: 'ok', message: 'Actualizado.' });
             })();
           }}
         >

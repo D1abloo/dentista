@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Textarea } from '@/components/ui';
 
 type ReportSectionBoxProps = {
-  step: string;
+  step?: string;
   title: string;
   hint?: string;
   value: string;
@@ -19,37 +19,30 @@ export function ReportSectionBox({
   hint,
   value,
   onChange,
-  rows = 5,
+  rows = 3,
   required,
-  variant = 'default',
+  variant = 'compact',
   children
 }: ReportSectionBoxProps) {
+  const compact = variant === 'compact';
   return (
-    <article className={`cr-section-box cr-section-box--${variant}`}>
-      <header className="cr-section-box__head">
-        <span className="cr-section-box__step" aria-hidden>
-          {step}
-        </span>
-        <div className="cr-section-box__titles">
-          <h4 className="cr-section-box__title">
-            {title}
-            {required ? <span className="cr-section-box__req">*</span> : null}
-          </h4>
-          {hint ? <p className="cr-section-box__hint">{hint}</p> : null}
-        </div>
-      </header>
-      <div className="cr-section-box__body">
-        {children ?? (
-          <Textarea
-            className="cr-textarea cr-section-box__input"
-            rows={rows}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={`Escribe aquí: ${title.toLowerCase()}…`}
-          />
-        )}
-      </div>
-    </article>
+    <label className={`cr-field${compact ? ' cr-field--compact' : ''}${variant === 'legal' ? ' cr-field--legal' : ''}`}>
+      <span className="cr-field__label">
+        {step && !compact ? <span className="cr-field__step">{step}</span> : null}
+        {title}
+        {required ? <span className="cr-field__req">*</span> : null}
+      </span>
+      {hint && !compact ? <span className="cr-field__hint">{hint}</span> : null}
+      {children ?? (
+        <Textarea
+          className="cr-field__input"
+          rows={rows}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={compact ? 'Escribir…' : `Escribe aquí: ${title.toLowerCase()}…`}
+        />
+      )}
+    </label>
   );
 }
 
@@ -64,10 +57,12 @@ export function ReportSectionGroup({
 }) {
   return (
     <section className="cr-section-group">
-      <header className="cr-section-group__head">
-        <h3 className="cr-section-group__title">{title}</h3>
-        {subtitle ? <p className="cr-section-group__subtitle">{subtitle}</p> : null}
-      </header>
+      {title ? (
+        <header className="cr-section-group__head">
+          <h3 className="cr-section-group__title">{title}</h3>
+          {subtitle ? <p className="cr-section-group__subtitle">{subtitle}</p> : null}
+        </header>
+      ) : null}
       <div className="cr-section-group__grid">{children}</div>
     </section>
   );

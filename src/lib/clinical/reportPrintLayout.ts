@@ -13,92 +13,17 @@ export type ReportPrintSection = {
   body: string;
 };
 
-const STRUCTURE: Array<{
-  id: string;
-  group: ReportPrintSection['group'];
-  groupLabel: string;
-  step: string;
-  title: string;
-  key: keyof ClinicalReportSections;
-}> = [
-  { id: 'ant', group: 'clinical', groupLabel: 'Informe clínico', step: 'I', title: 'Antecedentes', key: 'antecedentes' },
-  {
-    id: 'inf',
-    group: 'clinical',
-    groupLabel: 'Informe clínico',
-    step: 'II',
-    title: 'Informe clínico sobre el tratamiento',
-    key: 'informeTratamiento'
-  },
-  { id: 'fue', group: 'clinical', groupLabel: 'Informe clínico', step: 'III', title: 'Fuentes del informe', key: 'fuentesInforme' },
-  {
-    id: 'ana',
-    group: 'clinical',
-    groupLabel: 'Informe clínico',
-    step: 'IV',
-    title: 'Anamnesis y exploración',
-    key: 'anamnesisExploracion'
-  },
-  {
-    id: 'noe',
-    group: 'clinical',
-    groupLabel: 'Informe clínico',
-    step: 'V',
-    title: 'Tratamientos presupuestados y no ejecutados',
-    key: 'tratamientosNoEjecutados'
-  },
-  {
-    id: 'd1',
-    group: 'diagnosis',
-    groupLabel: 'Diagnóstico',
-    step: 'VI',
-    title: 'Diagnóstico principal',
-    key: 'diagnosticoPrincipal'
-  },
-  {
-    id: 'd2',
-    group: 'diagnosis',
-    groupLabel: 'Diagnóstico',
-    step: 'VII',
-    title: 'Hallazgos secundarios',
-    key: 'hallazgosSecundarios'
-  },
-  { id: 'd3', group: 'diagnosis', groupLabel: 'Diagnóstico', step: 'VIII', title: 'Estado general', key: 'estadoGeneral' },
-  {
-    id: 'r1',
-    group: 'care',
-    groupLabel: 'Indicaciones y seguimiento',
-    step: 'IX',
-    title: 'Recomendaciones al paciente',
-    key: 'recomendacionesPaciente'
-  },
-  {
-    id: 'r2',
-    group: 'care',
-    groupLabel: 'Indicaciones y seguimiento',
-    step: 'X',
-    title: 'Tratamiento recomendado',
-    key: 'tratamientoRecomendado'
-  },
-  { id: 'r3', group: 'care', groupLabel: 'Indicaciones y seguimiento', step: 'XI', title: 'Seguimiento', key: 'seguimiento' },
-  {
-    id: 'r4',
-    group: 'care',
-    groupLabel: 'Indicaciones y seguimiento',
-    step: 'XII',
-    title: 'Próxima revisión sugerida',
-    key: 'proximaRevision'
-  },
-  {
-    id: 'r5',
-    group: 'care',
-    groupLabel: 'Indicaciones y seguimiento',
-    step: 'XIII',
-    title: 'Indicaciones adicionales',
-    key: 'indicacionesAdicionales'
-  },
-  { id: 'legal', group: 'legal', groupLabel: 'Aviso legal', step: '§', title: 'Aviso legal', key: 'avisoLegal' }
-];
+function joinBlocks(parts: string[]): string {
+  return parts.map((p) => p.trim()).filter(Boolean).join('\n\n');
+}
+
+function hasMeaningfulContent(body: string): boolean {
+  const t = body.trim();
+  if (!t) return false;
+  const lines = t.split('\n').map((l) => l.trim()).filter(Boolean);
+  if (!lines.length) return false;
+  return lines.some((l) => !/^\[.+\]$/.test(l));
+}
 
 function trimBeforeHeader(body: string, headerPattern: string): string {
   const m = body.match(new RegExp(`\\n\\s*${headerPattern}\\s*\\n`, 'i'));
@@ -127,14 +52,64 @@ export function buildStructuredPrintSections(report: ClinicalReport): ReportPrin
     s.anamnesisExploracion = trimBeforeHeader(s.anamnesisExploracion, 'TRATAMIENTOS PRESUPUESTADOS');
   }
 
-  return STRUCTURE.map((row) => ({
-    id: row.id,
-    group: row.group,
-    groupLabel: row.groupLabel,
-    step: row.step,
-    title: row.title,
-    body: (s[row.key] ?? '').trim()
-  }));
+  const out: ReportPrintSection[] = [];
+  let step = 0;
+  const push = (
+    id: string,
+    group: ReportPrintSection['group'],
+    groupLabel: string,
+    title: string,
+    body: string
+  ) => {
+    if (!hasMeaningfulContent(body)) return;
+    step += 1;
+    out.push({
+      id,
+      group,
+      groupLabel,
+      step: String(step),
+      title,
+      body: body.trim()
+    });
+  };
+
+  push('ant', 'clinical', 'Informe clínico', 'Antecedentes', s.antecedentes);
+  push('inf', 'clinical', 'Informe clínico', 'Motivo y contexto de la visita', s.informeTratamiento);
+  push('ana', 'clinical', 'Informe clínico', 'Exploración y actuación', s.anamnesisExploracion);
+  if (hasMeaningfulContent(s.fuentesInforme)) {
+    push('fue', 'clinical', 'Informe clínico', 'Fuentes del informe', s.fuentesInforme);
+  }
+  if (hasMeaningfulContent(s.tratamientosNoEjecutados)) {
+    push('noe', 'clinical', 'Informe clínico', 'Tratamientos no ejecutados', s.tratamientosNoEjecutados);
+  }
+
+  push(
+    'diag',
+    'diagnosis',
+    'Diagnóstico',
+    'Diagnóstico',
+    joinBlocks([s.diagnosticoPrincipal, s.hallazgosSecundarios, s.estadoGeneral])
+  );
+
+  push(
+    'care',
+    'care',
+    'Indicaciones',
+    'Recomendaciones y seguimiento',
+    joinBlocks([
+      s.recomendacionesPaciente,
+      s.tratamientoRecomendado,
+      s.seguimiento,
+      s.proximaRevision,
+      s.indicacionesAdicionales
+    ])
+  );
+
+  if (s.avisoLegal.trim()) {
+    push('legal', 'legal', 'Aviso legal', 'Aviso legal', s.avisoLegal);
+  }
+
+  return out;
 }
 
 const PLACEHOLDER_RE = /\[([^\]]+)\]/g;

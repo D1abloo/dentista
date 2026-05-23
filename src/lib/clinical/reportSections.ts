@@ -80,9 +80,9 @@ export function assembleRecommendations(sections: ClinicalReportSections): strin
 }
 
 export function sectionsAreComplete(sections: ClinicalReportSections): string | null {
-  if (!sections.antecedentes.trim()) return 'Completa la sección de antecedentes.';
-  if (!sections.informeTratamiento.trim()) return 'Completa el informe clínico sobre el tratamiento.';
-  if (!sections.anamnesisExploracion.trim()) return 'Completa la anamnesis y exploración.';
+  if (!sections.antecedentes.trim()) return 'Completa los antecedentes.';
+  if (!sections.informeTratamiento.trim()) return 'Indica el motivo y contexto de la visita.';
+  if (!sections.anamnesisExploracion.trim()) return 'Completa la exploración y actuación.';
   if (!sections.diagnosticoPrincipal.trim()) return 'Completa el diagnóstico principal.';
   if (!sections.recomendacionesPaciente.trim()) return 'Completa las recomendaciones al paciente.';
   return null;
