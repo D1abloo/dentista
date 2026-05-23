@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { assertClinicScope, requireSession } from '@/lib/api/guards';
+import { assertStaffOrOwnPatient, requireSession } from '@/lib/api/guards';
 import { created, fail } from '@/lib/http';
 import { createPatientMessageRecord } from '@/lib/services/records';
 import { messageCreateSchema } from '@/lib/validators';
@@ -13,7 +13,7 @@ export const POST: APIRoute = async (context) => {
     const payload = await context.request.json();
     const parsed = messageCreateSchema.safeParse(payload);
     if (!parsed.success) return fail('Mensaje inválido.', 422, parsed.error.flatten());
-    const scopeErr = assertClinicScope(gate.user, parsed.data.clinicId);
+    const scopeErr = await assertStaffOrOwnPatient(gate.user, parsed.data.clinicId, parsed.data.patientId);
     if (scopeErr) return scopeErr;
     const data = await createPatientMessageRecord(parsed.data);
     return created(data, { message: 'Mensaje guardado en Supabase.' });

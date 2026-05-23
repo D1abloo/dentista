@@ -84,6 +84,59 @@ async function resolvePatientProfileId(patientId: string) {
   );
 }
 
+async function assertReportPayloadScope(
+  clinicId: string,
+  tenantId: string,
+  patientProfileId: string,
+  appointmentId?: string
+) {
+  const db = getSupabaseAdmin();
+
+  const { data: clinic, error: clinicErr } = await db
+    .from('clinics')
+    .select('tenant_id')
+    .eq('id', clinicId)
+    .single();
+  if (clinicErr || !clinic?.tenant_id || clinic.tenant_id !== tenantId) {
+    throw new Error('La clínica indicada no pertenece a tu organización.');
+  }
+
+  const { data: patient, error: patientErr } = await db
+    .from('profiles')
+    .select('id, role, clinic_id')
+    .eq('id', patientProfileId)
+    .single();
+  if (patientErr || !patient || patient.role !== 'patient') {
+    throw new Error('Paciente no válido para esta clínica.');
+  }
+
+  if (patient.clinic_id && patient.clinic_id !== clinicId) {
+    const { data: patientClinic } = await db
+      .from('clinics')
+      .select('tenant_id')
+      .eq('id', patient.clinic_id)
+      .maybeSingle();
+    if (patientClinic?.tenant_id !== tenantId) {
+      throw new Error('El paciente no pertenece a tu organización.');
+    }
+  }
+
+  if (!appointmentId) return;
+
+  const { data: appt, error: apptErr } = await db
+    .from('appointments')
+    .select('patient_id, clinic_id')
+    .eq('id', appointmentId)
+    .single();
+  if (apptErr || !appt) throw new Error('Selecciona una cita válida.');
+  if (appt.patient_id !== patientProfileId) {
+    throw new Error('La cita seleccionada no pertenece al paciente indicado.');
+  }
+  if (appt.clinic_id !== clinicId) {
+    throw new Error('La cita seleccionada no pertenece a esta clínica.');
+  }
+}
+
 function mapInsertError(error: { message?: string; code?: string; details?: string }) {
   const msg = error.message ?? 'Error al insertar informe.';
   if (msg.includes('tenant_id') || error.code === '42703') {
@@ -121,6 +174,7 @@ export async function createClinicalReportRecord(input: ReportInput) {
   const db = getSupabaseAdmin();
   const tenantId = await resolveTenantId(input.clinicId);
   const patientProfileId = await resolvePatientProfileId(input.patientId);
+  await assertReportPayloadScope(input.clinicId, tenantId, patientProfileId, input.appointmentId);
   const reportId = crypto.randomUUID();
 
   if (import.meta.env.DEV) {
@@ -180,6 +234,15 @@ export async function toggleClinicalReportVisibility(clinicId: string, id: strin
   if (isDemoMode() || !hasSupabaseConfig()) return null;
   const db = getSupabaseAdmin();
   const tenantId = await resolveTenantId(clinicId);
+  const { data: existing, error: readErr } = await db
+    .from('clinical_reports')
+    .select('id, tenant_id')
+    .eq('id', id)
+    .maybeSingle();
+  if (readErr || !existing) throw new Error('Informe no encontrado.');
+  if (existing.tenant_id !== tenantId) {
+    throw new Error('No tienes permiso para modificar este informe.');
+  }
   const { data, error } = await db
     .from('clinical_reports')
     .update({ visible_to_patient: visibleToPatient })
@@ -258,6 +321,18 @@ export async function createInformedConsentRecord(input: ConsentInput) {
     .single();
   if (error) throw error;
   return data;
+}
+
+export async function consentBelongsToPatient(consentId: string, patientProfileId: string) {
+  if (isDemoMode() || !hasSupabaseConfig()) return true;
+  const db = getSupabaseAdmin();
+  const { data, error } = await db
+    .from('informed_consents')
+    .select('patient_id')
+    .eq('id', consentId)
+    .maybeSingle();
+  if (error || !data) return false;
+  return data.patient_id === patientProfileId;
 }
 
 export async function signInformedConsentRecord(input: {

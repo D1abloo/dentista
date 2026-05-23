@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { assertClinicScope, requireSession } from '@/lib/api/guards';
+import { assertClinicScopeAsync, requireStaffSession } from '@/lib/api/guards';
 import { created, fail, ok } from '@/lib/http';
 import { createClinicalReportRecord, toggleClinicalReportVisibility } from '@/lib/services/records';
 import { reportCreateSchema, reportVisibilitySchema } from '@/lib/validators';
@@ -8,12 +8,12 @@ export const prerender = false;
 
 export const POST: APIRoute = async (context) => {
   try {
-    const gate = requireSession(context);
+    const gate = requireStaffSession(context);
     if (gate.response) return gate.response;
     const payload = await context.request.json();
     const parsed = reportCreateSchema.safeParse(payload);
     if (!parsed.success) return fail('Informe inválido.', 422, parsed.error.flatten());
-    const scopeErr = assertClinicScope(gate.user, parsed.data.clinicId);
+    const scopeErr = await assertClinicScopeAsync(gate.user, parsed.data.clinicId);
     if (scopeErr) return scopeErr;
     const data = await createClinicalReportRecord(parsed.data);
     return created(data, { message: 'Informe persistido en Supabase.' });
@@ -25,12 +25,12 @@ export const POST: APIRoute = async (context) => {
 
 export const PATCH: APIRoute = async (context) => {
   try {
-    const gate = requireSession(context);
+    const gate = requireStaffSession(context);
     if (gate.response) return gate.response;
     const payload = await context.request.json();
     const parsed = reportVisibilitySchema.safeParse(payload);
     if (!parsed.success) return fail('Payload inválido.', 422, parsed.error.flatten());
-    const scopeErr = assertClinicScope(gate.user, parsed.data.clinicId);
+    const scopeErr = await assertClinicScopeAsync(gate.user, parsed.data.clinicId);
     if (scopeErr) return scopeErr;
     const data = await toggleClinicalReportVisibility(
       parsed.data.clinicId,

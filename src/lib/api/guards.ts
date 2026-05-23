@@ -28,11 +28,11 @@ export function requireStaffSession(context: APIContext) {
   return { user, response: null as null };
 }
 
-/** Impide acceder a datos de otra clínica (misma organización / tenant permitido). */
+/** Impide acceder a datos de otra clínica (misma sede). Para otras sedes del tenant usar assertClinicScopeAsync. */
 export function assertClinicScope(user: SessionUser, clinicId: string) {
   if (user.role === 'super_admin') return null;
-  if (user.clinicId === clinicId) return null;
-  return null;
+  if (user.clinicId && user.clinicId === clinicId) return null;
+  return fail('No tienes permiso para esta sede.', 403);
 }
 
 export async function assertClinicScopeAsync(user: SessionUser, clinicId: string) {
@@ -42,8 +42,38 @@ export async function assertClinicScopeAsync(user: SessionUser, clinicId: string
   return fail('No tienes permiso para esta sede.', 403);
 }
 
+/** Staff de clínica o el propio paciente (solo su patientId). */
+export async function assertStaffOrOwnPatient(
+  user: SessionUser,
+  clinicId: string,
+  patientId: string
+) {
+  if (user.role === 'super_admin') return null;
+  if (user.role === 'patient' || user.patientId) {
+    if (user.patientId !== patientId) return fail('No puedes actuar sobre otro paciente.', 403);
+    if (user.clinicId && user.clinicId !== clinicId) {
+      return fail('Sede no válida para tu sesión.', 403);
+    }
+    return null;
+  }
+  const role = user.staffRole ?? user.role;
+  if (STAFF_ROLES.has(role) || user.role === 'admin') {
+    return assertClinicScopeAsync(user, clinicId);
+  }
+  return fail('No autorizado.', 403);
+}
+
+export async function requireClinicSessionAsync(context: APIContext, clinicId: string) {
+  const gate = requireStaffSession(context);
+  if (gate.response) return gate;
+  const scope = await assertClinicScopeAsync(gate.user, clinicId);
+  if (scope) return { user: null as null, response: scope };
+  return gate;
+}
+
+/** @deprecated Usa requireClinicSessionAsync para validar tenant en sedes hermanas. */
 export function requireClinicSession(context: APIContext, clinicId: string) {
-  const gate = requireSession(context);
+  const gate = requireStaffSession(context);
   if (gate.response) return gate;
   const scope = assertClinicScope(gate.user, clinicId);
   if (scope) return { user: null as null, response: scope };
