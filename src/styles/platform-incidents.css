@@ -1,0 +1,140 @@
+/* Super Admin — Incidencias y auditoría */
+
+.inc-review-card {
+  animation: inc-slide-up 0.45s ease both;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.1rem 1.25rem;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+}
+
+.inc-review-card__title {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.inc-review-card__desc {
+  margin: 0 0 1rem;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.inc-review-grid {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .inc-review-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .inc-review-grid--wide {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.inc-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.inc-review-actions .plt-btn--primary {
+  flex: 1 1 100%;
+  justify-content: center;
+  padding: 0.65rem 1rem;
+}
+
+.inc-risk {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.inc-risk__dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+}
+
+.inc-risk--low .inc-risk__dot {
+  background: #22c55e;
+}
+.inc-risk--medium .inc-risk__dot {
+  background: #f97316;
+}
+.inc-risk--high .inc-risk__dot {
+  background: #ef4444;
+}
+
+.inc-risk--pulse {
+  animation: inc-risk-pulse 0.45s ease;
+}
+
+.inc-badge--mode-portal {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+.inc-badge--mode-panel {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.inc-badge--mode-security {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.inc-badge--status-registered {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.inc-badge--status-pending {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.inc-badge--status-critical {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.inc-badge--status-reviewed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.inc-badge--status-escalated {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.inc-system-avatar {
+  background: linear-gradient(135deg, #64748b, #475569) !important;
+}
+
+@keyframes inc-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes inc-risk-pulse {
+  50% {
+    transform: scale(1.08);
+  }
+}
