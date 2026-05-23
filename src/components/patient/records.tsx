@@ -1,19 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { createPayment } from '@/lib/demoStore';
-import {
-  downloadDemoFileRef,
-  isImageMime,
-  isPdfMime,
-  openDemoFilePreview,
-  resolveDemoFileUrl
-} from '@/lib/demoFiles';
+import { downloadDemoFileRef, isPdfMime } from '@/lib/demoFiles';
 import { generateInvoicePdfFile } from '@/lib/pdfInvoice';
 import { fmtDate, money } from '@/lib/format';
-import {
-  getPatientById,
-  pendingInvoicesForPatient,
-  visibleDocumentsForPatient
-} from '@/lib/selectors';
+import { getPatientById, pendingInvoicesForPatient } from '@/lib/selectors';
 import { getStoredTenantId, settingsFor } from '@/lib/demoStore';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
@@ -21,7 +11,7 @@ import { usePatient } from '@/hooks/usePatient';
 import { isClientDemoMode } from '@/lib/appMode';
 import type { Invoice } from '@/types/demo';
 import { FileActions } from '@/components/shared/FileActions';
-import { Badge, Button, Empty, PageHeader, SearchInput } from '@/components/ui';
+import { Badge, Button, Empty, PageHeader } from '@/components/ui';
 
 async function downloadInvoicePdf(state: ReturnType<typeof useDemoStore>['state'], invoice: Invoice) {
   if (invoice.fileRef && downloadDemoFileRef(invoice.fileRef, invoice.fileName ?? `${invoice.id}.pdf`)) return;
@@ -33,74 +23,7 @@ async function downloadInvoicePdf(state: ReturnType<typeof useDemoStore>['state'
 }
 
 export { PatientReports } from './PatientReports';
-
-export function PatientDocuments() {
-  const { state } = useDemoStore();
-  const patient = usePatient();
-  const [q, setQ] = useState('');
-  const urlFilter = useMemo(() => {
-    if (typeof window === 'undefined') return { informe: '', cita: '' };
-    const p = new URLSearchParams(window.location.search);
-    return { informe: p.get('informe') ?? '', cita: p.get('cita') ?? '' };
-  }, []);
-  const list = useMemo(() => {
-    let d = visibleDocumentsForPatient(state, patient.id);
-    if (urlFilter.cita) d = d.filter((x) => x.appointmentId === urlFilter.cita);
-    if (urlFilter.informe) {
-      const rep = state.clinicalReports.find((r) => r.id === urlFilter.informe);
-      if (rep?.appointmentId) d = d.filter((x) => x.appointmentId === rep.appointmentId);
-    }
-    if (q.trim()) {
-      const s = q.toLowerCase();
-      d = d.filter((x) => x.id.toLowerCase().includes(s) || x.title.toLowerCase().includes(s) || x.type.includes(s));
-    }
-    return d.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  }, [state, patient.id, q, urlFilter]);
-
-  return (
-    <div className="space-y-4">
-      {urlFilter.informe || urlFilter.cita ? (
-        <div className="banner-alert flex flex-wrap items-center justify-between gap-2">
-          <span>Documentos relacionados con tu informe o cita.</span>
-          <a href="/paciente/informes" className="text-xs font-bold text-teal-800 underline">
-            Volver a informes
-          </a>
-        </div>
-      ) : null}
-      <PageHeader title="Mis documentos" subtitle="Consentimientos, radiografías y recibos" />
-      <SearchInput value={q} onChange={setQ} placeholder="Buscar documento o tipo…" />
-      <div className="grid gap-4 md:grid-cols-2">
-        {list.map((d) => {
-          const previewUrl = d.fileRef ? resolveDemoFileUrl(d.fileRef) : null;
-          const showImg = previewUrl && isImageMime(d.mimeType, d.fileName ?? d.fileRef);
-          return (
-            <article key={d.id} className="doc-tile">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <span className="doc-file-badge">{d.type}</span>
-              </div>
-              <p className="mt-2 font-bold text-dental-950">{d.title}</p>
-              <p className="text-sm text-slate-600">{fmtDate(d.createdAt)}</p>
-              {d.description ? <p className="mt-1 text-xs text-slate-500">{d.description}</p> : null}
-              {showImg ? (
-                <button
-                  type="button"
-                  className="mt-3 block w-full overflow-hidden rounded-xl ring-1 ring-slate-200"
-                  onClick={() => openDemoFilePreview(d.fileRef!)}
-                >
-                  <img src={previewUrl!} alt={d.title} className="max-h-48 w-full object-contain bg-slate-900/5" />
-                </button>
-              ) : null}
-              <div className="mt-3">
-                <FileActions fileRef={d.fileRef} fileName={d.fileName} mimeType={d.mimeType} />
-              </div>
-            </article>
-          );
-        })}
-      </div>
-      {!list.length ? <Empty title="Sin documentos" text="Los documentos solo-admin no se muestran." /> : null}
-    </div>
-  );
-}
+export { PatientDocuments } from './PatientDocuments';
 
 export function PatientInvoices() {
   const { state, commit } = useDemoStore();
