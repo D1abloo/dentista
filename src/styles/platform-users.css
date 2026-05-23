@@ -1,0 +1,287 @@
+/* Super Admin — Usuarios y accesos (reutiliza utilidades plt-* / cln-*) */
+
+.usr-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  min-width: 0;
+}
+
+.usr-kpi {
+  animation: usr-fade-in 0.5s ease both;
+}
+
+.usr-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 10px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  flex-shrink: 0;
+}
+
+.usr-avatar--lg {
+  width: 2.75rem;
+  height: 2.75rem;
+  font-size: 0.85rem;
+  border-radius: 12px;
+}
+
+.usr-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.usr-user-cell strong {
+  display: block;
+  color: #0f172a;
+  font-size: 0.78rem;
+}
+
+.usr-badge--role-patient {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.usr-badge--role-admin {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.usr-badge--role-staff {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+.usr-clinic-sub {
+  display: block;
+  font-size: 0.65rem;
+  color: #94a3b8;
+  margin-top: 0.1rem;
+}
+
+.usr-table tr.usr-table__row--active {
+  background: #ecfdf5;
+  box-shadow:
+    inset 3px 0 0 #14b8a6,
+    0 0 0 1px rgba(20, 184, 166, 0.12),
+    0 4px 16px rgba(13, 148, 136, 0.1);
+}
+
+.usr-detail__tabs {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.usr-detail__tab {
+  flex: 1;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.usr-detail__tab--active {
+  background: #f0fdfa;
+  border-color: #5eead4;
+  color: #0f766e;
+}
+
+.usr-perms {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.usr-perm-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  font-size: 0.72rem;
+}
+
+.usr-perm-row__label {
+  font-weight: 800;
+  color: #334155;
+  min-width: 5.5rem;
+}
+
+.usr-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.usr-toggle input {
+  accent-color: #0d9488;
+  transition: transform 0.15s ease;
+}
+
+.usr-toggle input:checked {
+  transform: scale(1.08);
+}
+
+.usr-wizard-types {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.usr-type-card {
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+}
+
+.usr-type-card:hover {
+  transform: translateY(-1px);
+}
+
+.usr-type-card--active {
+  border-color: #14b8a6;
+  background: #f0fdfa;
+  animation: usr-chip-pop 0.25s ease;
+}
+
+.usr-type-card strong {
+  display: block;
+  font-size: 0.78rem;
+  color: #0f172a;
+}
+
+.usr-type-card span {
+  font-size: 0.68rem;
+  color: #64748b;
+}
+
+.usr-wizard-steps {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+}
+
+.usr-wizard-step {
+  flex: 1;
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #94a3b8;
+  padding-bottom: 0.45rem;
+  border-bottom: 2px solid #e2e8f0;
+  transition: color 0.25s ease, border-color 0.25s ease;
+}
+
+.usr-wizard-step--active {
+  color: #0d9488;
+  border-color: #0d9488;
+}
+
+.usr-wizard-step--done {
+  color: #0f766e;
+  border-color: #5eead4;
+}
+
+.usr-wizard-pane {
+  animation: usr-wizard-in 0.3s ease both;
+}
+
+.usr-card-count {
+  margin-left: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.usr-page--panel-open {
+  transition: padding-right 0.25s ease;
+}
+
+@media (min-width: 1025px) {
+  .usr-page--panel-open {
+    padding-right: min(22rem, 32vw);
+  }
+}
+
+.cln-badge--disabled {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.usr-wizard {
+  width: min(40rem, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.usr-wizard-backdrop--full {
+  padding: 0;
+}
+
+@media (max-width: 640px) {
+  .usr-wizard-backdrop--full .usr-wizard {
+    width: 100%;
+    max-width: none;
+    height: 100vh;
+    max-height: none;
+    border-radius: 0;
+  }
+}
+
+@keyframes usr-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes usr-wizard-in {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes usr-chip-pop {
+  0% {
+    transform: scale(0.97);
+  }
+  60% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
