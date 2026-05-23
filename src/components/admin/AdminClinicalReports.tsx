@@ -1,16 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Eye, FileText, Lock, Plus, Trash2, Upload } from 'lucide-react';
+import { Edit2, Eye, FileText, Lock, Plus, Trash2, Upload } from 'lucide-react';
 import { isClientDemoMode } from '@/lib/appMode';
 import {
-  applyReportTemplate,
   appointmentBelongsToPatient,
   buildReportTitle,
   enrichReportListRow,
   getAppointmentReportContext,
-  inferReportTemplateFromTreatment,
-  REPORT_TEMPLATES,
-  type ReportTemplateId
-} from '@/lib/clinical/reportTemplates';
+  type AppointmentReportContext
+} from '@/lib/clinical/reportContext';
 import {
   EMPTY_REPORT_FORM,
   formToPersistedFields,
@@ -19,17 +16,11 @@ import {
   type ClinicalReportFormState,
   type ClinicalReportSections
 } from '@/lib/clinical/reportForm';
-import {
-  fieldsForComposeTab,
-  REPORT_COMPOSE_TABS,
-  type ReportComposeTab
-} from '@/lib/clinical/reportFormUi';
-import { ReportSectionBox } from './ReportSectionBox';
-import {
-  addMessage,
-  createClinicalReport,
-  saveClinicalReport
-} from '@/lib/demoStore';
+import { REPORT_FORM_GROUPS } from '@/lib/clinical/reportFormUi';
+import { applyReportPublishLock, isClinicalReportEditable } from '@/lib/clinical/reportLock';
+import { parseStoredReportSections } from '@/lib/clinical/reportSections';
+import { ReportSectionBox, ReportSectionGroup } from './ReportSectionBox';
+import { addMessage, createClinicalReport, saveClinicalReport } from '@/lib/demoStore';
 import { isPdfMime, saveDemoFile } from '@/lib/demoFiles';
 import {
   buildClinicalReportPrintHtmlFromState,
@@ -59,17 +50,22 @@ export function AdminClinicalReports() {
   const { state, commit, refresh } = useDemoStore();
   const { setNotice } = useNotice();
   const [tab, setTab] = useState<'compose' | 'list'>('compose');
-  const [composeTab, setComposeTab] = useState<ReportComposeTab>('clinical');
   const [listQ, setListQ] = useState('');
   const [patientQ, setPatientQ] = useState('');
-  const [templateId, setTemplateId] = useState<ReportTemplateId>('revision_general');
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [reportFile, setReportFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
-  const [showLegal, setShowLegal] = useState(false);
   const [form, setForm] = useState<ClinicalReportFormState>(() => ({
     ...EMPTY_REPORT_FORM,
     patientId: state.patients[0]?.id ?? ''
   }));
+
+  const editingReport = useMemo(
+    () => (editingId ? state.clinicalReports.find((r) => r.id === editingId) : undefined),
+    [editingId, state.clinicalReports]
+  );
+
+  const formLocked = Boolean(editingReport && !isClinicalReportEditable(editingReport));
 
   const apptContext = useMemo(
     () => (form.appointmentId ? getAppointmentReportContext(state, form.appointmentId) : null),
@@ -91,24 +87,6 @@ export function AdminClinicalReports() {
     return rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }, [state, listQ, patientQ]);
 
-  const applyTemplate = useCallback(
-    (id: ReportTemplateId, ctx = apptContext) => {
-      if (!ctx) {
-        setNotice({ type: 'error', message: 'Selecciona una cita válida para aplicar la plantilla.' });
-        return;
-      }
-      const filled = applyReportTemplate(id, ctx);
-      setForm((f) => ({
-        ...f,
-        title: filled.title,
-        sections: filled.sections,
-        dentistName: ctx.dentistName
-      }));
-      setTemplateId(id);
-    },
-    [apptContext, setNotice]
-  );
-
   useEffect(() => {
     if (!form.appointmentId || !apptContext) return;
     if (form.patientId && apptContext.patientId !== form.patientId) {
@@ -119,9 +97,38 @@ export function AdminClinicalReports() {
       ...f,
       patientId: apptContext.patientId,
       dentistName: apptContext.dentistName,
-      title: f.title.trim() ? f.title : buildReportTitle(apptContext)
+      title: f.title.trim() && editingId ? f.title : buildReportTitle(apptContext)
     }));
-  }, [form.appointmentId, apptContext, form.patientId]);
+  }, [form.appointmentId, apptContext, form.patientId, editingId]);
+
+  const openEdit = useCallback(
+    (report: ClinicalReport) => {
+      if (!isClinicalReportEditable(report)) {
+        setNotice({
+          type: 'error',
+          message: 'Informe bloqueado en el portal del paciente. Solo administración de BBDD puede reabrirlo.'
+        });
+        return;
+      }
+      setEditingId(report.id);
+      setReportFile(null);
+      setForm({
+        patientId: report.patientId,
+        appointmentId: report.appointmentId ?? '',
+        dentistName: report.uploadedBy,
+        title: report.title,
+        sections: parseStoredReportSections(
+          report.description,
+          report.diagnosis ?? '',
+          report.recommendations ?? ''
+        ),
+        visibleToPatient: report.visibleToPatient,
+        uploadedBy: report.uploadedBy
+      });
+      setTab('compose');
+    },
+    [setNotice]
+  );
 
   function onSelectAppointment(appointmentId: string) {
     if (!appointmentId) {
@@ -134,25 +141,21 @@ export function AdminClinicalReports() {
     }
     const ctx = getAppointmentReportContext(state, appointmentId);
     if (!ctx) return;
-    const suggested = inferReportTemplateFromTreatment(ctx.treatmentName);
-    setTemplateId(suggested);
     setForm((f) => ({
       ...f,
       appointmentId,
       patientId: ctx.patientId,
       dentistName: `${ctx.dentistHonorific} ${ctx.dentistName}`,
-      uploadedBy: `${ctx.dentistHonorific} ${ctx.dentistName}`
+      uploadedBy: `${ctx.dentistHonorific} ${ctx.dentistName}`,
+      title: editingId ? f.title : buildReportTitle(ctx)
     }));
-    applyTemplate(suggested, ctx);
   }
 
   function previewDraft() {
-    const profLine = apptContext
-      ? `Profesional responsable: ${apptContext.dentistHonorific} ${apptContext.dentistName} · Colegiado n.º ${apptContext.dentistCollegiateNumber}`
-      : undefined;
+    const profLine = professionalLineFromContext(apptContext);
     const persistedPreview = formToPersistedFields(form, profLine);
     const draft: ClinicalReport = {
-      id: 'preview',
+      id: editingId ?? 'preview',
       tenantId: state.clinics.find((c) => c.id === apptContext?.clinicId)?.tenantId ?? '',
       patientId: form.patientId,
       appointmentId: form.appointmentId,
@@ -168,6 +171,10 @@ export function AdminClinicalReports() {
   }
 
   async function saveReport() {
+    if (formLocked) {
+      setNotice({ type: 'error', message: 'Este informe no se puede modificar.' });
+      return;
+    }
     const err = validateClinicalReportForm(form, apptContext);
     if (err) {
       setNotice({ type: 'error', message: err });
@@ -178,9 +185,9 @@ export function AdminClinicalReports() {
       return;
     }
 
-    let fileRef: string | undefined;
-    let fileName: string | undefined;
-    let mimeType: string | undefined;
+    let fileRef: string | undefined = editingReport?.fileRef;
+    let fileName: string | undefined = editingReport?.fileName;
+    let mimeType: string | undefined = editingReport?.mimeType;
     if (reportFile) {
       if (!isPdfMime(reportFile.type, reportFile.name)) {
         setNotice({ type: 'error', message: 'Solo se permiten archivos PDF.' });
@@ -205,9 +212,7 @@ export function AdminClinicalReports() {
       return;
     }
 
-    const professionalLine = apptContext
-      ? `Profesional responsable: ${apptContext.dentistHonorific} ${apptContext.dentistName} · Colegiado n.º ${apptContext.dentistCollegiateNumber}`
-      : undefined;
+    const professionalLine = professionalLineFromContext(apptContext);
     const persisted = formToPersistedFields(form, professionalLine);
 
     const reportInput = {
@@ -228,11 +233,12 @@ export function AdminClinicalReports() {
     setSaving(true);
     try {
       if (!isClientDemoMode()) {
-        const res = await fetch('/api/records/report', {
-          method: 'POST',
+        const url = '/api/records/report';
+        const res = await fetch(url, {
+          method: editingId ? 'PUT' : 'POST',
           credentials: 'include',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(reportInput)
+          body: JSON.stringify(editingId ? { ...reportInput, id: editingId } : reportInput)
         });
         const json = (await res.json()) as {
           data?: Record<string, unknown>;
@@ -248,8 +254,9 @@ export function AdminClinicalReports() {
             const ensured = await ensureClinicalReportPdf(state, mapped);
             mapped = ensured.report;
           }
+          mapped = applyReportPublishLock(mapped, mapped.visibleToPatient);
           let next = saveClinicalReport(state, mapped);
-          if (form.visibleToPatient) {
+          if (!editingId && form.visibleToPatient) {
             next = addMessage(next, {
               patientId: form.patientId,
               subject: `Nuevo informe disponible: ${form.title}`,
@@ -262,18 +269,53 @@ export function AdminClinicalReports() {
           }
           commit(next);
           await refresh();
-          setNotice({ type: 'ok', message: 'Informe guardado.' });
+          setNotice({ type: 'ok', message: editingId ? 'Informe actualizado.' : 'Informe guardado.' });
           resetForm();
           setTab('list');
           return;
         }
       }
 
+      if (editingId && editingReport) {
+        const updated: ClinicalReport = applyReportPublishLock(
+          {
+            ...editingReport,
+            patientId: form.patientId,
+            appointmentId: form.appointmentId || undefined,
+            title: form.title.trim(),
+            description: persisted.description,
+            diagnosis: persisted.diagnosis,
+            recommendations: persisted.recommendations,
+            fileName,
+            fileRef,
+            mimeType,
+            uploadedBy: form.uploadedBy,
+            visibleToPatient: form.visibleToPatient
+          },
+          form.visibleToPatient
+        );
+        let next = saveClinicalReport(state, updated);
+        if (!fileRef) {
+          const ensured = await ensureClinicalReportPdf(next, updated);
+          next = saveClinicalReport(next, ensured.report);
+        }
+        commit(next);
+        setNotice({ type: 'ok', message: 'Informe actualizado.' });
+        resetForm();
+        setTab('list');
+        return;
+      }
+
       const { clinicId: _c, ...reportData } = reportInput;
       let next = createClinicalReport(state, reportData);
       const created = next.clinicalReports[next.clinicalReports.length - 1];
-      if (!fileRef && created) {
-        const ensured = await ensureClinicalReportPdf(next, created);
+      if (created) {
+        const locked = applyReportPublishLock(created, created.visibleToPatient);
+        next = saveClinicalReport(next, locked);
+      }
+      const saved = next.clinicalReports[next.clinicalReports.length - 1];
+      if (!fileRef && saved) {
+        const ensured = await ensureClinicalReportPdf(next, saved);
         next = saveClinicalReport(next, ensured.report);
       }
       if (form.visibleToPatient) {
@@ -302,18 +344,16 @@ export function AdminClinicalReports() {
   }
 
   function resetForm() {
+    setEditingId(null);
     setForm({ ...EMPTY_REPORT_FORM, patientId: state.patients[0]?.id ?? '' });
     setReportFile(null);
-    setTemplateId('revision_general');
-    setComposeTab('clinical');
-    setShowLegal(false);
   }
 
   function patchSection<K extends keyof ClinicalReportSections>(key: K, value: ClinicalReportSections[K]) {
     setForm((f) => ({ ...f, sections: { ...f.sections, [key]: value } }));
   }
 
-  const composeFields = fieldsForComposeTab(composeTab);
+  const publishLocked = Boolean(editingReport?.lockedAt);
 
   return (
     <div className="cr-module">
@@ -331,7 +371,7 @@ export function AdminClinicalReports() {
             onClick={() => setTab('compose')}
           >
             <Plus className="h-4 w-4" aria-hidden />
-            Nuevo
+            {editingId ? 'Editar' : 'Nuevo'}
           </button>
           <button
             type="button"
@@ -352,7 +392,7 @@ export function AdminClinicalReports() {
           {list.length ? (
             <div className="cr-table">
               {list.map((r) => (
-                <ReportListRow key={r.id} report={r} />
+                <ReportListRow key={r.id} report={r} onEdit={() => openEdit(r)} />
               ))}
             </div>
           ) : (
@@ -367,6 +407,18 @@ export function AdminClinicalReports() {
       ) : (
         <div className="cr-compose">
           <section className="cr-form-panel">
+            {editingReport?.reopenedForEdit ? (
+              <p className="cr-compose-banner cr-compose-banner--edit">
+                Informe reabierto para edición (desbloqueo en base de datos). Al guardar se vuelve a bloquear si sigue en
+                portal del paciente.
+              </p>
+            ) : null}
+            {formLocked ? (
+              <p className="cr-compose-banner cr-compose-banner--locked">
+                Informe bloqueado: publicado en el portal del paciente. Solo administración de BBDD puede reabrirlo.
+              </p>
+            ) : null}
+
             <div className="cr-setup">
               <div className="cr-setup__row">
                 <PatientLookup
@@ -378,7 +430,11 @@ export function AdminClinicalReports() {
                   nhcPrimary
                 />
                 <Field label="Cita *">
-                  <Select value={form.appointmentId} onChange={(e) => onSelectAppointment(e.target.value)}>
+                  <Select
+                    value={form.appointmentId}
+                    onChange={(e) => onSelectAppointment(e.target.value)}
+                    disabled={formLocked}
+                  >
                     <option value="">Seleccionar…</option>
                     {state.appointments
                       .filter((a) => a.patientId === form.patientId)
@@ -390,6 +446,13 @@ export function AdminClinicalReports() {
                       ))}
                   </Select>
                 </Field>
+                <Field label="Título *">
+                  <Input
+                    value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    disabled={formLocked}
+                  />
+                </Field>
               </div>
 
               {apptContext ? (
@@ -398,83 +461,44 @@ export function AdminClinicalReports() {
                   {apptContext.dentistCollegiateNumber}
                 </p>
               ) : null}
+            </div>
 
-              <Field label="Título *">
-                <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-              </Field>
-
-              <div className="cr-templates-bar">
-                <span className="cr-templates-bar__label">Plantilla</span>
-                <div className="cr-templates-bar__chips">
-                  {REPORT_TEMPLATES.map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      className={`cr-tpl-chip${templateId === t.id ? ' cr-tpl-chip--active' : ''}`}
-                      onClick={() => applyTemplate(t.id)}
-                      title={t.label}
-                    >
-                      <span aria-hidden>{t.icon}</span>
-                      {t.label}
-                    </button>
+            <div className="cr-form-body">
+              {REPORT_FORM_GROUPS.map((group) => (
+                <ReportSectionGroup key={group.id} title={group.title} subtitle={group.subtitle}>
+                  {group.fields.map((f) => (
+                    <ReportSectionBox
+                      key={f.key}
+                      title={f.label}
+                      rows={f.rows}
+                      required={f.required}
+                      wide={f.wide}
+                      variant={f.key === 'avisoLegal' ? 'legal' : 'framed'}
+                      value={form.sections[f.key]}
+                      onChange={(v) => patchSection(f.key, v)}
+                      disabled={formLocked}
+                    />
                   ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="cr-body-tabs" role="tablist">
-              {REPORT_COMPOSE_TABS.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={composeTab === t.id}
-                  className={`cr-body-tab${composeTab === t.id ? ' cr-body-tab--active' : ''}`}
-                  onClick={() => setComposeTab(t.id)}
-                >
-                  {t.label}
-                </button>
+                </ReportSectionGroup>
               ))}
-            </div>
-
-            <div className="cr-body-fields" role="tabpanel">
-              {composeFields.map((f) => (
-                <ReportSectionBox
-                  key={f.key}
-                  title={f.label}
-                  rows={f.rows}
-                  required={f.required}
-                  wide={f.wide}
-                  value={form.sections[f.key]}
-                  onChange={(v) => patchSection(f.key, v)}
-                />
-              ))}
-              {composeTab === 'care' ? (
-                <details
-                  className="cr-legal-details"
-                  open={showLegal}
-                  onToggle={(e) => setShowLegal((e.target as HTMLDetailsElement).open)}
-                >
-                  <summary>Aviso legal (opcional)</summary>
-                  <ReportSectionBox
-                    title="Texto legal"
-                    rows={2}
-                    variant="legal"
-                    value={form.sections.avisoLegal}
-                    onChange={(v) => patchSection('avisoLegal', v)}
-                  />
-                </details>
-              ) : null}
             </div>
 
             <footer className="cr-compose-footer">
-              <label className="cr-check-inline">
+              <label
+                className={`cr-check-inline${publishLocked ? ' cr-check-inline--disabled' : ''}`}
+                title={
+                  publishLocked
+                    ? 'Publicado en portal: la visibilidad no se cambia desde el formulario'
+                    : undefined
+                }
+              >
                 <input
                   type="checkbox"
                   checked={form.visibleToPatient}
+                  disabled={formLocked || publishLocked}
                   onChange={(e) => setForm({ ...form, visibleToPatient: e.target.checked })}
                 />
-                Visible en portal del paciente
+                Visible en portal del paciente (bloquea edición al publicar)
               </label>
 
               <div className="cr-compose-footer__row">
@@ -489,11 +513,12 @@ export function AdminClinicalReports() {
                 ) : (
                   <label className="cr-upload-mini">
                     <Upload className="h-3.5 w-3.5" aria-hidden />
-                    PDF
+                    PDF adjunto
                     <input
                       type="file"
                       accept="application/pdf,.pdf"
                       className="sr-only"
+                      disabled={formLocked}
                       onChange={(e) => setReportFile(e.target.files?.[0] ?? null)}
                     />
                   </label>
@@ -513,11 +538,11 @@ export function AdminClinicalReports() {
                 <button
                   type="button"
                   className="cr-btn cr-btn--primary cr-btn--sm"
-                  disabled={saving}
+                  disabled={saving || formLocked}
                   onClick={() => void saveReport()}
                 >
                   <Lock className="h-3.5 w-3.5" aria-hidden />
-                  {saving ? 'Guardando…' : 'Guardar'}
+                  {saving ? 'Guardando…' : editingId ? 'Actualizar' : 'Guardar'}
                 </button>
               </div>
             </footer>
@@ -528,11 +553,20 @@ export function AdminClinicalReports() {
   );
 }
 
-function ReportListRow({ report }: { report: ClinicalReport }) {
+function professionalLineFromContext(apptContext: AppointmentReportContext | null) {
+  return apptContext
+    ? `Profesional responsable: ${apptContext.dentistHonorific} ${apptContext.dentistName} · Colegiado n.º ${apptContext.dentistCollegiateNumber}`
+    : undefined;
+}
+
+function ReportListRow({ report, onEdit }: { report: ClinicalReport; onEdit: () => void }) {
   const { state, commit } = useDemoStore();
   const { setNotice } = useNotice();
   const row = enrichReportListRow(state, report.id);
   if (!row) return null;
+
+  const editable = isClinicalReportEditable(row.report);
+  const locked = Boolean(row.report.lockedAt);
 
   return (
     <article className="cr-row">
@@ -541,11 +575,24 @@ function ReportListRow({ report }: { report: ClinicalReport }) {
         <p className="cr-row__meta">
           {row.patientName} · {row.dateLabel} · {row.dentistName}
         </p>
-        <span className={`cr-visibility${row.report.visibleToPatient ? ' cr-visibility--on' : ''}`}>
-          {row.report.visibleToPatient ? 'En portal' : 'Solo clínica'}
-        </span>
+        <div className="cr-row__badges">
+          <span className={`cr-visibility${row.report.visibleToPatient ? ' cr-visibility--on' : ''}`}>
+            {row.report.visibleToPatient ? 'En portal' : 'Solo clínica'}
+          </span>
+          {locked ? (
+            <span className={`cr-lock-badge${row.report.reopenedForEdit ? ' cr-lock-badge--open' : ''}`}>
+              {row.report.reopenedForEdit ? 'Reabierto (BBDD)' : 'Bloqueado'}
+            </span>
+          ) : null}
+        </div>
       </div>
       <div className="cr-row__actions">
+        {editable ? (
+          <button type="button" className="cr-btn cr-btn--outline cr-btn--sm" onClick={onEdit}>
+            <Edit2 className="h-3.5 w-3.5" aria-hidden />
+            Editar
+          </button>
+        ) : null}
         <button
           type="button"
           className="cr-btn cr-btn--outline cr-btn--sm"
@@ -555,36 +602,52 @@ function ReportListRow({ report }: { report: ClinicalReport }) {
           PDF
         </button>
         <FileActions fileRef={row.report.fileRef} fileName={row.report.fileName} mimeType={row.report.mimeType} />
-        <button
-          type="button"
-          className="cr-btn cr-btn--outline cr-btn--sm"
-          onClick={() => {
-            void (async () => {
-              const nextVisible = !row.report.visibleToPatient;
-              if (!isClientDemoMode()) {
-                const clinicId =
-                  state.patients.find((p) => p.id === row.report.patientId)?.preferredClinicId ??
-                  state.clinics.find((c) => c.active)?.id;
-                if (clinicId) {
-                  const res = await fetch('/api/records/report', {
-                    method: 'PATCH',
-                    credentials: 'include',
-                    headers: { 'content-type': 'application/json' },
-                    body: JSON.stringify({ clinicId, id: row.report.id, visibleToPatient: nextVisible })
-                  });
-                  if (!res.ok) {
-                    setNotice({ type: 'error', message: 'No se pudo actualizar.' });
-                    return;
+        {!locked ? (
+          <button
+            type="button"
+            className="cr-btn cr-btn--outline cr-btn--sm"
+            onClick={() => {
+              void (async () => {
+                const nextVisible = !row.report.visibleToPatient;
+                if (!isClientDemoMode()) {
+                  const clinicId =
+                    state.patients.find((p) => p.id === row.report.patientId)?.preferredClinicId ??
+                    state.clinics.find((c) => c.active)?.id;
+                  if (clinicId) {
+                    const res = await fetch('/api/records/report', {
+                      method: 'PATCH',
+                      credentials: 'include',
+                      headers: { 'content-type': 'application/json' },
+                      body: JSON.stringify({ clinicId, id: row.report.id, visibleToPatient: nextVisible })
+                    });
+                    if (!res.ok) {
+                      setNotice({ type: 'error', message: 'No se pudo actualizar.' });
+                      return;
+                    }
+                    const json = (await res.json()) as { data?: ClinicalReportRow };
+                    if (json.data) {
+                      const mapped = applyReportPublishLock(
+                        mapClinicalReportRow(json.data),
+                        Boolean(json.data.visible_to_patient)
+                      );
+                      commit(saveClinicalReport(state, mapped));
+                      setNotice({ type: 'ok', message: 'Actualizado.' });
+                      return;
+                    }
                   }
                 }
-              }
-              commit(saveClinicalReport(state, { ...row.report, visibleToPatient: nextVisible }));
-              setNotice({ type: 'ok', message: 'Actualizado.' });
-            })();
-          }}
-        >
-          {row.report.visibleToPatient ? 'Ocultar' : 'Publicar'}
-        </button>
+                const updated = applyReportPublishLock(
+                  { ...row.report, visibleToPatient: nextVisible },
+                  nextVisible
+                );
+                commit(saveClinicalReport(state, updated));
+                setNotice({ type: 'ok', message: 'Actualizado.' });
+              })();
+            }}
+          >
+            {row.report.visibleToPatient ? 'Ocultar' : 'Publicar'}
+          </button>
+        ) : null}
       </div>
     </article>
   );

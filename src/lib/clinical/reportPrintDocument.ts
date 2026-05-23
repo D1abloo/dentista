@@ -5,7 +5,7 @@ import { patientDisplayCode } from '@/lib/nhc';
 import {
   getAppointmentReportContext,
   type AppointmentReportContext
-} from '@/lib/clinical/reportTemplates';
+} from '@/lib/clinical/reportContext';
 import {
   buildStructuredPrintSections,
   formatPrintBodyHtml,

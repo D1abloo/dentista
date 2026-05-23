@@ -14,6 +14,8 @@ export type ClinicalReportRow = {
   mime_type?: string | null;
   uploaded_by?: string | null;
   visible_to_patient: boolean;
+  locked_at?: string | null;
+  reopened_for_edit?: boolean | null;
   created_at?: string | null;
 };
 
@@ -32,6 +34,8 @@ export function mapClinicalReportRow(row: ClinicalReportRow, tenantId?: string):
     mimeType: row.mime_type ?? undefined,
     uploadedBy: row.uploaded_by ?? 'Admin clínica',
     visibleToPatient: Boolean(row.visible_to_patient),
+    lockedAt: row.locked_at ?? undefined,
+    reopenedForEdit: Boolean(row.reopened_for_edit),
     createdAt: String(row.created_at ?? '').slice(0, 10) || new Date().toISOString().slice(0, 10)
   };
 }

@@ -532,6 +532,10 @@ export const reportVisibilitySchema = z.object({
   visibleToPatient: z.boolean()
 });
 
+export const reportUpdateSchema = reportCreateSchema.extend({
+  id: z.string().uuid()
+});
+
 export const documentCreateSchema = z.object({
   clinicId: z.string().uuid(),
   patientId: z.string().uuid(),
@@ -667,6 +671,7 @@ export type ReminderInput = z.infer<typeof reminderSchema>;
 export type AppointmentNotificationInput = z.infer<typeof appointmentNotificationSchema>;
 export type ReportCreateInput = z.infer<typeof reportCreateSchema>;
 export type ReportVisibilityInput = z.infer<typeof reportVisibilitySchema>;
+export type ReportUpdateInput = z.infer<typeof reportUpdateSchema>;
 export type DocumentCreateInput = z.infer<typeof documentCreateSchema>;
 export type MessageCreateInput = z.infer<typeof messageCreateSchema>;
 export type ConsentCreateInput = z.infer<typeof consentCreateSchema>;

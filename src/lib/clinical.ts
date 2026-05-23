@@ -1,5 +1,5 @@
 import type { DemoState } from '@/types/demo';
-import { buildReportTitle, getAppointmentReportContext } from '@/lib/clinical/reportTemplates';
+import { buildReportTitle, getAppointmentReportContext } from '@/lib/clinical/reportContext';
 
 /** Título de informe según motivo/tratamiento de la cita. */
 export function reportTitleFromAppointment(state: DemoState, appointmentId: string): string {

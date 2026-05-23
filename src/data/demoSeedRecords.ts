@@ -546,7 +546,13 @@ export const demoClinicalReports: ClinicalReport[] = [
     visibleToPatient: true,
     createdAt: offsetDate(-10)
   }
-];
+].map((r): ClinicalReport => {
+  const row = r as ClinicalReport;
+  if (row.visibleToPatient && !row.lockedAt) {
+    return { ...row, lockedAt: row.createdAt, reopenedForEdit: row.reopenedForEdit ?? false };
+  }
+  return row;
+});
 
 export const demoInvoices: Invoice[] = [
   {

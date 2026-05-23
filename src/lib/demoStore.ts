@@ -416,7 +416,10 @@ export function createClinicalReport(
     ...data,
     tenantId: data.tenantId ?? getStoredTenantId(),
     id: nextReportId(state),
-    createdAt: todayIso()
+    createdAt: todayIso(),
+    ...(data.visibleToPatient
+      ? { lockedAt: new Date().toISOString(), reopenedForEdit: false }
+      : {})
   };
   return saveClinicalReport(state, report);
 }

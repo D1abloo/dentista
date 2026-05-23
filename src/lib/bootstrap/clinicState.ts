@@ -252,6 +252,8 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
       mimeType: r.mime_type ?? undefined,
       uploadedBy: r.uploaded_by ?? 'Admin clínica',
       visibleToPatient: Boolean(r.visible_to_patient),
+      lockedAt: r.locked_at ?? (r.visible_to_patient ? String(r.created_at ?? '') : undefined),
+      reopenedForEdit: Boolean(r.reopened_for_edit),
       createdAt: String(r.created_at ?? '').slice(0, 10)
     }));
 

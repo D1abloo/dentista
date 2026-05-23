@@ -7,7 +7,7 @@ import {
   type ClinicalReportSections
 } from '@/lib/clinical/reportSections';
 import { collegiateRequiredMessage, isCollegiateNumberValid } from '@/lib/clinical/dentistCollegiate';
-import type { AppointmentReportContext } from '@/lib/clinical/reportTemplates';
+import type { AppointmentReportContext } from '@/lib/clinical/reportContext';
 
 export type ClinicalReportFormState = {
   patientId: string;

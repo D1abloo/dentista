@@ -1,8 +1,12 @@
 import type { APIRoute } from 'astro';
 import { assertClinicScopeAsync, requireStaffSession } from '@/lib/api/guards';
 import { created, fail, ok } from '@/lib/http';
-import { createClinicalReportRecord, toggleClinicalReportVisibility } from '@/lib/services/records';
-import { reportCreateSchema, reportVisibilitySchema } from '@/lib/validators';
+import {
+  createClinicalReportRecord,
+  toggleClinicalReportVisibility,
+  updateClinicalReportRecord
+} from '@/lib/services/records';
+import { reportCreateSchema, reportUpdateSchema, reportVisibilitySchema } from '@/lib/validators';
 
 export const prerender = false;
 
@@ -19,6 +23,23 @@ export const POST: APIRoute = async (context) => {
     return created(data, { message: 'Informe persistido en Supabase.' });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo guardar el informe.';
+    return fail(message, 500, error instanceof Error ? error.message : error);
+  }
+};
+
+export const PUT: APIRoute = async (context) => {
+  try {
+    const gate = requireStaffSession(context);
+    if (gate.response) return gate.response;
+    const payload = await context.request.json();
+    const parsed = reportUpdateSchema.safeParse(payload);
+    if (!parsed.success) return fail('Informe inválido.', 422, parsed.error.flatten());
+    const scopeErr = await assertClinicScopeAsync(gate.user, parsed.data.clinicId);
+    if (scopeErr) return scopeErr;
+    const data = await updateClinicalReportRecord(parsed.data);
+    return ok(data, { message: 'Informe actualizado.' });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'No se pudo actualizar el informe.';
     return fail(message, 500, error instanceof Error ? error.message : error);
   }
 };

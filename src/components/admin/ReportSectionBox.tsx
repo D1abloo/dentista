@@ -10,7 +10,8 @@ type ReportSectionBoxProps = {
   rows?: number;
   required?: boolean;
   wide?: boolean;
-  variant?: 'default' | 'legal' | 'compact';
+  disabled?: boolean;
+  variant?: 'default' | 'legal' | 'compact' | 'framed';
   children?: ReactNode;
 };
 
@@ -23,13 +24,15 @@ export function ReportSectionBox({
   rows = 3,
   required,
   wide,
-  variant = 'compact',
+  disabled,
+  variant = 'framed',
   children
 }: ReportSectionBoxProps) {
   const compact = variant === 'compact';
+  const framed = variant === 'framed';
   return (
     <label
-      className={`cr-field${compact ? ' cr-field--compact' : ''}${variant === 'legal' ? ' cr-field--legal' : ''}${wide ? ' cr-field--wide' : ''}`}
+      className={`cr-field${compact ? ' cr-field--compact' : ''}${framed ? ' cr-field--framed' : ''}${variant === 'legal' ? ' cr-field--legal' : ''}${wide ? ' cr-field--wide' : ''}`}
     >
       <span className="cr-field__label">
         {step && !compact ? <span className="cr-field__step">{step}</span> : null}
@@ -42,6 +45,7 @@ export function ReportSectionBox({
           className="cr-field__input"
           rows={rows}
           value={value}
+          disabled={disabled}
           onChange={(e) => onChange(e.target.value)}
           placeholder={compact ? 'Escribir…' : `Escribe aquí: ${title.toLowerCase()}…`}
         />

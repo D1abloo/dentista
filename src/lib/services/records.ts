@@ -200,7 +200,8 @@ export async function createClinicalReportRecord(input: ReportInput) {
     file_url: input.fileRef ?? null,
     mime_type: input.mimeType ?? null,
     uploaded_by: input.uploadedBy,
-    visible_to_patient: input.visibleToPatient
+    visible_to_patient: input.visibleToPatient,
+    ...(input.visibleToPatient ? { locked_at: new Date().toISOString(), reopened_for_edit: false } : {})
   };
 
   const { data, error } = await db.from('clinical_reports').insert(row).select('*').single();
@@ -236,22 +237,74 @@ export async function toggleClinicalReportVisibility(clinicId: string, id: strin
   const tenantId = await resolveTenantId(clinicId);
   const { data: existing, error: readErr } = await db
     .from('clinical_reports')
-    .select('id, tenant_id')
+    .select('id, tenant_id, locked_at')
     .eq('id', id)
     .maybeSingle();
   if (readErr || !existing) throw new Error('Informe no encontrado.');
   if (existing.tenant_id !== tenantId) {
     throw new Error('No tienes permiso para modificar este informe.');
   }
+  const patch: Record<string, unknown> = { visible_to_patient: visibleToPatient };
+  if (visibleToPatient && !existing.locked_at) {
+    patch.locked_at = new Date().toISOString();
+    patch.reopened_for_edit = false;
+  }
   const { data, error } = await db
     .from('clinical_reports')
-    .update({ visible_to_patient: visibleToPatient })
+    .update(patch)
     .eq('id', id)
     .eq('tenant_id', tenantId)
     .select('*')
     .single();
   if (error) throw error;
   return data;
+}
+
+export async function updateClinicalReportRecord(input: ReportInput & { id: string }) {
+  if (isDemoMode() || !hasSupabaseConfig()) return null;
+  const db = getSupabaseAdmin();
+  const tenantId = await resolveTenantId(input.clinicId);
+  const patientProfileId = await resolvePatientProfileId(input.patientId);
+  await assertReportPayloadScope(input.clinicId, tenantId, patientProfileId, input.appointmentId);
+
+  const { data: existing, error: readErr } = await db
+    .from('clinical_reports')
+    .select('id, tenant_id, locked_at, reopened_for_edit')
+    .eq('id', input.id)
+    .maybeSingle();
+  if (readErr || !existing) throw new Error('Informe no encontrado.');
+  if (existing.tenant_id !== tenantId) throw new Error('No tienes permiso para modificar este informe.');
+  if (existing.locked_at && !existing.reopened_for_edit) {
+    throw new Error('Informe bloqueado en portal del paciente. Reapertura solo desde base de datos.');
+  }
+
+  const patch: Record<string, unknown> = {
+    patient_id: patientProfileId,
+    appointment_id: input.appointmentId ?? null,
+    title: input.title,
+    description: input.description,
+    diagnosis: input.diagnosis ?? null,
+    recommendations: input.recommendations ?? null,
+    file_name: input.fileName ?? null,
+    file_url: input.fileRef ?? null,
+    mime_type: input.mimeType ?? null,
+    uploaded_by: input.uploadedBy,
+    visible_to_patient: input.visibleToPatient
+  };
+  if (input.visibleToPatient) {
+    patch.locked_at = existing.locked_at ?? new Date().toISOString();
+    patch.reopened_for_edit = false;
+  }
+
+  const { data, error } = await db
+    .from('clinical_reports')
+    .update(patch)
+    .eq('id', input.id)
+    .eq('tenant_id', tenantId)
+    .select('*')
+    .single();
+  if (error) throw new Error(mapInsertError(error));
+  return data as ClinicalReportRow;
 }
 
 export async function createPatientDocumentRecord(input: DocumentInput) {

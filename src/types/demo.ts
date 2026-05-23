@@ -142,6 +142,9 @@ export interface ClinicalReport {
   mimeType?: string;
   uploadedBy: string;
   visibleToPatient: boolean;
+  /** Bloqueo tras publicar en portal; edición solo si reopenedForEdit (BBDD). */
+  lockedAt?: string;
+  reopenedForEdit?: boolean;
   createdAt: string;
 }
 
