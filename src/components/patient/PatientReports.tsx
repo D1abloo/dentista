@@ -47,7 +47,7 @@ function KpiStat({ label, value, delay, numeric }: { label: string; value: strin
 }
 
 export function PatientReports() {
-  const { state, dataSource, commit } = useDemoStore();
+  const { state, dataSource } = useDemoStore();
   const patient = usePatient();
   const { setNotice } = useNotice();
   const portalAccess = usePortalAccess();
@@ -128,7 +128,7 @@ export function PatientReports() {
     }
     setDownloadingId(v.report.id);
     try {
-      const ok = await downloadPatientReportPdf(state, v, commit);
+      const ok = await downloadPatientReportPdf(state, v);
       if (!ok) throw new Error('download failed');
       if (portalAccess.active) {
         void logPortalAudit({

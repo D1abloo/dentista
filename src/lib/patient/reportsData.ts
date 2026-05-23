@@ -2,8 +2,10 @@ import type { ClinicalReport, DemoState } from '@/types/demo';
 import { downloadDemoFileRef } from '@/lib/demoFiles';
 import { fmtDate } from '@/lib/format';
 import { resolveReportPrintPayload } from '@/lib/clinical/reportPrintDocument';
-import { ensureClinicalReportPdf, openClinicalReportPrintView, buildClinicalReportPrintHtmlFromState } from '@/lib/pdfClinicalReport';
-import { saveClinicalReport } from '@/lib/demoStore';
+import {
+  buildClinicalReportPrintHtmlFromState,
+  printClinicalReportFromState
+} from '@/lib/pdfClinicalReport';
 import { reportPreviewLine } from '@/lib/patient/reportDisplay';
 
 const READ_KEY = 'dentista_patient_reports_read';
@@ -95,7 +97,7 @@ export function enrichPatientReports(state: DemoState, patientId: string, report
       typeLabel: inferReportType(report),
       publishedLabel: fmtDate(report.createdAt),
       summary: reportPreviewLine(report),
-      hasPdf: Boolean(report.fileRef) || printPayload.blocks.length > 0,
+      hasPdf: true,
       read: wasRead,
       isNew,
       fileSizeLabel: report.fileRef ? '245 KB' : '—'
@@ -177,20 +179,22 @@ export function messagesWithReportContext(reportTitle: string) {
 
 export async function downloadPatientReportPdf(
   state: DemoState,
-  view: PatientReportView,
-  onPersist?: (next: DemoState) => void
+  view: PatientReportView
 ): Promise<boolean> {
   try {
-    let report = view.report;
-    if (!report.fileRef) {
-      const ensured = await ensureClinicalReportPdf(state, report);
-      report = ensured.report;
-      if (onPersist) onPersist(saveClinicalReport(state, report));
+    const report = view.report;
+    if (report.fileRef && report.mimeType === 'application/pdf') {
+      const ok = downloadDemoFileRef(report.fileRef, report.fileName ?? `${report.id}.pdf`);
+      if (ok) return true;
     }
-    if (report.fileRef) {
-      return downloadDemoFileRef(report.fileRef, report.fileName ?? `${report.id}.pdf`);
+    if (report.fileRef && report.mimeType?.includes('html')) {
+      const ok = downloadDemoFileRef(report.fileRef, report.fileName ?? `${report.id}.html`);
+      if (ok) {
+        printClinicalReportFromState(state, report, true);
+        return true;
+      }
     }
-    openClinicalReportPrintView(buildClinicalReportPrintHtmlFromState(state, report));
+    printClinicalReportFromState(state, report, true);
     return true;
   } catch {
     return false;

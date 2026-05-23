@@ -38,7 +38,8 @@ import { isPdfMime, saveDemoFile } from '@/lib/demoFiles';
 import {
   buildClinicalReportPrintHtmlFromState,
   ensureClinicalReportPdf,
-  openClinicalReportPrintView
+  openClinicalReportPrintView,
+  printClinicalReportFromState
 } from '@/lib/pdfClinicalReport';
 import { fmtDateTime } from '@/lib/format';
 import { mapClinicalReportRow, type ClinicalReportRow } from '@/lib/records/clinicalReportMapper';
@@ -673,7 +674,7 @@ export function AdminClinicalReports() {
                           visibleToPatient: form.visibleToPatient,
                           createdAt: new Date().toISOString()
                         };
-                        openClinicalReportPrintView(buildClinicalReportPrintHtmlFromState(state, draft));
+                        openClinicalReportPrintView(buildClinicalReportPrintHtmlFromState(state, draft), true);
                       }}
                     >
                       <Eye className="h-3 w-3" aria-hidden />
@@ -718,7 +719,7 @@ function ReportListRow({ report }: { report: ClinicalReport }) {
           type="button"
           className="cr-btn cr-btn--outline cr-btn--sm"
           title="Ver PDF con membrete"
-          onClick={() => openClinicalReportPrintView(buildClinicalReportPrintHtmlFromState(state, row.report))}
+          onClick={() => printClinicalReportFromState(state, row.report, true)}
         >
           <Eye className="h-3.5 w-3.5" aria-hidden />
           Ver PDF
