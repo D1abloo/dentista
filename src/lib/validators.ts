@@ -657,11 +657,25 @@ export const portalAccessExchangeSchema = z.object({
 export const scheduleBlockCreateSchema = z.object({
   clinicId: z.string().uuid().optional(),
   dentistId: z.string().uuid(),
+  dentistIds: z.array(z.string().uuid()).optional(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   time: z.string().regex(/^\d{2}:\d{2}$/),
+  endTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
   reason: z.string().min(1).max(200),
-  durationMinutes: z.coerce.number().int().min(15).max(240).default(60)
+  durationMinutes: z.coerce.number().int().min(15).max(480).default(60),
+  blockGroupId: z.string().min(4).max(80).optional(),
+  notes: z.string().max(500).optional()
 });
+
+export const scheduleBlockDeleteSchema = z
+  .object({
+    clinicId: z.string().uuid().optional(),
+    id: z.string().min(1).max(120).optional(),
+    blockGroupId: z.string().min(4).max(80).optional()
+  })
+  .refine((d) => Boolean(d.id || d.blockGroupId), {
+    message: 'Indica id o blockGroupId.'
+  });
 
 export const clinicUserCreateSchema = z
   .object({

@@ -1,19 +1,25 @@
 import { MapPin } from 'lucide-react';
-import { getActiveClinicId, setActiveClinicId } from '@/lib/activeClinic';
 import { getStoredTenantId } from '@/lib/demoStore';
 import { isClientLiveMode } from '@/lib/appMode';
+import { useActiveClinic } from '@/hooks/useActiveClinic';
 import { useDemoStore } from '@/hooks/useDemoStore';
+import { useStaffContext } from '@/hooks/useStaffContext';
 
 export function ClinicBranchSwitcher() {
   const { state, refresh } = useDemoStore();
+  const { staff } = useStaffContext();
   const tenantId = getStoredTenantId();
-  const branches = state.clinics.filter((c) => c.tenantId === tenantId);
+  const tenantBranches = state.clinics.filter((c) => c.tenantId === tenantId);
+  const branches =
+    staff?.assignedClinicIds?.length
+      ? tenantBranches.filter((c) => staff.assignedClinicIds.includes(c.id))
+      : tenantBranches;
   if (branches.length < 2) return null;
 
-  const activeId = getActiveClinicId(state, tenantId);
+  const { clinicId: activeId, setClinicId } = useActiveClinic(tenantId, branches);
 
   function onChange(clinicId: string) {
-    setActiveClinicId(clinicId);
+    setClinicId(clinicId);
     if (isClientLiveMode()) void refresh();
     else window.location.reload();
   }

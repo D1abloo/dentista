@@ -2,6 +2,7 @@ import type { SessionUser } from '@/lib/auth';
 import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
 
 const STAFF_ROLES = new Set(['clinic_admin', 'admin', 'owner', 'dentist', 'receptionist']);
+const BLOCK_MANAGER_ROLES = new Set(['clinic_admin', 'admin', 'owner', 'receptionist']);
 
 export type StaffContext = {
   profileId: string;
@@ -14,7 +15,36 @@ export type StaffContext = {
   hasLinkedDentist: boolean;
   canAccessPatientPortal: boolean;
   agendaScope: 'own' | 'clinic';
+  /** Sedes donde el usuario tiene perfil de staff (multi-sede). */
+  assignedClinicIds: string[];
+  /** Administración / recepción: puede gestionar bloqueos de toda la sede. */
+  canManageBlocks: boolean;
 };
+
+async function listAssignedClinicIds(user: SessionUser): Promise<string[]> {
+  if (!user.profileId) return user.clinicId ? [user.clinicId] : [];
+  const db = getSupabaseAdmin();
+  const { data: anchor } = await db
+    .from('profiles')
+    .select('auth_user_id, tenant_id')
+    .eq('id', user.profileId)
+    .maybeSingle();
+  if (!anchor?.auth_user_id) return user.clinicId ? [user.clinicId] : [];
+
+  let q = db
+    .from('profiles')
+    .select('clinic_id, role')
+    .eq('auth_user_id', anchor.auth_user_id as string);
+  const tenantId = user.tenantId ?? (anchor.tenant_id as string | null);
+  if (tenantId) q = q.eq('tenant_id', tenantId);
+
+  const { data: rows } = await q;
+  const ids = (rows ?? [])
+    .filter((r) => STAFF_ROLES.has(String(r.role)))
+    .map((r) => r.clinic_id as string);
+  const unique = [...new Set(ids)];
+  return unique.length ? unique : user.clinicId ? [user.clinicId] : [];
+}
 
 export async function getStaffContextForSession(user: SessionUser): Promise<StaffContext | null> {
   if (!hasSupabaseConfig() || !user.profileId || !user.clinicId) return null;
@@ -39,6 +69,7 @@ export async function getStaffContextForSession(user: SessionUser): Promise<Staf
   const profileRole = String(profile.role);
   const dentistId = (dentist?.id as string | undefined) ?? null;
   const isDentist = profileRole === 'dentist';
+  const assignedClinicIds = await listAssignedClinicIds(user);
 
   return {
     profileId: profile.id as string,
@@ -50,6 +81,8 @@ export async function getStaffContextForSession(user: SessionUser): Promise<Staf
     dentistId,
     hasLinkedDentist: Boolean(dentistId),
     canAccessPatientPortal: Boolean(profile.id),
-    agendaScope: isDentist && dentistId ? 'own' : 'clinic'
+    agendaScope: isDentist && dentistId ? 'own' : 'clinic',
+    assignedClinicIds,
+    canManageBlocks: BLOCK_MANAGER_ROLES.has(profileRole)
   };
 }

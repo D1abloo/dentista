@@ -103,11 +103,16 @@ export async function createAppointmentLive(input: {
 }
 
 export async function createScheduleBlockLive(input: {
+  clinicId: string;
   dentistId: string;
+  dentistIds?: string[];
   date: string;
   time: string;
+  endTime?: string;
   reason: string;
   durationMinutes?: number;
+  blockGroupId?: string;
+  notes?: string;
 }) {
   const res = await fetch('/api/schedule/blocks', {
     method: 'POST',
@@ -120,8 +125,15 @@ export async function createScheduleBlockLive(input: {
   return { ok: true as const };
 }
 
-export async function deleteScheduleBlockLive(blockId: string) {
-  const res = await fetch(`/api/schedule/blocks?id=${encodeURIComponent(blockId)}`, {
+export async function deleteScheduleBlockLive(input: {
+  clinicId: string;
+  blockId?: string;
+  blockGroupId?: string;
+}) {
+  const q = new URLSearchParams({ clinicId: input.clinicId });
+  if (input.blockGroupId) q.set('blockGroupId', input.blockGroupId);
+  else if (input.blockId) q.set('id', input.blockId);
+  const res = await fetch(`/api/schedule/blocks?${q.toString()}`, {
     method: 'DELETE',
     credentials: 'include'
   });

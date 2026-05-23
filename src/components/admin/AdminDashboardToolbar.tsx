@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { CalendarRange, ChevronDown, Plus } from 'lucide-react';
-import { getActiveClinicId, setActiveClinicId } from '@/lib/activeClinic';
 import { getStoredTenantId } from '@/lib/demoStore';
 import { isClientLiveMode } from '@/lib/appMode';
+import { useActiveClinic } from '@/hooks/useActiveClinic';
 import { useDemoStore } from '@/hooks/useDemoStore';
+import { useStaffContext } from '@/hooks/useStaffContext';
 import { NewAppointmentModal } from './NewAppointmentModal';
 
 const WEEK_PRESETS = [
@@ -18,10 +19,14 @@ type Props = {
 
 export function AdminDashboardToolbar({ onRangeChange }: Props) {
   const { state, refresh } = useDemoStore();
+  const { staff } = useStaffContext();
   const tenantId = getStoredTenantId();
-  const branches = state.clinics.filter((c) => c.tenantId === tenantId);
-  const activeClinicId = getActiveClinicId(state, tenantId);
-  const activeClinic = branches.find((c) => c.id === activeClinicId) ?? branches[0];
+  const tenantBranches = state.clinics.filter((c) => c.tenantId === tenantId);
+  const branches =
+    staff?.assignedClinicIds?.length
+      ? tenantBranches.filter((c) => staff.assignedClinicIds.includes(c.id))
+      : tenantBranches;
+  const { clinicId: activeClinicId, setClinicId, activeClinic } = useActiveClinic(tenantId, branches);
 
   const [rangeOpen, setRangeOpen] = useState(false);
   const [clinicOpen, setClinicOpen] = useState(false);
@@ -45,7 +50,7 @@ export function AdminDashboardToolbar({ onRangeChange }: Props) {
   }, []);
 
   function onClinicChange(clinicId: string) {
-    setActiveClinicId(clinicId);
+    setClinicId(clinicId);
     setClinicOpen(false);
     if (isClientLiveMode()) void refresh();
     else window.location.reload();
@@ -88,7 +93,7 @@ export function AdminDashboardToolbar({ onRangeChange }: Props) {
             ) : null}
           </div>
 
-          {branches.length ? (
+          {branches.length > 1 ? (
             <div className={`adm-dash-dropdown${clinicOpen ? ' is-open' : ''}`} ref={clinicRef}>
               <button
                 type="button"

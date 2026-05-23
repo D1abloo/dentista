@@ -2,7 +2,7 @@ import { format } from 'date-fns';
 import type { SessionUser } from '@/lib/auth';
 import { createEmptyDemoState } from '@/lib/emptyState';
 import { logInfo } from '@/lib/logger';
-import { listScheduleBlocks } from '@/lib/services/scheduleBlocks';
+import { listScheduleBlocksForClinics } from '@/lib/services/scheduleBlocks';
 import { getSupabaseAdmin } from '@/lib/supabaseServer';
 import type { AppointmentStatus, DemoState, InvoiceStatus } from '@/types/demo';
 
@@ -322,16 +322,20 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
     }));
 
   try {
-    const blocks = await listScheduleBlocks(user.clinicId);
+    const blocks = await listScheduleBlocksForClinics(clinicIds);
     state.blockedSlots = blocks.map((b) => ({
       id: b.id,
       tenantId,
       clinicId: b.clinicId,
       dentistId: b.dentistId,
+      dentistIds: b.dentistIds,
       cabinetId: state.clinics.find((c) => c.id === b.clinicId)?.cabinets[0]?.id ?? 'room-1',
       date: b.date,
       time: b.time,
-      reason: b.reason
+      endTime: b.endTime,
+      reason: b.reason,
+      blockGroupId: b.blockGroupId,
+      allDay: b.allDay
     }));
   } catch {
     state.blockedSlots = [];

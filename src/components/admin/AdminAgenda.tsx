@@ -13,7 +13,7 @@ import {
   Users
 } from 'lucide-react';
 import { dentistsForClinic, getPrimaryClinic } from '@/lib/clinic';
-import { isClientDemoMode } from '@/lib/appMode';
+import { isClientDemoMode, isClientLiveMode } from '@/lib/appMode';
 import { appointmentsInRange, monthPrefix, weekRange } from '@/lib/appointments';
 import {
   confirmAppointmentAttendance,
@@ -23,7 +23,9 @@ import {
   saveScheduleBlocks
 } from '@/lib/demoStore';
 import { blockTargetLabel } from '@/lib/agenda/availability';
+import { canDeleteScheduleBlock } from '@/lib/agenda/blockPermissions';
 import { expandScheduleBlocks, type ScheduleBlockInput } from '@/lib/agenda/scheduleBlockExpand';
+import { useActiveClinic } from '@/hooks/useActiveClinic';
 import { createAdminAppointment, updateAdminAppointmentStatus } from '@/lib/adminAppointments';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { createScheduleBlockLive, deleteScheduleBlockLive } from '@/lib/clinicApi';
@@ -113,7 +115,18 @@ export function AdminAgenda() {
   const [mode, setMode] = useState<'dia' | 'semana' | 'mes'>('dia');
   const [date, setDate] = useState(todayIso());
   const primaryClinic = getPrimaryClinic(state, scope.tenantId);
-  const [clinicId, setClinicId] = useState(primaryClinic.id);
+  const manageableClinics = useMemo(() => {
+    const list = scope.clinics;
+    if (staff?.assignedClinicIds?.length) {
+      return list.filter((c) => staff.assignedClinicIds.includes(c.id));
+    }
+    return list;
+  }, [scope.clinics, staff?.assignedClinicIds]);
+  const { clinicId, setClinicId, activeClinic } = useActiveClinic(
+    scope.tenantId,
+    manageableClinics.length ? manageableClinics : scope.clinics,
+    primaryClinic.id
+  );
   const [dentistId, setDentistId] = useState('');
   const ownAgenda = staff?.agendaScope === 'own' && Boolean(staff.dentistId);
   const [timelineView, setTimelineView] = useState<'hora' | 'dentista'>('hora');
@@ -175,7 +188,6 @@ export function AdminAgenda() {
     return () => document.removeEventListener('mousedown', onDoc);
   }, []);
 
-  const activeClinic = scope.clinics.find((c) => c.id === clinicId) ?? primaryClinic;
   const clinicDentists = dentistsForClinic(state, clinicId);
   const clinicPatients = useMemo(() => patientsForClinic(state, clinicId), [state, clinicId]);
 
@@ -409,16 +421,23 @@ export function AdminAgenda() {
       return;
     }
 
+    const groupId = slots[0]?.blockGroupId;
+
     if (!isClientDemoMode()) {
       for (const slot of slots) {
         const ids = slot.dentistIds?.length ? slot.dentistIds : [slot.dentistId];
         for (const dId of ids) {
           const live = await createScheduleBlockLive({
+            clinicId,
             dentistId: dId,
+            dentistIds: slot.dentistIds,
             date: slot.date,
             time: slot.time,
+            endTime: slot.endTime,
             reason: slot.reason,
-            durationMinutes: 60
+            durationMinutes: 60,
+            blockGroupId: groupId,
+            notes: slot.notes
           });
           if (!live.ok) {
             setNotice({ type: 'error', message: live.message });
@@ -439,8 +458,22 @@ export function AdminAgenda() {
   }
 
   async function removeBlock(block: BlockedSlot) {
+    const allowed = canDeleteScheduleBlock(staff, block, {
+      ownAgenda,
+      dentistId: staff?.dentistId ?? dentistId,
+      assignedClinicIds: staff?.assignedClinicIds
+    });
+    if (!allowed) {
+      setNotice({ type: 'error', message: 'No tienes permiso para eliminar este bloqueo en esta sede.' });
+      return;
+    }
+
     if (!isClientDemoMode()) {
-      const live = await deleteScheduleBlockLive(block.id);
+      const live = await deleteScheduleBlockLive({
+        clinicId: block.clinicId,
+        blockGroupId: block.blockGroupId,
+        blockId: block.blockGroupId ? undefined : block.id
+      });
       if (!live.ok) {
         setNotice({ type: 'error', message: live.message });
         return;
@@ -451,7 +484,21 @@ export function AdminAgenda() {
     } else {
       commit(removeBlockedSlot(state, block.id));
     }
+    setDetailBlock(null);
     setNotice({ type: 'ok', message: 'Bloqueo eliminado.' });
+  }
+
+  const canRemoveDetailBlock = detailBlock
+    ? canDeleteScheduleBlock(staff, detailBlock, {
+        ownAgenda,
+        dentistId: staff?.dentistId ?? dentistId,
+        assignedClinicIds: staff?.assignedClinicIds
+      })
+    : false;
+
+  function selectClinic(nextId: string) {
+    setClinicId(nextId);
+    if (isClientLiveMode()) void refresh();
   }
 
   return (
@@ -491,31 +538,34 @@ export function AdminAgenda() {
           </button>
         </div>
 
-        <div className={`agd-dropdown${clinicOpen ? ' is-open' : ''}`} ref={clinicRef}>
-          <button type="button" className="agd-chip" aria-expanded={clinicOpen} onClick={() => setClinicOpen((v) => !v)}>
-            {activeClinic.name}
-            <ChevronDown className="h-4 w-4 agd-chip__chev" aria-hidden />
-          </button>
-          {clinicOpen ? (
-            <ul className="agd-dropdown__menu" role="listbox">
-              {scope.clinics.map((c) => (
-                <li key={c.id}>
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={c.id === clinicId}
-                    onClick={() => {
-                      setClinicId(c.id);
-                      setClinicOpen(false);
-                    }}
-                  >
-                    {c.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </div>
+        {manageableClinics.length > 1 ? (
+          <div className={`agd-dropdown${clinicOpen ? ' is-open' : ''}`} ref={clinicRef}>
+            <button type="button" className="agd-chip" aria-expanded={clinicOpen} onClick={() => setClinicOpen((v) => !v)}>
+              {activeClinic?.name ?? 'Sede'}
+              <ChevronDown className="h-4 w-4 agd-chip__chev" aria-hidden />
+            </button>
+            {clinicOpen ? (
+              <ul className="agd-dropdown__menu" role="listbox" aria-label="Seleccionar sede">
+                {manageableClinics.map((c) => (
+                  <li key={c.id}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={c.id === clinicId}
+                      onClick={() => {
+                        selectClinic(c.id);
+                        setClinicOpen(false);
+                      }}
+                    >
+                      {c.name}
+                      {c.isMainBranch ? ' (principal)' : ''}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className={`agd-dropdown${dentistOpen ? ' is-open' : ''}`} ref={dentistRef}>
           <button
@@ -839,11 +889,11 @@ export function AdminAgenda() {
               )
             : ''
         }
+        canRemove={canRemoveDetailBlock}
         onClose={() => setDetailBlock(null)}
         onRemove={() => {
           if (!detailBlock) return;
           void removeBlock(detailBlock);
-          setDetailBlock(null);
         }}
       />
 

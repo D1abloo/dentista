@@ -604,12 +604,14 @@ export function AgendaBlockDetailDrawer({
   targetLabel,
   onClose,
   onRemove,
-  groupDayCount
+  groupDayCount,
+  canRemove = true
 }: {
   open: boolean;
   block: BlockedSlot | null;
   targetLabel: string;
   groupDayCount?: number;
+  canRemove?: boolean;
   onClose: () => void;
   onRemove: () => void;
 }) {
@@ -621,9 +623,11 @@ export function AgendaBlockDetailDrawer({
       <Button tone="ghost" type="button" onClick={onClose}>
         Cerrar
       </Button>
-      <Button type="button" className="agd-drawer__primary agd-drawer__primary--danger" onClick={onRemove}>
-        Eliminar bloqueo
-      </Button>
+      {canRemove ? (
+        <Button type="button" className="agd-drawer__primary agd-drawer__primary--danger" onClick={onRemove}>
+          Eliminar bloqueo
+        </Button>
+      ) : null}
     </>
   );
 
