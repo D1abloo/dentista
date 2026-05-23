@@ -82,32 +82,7 @@ export function PlatformSupport() {
 
 export { PlatformRegistrationHistory } from './PlatformRegistrationHistory';
 
-export function PlatformSubscriptions() {
-  const [list, setList] = useState<PlatformSubscription[]>([]);
-
-  useEffect(() => {
-    void api<PlatformSubscription[]>('/api/platform/subscriptions')
-      .then(setList)
-      .catch(() => undefined);
-  }, []);
-
-  return (
-    <PlatformShell title="Suscripciones SaaS" subtitle="Plan y estado de facturación por clínica (sin datos de pacientes)">
-      <div className="space-y-3">
-        {list.map((s) => (
-          <Card key={s.id} className="p-4">
-            <h3 className="font-bold">{s.clinic_name}</h3>
-            <p className="text-sm text-[var(--muted)]">{s.clinic_slug}</p>
-            <p className="mt-2 text-sm font-semibold">
-              Plan {s.plan} · {s.status} · {s.seats} asientos
-            </p>
-          </Card>
-        ))}
-        {!list.length ? <Empty title="Sin suscripciones" text="Se crean al aprobar una clínica." /> : null}
-      </div>
-    </PlatformShell>
-  );
-}
+export { PlatformSubscriptions } from './PlatformSubscriptions';
 
 export { PlatformIsolation } from './PlatformIsolation';
 

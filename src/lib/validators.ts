@@ -190,6 +190,33 @@ export const registrationActionSchema = z.discriminatedUnion('action', [
   registrationManualSchema
 ]);
 
+const planEnum = z.enum(['essential', 'professional', 'enterprise'], { message: 'Selecciona un plan.' });
+
+export const subscriptionActionSchema = z.discriminatedUnion('action', [
+  z.object({
+    action: z.literal('create'),
+    clinicId: z.string().min(1, 'Selecciona una clínica.'),
+    plan: planEnum,
+    seats: z.number().int().min(1, 'El número de asientos debe ser mayor que 0.'),
+    billingEmail: z.string().email('Introduce un email de facturación válido.')
+  }),
+  z.object({ action: z.literal('update_plan'), id: z.string().min(1), plan: planEnum }),
+  z.object({
+    action: z.literal('update_seats'),
+    id: z.string().min(1),
+    seats: z.number().int().min(1, 'El número de asientos debe ser mayor que 0.')
+  }),
+  z.object({ action: z.literal('generate_invoice'), id: z.string().min(1) }),
+  z.object({ action: z.literal('send_reminder'), id: z.string().min(1) }),
+  z.object({ action: z.literal('suspend'), id: z.string().min(1) }),
+  z.object({
+    action: z.literal('update_billing'),
+    id: z.string().min(1),
+    billingEmail: z.string().email('Introduce un email de facturación válido.'),
+    taxId: z.string().max(20).optional()
+  })
+]);
+
 export const clinicStatusSchema = z.object({
   clinicId: z.string().uuid(),
   status: z.enum(['pending', 'active', 'suspended', 'rejected'])
