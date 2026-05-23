@@ -668,38 +668,24 @@ export function addBlockedSlot(
   };
 }
 
-/** Crea un bloqueo de agenda (todos los dentistas, uno o varios en un mismo registro). */
-export function saveScheduleBlock(
+/** Inserta varios bloqueos de agenda (rango de fechas / profesionales). */
+export function saveScheduleBlocks(
   state: DemoState,
-  input: {
-    clinicId: string;
-    cabinetId: string;
-    date: string;
-    time: string;
-    endTime?: string;
-    reason: string;
-    notes?: string;
-    appliesToAll?: boolean;
-    dentistIds?: string[];
-    tenantId?: string;
-  }
+  slots: Omit<BlockedSlot, 'id' | 'tenantId'>[],
+  tenantId?: string
 ): DemoState {
-  const tenantId = input.tenantId ?? resolveTenantId(state, input.tenantId, input.clinicId);
-  const ids = input.appliesToAll ? [] : [...new Set(input.dentistIds ?? [])];
-  const primaryDentist = ids[0] ?? state.dentists[0]?.id ?? '';
-  return addBlockedSlot(state, {
-    tenantId,
-    clinicId: input.clinicId,
-    cabinetId: input.cabinetId,
-    date: input.date,
-    time: input.time,
-    endTime: input.endTime,
-    reason: input.reason,
-    notes: input.notes,
-    appliesToAll: Boolean(input.appliesToAll),
-    dentistId: input.appliesToAll ? primaryDentist : primaryDentist,
-    dentistIds: input.appliesToAll ? undefined : ids.length > 1 ? ids : ids.length === 1 ? ids : undefined
-  });
+  let next = state;
+  for (const slot of slots) {
+    next = addBlockedSlot(next, { ...slot, tenantId: tenantId ?? resolveTenantId(state, undefined, slot.clinicId) });
+  }
+  return next;
+}
+
+export function removeScheduleBlockGroup(state: DemoState, blockGroupId: string): DemoState {
+  return {
+    ...state,
+    blockedSlots: state.blockedSlots.filter((b) => b.blockGroupId !== blockGroupId)
+  };
 }
 
 export function removeBlockedSlot(state: DemoState, id: string): DemoState {

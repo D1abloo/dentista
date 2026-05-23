@@ -8,7 +8,15 @@ import {
   User,
   X
 } from 'lucide-react';
-import { availableSlotsForDentist, validateAppointmentSlot } from '@/lib/agenda/availability';
+import { availableSlotsForDentist, blockRangeLabel, validateAppointmentSlot } from '@/lib/agenda/availability';
+import {
+  datesForMonthGrid,
+  datesInRangeInclusive,
+  endOfMonthIso,
+  professionalDisplayName,
+  type BlockMode,
+  type ScheduleBlockInput
+} from '@/lib/agenda/scheduleBlockExpand';
 import { fmtDate, fmtDateTime, statusLabel } from '@/lib/format';
 import { patientDisplayCode } from '@/lib/nhc';
 import { patientName } from '@/lib/selectors';
@@ -18,6 +26,8 @@ import { PatientLookup } from '../PatientLookup';
 
 const BLOCK_REASONS = ['Comida', 'Ausencia', 'Reunión', 'Vacaciones', 'Urgencia interna', 'Otro'] as const;
 const DURATIONS = [15, 30, 45, 60] as const;
+
+const WEEKDAY_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 export function AgendaDrawerShell({
   open,
@@ -244,25 +254,15 @@ export function AgendaBookDrawer({
   );
 }
 
-type BlockScope = 'all' | 'pick';
-
 type BlockDrawerProps = {
   open: boolean;
-  dentists: { id: string; fullName: string }[];
+  dentists: { id: string; fullName: string; visibleTitle?: string }[];
   date: string;
   initialTime?: string;
   defaultDentistId: string;
   ownAgenda: boolean;
   onClose: () => void;
-  onSubmit: (data: {
-    scope: BlockScope;
-    dentistIds: string[];
-    date: string;
-    startTime: string;
-    endTime: string;
-    reason: string;
-    notes: string;
-  }) => void;
+  onSubmit: (data: Omit<ScheduleBlockInput, 'clinicId' | 'cabinetId' | 'tenantId'>) => void;
 };
 
 export function AgendaBlockDrawer({
@@ -275,39 +275,65 @@ export function AgendaBlockDrawer({
   onClose,
   onSubmit
 }: BlockDrawerProps) {
-  const [bookDate, setBookDate] = React.useState(initialDate);
+  const [startDate, setStartDate] = React.useState(initialDate);
+  const [untilEndOfMonth, setUntilEndOfMonth] = React.useState(true);
+  const [endDateManual, setEndDateManual] = React.useState(initialDate);
+  const [blockMode, setBlockMode] = React.useState<BlockMode>('hours');
   const [startTime, setStartTime] = React.useState(initialTime);
   const [endTime, setEndTime] = React.useState(initialTime);
-  const [scope, setScope] = React.useState<BlockScope>('pick');
+  const [consecutive, setConsecutive] = React.useState(true);
   const [pickedIds, setPickedIds] = React.useState<string[]>([]);
+  const [pickedDates, setPickedDates] = React.useState<string[]>([initialDate]);
   const [reason, setReason] = React.useState<(typeof BLOCK_REASONS)[number]>('Comida');
   const [notes, setNotes] = React.useState('');
 
-  const allPicked = dentists.length > 0 && pickedIds.length === dentists.length;
+  const endDate = untilEndOfMonth ? endOfMonthIso(startDate) : endDateManual;
+  const monthDates = useMemo(() => datesForMonthGrid(startDate), [startDate]);
+  const rangeDates = useMemo(
+    () => datesInRangeInclusive(startDate, endDate >= startDate ? endDate : startDate),
+    [startDate, endDate]
+  );
 
   useEffect(() => {
     if (!open) return;
-    setBookDate(initialDate);
+    setStartDate(initialDate);
+    setEndDateManual(initialDate);
+    setUntilEndOfMonth(true);
     setStartTime(initialTime);
     setEndTime(initialTime);
-    if (ownAgenda && defaultDentistId) {
-      setScope('pick');
-      setPickedIds([defaultDentistId]);
-    } else if (defaultDentistId) {
-      setScope('pick');
-      setPickedIds([defaultDentistId]);
-    } else {
-      setScope('all');
-      setPickedIds([]);
+    setConsecutive(true);
+    setPickedDates([initialDate]);
+    setPickedIds(defaultDentistId ? [defaultDentistId] : []);
+  }, [open, initialDate, initialTime, defaultDentistId]);
+
+  useEffect(() => {
+    if (consecutive) {
+      setPickedDates(rangeDates);
     }
-  }, [open, initialDate, initialTime, defaultDentistId, dentists, ownAgenda]);
+  }, [consecutive, rangeDates]);
 
   function toggleDentist(id: string) {
     setPickedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
 
-  function toggleAllDentists() {
-    setPickedIds(allPicked ? [] : dentists.map((d) => d.id));
+  function toggleDate(iso: string) {
+    if (consecutive) return;
+    setPickedDates((prev) => (prev.includes(iso) ? prev.filter((d) => d !== iso) : [...prev, iso].sort()));
+  }
+
+  function submit() {
+    onSubmit({
+      dentistIds: pickedIds,
+      startDate,
+      endDate: endDate >= startDate ? endDate : startDate,
+      mode: blockMode,
+      startTime,
+      endTime,
+      consecutive,
+      selectedDates: consecutive ? rangeDates : pickedDates,
+      reason,
+      notes
+    });
   }
 
   const footer = (
@@ -315,21 +341,7 @@ export function AgendaBlockDrawer({
       <Button tone="ghost" type="button" onClick={onClose}>
         Cancelar
       </Button>
-      <Button
-        type="button"
-        className="agd-drawer__primary agd-drawer__primary--danger"
-        onClick={() =>
-          onSubmit({
-            scope,
-            dentistIds: scope === 'all' ? [] : pickedIds,
-            date: bookDate,
-            startTime,
-            endTime,
-            reason,
-            notes
-          })
-        }
-      >
+      <Button type="button" className="agd-drawer__primary agd-drawer__primary--danger" onClick={submit}>
         <Lock className="h-4 w-4" aria-hidden />
         Bloquear horario
       </Button>
@@ -338,71 +350,124 @@ export function AgendaBlockDrawer({
 
   return (
     <AgendaDrawerShell open={open} title="Bloquear horario" onClose={onClose} footer={footer}>
+      <div className="agd-pro-picker">
+        <p className="agd-block-scope__label">Profesionales (Dr. / Dra.)</p>
+        <ul className="agd-pro-picker__list">
+          {dentists.map((d) => (
+            <li key={d.id}>
+              <label className="agd-pro-picker__item">
+                <input
+                  type="checkbox"
+                  checked={pickedIds.includes(d.id)}
+                  disabled={ownAgenda && d.id !== defaultDentistId}
+                  onChange={() => toggleDentist(d.id)}
+                />
+                <span>{professionalDisplayName(d.fullName, d.visibleTitle)}</span>
+              </label>
+            </li>
+          ))}
+        </ul>
+        <p className="agd-pro-picker__hint">
+          {pickedIds.length
+            ? `${pickedIds.length} profesional${pickedIds.length === 1 ? '' : 'es'}`
+            : 'Selecciona al menos un Dr. o Dra.'}
+        </p>
+      </div>
+
+      <Field label="Desde">
+        <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+      </Field>
+
+      <label className="agd-toggle">
+        <input
+          type="checkbox"
+          checked={untilEndOfMonth}
+          onChange={(e) => setUntilEndOfMonth(e.target.checked)}
+        />
+        <span>Hasta fin de mes ({fmtDate(endOfMonthIso(startDate))})</span>
+      </label>
+
+      {!untilEndOfMonth ? (
+        <Field label="Hasta">
+          <Input
+            type="date"
+            value={endDateManual}
+            min={startDate}
+            onChange={(e) => setEndDateManual(e.target.value)}
+          />
+        </Field>
+      ) : null}
+
       <div className="agd-block-scope">
-        <p className="agd-block-scope__label">Aplicar bloqueo a</p>
-        <div className="agd-segment agd-segment--scope" role="group" aria-label="Alcance del bloqueo">
+        <p className="agd-block-scope__label">Tipo de bloqueo</p>
+        <div className="agd-segment agd-segment--scope" role="group">
           <button
             type="button"
-            className={`agd-segment__btn${scope === 'all' ? ' agd-segment__btn--active' : ''}`}
-            disabled={ownAgenda}
-            onClick={() => setScope('all')}
+            className={`agd-segment__btn${blockMode === 'hours' ? ' agd-segment__btn--active' : ''}`}
+            onClick={() => setBlockMode('hours')}
           >
-            Todos los dentistas
+            Por horas
           </button>
           <button
             type="button"
-            className={`agd-segment__btn${scope === 'pick' ? ' agd-segment__btn--active' : ''}`}
-            onClick={() => setScope('pick')}
+            className={`agd-segment__btn${blockMode === 'fullday' ? ' agd-segment__btn--active' : ''}`}
+            onClick={() => setBlockMode('fullday')}
           >
-            Uno o varios
+            Días completos
           </button>
         </div>
       </div>
 
-      {scope === 'pick' ? (
-        <div className="agd-pro-picker">
-          {!ownAgenda && dentists.length > 1 ? (
-            <button type="button" className="agd-pro-picker__toggle" onClick={toggleAllDentists}>
-              {allPicked ? 'Quitar selección' : 'Seleccionar todos'}
-            </button>
-          ) : null}
-          <ul className="agd-pro-picker__list">
-            {dentists.map((d) => (
-              <li key={d.id}>
-                <label className="agd-pro-picker__item">
-                  <input
-                    type="checkbox"
-                    checked={pickedIds.includes(d.id)}
-                    disabled={ownAgenda && d.id !== defaultDentistId}
-                    onChange={() => toggleDentist(d.id)}
-                  />
-                  <span>{d.fullName}</span>
-                </label>
-              </li>
-            ))}
-          </ul>
-          <p className="agd-pro-picker__hint">
-            {pickedIds.length
-              ? `${pickedIds.length} profesional${pickedIds.length === 1 ? '' : 'es'} seleccionado${pickedIds.length === 1 ? '' : 's'}`
-              : 'Marca al menos un profesional'}
-          </p>
+      {blockMode === 'hours' ? (
+        <div className="agd-form-row">
+          <Field label="Hora inicio">
+            <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+          </Field>
+          <Field label="Hora fin">
+            <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+          </Field>
         </div>
       ) : (
-        <p className="agd-helper agd-helper--muted">
-          El bloqueo afectará a todos los dentistas de la clínica en la franja indicada.
+        <p className="agd-helper agd-helper--muted">Se bloqueará el horario de clínica completo en cada día seleccionado.</p>
+      )}
+
+      <div className="agd-block-scope">
+        <p className="agd-block-scope__label">Días a bloquear</p>
+        <label className="agd-toggle">
+          <input
+            type="checkbox"
+            checked={consecutive}
+            onChange={(e) => setConsecutive(e.target.checked)}
+          />
+          <span>Días consecutivos (del {fmtDate(startDate)} al {fmtDate(endDate)})</span>
+        </label>
+      </div>
+
+      {!consecutive ? (
+        <div className="agd-day-grid" role="group" aria-label="Seleccionar días">
+          {monthDates.map((iso) => {
+            const inRange = iso >= startDate && iso <= endDate;
+            const dow = new Date(`${iso}T12:00:00`).getDay();
+            return (
+              <button
+                key={iso}
+                type="button"
+                disabled={!inRange}
+                className={`agd-day-grid__cell${pickedDates.includes(iso) ? ' agd-day-grid__cell--on' : ''}${!inRange ? ' agd-day-grid__cell--off' : ''}`}
+                onClick={() => toggleDate(iso)}
+              >
+                <span className="agd-day-grid__dow">{WEEKDAY_SHORT[dow]}</span>
+                <span className="agd-day-grid__num">{new Date(`${iso}T12:00:00`).getDate()}</span>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="agd-pro-picker__hint">
+          {rangeDates.length} día{rangeDates.length === 1 ? '' : 's'} en el rango seleccionado.
         </p>
       )}
-      <Field label="Fecha">
-        <Input type="date" value={bookDate} onChange={(e) => setBookDate(e.target.value)} />
-      </Field>
-      <div className="agd-form-row">
-        <Field label="Hora inicio">
-          <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-        </Field>
-        <Field label="Hora fin">
-          <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-        </Field>
-      </div>
+
       <Field label="Motivo">
         <Select value={reason} onChange={(e) => setReason(e.target.value as (typeof BLOCK_REASONS)[number])}>
           {BLOCK_REASONS.map((r) => (
@@ -538,15 +603,18 @@ export function AgendaBlockDetailDrawer({
   block,
   targetLabel,
   onClose,
-  onRemove
+  onRemove,
+  groupDayCount
 }: {
   open: boolean;
   block: BlockedSlot | null;
   targetLabel: string;
+  groupDayCount?: number;
   onClose: () => void;
   onRemove: () => void;
 }) {
   if (!block) return null;
+  const range = blockRangeLabel(block);
 
   const footer = (
     <>
@@ -567,14 +635,18 @@ export function AgendaBlockDetailDrawer({
           <dd>{targetLabel}</dd>
         </div>
         <div>
-          <dt>Fecha</dt>
-          <dd>{fmtDate(block.date)}</dd>
+          <dt>Periodo</dt>
+          <dd>
+            {range ?? fmtDate(block.date)}
+            {groupDayCount && groupDayCount > 1 ? ` (${groupDayCount} días)` : ''}
+          </dd>
         </div>
         <div>
           <dt>Horario</dt>
           <dd>
-            {block.time}
-            {block.endTime && block.endTime !== block.time ? ` – ${block.endTime}` : ''}
+            {block.allDay
+              ? 'Día completo'
+              : `${block.time}${block.endTime && block.endTime !== block.time ? ` – ${block.endTime}` : ''}`}
           </dd>
         </div>
         <div>

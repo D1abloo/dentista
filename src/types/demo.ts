@@ -393,6 +393,12 @@ export interface BlockedSlot {
   appliesToAll?: boolean;
   /** Profesionales afectados cuando el bloqueo no es global. */
   dentistIds?: string[];
+  /** Agrupa bloqueos creados en la misma acción (rango de fechas). */
+  blockGroupId?: string;
+  /** Bloqueo de día completo (horario clínica). */
+  allDay?: boolean;
+  /** Fecha fin del rango (referencia en el grupo). */
+  endDate?: string;
 }
 
 export interface DemoState {

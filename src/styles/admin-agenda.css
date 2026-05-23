@@ -603,6 +603,57 @@
   color: #94a3b8;
 }
 
+.agd-day-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.agd-day-grid__cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  min-height: 2.6rem;
+  padding: 0.25rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.agd-day-grid__cell:hover:not(:disabled) {
+  border-color: #0d9488;
+  background: #ecfdf5;
+}
+
+.agd-day-grid__cell--on {
+  border-color: #0d9488;
+  background: #0d9488;
+  color: #fff;
+}
+
+.agd-day-grid__cell--off {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.agd-day-grid__dow {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.agd-day-grid__num {
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
 .agd-helper svg {
   flex-shrink: 0;
   margin-top: 0.1rem;

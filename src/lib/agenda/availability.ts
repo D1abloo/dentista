@@ -1,4 +1,5 @@
 import { isActiveStatus } from '@/lib/appointments';
+import { professionalDisplayName } from '@/lib/agenda/scheduleBlockExpand';
 import { generateTimeSlots } from '@/lib/slots';
 import type { Appointment, BlockedSlot, DemoState } from '@/types/demo';
 
@@ -24,17 +25,25 @@ export function blockAppliesToDentist(block: BlockedSlot, dentistId: string) {
 
 export function blockTargetLabel(
   block: BlockedSlot,
-  dentists: { id: string; fullName: string }[]
+  dentists: { id: string; fullName: string; visibleTitle?: string }[]
 ): string {
   if (block.appliesToAll) return 'Todos los profesionales';
   const ids = block.dentistIds?.length ? block.dentistIds : block.dentistId ? [block.dentistId] : [];
   if (!ids.length) return 'Profesional';
   const names = ids
-    .map((id) => dentists.find((d) => d.id === id)?.fullName)
+    .map((id) => {
+      const d = dentists.find((x) => x.id === id);
+      return d ? professionalDisplayName(d.fullName, d.visibleTitle) : null;
+    })
     .filter(Boolean) as string[];
   if (names.length === 1) return names[0];
   if (names.length <= 3) return names.join(', ');
   return `${names.slice(0, 2).join(', ')} y ${names.length - 2} más`;
+}
+
+export function blockRangeLabel(block: BlockedSlot): string | null {
+  if (!block.endDate || block.endDate === block.date) return null;
+  return `${block.date} → ${block.endDate}`;
 }
 
 export function blockCoversTime(block: BlockedSlot, time: string, dentistId: string) {

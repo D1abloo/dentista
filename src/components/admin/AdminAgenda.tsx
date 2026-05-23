@@ -18,10 +18,12 @@ import { appointmentsInRange, monthPrefix, weekRange } from '@/lib/appointments'
 import {
   confirmAppointmentAttendance,
   removeBlockedSlot,
+  removeScheduleBlockGroup,
   rescheduleAppointment,
-  saveScheduleBlock
+  saveScheduleBlocks
 } from '@/lib/demoStore';
 import { blockTargetLabel } from '@/lib/agenda/availability';
+import { expandScheduleBlocks, type ScheduleBlockInput } from '@/lib/agenda/scheduleBlockExpand';
 import { createAdminAppointment, updateAdminAppointmentStatus } from '@/lib/adminAppointments';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { createScheduleBlockLive, deleteScheduleBlockLive } from '@/lib/clinicApi';
@@ -380,83 +382,74 @@ export function AdminAgenda() {
     }
   }
 
-  async function submitBlockFromDrawer(data: {
-    scope: 'all' | 'pick';
-    dentistIds: string[];
-    date: string;
-    startTime: string;
-    endTime: string;
-    reason: string;
-    notes: string;
-  }) {
+  async function submitBlockFromDrawer(data: Omit<ScheduleBlockInput, 'clinicId' | 'cabinetId' | 'tenantId'>) {
     if (!data.reason.trim()) {
       setNotice({ type: 'error', message: 'Indica un motivo.' });
       return;
     }
-    if (data.scope === 'pick' && !data.dentistIds.length) {
-      setNotice({ type: 'error', message: 'Selecciona al menos un dentista.' });
+    if (!data.dentistIds.length) {
+      setNotice({ type: 'error', message: 'Selecciona al menos un Dr. o Dra.' });
       return;
     }
-    const start = data.startTime.slice(0, 5);
-    const end = data.endTime.slice(0, 5);
-    const endNorm = end >= start ? end : start;
-    const appliesToAll = data.scope === 'all';
-    const ids = appliesToAll ? [] : data.dentistIds;
+    if (!data.consecutive && !data.selectedDates.length) {
+      setNotice({ type: 'error', message: 'Selecciona al menos un día.' });
+      return;
+    }
+
+    const input: ScheduleBlockInput = {
+      ...data,
+      clinicId,
+      cabinetId: activeClinic.cabinets[0]?.id ?? 'g-1',
+      startTime: data.startTime.slice(0, 5),
+      endTime: data.endTime.slice(0, 5)
+    };
+    const slots = expandScheduleBlocks(input);
+    if (!slots.length) {
+      setNotice({ type: 'error', message: 'No se generaron bloqueos para el rango indicado.' });
+      return;
+    }
 
     if (!isClientDemoMode()) {
-      const targets = appliesToAll ? clinicDentists.map((d) => d.id) : ids;
-      if (!targets.length) {
-        setNotice({ type: 'error', message: 'No hay dentistas para bloquear.' });
-        return;
-      }
-      for (const dId of targets) {
-        const live = await createScheduleBlockLive({
-          dentistId: dId,
-          date: data.date,
-          time: start,
-          reason: data.reason,
-          durationMinutes: 60
-        });
-        if (!live.ok) {
-          setNotice({ type: 'error', message: live.message });
-          return;
+      for (const slot of slots) {
+        const ids = slot.dentistIds?.length ? slot.dentistIds : [slot.dentistId];
+        for (const dId of ids) {
+          const live = await createScheduleBlockLive({
+            dentistId: dId,
+            date: slot.date,
+            time: slot.time,
+            reason: slot.reason,
+            durationMinutes: 60
+          });
+          if (!live.ok) {
+            setNotice({ type: 'error', message: live.message });
+            return;
+          }
         }
       }
       await refresh();
     } else {
-      commit(
-        saveScheduleBlock(state, {
-          clinicId,
-          cabinetId: activeClinic.cabinets[0]?.id ?? 'g-1',
-          date: data.date,
-          time: start,
-          endTime: endNorm,
-          reason: data.reason,
-          notes: data.notes,
-          appliesToAll,
-          dentistIds: ids
-        })
-      );
+      commit(saveScheduleBlocks(state, slots));
     }
     setBlockOpen(false);
-    const scopeMsg = appliesToAll
-      ? 'todos los dentistas'
-      : ids.length === 1
-        ? '1 profesional'
-        : `${ids.length} profesionales`;
-    setNotice({ type: 'ok', message: `Horario bloqueado para ${scopeMsg}.` });
+    const days = new Set(slots.map((s) => s.date)).size;
+    setNotice({
+      type: 'ok',
+      message: `Horario bloqueado: ${days} día${days === 1 ? '' : 's'}, ${data.dentistIds.length} profesional${data.dentistIds.length === 1 ? '' : 'es'}.`
+    });
   }
 
-  async function removeBlock(blockId: string) {
+  async function removeBlock(block: BlockedSlot) {
     if (!isClientDemoMode()) {
-      const live = await deleteScheduleBlockLive(blockId);
+      const live = await deleteScheduleBlockLive(block.id);
       if (!live.ok) {
         setNotice({ type: 'error', message: live.message });
         return;
       }
       await refresh();
+    } else if (block.blockGroupId) {
+      commit(removeScheduleBlockGroup(state, block.blockGroupId));
     } else {
-      commit(removeBlockedSlot(state, blockId));
+      commit(removeBlockedSlot(state, block.id));
     }
     setNotice({ type: 'ok', message: 'Bloqueo eliminado.' });
   }
@@ -652,7 +645,11 @@ export function AdminAgenda() {
                 appointments={dayAppts}
                 blocks={allBlocksForDay}
                 dentistId={dentistId}
-                dentists={clinicDentists.map((d) => ({ id: d.id, fullName: d.fullName }))}
+                dentists={clinicDentists.map((d) => ({
+                  id: d.id,
+                  fullName: d.fullName,
+                  visibleTitle: d.visibleTitle
+                }))}
                 treatments={scope.treatments.map((t) => ({ id: t.id, name: t.name }))}
                 multiDentist={timelineView === 'dentista'}
                 onPickSlot={pickSlot}
@@ -754,7 +751,11 @@ export function AdminAgenda() {
         clinicId={clinicId}
         cabinetId={activeClinic.cabinets[0]?.id ?? 'g-1'}
         patients={clinicPatients}
-        dentists={clinicDentists.map((d) => ({ id: d.id, fullName: d.fullName }))}
+        dentists={clinicDentists.map((d) => ({
+          id: d.id,
+          fullName: d.fullName,
+          visibleTitle: d.visibleTitle
+        }))}
         treatments={scope.treatments.map((t) => ({ id: t.id, name: t.name }))}
         date={date}
         initialTime={bookPrefillTime}
@@ -767,7 +768,11 @@ export function AdminAgenda() {
 
       <AgendaBlockDrawer
         open={blockOpen}
-        dentists={clinicDentists.map((d) => ({ id: d.id, fullName: d.fullName }))}
+        dentists={clinicDentists.map((d) => ({
+          id: d.id,
+          fullName: d.fullName,
+          visibleTitle: d.visibleTitle
+        }))}
         date={date}
         initialTime={blockPrefillTime}
         defaultDentistId={(dentistId || clinicDentists[0]?.id) ?? ''}
@@ -817,18 +822,27 @@ export function AdminAgenda() {
       <AgendaBlockDetailDrawer
         open={Boolean(detailBlock)}
         block={detailBlock}
+        groupDayCount={
+          detailBlock?.blockGroupId
+            ? state.blockedSlots.filter((b) => b.blockGroupId === detailBlock.blockGroupId).length
+            : undefined
+        }
         targetLabel={
           detailBlock
             ? blockTargetLabel(
                 detailBlock,
-                clinicDentists.map((d) => ({ id: d.id, fullName: d.fullName }))
+                clinicDentists.map((d) => ({
+                  id: d.id,
+                  fullName: d.fullName,
+                  visibleTitle: d.visibleTitle
+                }))
               )
             : ''
         }
         onClose={() => setDetailBlock(null)}
         onRemove={() => {
           if (!detailBlock) return;
-          void removeBlock(detailBlock.id);
+          void removeBlock(detailBlock);
           setDetailBlock(null);
         }}
       />
