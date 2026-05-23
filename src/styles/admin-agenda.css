@@ -1654,6 +1654,95 @@
   background: #fef2f2;
 }
 
+.agd-btn-unblock {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid #99f6e4;
+  background: #fff;
+  color: #0f766e;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.agd-btn-unblock:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.15);
+  background: #ecfdf5;
+}
+
+.agd-unblock-summary {
+  margin: 0.75rem 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.agd-unblock-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-height: min(52vh, 28rem);
+  overflow-y: auto;
+}
+
+.agd-unblock-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.agd-unblock-item__main {
+  min-width: 0;
+  flex: 1;
+}
+
+.agd-unblock-item__date {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #0f2742;
+}
+
+.agd-unblock-item__time {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0d9488;
+}
+
+.agd-unblock-item__pro {
+  margin: 0.25rem 0 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.agd-unblock-item__reason {
+  margin: 0.2rem 0 0;
+  font-size: 0.68rem;
+  color: #94a3b8;
+}
+
+.agd-unblock-item__btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 .agd-drawer-backdrop {
   position: fixed;
   inset: 0;

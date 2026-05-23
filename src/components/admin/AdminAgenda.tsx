@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Clock,
   Lock,
+  Unlock,
   Plus,
   Search,
   Users
@@ -48,6 +49,7 @@ import {
   AgendaApptDetailDrawer,
   AgendaBlockDetailDrawer,
   AgendaBlockDrawer,
+  AgendaUnblockDrawer,
   AgendaBookDrawer,
   validateAppointmentSlot
 } from './agenda/AgendaDrawers';
@@ -132,6 +134,7 @@ export function AdminAgenda() {
   const [timelineView, setTimelineView] = useState<'hora' | 'dentista'>('hora');
   const [bookOpen, setBookOpen] = useState(false);
   const [blockOpen, setBlockOpen] = useState(false);
+  const [unblockOpen, setUnblockOpen] = useState(false);
   const [bookPrefillTime, setBookPrefillTime] = useState('10:00');
   const [blockPrefillTime, setBlockPrefillTime] = useState('13:00');
   const [detailBlock, setDetailBlock] = useState<BlockedSlot | null>(null);
@@ -205,6 +208,11 @@ export function AdminAgenda() {
   const allBlocksForDay = useMemo(
     () => scope.blockedSlots.filter((b) => b.clinicId === clinicId && b.date === date),
     [scope.blockedSlots, clinicId, date]
+  );
+
+  const clinicBlocks = useMemo(
+    () => scope.blockedSlots.filter((b) => b.clinicId === clinicId),
+    [scope.blockedSlots, clinicId]
   );
 
   const rangeAppts = useMemo(() => {
@@ -456,12 +464,7 @@ export function AdminAgenda() {
   }
 
   async function removeBlock(block: BlockedSlot) {
-    const allowed = canDeleteScheduleBlock(staff, block, {
-      ownAgenda,
-      dentistId: staff?.dentistId ?? dentistId,
-      assignedClinicIds: staff?.assignedClinicIds
-    });
-    if (!allowed) {
+    if (!canDeleteBlock(block)) {
       setNotice({ type: 'error', message: 'No tienes permiso para eliminar este bloqueo en esta sede.' });
       return;
     }
@@ -483,16 +486,19 @@ export function AdminAgenda() {
       commit(removeBlockedSlot(state, block.id));
     }
     setDetailBlock(null);
+    setUnblockOpen(false);
     setNotice({ type: 'ok', message: 'Bloqueo eliminado.' });
   }
 
-  const canRemoveDetailBlock = detailBlock
-    ? canDeleteScheduleBlock(staff, detailBlock, {
-        ownAgenda,
-        dentistId: staff?.dentistId ?? dentistId,
-        assignedClinicIds: staff?.assignedClinicIds
-      })
-    : false;
+  function canDeleteBlock(block: BlockedSlot) {
+    return canDeleteScheduleBlock(staff, block, {
+      ownAgenda,
+      dentistId: staff?.dentistId ?? dentistId,
+      assignedClinicIds: staff?.assignedClinicIds
+    });
+  }
+
+  const canRemoveDetailBlock = detailBlock ? canDeleteBlock(detailBlock) : false;
 
   function selectClinic(nextId: string) {
     setClinicId(nextId);
@@ -612,6 +618,11 @@ export function AdminAgenda() {
         <button type="button" className="agd-btn-block" onClick={() => openBlockDrawer()}>
           <Lock className="h-4 w-4" aria-hidden />
           Bloquear horario
+        </button>
+
+        <button type="button" className="agd-btn-unblock" onClick={() => setUnblockOpen(true)}>
+          <Unlock className="h-4 w-4" aria-hidden />
+          Desbloquear horarios
         </button>
 
         <div className="agd-bell-wrap">
@@ -812,6 +823,23 @@ export function AdminAgenda() {
         submitting={submitting}
         onClose={() => setBookOpen(false)}
         onSubmit={(data) => void createAppointmentFromDrawer(data)}
+      />
+
+      <AgendaUnblockDrawer
+        open={unblockOpen}
+        clinicId={clinicId}
+        blocks={clinicBlocks}
+        anchorDate={date}
+        dentists={clinicDentists.map((d) => ({
+          id: d.id,
+          fullName: d.fullName,
+          visibleTitle: d.visibleTitle
+        }))}
+        dentistFilter={dentistId}
+        ownAgenda={ownAgenda}
+        canDelete={canDeleteBlock}
+        onClose={() => setUnblockOpen(false)}
+        onUnblock={(block) => void removeBlock(block)}
       />
 
       <AgendaBlockDrawer

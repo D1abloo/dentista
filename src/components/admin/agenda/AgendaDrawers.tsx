@@ -5,10 +5,12 @@ import {
   Lock,
   Mail,
   MessageSquare,
+  Unlock,
   User,
   X
 } from 'lucide-react';
-import { availableSlotsForDentist, blockRangeLabel, validateAppointmentSlot } from '@/lib/agenda/availability';
+import { availableSlotsForDentist, blockRangeLabel, blockTargetLabel, validateAppointmentSlot } from '@/lib/agenda/availability';
+import { formatUnblockTime, listUnblockEntries } from '@/lib/agenda/unblockEntries';
 import {
   datesForMonthGrid,
   datesInRangeInclusive,
@@ -593,6 +595,139 @@ export function AgendaApptDetailDrawer({
         <Button type="button" tone="secondary" className="w-full" onClick={onConfirmAttendance}>
           Confirmar asistencia
         </Button>
+      ) : null}
+    </AgendaDrawerShell>
+  );
+}
+
+type UnblockDrawerProps = {
+  open: boolean;
+  clinicId: string;
+  blocks: BlockedSlot[];
+  anchorDate: string;
+  dentists: { id: string; fullName: string; visibleTitle?: string }[];
+  dentistFilter: string;
+  ownAgenda: boolean;
+  canDelete: (block: BlockedSlot) => boolean;
+  onClose: () => void;
+  onUnblock: (block: BlockedSlot) => void;
+};
+
+export function AgendaUnblockDrawer({
+  open,
+  clinicId,
+  blocks,
+  anchorDate,
+  dentists,
+  dentistFilter,
+  ownAgenda,
+  canDelete,
+  onClose,
+  onUnblock
+}: UnblockDrawerProps) {
+  const [fromDate, setFromDate] = React.useState(anchorDate);
+  const [toDate, setToDate] = React.useState(() => endOfMonthIso(anchorDate));
+  const [filterDentist, setFilterDentist] = React.useState(dentistFilter);
+
+  useEffect(() => {
+    if (!open) return;
+    setFromDate(anchorDate);
+    setToDate(endOfMonthIso(anchorDate));
+    setFilterDentist(dentistFilter);
+  }, [open, anchorDate, dentistFilter]);
+
+  const scopedEntries = useMemo(
+    () =>
+      listUnblockEntries(blocks, {
+        clinicId,
+        dentistId: filterDentist || undefined,
+        fromDate,
+        toDate: toDate >= fromDate ? toDate : fromDate
+      }),
+    [blocks, clinicId, filterDentist, fromDate, toDate]
+  );
+
+  const footer = (
+    <Button tone="ghost" type="button" onClick={onClose}>
+      Cerrar
+    </Button>
+  );
+
+  return (
+    <AgendaDrawerShell open={open} title="Desbloquear horarios" onClose={onClose} footer={footer}>
+      <p className="agd-helper agd-helper--muted">
+        Consulta los bloqueos activos en el rango indicado y quita los que ya no apliquen.
+      </p>
+
+      <div className="agd-form-row">
+        <Field label="Desde">
+          <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+        </Field>
+        <Field label="Hasta">
+          <Input
+            type="date"
+            value={toDate}
+            min={fromDate}
+            onChange={(e) => setToDate(e.target.value)}
+          />
+        </Field>
+      </div>
+
+      {!ownAgenda ? (
+        <Field label="Profesional">
+          <Select value={filterDentist} onChange={(e) => setFilterDentist(e.target.value)}>
+            <option value="">Todos</option>
+            {dentists.map((d) => (
+              <option key={d.id} value={d.id}>
+                {professionalDisplayName(d.fullName, d.visibleTitle)}
+              </option>
+            ))}
+          </Select>
+        </Field>
+      ) : null}
+
+      <p className="agd-unblock-summary">
+        {scopedEntries.length
+          ? `${scopedEntries.length} bloqueo${scopedEntries.length === 1 ? '' : 's'} en el periodo`
+          : 'No hay bloqueos en este periodo'}
+      </p>
+
+      <ul className="agd-unblock-list">
+        {scopedEntries.map((entry) => {
+          const block = entry.representative;
+          const target = blockTargetLabel(block, dentists);
+          const period =
+            entry.dayCount > 1
+              ? `${fmtDate(entry.dateFrom)} → ${fmtDate(entry.dateTo)} (${entry.dayCount} días)`
+              : fmtDate(entry.dateFrom);
+          const allowed = canDelete(block);
+
+          return (
+            <li key={entry.key} className="agd-unblock-item">
+              <div className="agd-unblock-item__main">
+                <p className="agd-unblock-item__date">{period}</p>
+                <p className="agd-unblock-item__time">{formatUnblockTime(block)}</p>
+                <p className="agd-unblock-item__pro">{target}</p>
+                <p className="agd-unblock-item__reason">{block.reason}</p>
+              </div>
+              <Button
+                type="button"
+                tone="secondary"
+                className="agd-unblock-item__btn"
+                disabled={!allowed}
+                title={allowed ? 'Quitar bloqueo' : 'Sin permiso para desbloquear'}
+                onClick={() => onUnblock(block)}
+              >
+                <Unlock className="h-4 w-4" aria-hidden />
+                Desbloquear
+              </Button>
+            </li>
+          );
+        })}
+      </ul>
+
+      {!scopedEntries.length ? (
+        <p className="agd-helper agd-helper--muted">Prueba ampliando el rango de fechas o cambiando el filtro de profesional.</p>
       ) : null}
     </AgendaDrawerShell>
   );
