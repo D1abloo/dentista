@@ -20,7 +20,8 @@ Scripts: `npm run qa:audit` (estructura) · `npm run qa:live` (E2E API en vivo) 
 | RLS Supabase | **FIX** — migración `0028_rls_records_gaps.sql` |
 | Bloqueos agenda | **FIX** — inserción robusta + fin de tramo válido |
 | Multi-sede UI | **PASS-C** — `useActiveClinic` + `ClinicBranchSwitcher` |
-| E2E API live (auth, agenda, plataforma) | **PASS-L** — ver `docs/QA_E2E_LIVE_RESULTS.json` |
+| E2E API live (cita, informe, factura, pago, mensaje) | **PASS-L** — `npm run qa:live` |
+| Org Mediterráneo multi-sede | **PASS-L** — `npm run seed:qa-mediterraneo` o POST plataforma en `qa:live` |
 | E2E datos reales multi-org | **MANUAL** — crear Mediterráneo + 3 clínicas en UI |
 
 ## Matriz por módulo
@@ -31,7 +32,10 @@ Scripts: `npm run qa:audit` (estructura) · `npm run qa:live` (E2E API en vivo) 
 | Plataforma | Aislamiento orgs | Super Admin | Sin PHI cruzado | Metadatos vía `platform/*` | PASS-C | — |
 | Clínica A/B | Admin no ve pacientes B | Admin A | 403 / lista vacía | `assertClinicScopeAsync` | PASS-C | `patients.ts`, guards |
 | Paciente A/B | No ve informes B | Paciente A | Solo propios | Filtro `patientId` + RLS | PASS-C | `0028`, APIs records |
-| Agenda | Crear / cancelar / reprogramar cita | Admin | Sincronía panel + PdP | — | MANUAL | `appointments.ts` async scope |
+| Agenda | Crear / confirmar / cancelar cita | Admin | API 201 + PATCH | `npm run qa:live` | PASS-L | `e2e-live-full.mjs` |
+| Informes | Crear visible PdP | Admin | POST records/report | `npm run qa:live` | PASS-L | — |
+| Facturas / Pagos | Crear + pagar | Admin | POST invoice + payment | `npm run qa:live` | PASS-L | — |
+| Mensajes | Clínica → paciente | Admin | POST records/message | `npm run qa:live` | PASS-L | — |
 | Agenda | Bloquear horario Dr/Dra | Admin | Rojo en agenda + PdP | — | MANUAL | `scheduleBlocks.ts` |
 | Agenda | Eliminar bloqueo (ids) | Admin | Eliminado en API + UI | `npm run qa:live` | PASS-L | `e2e-live-full.mjs` |
 | Agenda | Eliminar bloqueo grupo | Admin | Grupo eliminado | — | MANUAL | `deleteScheduleBlockGroup` |
