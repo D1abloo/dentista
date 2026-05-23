@@ -347,8 +347,8 @@ export function PlatformAudit() {
 
   return (
     <PlatformShell
-      title="Auditoría"
-      subtitle="Consulta eventos de seguridad, accesos, cambios administrativos y actividad crítica de clínicas y plataforma."
+      title="Monitorización y registros"
+      subtitle="Consulta eventos de seguridad, logins, errores, descargas y actividad crítica de clínicas y plataforma."
       headerActions={
         <>
           <button
@@ -396,12 +396,12 @@ export function PlatformAudit() {
       <div className={`aud-page cln-layout${selected ? ' cln-page--panel-open' : ''}`}>
         {k ? (
           <div className="cln-kpis plt-kpis">
-            <AudKpi label="Eventos auditados" value={k.audited} icon={Activity} tone="blue" spark={[180, 210, 230, 248, 248, 248, 248]} delay={0} numeric />
-            <AudKpi label="Eventos críticos" value={k.critical} icon={Shield} tone="red" spark={[0, 0, 0, 0, 0, 0, 0]} delay={70} numeric />
-            <AudKpi label="Cambios de permisos" value={k.permission_changes} icon={Key} tone="purple" spark={[1, 2, 2, 3, 3, 3, 3]} delay={140} numeric />
-            <AudKpi label="Accesos sensibles" value={k.sensitive_access} icon={Lock} tone="orange" spark={[2, 4, 5, 6, 6, 6, 6]} delay={210} numeric />
-            <AudKpi label="Exportaciones" value={k.exports} icon={Download} tone="teal" spark={[1, 2, 3, 4, 4, 4, 4]} delay={280} numeric />
-            <AudKpi label="Último evento" value={k.last_event} icon={Clock} tone="green" spark={[1, 1, 1, 1, 1, 1, 1]} delay={350} />
+            <AudKpi label="Eventos hoy" value={k.events_today ?? k.audited} icon={Activity} tone="blue" spark={[12, 18, 22, 28, 32, 36, k.events_today ?? 40]} delay={0} numeric />
+            <AudKpi label="Logins correctos" value={k.logins_ok ?? 0} icon={CheckCircle2} tone="green" spark={[2, 4, 6, 8, 10, 12, 14]} delay={70} numeric />
+            <AudKpi label="Logins fallidos" value={k.logins_failed ?? 0} icon={AlertTriangle} tone="orange" spark={[0, 1, 1, 2, 2, 2, 2]} delay={140} numeric />
+            <AudKpi label="Errores críticos" value={k.critical} icon={Shield} tone="red" spark={[0, 0, 1, 1, 2, 2, 2]} delay={210} numeric />
+            <AudKpi label="Accesos denegados" value={k.access_denied ?? 0} icon={Lock} tone="purple" spark={[1, 1, 2, 2, 3, 3, 3]} delay={280} numeric />
+            <AudKpi label="Eventos seguridad" value={k.security_events ?? k.sensitive_access} icon={Key} tone="teal" spark={[3, 4, 5, 6, 7, 8, 9]} delay={350} numeric />
           </div>
         ) : null}
 

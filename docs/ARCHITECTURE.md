@@ -67,7 +67,8 @@ Entidades principales:
 - campaigns
 - reviews
 - availability_rules
-- audit_logs
+- audit_logs (event_type, module, severity, result, user_email, tenant_id, IP, user_agent — migración 0030)
+- login_events (historial de sesiones e intentos de login)
 - system_logs
 - role_permissions
 - clinic_settings

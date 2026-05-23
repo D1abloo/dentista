@@ -10,6 +10,7 @@ import {
   FileText,
   FileSignature,
   BookOpen,
+  Activity,
   ClipboardCheck,
   KeyRound,
   LayoutDashboard,
@@ -41,7 +42,8 @@ export type AdminView =
   | 'acceso-portal'
   | 'auditoria-pdp'
   | 'usuarios'
-  | 'consentimientos';
+  | 'consentimientos'
+  | 'monitorizacion';
 
 export const adminNav: { href: string; label: string; icon: LucideIcon; view: AdminView }[] = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, view: 'dashboard' },
@@ -62,6 +64,7 @@ export const adminNav: { href: string; label: string; icon: LucideIcon; view: Ad
   { href: '/admin/configuracion', label: 'Ajustes', icon: Settings, view: 'configuracion' },
   { href: '/admin/acceso-portal', label: 'Acceso PdP', icon: KeyRound, view: 'acceso-portal' },
   { href: '/admin/auditoria-pdp', label: 'Auditoría PdP', icon: ClipboardCheck, view: 'auditoria-pdp' },
+  { href: '/admin/monitorizacion', label: 'Monitorización', icon: Activity, view: 'monitorizacion' },
   { href: '/admin/usuarios', label: 'Usuarios clínica', icon: Users, view: 'usuarios' },
   { href: '/ayuda#panel-admin', label: 'Guía de uso', icon: BookOpen, view: 'dashboard' }
 ];
@@ -86,7 +89,8 @@ export const adminTitles: Record<AdminView, string> = {
   'acceso-portal': 'Acceso al portal del paciente',
   'auditoria-pdp': 'Auditoría PdP',
   usuarios: 'Usuarios de clínica',
-  consentimientos: 'Consentimientos informados'
+  consentimientos: 'Consentimientos informados',
+  monitorizacion: 'Monitorización y registros'
 };
 
 export const adminSubtitles: Record<AdminView, string> = {
@@ -111,5 +115,6 @@ export const adminSubtitles: Record<AdminView, string> = {
   'acceso-portal': 'Tokens de acceso al portal del paciente (sin historial)',
   'auditoria-pdp': 'Registro de actividad por profesional · exportar Excel',
   usuarios: 'Alta de personal vinculado a la clínica',
-  consentimientos: 'Firma obligatoria del paciente en el portal'
+  consentimientos: 'Firma obligatoria del paciente en el portal',
+  monitorizacion: 'Actividad de tu clínica · logins · seguridad · especificación del sistema'
 };

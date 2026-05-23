@@ -13,7 +13,7 @@ import {
 import { AccountNotActivatedError } from '@/lib/auth/accountErrors';
 import { fail, ok } from '@/lib/http';
 import { logError } from '@/lib/logger';
-import { logPlatformAudit } from '@/lib/platform/platformAudit';
+import { auditAuthFailure, auditAuthSuccess } from '@/lib/audit/authAudit';
 import { loginSchema } from '@/lib/validators';
 
 export const prerender = false;
@@ -21,7 +21,8 @@ export const prerender = false;
 const SESSION_HOURS = 8;
 const REMEMBER_DAYS = 30;
 
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async (context) => {
+  const { request, cookies } = context;
   try {
     const payload = await request.json();
     const parsed = loginSchema.safeParse(payload);
@@ -44,28 +45,32 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       if (!user) {
         const email = parsed.data.email.trim().toLowerCase();
         if (await hasValidAuthWithoutPlatformAccess(email, parsed.data.password)) {
-          await logPlatformAudit({
-            action: 'auth.login_denied',
-            entity: 'platform_admin',
-            metadata: { reason: 'not_platform_admin' },
-            actorEmail: email
+          await auditAuthFailure({
+            request,
+            email,
+            role: 'super_admin',
+            reason: 'not_platform_admin',
+            denied: true,
+            route: '/platform/login'
           });
           return fail('Tu cuenta no tiene acceso a plataforma.', 403);
         }
-        await logPlatformAudit({
-          action: 'auth.login_failed',
-          entity: 'platform_admin',
-          metadata: { reason: 'invalid_credentials' },
-          actorEmail: email
+        await auditAuthFailure({
+          request,
+          email,
+          role: 'super_admin',
+          reason: 'invalid_credentials',
+          route: '/platform/login'
         });
         return fail('Credenciales incorrectas.', 401);
       }
 
-      await logPlatformAudit({
-        action: 'auth.login_success',
-        entity: 'platform_admin',
-        actorEmail: user.email,
-        metadata: { remember }
+      await auditAuthSuccess({
+        request,
+        email: user.email,
+        role: 'super_admin',
+        userId: user.profileId,
+        route: '/platform/login'
       });
 
       cookies.set(sessionCookieName, createSessionToken(user), {
@@ -94,19 +99,22 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       if (!user) {
         const denial = await detectClinicLoginDenial(email, parsed.data.password);
         if (denial === 'not_clinic_staff' || denial === 'platform_only') {
-          await logPlatformAudit({
-            action: 'auth.login_denied',
-            entity: 'clinic_staff',
-            metadata: { reason: denial },
-            actorEmail: email
+          await auditAuthFailure({
+            request,
+            email,
+            role: 'admin',
+            reason: denial,
+            denied: true,
+            route: '/login/admin'
           });
           return fail('Tu cuenta no tiene acceso al panel clínica.', 403);
         }
-        await logPlatformAudit({
-          action: 'auth.login_failed',
-          entity: 'clinic_staff',
-          metadata: { reason: 'invalid_credentials' },
-          actorEmail: email
+        await auditAuthFailure({
+          request,
+          email,
+          role: 'admin',
+          reason: 'invalid_credentials',
+          route: '/login/admin'
         });
         return fail('Credenciales incorrectas.', 401);
       }
@@ -127,12 +135,14 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           if (completed.role === 'patient' || completed.role === 'super_admin') {
             return fail('Tu cuenta no tiene acceso al panel clínica.', 403);
           }
-          await logPlatformAudit({
-            action: 'auth.login_success',
-            entity: 'clinic_staff',
-            actorEmail: completed.email,
+          await auditAuthSuccess({
+            request,
+            email: completed.email,
+            role: completed.staffRole ?? 'clinic_admin',
             clinicId: completed.clinicId,
-            metadata: { remember }
+            tenantId: completed.tenantId,
+            userId: completed.profileId,
+            route: '/login/admin'
           });
           cookies.set(sessionCookieName, createSessionToken(completed), {
             httpOnly: true,
@@ -158,12 +168,14 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         return fail('Tu cuenta no tiene acceso al panel clínica.', 403);
       }
 
-      await logPlatformAudit({
-        action: 'auth.login_success',
-        entity: 'clinic_staff',
-        actorEmail: user.email,
+      await auditAuthSuccess({
+        request,
+        email: user.email,
+        role: user.staffRole ?? user.role,
         clinicId: user.clinicId,
-        metadata: { remember }
+        tenantId: user.tenantId,
+        userId: user.profileId,
+        route: '/login/admin'
       });
 
       cookies.set(sessionCookieName, createSessionToken(user), {
@@ -193,7 +205,16 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       }
       throw err;
     }
-    if (!user) return fail('Email, contraseña o tipo de acceso incorrecto.', 401);
+    if (!user) {
+      await auditAuthFailure({
+        request,
+        email: parsed.data.email.trim().toLowerCase(),
+        role: parsed.data.portal ?? 'patient',
+        reason: 'invalid_credentials',
+        route: '/login/paciente'
+      });
+      return fail('Email, contraseña o tipo de acceso incorrecto.', 401);
+    }
 
     if (isPortalChoiceLogin(user)) {
       return ok(
@@ -206,6 +227,17 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         { message: 'Selecciona el portal al que quieres acceder.' }
       );
     }
+
+    await auditAuthSuccess({
+      request,
+      email: user.email,
+      role: user.role,
+      clinicId: user.clinicId,
+      tenantId: user.tenantId,
+      patientId: user.patientId,
+      userId: user.profileId,
+      route: parsed.data.portal === 'patient' ? '/login/paciente' : '/login'
+    });
 
     cookies.set(sessionCookieName, createSessionToken(user), {
       httpOnly: true,

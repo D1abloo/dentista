@@ -1,5 +1,8 @@
 import type { APIRoute } from 'astro';
 import { assertClinicScopeAsync, requireStaffSession } from '@/lib/api/guards';
+import { logEvent } from '@/lib/audit/logEvent';
+import { clientIp } from '@/lib/audit/sanitize';
+import { logSecurityDenial } from '@/lib/audit/securityLog';
 import { created, fail, ok } from '@/lib/http';
 import {
   createClinicalReportRecord,
@@ -18,8 +21,30 @@ export const POST: APIRoute = async (context) => {
     const parsed = reportCreateSchema.safeParse(payload);
     if (!parsed.success) return fail('Informe inválido.', 422, parsed.error.flatten());
     const scopeErr = await assertClinicScopeAsync(gate.user, parsed.data.clinicId);
-    if (scopeErr) return scopeErr;
+    if (scopeErr) {
+      await logSecurityDenial({
+        user: gate.user,
+        reason: 'Sin permiso para clínica al crear informe',
+        clinicId: parsed.data.clinicId,
+        route: '/api/records/report',
+        ip: clientIp(context.request),
+        userAgent: context.request.headers.get('user-agent')
+      });
+      return scopeErr;
+    }
     const data = await createClinicalReportRecord(parsed.data);
+    await logEvent({
+      event_type: 'report.created',
+      module: 'reports',
+      action: 'Crear informe',
+      user_email: gate.user.email,
+      clinic_id: parsed.data.clinicId,
+      patient_id: parsed.data.patientId,
+      resource_type: 'report',
+      resource_id: data?.id,
+      route: '/admin/informes',
+      ip_address: clientIp(context.request)
+    });
     return created(data, { message: 'Informe persistido en Supabase.' });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo guardar el informe.';
@@ -58,6 +83,19 @@ export const PATCH: APIRoute = async (context) => {
       parsed.data.id,
       parsed.data.visibleToPatient
     );
+    if (parsed.data.visibleToPatient) {
+      await logEvent({
+        event_type: 'report.published_to_patient',
+        module: 'reports',
+        action: 'Publicar informe al PdP',
+        user_email: gate.user.email,
+        clinic_id: parsed.data.clinicId,
+        resource_type: 'report',
+        resource_id: parsed.data.id,
+        route: '/admin/informes',
+        ip_address: clientIp(context.request)
+      });
+    }
     return ok(data, { message: 'Visibilidad de informe actualizada.' });
   } catch (error) {
     return fail('No se pudo actualizar el informe.', 500, error instanceof Error ? error.message : error);

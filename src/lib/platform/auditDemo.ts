@@ -55,6 +55,12 @@ export type AuditKpis = {
   sensitive_access: number;
   exports: number;
   last_event: string;
+  events_today?: number;
+  logins_ok?: number;
+  logins_failed?: number;
+  access_denied?: number;
+  downloads?: number;
+  security_events?: number;
 };
 
 export type CriticalSummaryRow = { id: string; label: string; count: number };

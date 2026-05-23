@@ -433,6 +433,19 @@ export const securityActionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('run_policy_test'), policyId: z.string().min(1) })
 ]);
 
+export const clientAuditLogSchema = z.object({
+  event_type: z.string().min(3).max(120),
+  module: z.string().min(2).max(80),
+  action: z.string().min(2).max(200),
+  severity: z.enum(['info', 'low', 'medium', 'high', 'critical']).optional(),
+  result: z.enum(['ok', 'blocked', 'error', 'denied']).optional(),
+  message: z.string().max(500).optional(),
+  resource_type: z.string().max(80).optional(),
+  resource_id: z.string().max(80).optional(),
+  route: z.string().max(300).optional(),
+  metadata: z.record(z.unknown()).optional()
+});
+
 export const auditActionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('refresh') }),
   z.object({ action: z.literal('mark_reviewed'), id: z.string().min(1) }),

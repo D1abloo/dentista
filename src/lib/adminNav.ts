@@ -15,7 +15,7 @@ export function canViewProfessionalProfiles(role: string | undefined) {
 }
 
 export function isNavItemVisible(view: AdminView, role: string | undefined) {
-  if (view === 'auditoria-pdp') return canViewPdpAudit(role);
+  if (view === 'auditoria-pdp' || view === 'monitorizacion') return canViewPdpAudit(role);
   if (view === 'profesionales') return canViewProfessionalProfiles(role);
   return true;
 }

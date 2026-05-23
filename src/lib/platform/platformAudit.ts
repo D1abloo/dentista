@@ -1,4 +1,5 @@
-import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
+import { logFromLegacyPlatform } from '@/lib/audit/logEvent';
+import { listMemoryAuditLogs } from '@/lib/audit/logEvent';
 
 export type PlatformAuditInput = {
   action: string;
@@ -7,32 +8,18 @@ export type PlatformAuditInput = {
   clinicId?: string | null;
   metadata?: Record<string, unknown>;
   actorEmail?: string;
+  route?: string;
+  ip?: string;
+  userAgent?: string;
 };
 
-type AuditRow = PlatformAuditInput & { created_at: string };
-const demoAudit: AuditRow[] = [];
-
 export function listDemoPlatformAudit() {
-  return [...demoAudit].reverse().slice(0, 100);
+  return listMemoryAuditLogs(100);
 }
 
 export async function logPlatformAudit(input: PlatformAuditInput): Promise<void> {
-  const row: AuditRow = { ...input, created_at: new Date().toISOString() };
-  if (!hasSupabaseConfig()) {
-    demoAudit.unshift(row);
-    if (demoAudit.length > 200) demoAudit.length = 200;
-    return;
-  }
-  const db = getSupabaseAdmin();
-  await db.from('audit_logs').insert({
-    clinic_id: input.clinicId ?? null,
-    action: input.action,
-    entity: input.entity,
-    entity_id: input.entityId ?? null,
-    metadata: {
-      ...input.metadata,
-      actor_email: input.actorEmail ?? 'super_admin@platform',
-      scope: 'platform'
-    }
+  await logFromLegacyPlatform({
+    ...input,
+    metadata: { ...input.metadata, scope: 'platform', actor_email: input.actorEmail }
   });
 }

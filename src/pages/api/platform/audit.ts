@@ -3,8 +3,8 @@ import { requireSuperAdmin } from '@/lib/platform/auth';
 import { fail, ok } from '@/lib/http';
 import { logError } from '@/lib/logger';
 import { auditActionSchema } from '@/lib/validators';
-import { hasSupabaseConfig } from '@/lib/supabaseServer';
 import { logPlatformAudit } from '@/lib/platform/platformAudit';
+import { listAuditEvents, markAuditReviewed } from '@/lib/audit/listEvents';
 import {
   escalateAuditDemo,
   getAuditDemo,
@@ -21,11 +21,10 @@ export const GET: APIRoute = async (context) => {
   if (gate.response) return gate.response;
 
   try {
-    if (!hasSupabaseConfig()) return ok(getAuditDemo(), { demo: true });
-    const { listDemoPlatformAudit } = await import('@/lib/platform/platformAudit');
-    const logs = listDemoPlatformAudit();
-    if (logs.length) return ok(getAuditDemo(), { demo: true, merged: true });
-    return ok(getAuditDemo(), { demo: true });
+    const url = new URL(context.request.url);
+    const search = url.searchParams.get('q') ?? undefined;
+    const data = await listAuditEvents({ search, limit: 200 });
+    return ok(data);
   } catch (error) {
     logError('platform.audit.list', error);
     return fail('No se pudo cargar la auditoría.', 500);
@@ -51,8 +50,15 @@ export const POST: APIRoute = async (context) => {
     }
 
     if (data.action === 'mark_reviewed') {
-      const result = markAuditReviewedDemo(data.id);
-      if ('error' in result) return fail(result.error, 422);
+      const liveOk = await markAuditReviewed(data.id);
+      let result: Awaited<ReturnType<typeof listAuditEvents>> | ReturnType<typeof markAuditReviewedDemo>;
+      if (liveOk) {
+        result = await listAuditEvents({ limit: 200 });
+      } else {
+        const demo = markAuditReviewedDemo(data.id);
+        if ('error' in demo) return fail(demo.error, 422);
+        result = demo;
+      }
       await logPlatformAudit({ action: 'audit.mark_reviewed', entity: 'audit_event', entityId: data.id });
       return ok(result, { message: 'Evento marcado como revisado.' });
     }

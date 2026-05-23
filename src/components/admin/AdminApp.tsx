@@ -24,6 +24,7 @@ import { AdminPatients } from './AdminPatients';
 import { AdminConsents } from './consents';
 import { AdminClinicUsers } from './clinicUsers';
 import { AdminPdpAudit } from './pdpAudit';
+import { AdminClinicMonitoring } from './AdminClinicMonitoring';
 import { AdminPortalAccess } from './portalAccess';
 
 const LazyAgenda = lazy(() => import('./AdminAgenda').then((m) => ({ default: m.AdminAgenda })));
@@ -115,6 +116,8 @@ function Body({ view, patientId }: { view: AdminView; patientId?: string }) {
       return <AdminPortalAccess />;
     case 'auditoria-pdp':
       return <AdminPdpAudit />;
+    case 'monitorizacion':
+      return <AdminClinicMonitoring />;
     case 'usuarios':
       return <AdminClinicUsers />;
     case 'consentimientos':
