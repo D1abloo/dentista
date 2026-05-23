@@ -58,6 +58,43 @@ async function resolveTenantId(clinicId: string) {
   return data.tenant_id as string;
 }
 
+async function resolvePatientProfileId(patientId: string) {
+  const db = getSupabaseAdmin();
+  const { data: profile } = await db
+    .from('profiles')
+    .select('id, role')
+    .eq('id', patientId)
+    .maybeSingle();
+  if (profile?.id && profile.role === 'patient') return profile.id as string;
+
+  const { data: legacy } = await db.from('patients').select('id').eq('id', patientId).maybeSingle();
+  if (legacy?.id) {
+    const { data: linked } = await db
+      .from('profiles')
+      .select('id')
+      .eq('id', patientId)
+      .eq('role', 'patient')
+      .maybeSingle();
+    if (linked?.id) return linked.id as string;
+    return legacy.id as string;
+  }
+
+  throw new Error(
+    'Paciente no encontrado. Usa el perfil del paciente vinculado a la clínica (recarga el panel si acabas de crearlo).'
+  );
+}
+
+function mapInsertError(error: { message?: string; code?: string; details?: string }) {
+  const msg = error.message ?? 'Error al insertar informe.';
+  if (msg.includes('tenant_id') || error.code === '42703') {
+    return `${msg} — Ejecuta la migración supabase/migrations/0012_clinical_reports_align.sql en tu proyecto.`;
+  }
+  if (msg.includes('foreign key') || msg.includes('patient_id')) {
+    return 'El paciente o la cita no son válidos para esta clínica. Vuelve a seleccionar paciente y cita.';
+  }
+  return msg;
+}
+
 async function notifyPatientNewReport(
   tenantId: string,
   patientId: string,
@@ -83,10 +120,12 @@ export async function createClinicalReportRecord(input: ReportInput) {
   if (isDemoMode() || !hasSupabaseConfig()) return null;
   const db = getSupabaseAdmin();
   const tenantId = await resolveTenantId(input.clinicId);
+  const patientProfileId = await resolvePatientProfileId(input.patientId);
+  const reportId = crypto.randomUUID();
 
   if (import.meta.env.DEV) {
     logInfo('records.report.create', {
-      patientId: input.patientId,
+      patientId: patientProfileId,
       clinicId: input.clinicId,
       tenantId,
       visibleToPatient: input.visibleToPatient,
@@ -94,28 +133,34 @@ export async function createClinicalReportRecord(input: ReportInput) {
     });
   }
 
-  const { data, error } = await db
-    .from('clinical_reports')
-    .insert({
-      tenant_id: tenantId,
-      patient_id: input.patientId,
-      appointment_id: input.appointmentId ?? null,
-      title: input.title,
-      description: input.description,
-      diagnosis: input.diagnosis ?? null,
-      recommendations: input.recommendations ?? null,
-      file_name: input.fileName ?? null,
-      file_url: input.fileRef ?? null,
-      mime_type: input.mimeType ?? null,
-      uploaded_by: input.uploadedBy,
-      visible_to_patient: input.visibleToPatient
-    })
-    .select('*')
-    .single();
-  if (error) throw error;
+  const row: Record<string, unknown> = {
+    id: reportId,
+    tenant_id: tenantId,
+    patient_id: patientProfileId,
+    appointment_id: input.appointmentId ?? null,
+    title: input.title,
+    description: input.description,
+    diagnosis: input.diagnosis ?? null,
+    recommendations: input.recommendations ?? null,
+    file_name: input.fileName ?? null,
+    file_url: input.fileRef ?? null,
+    mime_type: input.mimeType ?? null,
+    uploaded_by: input.uploadedBy,
+    visible_to_patient: input.visibleToPatient
+  };
+
+  const { data, error } = await db.from('clinical_reports').insert(row).select('*').single();
+  if (error) throw new Error(mapInsertError(error));
 
   if (input.visibleToPatient) {
-    await notifyPatientNewReport(tenantId, input.patientId, input.title, input.description);
+    try {
+      await notifyPatientNewReport(tenantId, patientProfileId, input.title, input.description);
+    } catch (notifyErr) {
+      logInfo('records.report.notify_skipped', {
+        patientId: patientProfileId,
+        message: notifyErr instanceof Error ? notifyErr.message : String(notifyErr)
+      });
+    }
   }
 
   if (import.meta.env.DEV && data) {

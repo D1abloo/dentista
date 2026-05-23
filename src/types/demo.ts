@@ -72,6 +72,8 @@ export interface Dentist {
   email: string;
   phone: string;
   schedule: string;
+  /** Número de colegiado (aparece en informes clínicos). */
+  collegiateNumber?: string;
   active: boolean;
 }
 

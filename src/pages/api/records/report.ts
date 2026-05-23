@@ -18,7 +18,8 @@ export const POST: APIRoute = async (context) => {
     const data = await createClinicalReportRecord(parsed.data);
     return created(data, { message: 'Informe persistido en Supabase.' });
   } catch (error) {
-    return fail('No se pudo guardar el informe.', 500, error instanceof Error ? error.message : error);
+    const message = error instanceof Error ? error.message : 'No se pudo guardar el informe.';
+    return fail(message, 500, error instanceof Error ? error.message : error);
   }
 };
 

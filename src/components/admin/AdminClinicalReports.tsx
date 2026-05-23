@@ -16,10 +16,16 @@ import {
   buildReportTitle,
   enrichReportListRow,
   getAppointmentReportContext,
+  inferReportTemplateFromTreatment,
   REPORT_TEMPLATES,
   type ReportTemplateId
 } from '@/lib/clinical/reportTemplates';
-import { EMPTY_REPORT_FORM, validateClinicalReportForm, type ClinicalReportFormState } from '@/lib/clinical/reportForm';
+import {
+  EMPTY_REPORT_FORM,
+  parseReportApiError,
+  validateClinicalReportForm,
+  type ClinicalReportFormState
+} from '@/lib/clinical/reportForm';
 import {
   addMessage,
   createClinicalReport,
@@ -124,13 +130,16 @@ export function AdminClinicalReports() {
     }
     const ctx = getAppointmentReportContext(state, appointmentId);
     if (!ctx) return;
+    const suggested = inferReportTemplateFromTreatment(ctx.treatmentName);
+    setTemplateId(suggested);
     setForm((f) => ({
       ...f,
       appointmentId,
       patientId: ctx.patientId,
-      dentistName: ctx.dentistName
+      dentistName: `${ctx.dentistHonorific} ${ctx.dentistName}`,
+      uploadedBy: `${ctx.dentistHonorific} ${ctx.dentistName}`
     }));
-    applyTemplate(templateId, ctx);
+    applyTemplate(suggested, ctx);
   }
 
   async function saveReport() {
@@ -163,7 +172,9 @@ export function AdminClinicalReports() {
     }
 
     const patient = state.patients.find((p) => p.id === form.patientId);
-    const clinicId = patient?.preferredClinicId ?? state.clinics.find((c) => c.active)?.id;
+    const appt = form.appointmentId ? state.appointments.find((a) => a.id === form.appointmentId) : undefined;
+    const clinicId =
+      appt?.clinicId ?? patient?.preferredClinicId ?? state.clinics.find((c) => c.active)?.id;
     if (!clinicId) {
       setNotice({ type: 'error', message: 'No se encontró clínica para vincular el informe.' });
       return;
@@ -195,10 +206,10 @@ export function AdminClinicalReports() {
         });
         const json = (await res.json()) as {
           data?: Record<string, unknown>;
-          error?: { message?: string };
+          error?: { message?: string; details?: { fieldErrors?: Record<string, string[]> } };
         };
         if (!res.ok) {
-          setNotice({ type: 'error', message: json.error?.message ?? 'No se pudo guardar el informe.' });
+          setNotice({ type: 'error', message: parseReportApiError(json) });
           return;
         }
         if (json.data && typeof json.data.id === 'string') {
@@ -244,8 +255,11 @@ export function AdminClinicalReports() {
       setNotice({ type: 'ok', message: 'Informe guardado correctamente.' });
       resetForm();
       setTab('list');
-    } catch {
-      setNotice({ type: 'error', message: 'No se pudo guardar el informe.' });
+    } catch (e) {
+      setNotice({
+        type: 'error',
+        message: e instanceof Error ? e.message : 'No se pudo guardar el informe.'
+      });
     } finally {
       setSaving(false);
     }
@@ -352,6 +366,25 @@ export function AdminClinicalReports() {
               </Field>
             </div>
 
+            {apptContext ? (
+              <div className="cr-letterhead" aria-label="Membrete de la clínica">
+                <img src={apptContext.clinicLogoUrl} alt="" className="cr-letterhead__logo" width={56} height={56} />
+                <div className="cr-letterhead__body">
+                  <p className="cr-letterhead__name">{apptContext.clinicName}</p>
+                  <p className="cr-letterhead__line">
+                    {apptContext.clinicAddress}, {apptContext.clinicCity}
+                  </p>
+                  <p className="cr-letterhead__line">
+                    Tel. {apptContext.clinicPhone} · {apptContext.clinicEmail}
+                  </p>
+                  <p className="cr-letterhead__pro">
+                    {apptContext.dentistHonorific} {apptContext.dentistName} · Col. n.º{' '}
+                    {apptContext.dentistCollegiateNumber}
+                  </p>
+                </div>
+              </div>
+            ) : null}
+
             <Field label="Título del informe *">
               <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
               <p className="cr-hint">Sugerencia: Informe odontológico - [Tratamiento] - [Fecha]</p>
@@ -360,7 +393,7 @@ export function AdminClinicalReports() {
             <Field label="Descripción *">
               <Textarea
                 className="cr-textarea"
-                rows={12}
+                rows={16}
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
               />
@@ -377,11 +410,15 @@ export function AdminClinicalReports() {
               </Field>
               <Field label="Recomendaciones *">
                 <Textarea
-                  className="cr-textarea"
-                  rows={8}
+                  className="cr-textarea cr-textarea--legal"
+                  rows={10}
                   value={form.recommendations}
                   onChange={(e) => setForm({ ...form, recommendations: e.target.value })}
                 />
+                <p className="cr-legal-hint">
+                  Incluye el aviso legal para impresión en membrete y envío al Colegio de Dentistas de Cádiz (editable al
+                  final del texto).
+                </p>
               </Field>
             </div>
 
@@ -462,6 +499,20 @@ export function AdminClinicalReports() {
               <h3>Vista previa del paciente</h3>
               {form.title ? (
                 <>
+                  {apptContext ? (
+                    <div className="cr-preview__letterhead">
+                      <img src={apptContext.clinicLogoUrl} alt="" className="cr-preview__logo" width={48} height={48} />
+                      <div>
+                        <p className="cr-preview__clinic">{apptContext.clinicName}</p>
+                        <p className="cr-preview__addr">
+                          {apptContext.clinicAddress}, {apptContext.clinicCity}
+                        </p>
+                        <p className="cr-preview__addr">
+                          {apptContext.dentistHonorific} {apptContext.dentistName} · Col. {apptContext.dentistCollegiateNumber}
+                        </p>
+                      </div>
+                    </div>
+                  ) : null}
                   <div className="cr-preview__head">
                     <span className="cr-preview__badge">Nuevo</span>
                     <p className="cr-preview__title">{form.title}</p>
@@ -469,8 +520,12 @@ export function AdminClinicalReports() {
                   <p className="cr-preview__meta">
                     {apptContext?.dateLabel ?? '—'} · {apptContext?.clinicName ?? 'Clínica'}
                   </p>
-                  <p className="cr-preview__snippet">{form.diagnosis.split('\n')[0]}</p>
-                  <p className="cr-preview__snippet">{form.recommendations.split('\n')[0]}</p>
+                  <p className="cr-preview__snippet">{form.diagnosis.split('\n').slice(0, 2).join(' ')}</p>
+                  <p className="cr-preview__snippet cr-preview__snippet--legal">
+                    {form.recommendations.includes('colegio@dentistascadiz.com')
+                      ? 'Incluye aviso legal para el Colegio de Dentistas de Cádiz.'
+                      : form.recommendations.split('\n')[0]}
+                  </p>
                   <div className="cr-preview__actions">
                     <span className="cr-btn cr-btn--outline cr-btn--sm">Ver informe</span>
                     <span className="cr-btn cr-btn--outline cr-btn--sm">

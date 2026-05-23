@@ -142,6 +142,7 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
     tenantId,
     fullName: d.name,
     specialty: d.specialty,
+    collegiateNumber: (d.collegiate_number as string | null) ?? undefined,
     email: `${d.id.slice(0, 8)}@clinic.local`,
     phone: mainClinic.phone ?? '',
     schedule: 'Lun–Vie 09:00–17:00',

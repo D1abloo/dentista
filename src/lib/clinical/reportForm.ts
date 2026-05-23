@@ -10,6 +10,22 @@ export type ClinicalReportFormState = {
   uploadedBy: string;
 };
 
+export function parseReportApiError(json: {
+  error?: { message?: string; details?: { fieldErrors?: Record<string, string[]>; formErrors?: string[] } };
+}): string {
+  const details = json.error?.details;
+  if (details && typeof details === 'object') {
+    const fieldErrors = details.fieldErrors;
+    if (fieldErrors) {
+      const first = Object.values(fieldErrors).flat().find(Boolean);
+      if (first) return first;
+    }
+    const formErrors = details.formErrors;
+    if (formErrors?.[0]) return formErrors[0];
+  }
+  return json.error?.message ?? 'No se pudo guardar el informe.';
+}
+
 export function validateClinicalReportForm(form: ClinicalReportFormState): string | null {
   if (!form.patientId?.trim()) return 'Selecciona un paciente.';
   if (!form.appointmentId?.trim()) return 'Selecciona una cita válida.';
