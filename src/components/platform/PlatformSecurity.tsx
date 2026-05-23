@@ -144,12 +144,12 @@ export function PlatformSecurity() {
   const detailMeta = useMemo(() => {
     if (!selected) return null;
     if (selected.kind === 'policy') {
-      return { tipo: 'Política', estado: selected.item.status_label, alcance: selected.item.title, revision: data?.kpis.last_review ?? '—', riesgo: 'Bajo', audit: '/platform/aislamiento' };
+      return { tipo: 'Política', estado: selected.item.status_label, alcance: selected.item.title, revision: data?.kpis.last_review ?? '—', riesgo: 'Bajo', audit: '/platform/auditoria' };
     }
     if (selected.kind === 'role') {
-      return { tipo: 'Rol', estado: selected.item.status_label, alcance: selected.item.scope, revision: data?.kpis.last_review ?? '—', riesgo: riskLabel(selected.item.risk), audit: '/platform/incidencias' };
+      return { tipo: 'Rol', estado: selected.item.status_label, alcance: selected.item.scope, revision: data?.kpis.last_review ?? '—', riesgo: riskLabel(selected.item.risk), audit: '/platform/auditoria' };
     }
-    return { tipo: 'Sesión', estado: 'Activa', alcance: selected.item.tenant_masked, revision: selected.item.last_activity, riesgo: 'Bajo', audit: '/platform/incidencias' };
+    return { tipo: 'Sesión', estado: 'Activa', alcance: selected.item.tenant_masked, revision: selected.item.last_activity, riesgo: 'Bajo', audit: '/platform/auditoria' };
   }, [selected, data]);
 
   if (!data) {
@@ -176,7 +176,7 @@ export function PlatformSecurity() {
         <button type="button" className="plt-btn plt-btn--secondary" onClick={() => { setPolicyForm({ ...data.policy_settings }); setModal('policies'); }}>
           <Settings className="h-4 w-4" aria-hidden />Configurar políticas
         </button>
-        <a href="/platform/incidencias" className="plt-btn plt-btn--ghost no-underline"><Eye className="h-4 w-4" aria-hidden />Ver auditoría</a>
+        <a href="/platform/auditoria" className="plt-btn plt-btn--ghost no-underline"><Eye className="h-4 w-4" aria-hidden />Ver auditoría</a>
       </>}
     >
       <div className={`sec-page cln-layout${selected ? ' cln-page--panel-open' : ''}`}>

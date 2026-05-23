@@ -432,6 +432,17 @@ export const securityActionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('run_policy_test'), policyId: z.string().min(1) })
 ]);
 
+export const auditActionSchema = z.discriminatedUnion('action', [
+  z.object({ action: z.literal('refresh') }),
+  z.object({ action: z.literal('mark_reviewed'), id: z.string().min(1) }),
+  z.object({ action: z.literal('escalate'), id: z.string().min(1) }),
+  z.object({
+    action: z.literal('update_retention'),
+    retentionDays: z.number().int().min(30).max(365)
+  }),
+  z.object({ action: z.literal('log_export'), format: z.enum(['csv', 'pdf']).optional() })
+]);
+
 export const appointmentSchema = z.object({
   clinicId: z.string().min(1).default('demo-clinic'),
   patientId: z.string().min(1),

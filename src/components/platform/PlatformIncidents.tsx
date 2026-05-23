@@ -322,7 +322,7 @@ export function PlatformIncidents() {
               <button type="button" onClick={() => void patchIncident('mark_reviewed', r)}>Marcar revisada</button>
               <button type="button" onClick={() => void patchIncident('escalate', r)}>Escalar incidencia</button>
               <button type="button" onClick={() => void exportAudit()}>Descargar registro</button>
-              <button type="button" onClick={() => (window.location.href = '/platform/seguridad')}>Ver auditoría completa</button>
+              <button type="button" onClick={() => (window.location.href = '/platform/auditoria')}>Ver auditoría completa</button>
             </div>
           ) : null}
         </div>
