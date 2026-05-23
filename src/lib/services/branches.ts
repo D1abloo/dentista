@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from '@/lib/supabaseServer';
+import { createIndependentClinic } from '@/lib/services/independentClinic';
 
 function slugify(name: string) {
   return name
@@ -58,41 +59,10 @@ export async function clinicBelongsToTenant(clinicId: string, tenantId: string):
   return Boolean(data);
 }
 
-export async function createBranch(tenantId: string, input: BranchInput): Promise<BranchRow> {
-  const db = getSupabaseAdmin();
-  const slug = `${slugify(input.name)}-${Date.now().toString(36)}`;
-
-  if (input.isMainBranch) {
-    await db.from('clinics').update({ is_main_branch: false }).eq('tenant_id', tenantId);
-  }
-
-  const { data: clinic, error } = await db
-    .from('clinics')
-    .insert({
-      name: input.name.trim(),
-      slug,
-      tenant_id: tenantId,
-      email: input.email?.trim() ?? null,
-      phone: input.phone?.trim() ?? null,
-      address: input.address?.trim() ?? null,
-      city: input.city?.trim() ?? null,
-      status: 'active',
-      is_main_branch: input.isMainBranch ?? false,
-      subscription_plan: 'essential'
-    })
-    .select('id, tenant_id, name, slug, email, phone, address, city, status, is_main_branch, subscription_plan, created_at')
-    .single();
-  if (error) throw error;
-
-  await db.from('clinic_subscriptions').insert({
-    clinic_id: clinic.id,
-    plan: 'essential',
-    status: 'active'
-  });
-
-  await db.from('rooms').insert({ clinic_id: clinic.id, name: 'Gabinete 1', active: true });
-
-  return clinic as BranchRow;
+/** @deprecated Usa createIndependentClinic: cada sede es su propio tenant. */
+export async function createBranch(_tenantId: string, input: BranchInput): Promise<BranchRow> {
+  const { clinic } = await createIndependentClinic(input);
+  return clinic;
 }
 
 export async function updateBranch(
@@ -127,63 +97,59 @@ export async function createOrganizationWithBranches(input: {
   adminPassword?: string;
 }) {
   const db = getSupabaseAdmin();
-  if (!input.branches.length) throw new Error('Añade al menos una sede.');
-
-  const tenantCode = `TEN-${Date.now().toString(36).toUpperCase()}`;
-  const { data: tenant, error: tenantErr } = await db
-    .from('tenants')
-    .insert({
-      code: tenantCode,
-      name: input.organizationName.trim(),
-      type: 'clinica',
-      owner_name: input.ownerName.trim(),
-      email: input.email.trim(),
-      phone: input.phone.trim(),
-      address: input.address?.trim() ?? null,
-      active: true
-    })
-    .select('id')
-    .single();
-  if (tenantErr) throw tenantErr;
+  if (!input.branches.length) throw new Error('Añade al menos una clínica.');
 
   const createdBranches: BranchRow[] = [];
-  for (let i = 0; i < input.branches.length; i++) {
-    const b = input.branches[i];
-    const branch = await createBranch(tenant.id, {
+  const tenantIds: string[] = [];
+
+  for (const b of input.branches) {
+    const { tenantId, clinic } = await createIndependentClinic({
       ...b,
+      name: b.name.trim(),
       email: b.email ?? input.email,
       phone: b.phone ?? input.phone,
-      isMainBranch: i === 0 || Boolean(b.isMainBranch)
+      address: b.address ?? input.address
     });
-    createdBranches.push(branch);
+    tenantIds.push(tenantId);
+    createdBranches.push(clinic);
   }
 
   let adminUserId: string | null = null;
   if (input.createAdmin !== false) {
-    const main = createdBranches.find((c) => c.is_main_branch) ?? createdBranches[0];
     const password =
       input.adminPassword ??
       import.meta.env.CLINIC_DEFAULT_PASSWORD ??
       import.meta.env.SUPER_ADMIN_PASSWORD ??
       'ChangeMeNow!';
+    const main = createdBranches[0];
     const { data: authUser, error: authErr } = await db.auth.admin.createUser({
       email: input.email,
       password,
       email_confirm: true,
       user_metadata: { full_name: input.ownerName },
-      app_metadata: { clinic_id: main.id, tenant_id: tenant.id, role: 'clinic_admin' }
+      app_metadata: { clinic_id: main.id, tenant_id: main.tenant_id, role: 'clinic_admin' }
     });
     if (authErr) throw authErr;
     adminUserId = authUser.user.id;
-    await db.from('profiles').insert({
-      auth_user_id: authUser.user.id,
-      clinic_id: main.id,
-      tenant_id: tenant.id,
-      role: 'clinic_admin',
-      full_name: input.ownerName,
-      email: input.email
-    });
+
+    for (const branch of createdBranches) {
+      await db.from('profiles').insert({
+        auth_user_id: authUser.user.id,
+        clinic_id: branch.id,
+        tenant_id: branch.tenant_id,
+        role: 'clinic_admin',
+        full_name: input.ownerName,
+        email: input.email
+      });
+    }
   }
 
-  return { tenantId: tenant.id, branches: createdBranches, adminUserId };
+  return {
+    organizationName: input.organizationName,
+    tenantId: tenantIds[0],
+    tenantIds,
+    branches: createdBranches,
+    adminUserId,
+    independentClinics: true
+  };
 }

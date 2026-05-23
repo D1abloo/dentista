@@ -22,6 +22,7 @@
     "users:clinics": "node scripts/manage-users.mjs clinics",
     "seed:clinic": "node scripts/seed-pro-clinic.mjs",
     "seed:qa-mediterraneo": "node scripts/seed-qa-mediterraneo.mjs",
+    "db:split-clinics": "node scripts/migrate-independent-clinics.mjs",
     "test:pdp-audit": "node scripts/test-pdp-audit.mjs",
     "codex:bootstrap": "bash scripts/codex-bootstrap.sh",
     "git:save": "bash scripts/git-save.sh",

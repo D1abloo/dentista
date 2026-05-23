@@ -2,8 +2,10 @@ import type { APIRoute } from 'astro';
 import { assertClinicScopeAsync, requireStaffSession } from '@/lib/api/guards';
 import { fail, ok } from '@/lib/http';
 import { logError } from '@/lib/logger';
-import { branchCreateSchema, branchPatchSchema } from '@/lib/validators';
-import { createBranch, listBranchesByTenant, updateBranch } from '@/lib/services/branches';
+import { branchPatchSchema } from '@/lib/validators';
+import { listAssignedClinicIdsForSession } from '@/lib/services/staffContext';
+import { updateBranch } from '@/lib/services/branches';
+import { getSupabaseAdmin } from '@/lib/supabaseServer';
 import { hasSupabaseConfig } from '@/lib/supabaseServer';
 
 export const prerender = false;
@@ -12,10 +14,15 @@ export const GET: APIRoute = async (context) => {
   const gate = requireStaffSession(context);
   if (gate.response) return gate.response;
   if (!hasSupabaseConfig()) return fail('Base de datos no configurada.', 503);
-  const tenantId = gate.user.tenantId;
-  if (!tenantId) return fail('Tu usuario no tiene organización asignada.', 403);
   try {
-    return ok(await listBranchesByTenant(tenantId));
+    const ids = await listAssignedClinicIdsForSession(gate.user);
+    const db = getSupabaseAdmin();
+    const { data, error } = await db
+      .from('clinics')
+      .select('id, tenant_id, name, slug, email, phone, address, city, status, is_main_branch, subscription_plan, created_at')
+      .in('id', ids);
+    if (error) throw error;
+    return ok(data ?? []);
   } catch (error) {
     logError('clinic.branches.list', error);
     return fail('No se pudieron listar las sedes.', 500);
@@ -25,19 +32,10 @@ export const GET: APIRoute = async (context) => {
 export const POST: APIRoute = async (context) => {
   const gate = requireStaffSession(context);
   if (gate.response) return gate.response;
-  if (!hasSupabaseConfig()) return fail('Base de datos no configurada.', 503);
-  const tenantId = gate.user.tenantId;
-  if (!tenantId) return fail('Tu usuario no tiene organización asignada.', 403);
-  try {
-    const body = await context.request.json();
-    const parsed = branchCreateSchema.safeParse(body);
-    if (!parsed.success) return fail('Datos inválidos.', 422, parsed.error.flatten());
-    const branch = await createBranch(tenantId, parsed.data);
-    return ok(branch, { message: 'Sede creada correctamente.' });
-  } catch (error) {
-    logError('clinic.branches.create', error);
-    return fail('No se pudo crear la sede.', 500);
-  }
+  return fail(
+    'Cada clínica es independiente. Registra una nueva clínica desde Plataforma → Organizaciones o el alta pública.',
+    422
+  );
 };
 
 export const PATCH: APIRoute = async (context) => {

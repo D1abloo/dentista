@@ -1,7 +1,7 @@
 import type { APIContext } from 'astro';
 import { getEffectiveSessionUser, getSessionUser, type SessionUser } from '@/lib/auth';
 import { fail } from '@/lib/http';
-import { clinicBelongsToTenant } from '@/lib/services/branches';
+import { listAssignedClinicIdsForSession } from '@/lib/services/staffContext';
 
 const STAFF_ROLES = new Set(['clinic_admin', 'admin', 'owner', 'dentist', 'receptionist']);
 
@@ -28,18 +28,19 @@ export function requireStaffSession(context: APIContext) {
   return { user, response: null as null };
 }
 
-/** Impide acceder a datos de otra clínica (misma sede). Para otras sedes del tenant usar assertClinicScopeAsync. */
+/** Impide acceder a datos de otra clínica. Cada clínica es independiente (sin cruce por tenant). */
 export function assertClinicScope(user: SessionUser, clinicId: string) {
   if (user.role === 'super_admin') return null;
   if (user.clinicId && user.clinicId === clinicId) return null;
-  return fail('No tienes permiso para esta sede.', 403);
+  return fail('No tienes permiso para esta clínica.', 403);
 }
 
 export async function assertClinicScopeAsync(user: SessionUser, clinicId: string) {
   if (user.role === 'super_admin') return null;
   if (user.clinicId === clinicId) return null;
-  if (user.tenantId && (await clinicBelongsToTenant(clinicId, user.tenantId))) return null;
-  return fail('No tienes permiso para esta sede.', 403);
+  const assigned = await listAssignedClinicIdsForSession(user);
+  if (assigned.includes(clinicId)) return null;
+  return fail('No tienes permiso para esta clínica.', 403);
 }
 
 /** Staff de clínica o el propio paciente (solo su patientId). */
@@ -88,7 +89,7 @@ export async function requireClinicSessionAsync(context: APIContext, clinicId: s
   return gate;
 }
 
-/** @deprecated Usa requireClinicSessionAsync para validar tenant en sedes hermanas. */
+/** @deprecated Usa requireClinicSessionAsync (clínicas siempre independientes). */
 export function requireClinicSession(context: APIContext, clinicId: string) {
   const gate = requireStaffSession(context);
   if (gate.response) return gate;

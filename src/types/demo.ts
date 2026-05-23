@@ -115,6 +115,7 @@ export interface Clinic {
 
 export interface Treatment {
   id: string;
+  clinicId?: string;
   tenantId: string;
   name: string;
   description: string;

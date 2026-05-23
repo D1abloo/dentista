@@ -74,4 +74,14 @@ describe('security static checks', () => {
   it('migración RLS 0028 presente', () => {
     assert.ok(existsSync(resolve(root, 'supabase/migrations/0028_rls_records_gaps.sql')));
   });
+
+  it('migración clínicas independientes 0029', () => {
+    assert.ok(existsSync(resolve(root, 'supabase/migrations/0029_independent_clinics_only.sql')));
+  });
+
+  it('guards sin cruce por tenant hermano', () => {
+    const content = readFileSync(resolve(root, 'src/lib/api/guards.ts'), 'utf8');
+    assert.ok(!content.includes('clinicBelongsToTenant'));
+    assert.ok(content.includes('listAssignedClinicIdsForSession'));
+  });
 });

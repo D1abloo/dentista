@@ -245,7 +245,7 @@ export function PlatformOrganizations() {
         })
       });
       setWizardOpen(false);
-      showToast('ok', 'Organización creada correctamente.');
+      showToast('ok', 'Clínicas independientes creadas correctamente.');
       await load();
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'No se pudo crear la organización.';
@@ -336,8 +336,8 @@ export function PlatformOrganizations() {
 
   return (
     <PlatformShell
-      title="Organizaciones multi-sede"
-      subtitle="Gestiona grupos dentales, tenants compartidos, sedes, administradores y suscripciones por organización."
+      title="Clínicas y organizaciones"
+      subtitle="Cada clínica es un tenant independiente. Puedes registrar varias clínicas bajo un mismo contacto admin sin compartir datos."
       headerActions={headerActions}
     >
       <div className="org-page org-layout">
@@ -479,7 +479,7 @@ export function PlatformOrganizations() {
           <div className="org-empty">
             <Building2 className="org-empty__icon h-14 w-14" strokeWidth={1.2} />
             <h3>Aún no hay organizaciones creadas</h3>
-            <p>Crea un grupo dental multi-sede para gestionar varias clínicas desde un mismo panel administrativo.</p>
+            <p>Registra una o varias clínicas independientes (cada una con su propio tenant y aislamiento total de datos).</p>
             <div className="org-empty__actions">
               <button type="button" className="plt-btn plt-btn--primary" onClick={openWizard}>
                 Crear organización
@@ -643,7 +643,11 @@ export function PlatformOrganizations() {
 
                 {wizardStep === 1 ? (
                   <div key="step1" className="org-wizard__pane">
-                    <h3 className="mt-0 text-base font-extrabold">Sedes</h3>
+                    <h3 className="mt-0 text-base font-extrabold">Clínicas independientes</h3>
+                    <p className="text-sm text-slate-600">
+                      Cada fila se registrará como clínica con su propio tenant. No se comparten pacientes, citas ni facturas entre
+                      ellas.
+                    </p>
                     {errors.sedes ? <p className="org-field__err">{errors.sedes}</p> : null}
                     {sedes.map((s, i) => (
                       <div
@@ -692,10 +696,11 @@ export function PlatformOrganizations() {
 
                 {wizardStep === 2 ? (
                   <div key="step2" className="org-wizard__pane">
-                    <h3 className="mt-0 text-base font-extrabold">Tenant y accesos</h3>
-                    <OrgField label="Slug del tenant" error={errors.tenantSlug}>
-                      <input value={form.tenantSlug} onChange={(e) => setForm({ ...form, tenantSlug: slugify(e.target.value) })} />
-                    </OrgField>
+                    <h3 className="mt-0 text-base font-extrabold">Accesos</h3>
+                    <p className="text-sm text-slate-600">
+                      Referencia del grupo: <strong>{form.tenantSlug || slugify(form.organizationName) || '—'}</strong>. Cada
+                      clínica recibe su propio tenant en base de datos (no compartido).
+                    </p>
                     <label className="mb-2 flex items-center gap-2 text-sm">
                       <input type="checkbox" checked={form.createAdmin} onChange={(e) => setForm({ ...form, createAdmin: e.target.checked })} />
                       Crear credenciales admin

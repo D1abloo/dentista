@@ -466,11 +466,16 @@ async function main() {
     if (QA_SEED_ORG) {
       const orgsJ = await json(orgs);
       const orgList = orgsJ.body?.data ?? [];
-      const hasMed = orgList.some((o) =>
+      const medClinics = orgList.filter((o) =>
         String(o.tenant_name ?? o.name ?? '').toLowerCase().includes('mediterr')
       );
-      if (hasMed) {
-        record('Plataforma', 'Org Mediterráneo QA', 'PASS', 'ya registrada');
+      const allIndependent = medClinics.every((o) => (o.branch_count ?? 1) <= 1);
+      if (medClinics.length >= 2 && allIndependent) {
+        record('Plataforma', 'Clínicas Mediterráneo independientes', 'PASS', `count=${medClinics.length}`);
+      } else if (medClinics.length > 0 && !allIndependent) {
+        record('Plataforma', 'Clínicas Mediterráneo independientes', 'FAIL', 'tenant compartido legacy');
+      } else if (medClinics.length > 0) {
+        record('Plataforma', 'Clínicas Mediterráneo independientes', 'WARN', 'falta segunda clínica');
       } else {
         const createOrg = await fetch(`${BASE}/api/platform/organizations`, {
           method: 'POST',
@@ -492,7 +497,7 @@ async function main() {
         const createJ = await json(createOrg);
         record(
           'Plataforma',
-          'POST org multi-sede Mediterráneo',
+          'POST clínicas independientes Mediterráneo',
           createOrg.ok ? 'PASS' : 'WARN',
           createJ.body?.error?.message ?? `status=${createOrg.status}`
         );

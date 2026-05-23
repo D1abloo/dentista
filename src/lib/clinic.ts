@@ -31,14 +31,14 @@ export function clinicTenantId(state: DemoState, clinicId: string): string {
 }
 
 export function dentistsForClinic(state: DemoState, clinicId: string) {
-  const clinic = state.clinics.find((c) => c.id === clinicId);
-  if (!clinic) return [];
-  return state.dentists.filter((d) => d.tenantId === clinic.tenantId && d.active);
+  return state.dentists.filter(
+    (d) => (d.clinicId === clinicId || clinicTenantId(state, clinicId) === d.tenantId) && d.active
+  );
 }
 
 export function treatmentsForClinic(state: DemoState, clinicId: string) {
   const tenantId = clinicTenantId(state, clinicId);
-  return state.treatments.filter((t) => t.tenantId === tenantId && t.active);
+  return state.treatments.filter((t) => (t.clinicId === clinicId || t.tenantId === tenantId) && t.active);
 }
 
 export function appointmentsForClinic(state: DemoState, clinicId: string) {

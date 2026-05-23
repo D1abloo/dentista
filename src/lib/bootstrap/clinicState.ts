@@ -3,6 +3,7 @@ import type { SessionUser } from '@/lib/auth';
 import { createEmptyDemoState } from '@/lib/emptyState';
 import { logInfo } from '@/lib/logger';
 import { listScheduleBlocksForClinics } from '@/lib/services/scheduleBlocks';
+import { listAssignedClinicIdsForSession } from '@/lib/services/staffContext';
 import { getSupabaseAdmin } from '@/lib/supabaseServer';
 import type { AppointmentStatus, DemoState, InvoiceStatus } from '@/types/demo';
 
@@ -34,15 +35,13 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
   const { data: anchorClinic } = await db.from('clinics').select('*').eq('id', user.clinicId).single();
   if (!anchorClinic) return createEmptyDemoState();
 
-  const tenantId = user.tenantId ?? anchorClinic.tenant_id ?? user.clinicId;
-  const tenantHint = tenantId;
-
-  const { data: allClinics } = anchorClinic.tenant_id
-    ? await db.from('clinics').select('*').eq('tenant_id', anchorClinic.tenant_id).order('is_main_branch', { ascending: false })
-    : { data: [anchorClinic] };
-
-  const clinicRows = allClinics ?? [anchorClinic];
-  const clinicIds = clinicRows.map((c) => c.id);
+  const assignedClinicIds = await listAssignedClinicIdsForSession(user);
+  const activeClinicId = user.clinicId;
+  const { data: assignedRows } = await db.from('clinics').select('*').in('id', assignedClinicIds);
+  const clinicRows = (assignedRows ?? []).length ? assignedRows! : [anchorClinic];
+  const clinicIds = [activeClinicId];
+  const tenantId = anchorClinic.tenant_id ?? user.tenantId ?? user.clinicId;
+  const tenantHint = anchorClinic.tenant_id ?? tenantId;
   if (!clinicIds.length) return createEmptyDemoState();
 
   const [
@@ -58,13 +57,13 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
     { data: messages },
     { data: consents }
   ] = await Promise.all([
-    db.from('rooms').select('*').in('clinic_id', clinicIds),
-    db.from('dentists').select('*').in('clinic_id', clinicIds),
-    db.from('treatments').select('*').in('clinic_id', clinicIds),
-    db.from('profiles').select('*').in('clinic_id', clinicIds),
-    db.from('appointments_view').select('*').in('clinic_id', clinicIds).order('starts_at'),
-    db.from('invoices').select('*').in('clinic_id', clinicIds).order('created_at', { ascending: false }),
-    db.from('payments').select('*').in('clinic_id', clinicIds).order('created_at', { ascending: false }),
+    db.from('rooms').select('*').eq('clinic_id', activeClinicId),
+    db.from('dentists').select('*').eq('clinic_id', activeClinicId),
+    db.from('treatments').select('*').eq('clinic_id', activeClinicId),
+    db.from('profiles').select('*').eq('clinic_id', activeClinicId),
+    db.from('appointments_view').select('*').eq('clinic_id', activeClinicId).order('starts_at'),
+    db.from('invoices').select('*').eq('clinic_id', activeClinicId).order('created_at', { ascending: false }),
+    db.from('payments').select('*').eq('clinic_id', activeClinicId).order('created_at', { ascending: false }),
     db.from('clinical_reports').select('*').eq('tenant_id', tenantHint).order('created_at', { ascending: false }),
     db.from('patient_documents').select('*').eq('tenant_id', tenantHint).order('created_at', { ascending: false }),
     db.from('messages').select('*').eq('tenant_id', tenantHint).order('created_at', { ascending: false }),
@@ -118,7 +117,7 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
 
   state.clinics = clinicRows.map((clinic) => ({
     id: clinic.id,
-    tenantId,
+    tenantId: (clinic.tenant_id as string) ?? tenantId,
     name: clinic.name,
     address: clinic.address ?? '',
     city: clinic.city ?? 'Madrid',
@@ -141,7 +140,7 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
       id: d.id,
       clinicId: d.clinic_id as string,
       profileId: d.profile_id ?? undefined,
-      tenantId,
+      tenantId: tenantHint,
       fullName: d.name,
       specialty: d.specialty,
       visibleTitle: (d.visible_title as string | null) ?? undefined,
@@ -165,7 +164,8 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
 
   state.treatments = (treatments ?? []).map((t) => ({
     id: t.id,
-    tenantId,
+    clinicId: t.clinic_id as string,
+    tenantId: tenantHint,
     name: t.name,
     description: t.description ?? '',
     durationMinutes: t.duration_minutes,

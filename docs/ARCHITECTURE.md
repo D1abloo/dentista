@@ -4,6 +4,8 @@
 
 DentalFlow está diseñado como SaaS multi-clínica con frontend SSR, componentes interactivos y backend ligero en rutas API de Astro.
 
+**Regla de aislamiento:** cada clínica registrada es **siempre independiente** — relación 1:1 entre `clinics` y `tenants`. No hay sedes compartiendo `tenant_id` ni cruce de datos clínicos entre clínicas del mismo grupo comercial. Un administrador con varias clínicas tiene un perfil staff por clínica y cambia de contexto sin ver datos de otra.
+
 ```txt
 Paciente/Admin Browser
         ↓

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Semilla idempotente: Grupo Dental Mediterráneo (2 sedes) + admin org.
+ * Semilla idempotente: 2 clínicas INDEPENDIENTES (cada una con su tenant).
+ * Nombres comerciales del grupo Mediterráneo, sin compartir tenant_id.
  * Uso: npm run seed:qa-mediterraneo
  */
 import { createClient } from '@supabase/supabase-js';
@@ -25,14 +26,13 @@ const db = createClient(url, serviceKey, {
   auth: { autoRefreshToken: false, persistSession: false }
 });
 
-const ORG_NAME = 'Grupo Dental Mediterráneo';
-const ADMIN_EMAIL = (process.env.QA_MED_ADMIN_EMAIL || 'mediterraneo.admin@dentista.app').toLowerCase();
-const ADMIN_NAME = 'Admin Org Mediterráneo';
-
-const BRANCHES = [
-  { name: 'Clínica Dental Mediterráneo Centro', city: 'Valencia', phone: '+34 961 100 101' },
-  { name: 'Clínica Dental Mediterráneo Norte', city: 'Castellón', phone: '+34 964 100 102' }
+const CLINICS = [
+  { name: 'Clínica Dental Mediterráneo Centro', city: 'Valencia', phone: '+34 961 100 101', slugKey: 'mediterraneo-centro' },
+  { name: 'Clínica Dental Mediterráneo Norte', city: 'Castellón', phone: '+34 964 100 102', slugKey: 'mediterraneo-norte' }
 ];
+
+const ADMIN_EMAIL = (process.env.QA_MED_ADMIN_EMAIL || 'mediterraneo.admin@dentista.app').toLowerCase();
+const ADMIN_NAME = 'Admin Mediterráneo';
 
 function slugify(name) {
   return name
@@ -77,103 +77,111 @@ async function ensureAuthUser(email, name) {
   return data.user;
 }
 
-async function createBranch(tenantId, input, isMain) {
-  if (isMain) {
-    await db.from('clinics').update({ is_main_branch: false }).eq('tenant_id', tenantId);
+async function upsertIndependentClinic(spec) {
+  const { data: existing } = await db
+    .from('clinics')
+    .select('id, tenant_id, slug')
+    .eq('slug', spec.slugKey)
+    .maybeSingle();
+
+  if (existing?.id) {
+    console.log(`✓ Ya existe: ${spec.name} (${existing.slug})`);
+    return existing;
   }
-  const slug = `${slugify(input.name)}-${Date.now().toString(36).slice(-4)}`;
-  const { data: clinic, error } = await db
+
+  const tenantCode = `TEN-${spec.slugKey.toUpperCase()}`;
+  const { data: tenant, error: tErr } = await db
+    .from('tenants')
+    .insert({
+      code: tenantCode,
+      name: spec.name,
+      type: 'clinica',
+      owner_name: ADMIN_NAME,
+      email: ADMIN_EMAIL,
+      phone: spec.phone,
+      address: spec.city,
+      active: true
+    })
+    .select('id')
+    .single();
+  if (tErr) throw tErr;
+
+  const slug = spec.slugKey;
+  const { data: clinic, error: cErr } = await db
     .from('clinics')
     .insert({
-      name: input.name,
+      name: spec.name,
       slug,
-      tenant_id: tenantId,
+      tenant_id: tenant.id,
       email: ADMIN_EMAIL,
-      phone: input.phone,
-      city: input.city,
+      phone: spec.phone,
+      city: spec.city,
       status: 'active',
-      is_main_branch: isMain,
+      is_main_branch: true,
       subscription_plan: 'professional',
       approved_at: new Date().toISOString()
     })
-    .select('id, name, slug')
+    .select('id, tenant_id, slug, name')
     .single();
-  if (error) throw error;
+  if (cErr) throw cErr;
 
   await db.from('clinic_subscriptions').upsert(
     { clinic_id: clinic.id, plan: 'professional', status: 'active', seats: 8 },
     { onConflict: 'clinic_id' }
   );
   await db.from('rooms').insert({ clinic_id: clinic.id, name: 'Gabinete 1', active: true });
+
+  console.log(`✓ Clínica independiente: ${spec.name} (tenant ${String(tenant.id).slice(0, 8)}…)`);
   return clinic;
 }
 
-async function main() {
-  const { data: existing } = await db.from('tenants').select('id, name').ilike('name', ORG_NAME).maybeSingle();
-  if (existing?.id) {
-    const { data: branches } = await db
-      .from('clinics')
-      .select('id, name')
-      .eq('tenant_id', existing.id);
-    console.log(`✓ Ya existe: ${ORG_NAME} (${branches?.length ?? 0} sedes)`);
-    for (const b of branches ?? []) console.log(`  · ${b.name}`);
-    return;
-  }
-
-  const tenantCode = `TEN-MED-${Date.now().toString(36).toUpperCase()}`;
-  const { data: tenant, error: tenantErr } = await db
-    .from('tenants')
-    .insert({
-      code: tenantCode,
-      name: ORG_NAME,
-      type: 'clinica',
-      owner_name: ADMIN_NAME,
-      email: ADMIN_EMAIL,
-      phone: '+34 961 100 100',
-      address: 'Comunidad Valenciana',
-      active: true
-    })
-    .select('id')
-    .single();
-  if (tenantErr) throw tenantErr;
-
-  const created = [];
-  for (let i = 0; i < BRANCHES.length; i++) {
-    const branch = await createBranch(tenant.id, BRANCHES[i], i === 0);
-    created.push(branch);
-    console.log(`✓ Sede: ${branch.name} (${branch.slug})`);
-  }
-
-  const main = created[0];
-  const authUser = await ensureAuthUser(ADMIN_EMAIL, ADMIN_NAME);
+async function ensureAdminProfile(authUserId, clinic) {
   const { data: prof } = await db
     .from('profiles')
     .select('id')
-    .eq('clinic_id', main.id)
+    .eq('clinic_id', clinic.id)
     .eq('email', ADMIN_EMAIL)
     .eq('role', 'clinic_admin')
     .maybeSingle();
-  const profilePayload = {
-    auth_user_id: authUser.id,
-    clinic_id: main.id,
-    tenant_id: tenant.id,
+
+  const payload = {
+    auth_user_id: authUserId,
+    clinic_id: clinic.id,
+    tenant_id: clinic.tenant_id,
     role: 'clinic_admin',
     full_name: ADMIN_NAME,
     email: ADMIN_EMAIL,
     activated_at: new Date().toISOString()
   };
+
   if (prof?.id) {
-    await db.from('profiles').update(profilePayload).eq('id', prof.id);
+    await db.from('profiles').update(payload).eq('id', prof.id);
   } else {
-    await db.from('profiles').insert(profilePayload);
+    await db.from('profiles').insert(payload);
   }
+}
+
+async function main() {
+  const authUser = await ensureAuthUser(ADMIN_EMAIL, ADMIN_NAME);
+  const created = [];
+
+  for (const spec of CLINICS) {
+    const clinic = await upsertIndependentClinic(spec);
+    await ensureAdminProfile(authUser.id, clinic);
+    created.push(clinic);
+  }
+
   await db.auth.admin.updateUserById(authUser.id, {
-    app_metadata: { role: 'clinic_admin', clinic_id: main.id, tenant_id: tenant.id }
+    app_metadata: {
+      role: 'clinic_admin',
+      clinic_id: created[0].id,
+      tenant_id: created[0].tenant_id
+    }
   });
 
-  console.log(`\n✓ Organización ${ORG_NAME} creada (${created.length} sedes)`);
-  console.log(`  Admin org: ${ADMIN_EMAIL} (misma contraseña que CLINIC_DEFAULT_PASSWORD)`);
-  console.log(`  Panel: /login/admin?email=${encodeURIComponent(ADMIN_EMAIL)}`);
+  console.log(`\n✓ ${created.length} clínicas independientes (sin tenant compartido)`);
+  console.log(`  Admin: ${ADMIN_EMAIL}`);
+  console.log('  Aplica migración 0029 en Supabase si había sedes legacy en un solo tenant.');
 }
 
 main().catch((err) => {

@@ -404,8 +404,8 @@ export function AdminClinics() {
     <div className="space-y-4">
       <Card title={`Organización · ${orgName}`}>
         <p className="text-sm text-[var(--muted)]">
-          Tu cuenta gestiona <strong>{branches.length}</strong> sede{branches.length === 1 ? '' : 's'} bajo la misma
-          organización. Pacientes e informes compartidos por tenant; citas y gabinetes por sede.
+          Tu cuenta tiene acceso a <strong>{branches.length}</strong> clínica{branches.length === 1 ? '' : 's'}{' '}
+          independiente{branches.length === 1 ? '' : 's'}. Cada una tiene su propio tenant, pacientes y datos aislados.
         </p>
         <ul className="org-branch-list mt-4">
           {branches.map((b) => (

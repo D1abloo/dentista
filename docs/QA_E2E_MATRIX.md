@@ -21,14 +21,14 @@ Scripts: `npm run qa:audit` (estructura) · `npm run qa:live` (E2E API en vivo) 
 | Bloqueos agenda | **FIX** — inserción robusta + fin de tramo válido |
 | Multi-sede UI | **PASS-C** — `useActiveClinic` + `ClinicBranchSwitcher` |
 | E2E API live (cita, informe, factura, pago, mensaje) | **PASS-L** — `npm run qa:live` |
-| Org Mediterráneo multi-sede | **PASS-L** — `npm run seed:qa-mediterraneo` o POST plataforma en `qa:live` |
+| Clínicas Mediterráneo independientes | **PASS-L** — `npm run seed:qa-mediterraneo` (1 tenant por clínica) |
 | E2E datos reales multi-org | **MANUAL** — crear Mediterráneo + 3 clínicas en UI |
 
 ## Matriz por módulo
 
 | Módulo | Prueba | Usuario | Esperado | Obtenido | Estado | Corrección |
 |--------|--------|---------|----------|----------|--------|------------|
-| Plataforma | Crear org multi-sede | Super Admin | 2+ sedes, tenant, admin | — | MANUAL | — |
+| Plataforma | Crear varias clínicas independientes | Super Admin | 1 tenant por clínica | `seed:qa-mediterraneo` | PASS-L | `0029` + `independentClinic` |
 | Plataforma | Aislamiento orgs | Super Admin | Sin PHI cruzado | Metadatos vía `platform/*` | PASS-C | — |
 | Clínica A/B | Admin no ve pacientes B | Admin A | 403 / lista vacía | `assertClinicScopeAsync` | PASS-C | `patients.ts`, guards |
 | Paciente A/B | No ve informes B | Paciente A | Solo propios | Filtro `patientId` + RLS | PASS-C | `0028`, APIs records |
@@ -75,6 +75,7 @@ Clínicas independientes: Nova, Sonrisa, Horizonte.
 | `0025` / `0026` | Multi-profesional |
 | `0027_schedule_block_group.sql` | `block_group_id` |
 | `0028_rls_records_gaps.sql` | RLS consentimientos, documentos, mensajes, pagos, facturas paciente |
+| `0029_independent_clinics_only.sql` | 1 clínica = 1 tenant; separa legacy multi-sede; trigger DB |
 
 **Aplicar en remoto:** `npm run db:migrate` o SQL Editor Supabase.
 

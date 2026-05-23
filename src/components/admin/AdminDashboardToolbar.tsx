@@ -21,11 +21,10 @@ export function AdminDashboardToolbar({ onRangeChange }: Props) {
   const { state, refresh } = useDemoStore();
   const { staff } = useStaffContext();
   const tenantId = getStoredTenantId();
-  const tenantBranches = state.clinics.filter((c) => c.tenantId === tenantId);
   const branches =
     staff?.assignedClinicIds?.length
-      ? tenantBranches.filter((c) => staff.assignedClinicIds.includes(c.id))
-      : tenantBranches;
+      ? state.clinics.filter((c) => staff.assignedClinicIds.includes(c.id))
+      : state.clinics;
   const { clinicId: activeClinicId, setClinicId, activeClinic } = useActiveClinic(tenantId, branches);
 
   const [rangeOpen, setRangeOpen] = useState(false);

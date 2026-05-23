@@ -15,35 +15,37 @@ export type StaffContext = {
   hasLinkedDentist: boolean;
   canAccessPatientPortal: boolean;
   agendaScope: 'own' | 'clinic';
-  /** Sedes donde el usuario tiene perfil de staff (multi-sede). */
+  /** Clínicas independientes donde el usuario tiene perfil staff. */
   assignedClinicIds: string[];
   /** Administración / recepción: puede gestionar bloqueos de toda la sede. */
   canManageBlocks: boolean;
 };
 
-async function listAssignedClinicIds(user: SessionUser): Promise<string[]> {
+/** Clínicas donde el usuario tiene perfil staff (cada una con su propio tenant). */
+export async function listAssignedClinicIdsForSession(user: SessionUser): Promise<string[]> {
   if (!user.profileId) return user.clinicId ? [user.clinicId] : [];
   const db = getSupabaseAdmin();
   const { data: anchor } = await db
     .from('profiles')
-    .select('auth_user_id, tenant_id')
+    .select('auth_user_id')
     .eq('id', user.profileId)
     .maybeSingle();
   if (!anchor?.auth_user_id) return user.clinicId ? [user.clinicId] : [];
 
-  let q = db
+  const { data: rows } = await db
     .from('profiles')
     .select('clinic_id, role')
     .eq('auth_user_id', anchor.auth_user_id as string);
-  const tenantId = user.tenantId ?? (anchor.tenant_id as string | null);
-  if (tenantId) q = q.eq('tenant_id', tenantId);
 
-  const { data: rows } = await q;
   const ids = (rows ?? [])
-    .filter((r) => STAFF_ROLES.has(String(r.role)))
+    .filter((r) => STAFF_ROLES.has(String(r.role)) && r.clinic_id)
     .map((r) => r.clinic_id as string);
   const unique = [...new Set(ids)];
   return unique.length ? unique : user.clinicId ? [user.clinicId] : [];
+}
+
+async function listAssignedClinicIds(user: SessionUser): Promise<string[]> {
+  return listAssignedClinicIdsForSession(user);
 }
 
 export async function getStaffContextForSession(user: SessionUser): Promise<StaffContext | null> {
