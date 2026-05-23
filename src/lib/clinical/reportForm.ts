@@ -1,14 +1,32 @@
+import {
+  assembleClinicalDescription,
+  assembleDiagnosis,
+  assembleRecommendations,
+  EMPTY_REPORT_SECTIONS,
+  sectionsAreComplete,
+  type ClinicalReportSections
+} from '@/lib/clinical/reportSections';
+
 export type ClinicalReportFormState = {
   patientId: string;
   appointmentId: string;
   dentistName: string;
   title: string;
-  description: string;
-  diagnosis: string;
-  recommendations: string;
+  sections: ClinicalReportSections;
   visibleToPatient: boolean;
   uploadedBy: string;
 };
+
+export function formToPersistedFields(
+  form: ClinicalReportFormState,
+  professionalLine?: string
+): { description: string; diagnosis: string; recommendations: string } {
+  return {
+    description: assembleClinicalDescription(form.sections),
+    diagnosis: assembleDiagnosis(form.sections, professionalLine),
+    recommendations: assembleRecommendations(form.sections)
+  };
+}
 
 export function parseReportApiError(json: {
   error?: { message?: string; details?: { fieldErrors?: Record<string, string[]>; formErrors?: string[] } };
@@ -30,10 +48,7 @@ export function validateClinicalReportForm(form: ClinicalReportFormState): strin
   if (!form.patientId?.trim()) return 'Selecciona un paciente.';
   if (!form.appointmentId?.trim()) return 'Selecciona una cita válida.';
   if (!form.title?.trim()) return 'Completa el título del informe.';
-  if (!form.description?.trim()) return 'Completa la descripción.';
-  if (!form.diagnosis?.trim()) return 'Completa el diagnóstico.';
-  if (!form.recommendations?.trim()) return 'Completa las recomendaciones.';
-  return null;
+  return sectionsAreComplete(form.sections);
 }
 
 export const EMPTY_REPORT_FORM: ClinicalReportFormState = {
@@ -41,9 +56,9 @@ export const EMPTY_REPORT_FORM: ClinicalReportFormState = {
   appointmentId: '',
   dentistName: '',
   title: '',
-  description: '',
-  diagnosis: '',
-  recommendations: '',
+  sections: { ...EMPTY_REPORT_SECTIONS },
   visibleToPatient: true,
   uploadedBy: 'Admin clínica'
 };
+
+export type { ClinicalReportSections };

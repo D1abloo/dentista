@@ -22,10 +22,13 @@ import {
 } from '@/lib/clinical/reportTemplates';
 import {
   EMPTY_REPORT_FORM,
+  formToPersistedFields,
   parseReportApiError,
   validateClinicalReportForm,
-  type ClinicalReportFormState
+  type ClinicalReportFormState,
+  type ClinicalReportSections
 } from '@/lib/clinical/reportForm';
+import { ReportSectionBox, ReportSectionGroup } from './ReportSectionBox';
 import {
   addMessage,
   createClinicalReport,
@@ -42,7 +45,7 @@ import type { ClinicalReport } from '@/types/demo';
 import { FileActions } from '@/components/shared/FileActions';
 import { patientName } from '@/lib/selectors';
 import { PatientLookup } from './PatientLookup';
-import { Field, Input, SearchInput, Select, Textarea } from '@/components/ui';
+import { Field, Input, SearchInput, Select } from '@/components/ui';
 
 function appointmentLabel(state: ReturnType<typeof useDemoStore>['state'], appointmentId: string) {
   const appt = state.appointments.find((a) => a.id === appointmentId);
@@ -95,9 +98,7 @@ export function AdminClinicalReports() {
       setForm((f) => ({
         ...f,
         title: filled.title,
-        description: filled.description,
-        diagnosis: filled.diagnosis,
-        recommendations: filled.recommendations,
+        sections: filled.sections,
         dentistName: ctx.dentistName
       }));
       setTemplateId(id);
@@ -180,14 +181,19 @@ export function AdminClinicalReports() {
       return;
     }
 
+    const professionalLine = apptContext
+      ? `Profesional responsable: ${apptContext.dentistHonorific} ${apptContext.dentistName} · Colegiado n.º ${apptContext.dentistCollegiateNumber}`
+      : undefined;
+    const persisted = formToPersistedFields(form, professionalLine);
+
     const reportInput = {
       clinicId,
       patientId: form.patientId,
       appointmentId: form.appointmentId || undefined,
       title: form.title.trim(),
-      description: form.description.trim(),
-      diagnosis: form.diagnosis.trim(),
-      recommendations: form.recommendations.trim(),
+      description: persisted.description,
+      diagnosis: persisted.diagnosis,
+      recommendations: persisted.recommendations,
       fileName,
       fileRef,
       mimeType,
@@ -219,7 +225,7 @@ export function AdminClinicalReports() {
             next = addMessage(next, {
               patientId: form.patientId,
               subject: `Nuevo informe disponible: ${form.title}`,
-              body: form.description,
+              body: persisted.description,
               channel: 'app',
               type: 'clinica',
               read: false,
@@ -244,7 +250,7 @@ export function AdminClinicalReports() {
         next = addMessage(next, {
           patientId: form.patientId,
           subject: `Nuevo informe disponible: ${form.title}`,
-          body: form.description,
+          body: persisted.description,
           channel: 'app',
           type: 'clinica',
           read: false,
@@ -272,6 +278,10 @@ export function AdminClinicalReports() {
   }
 
   const previewPatient = state.patients.find((p) => p.id === form.patientId);
+
+  function patchSection<K extends keyof ClinicalReportSections>(key: K, value: ClinicalReportSections[K]) {
+    setForm((f) => ({ ...f, sections: { ...f.sections, [key]: value } }));
+  }
 
   return (
     <div className="cr-module">
@@ -385,41 +395,139 @@ export function AdminClinicalReports() {
               </div>
             ) : null}
 
-            <Field label="Título del informe *">
-              <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-              <p className="cr-hint">Sugerencia: Informe odontológico - [Tratamiento] - [Fecha]</p>
-            </Field>
+            <div className="cr-title-box">
+              <Field label="Título del informe *">
+                <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+                <p className="cr-hint">Sugerencia: Informe odontológico - [Tratamiento] - [Fecha]</p>
+              </Field>
+            </div>
 
-            <Field label="Descripción *">
-              <Textarea
-                className="cr-textarea"
-                rows={16}
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-              />
-            </Field>
-
-            <div className="cr-form-row cr-form-row--2">
-              <Field label="Diagnóstico *">
-                <Textarea
-                  className="cr-textarea"
+            <div className="cr-sections">
+              <ReportSectionGroup
+                title="Cuerpo del informe"
+                subtitle="Completa cada recuadro. El texto se ordenará automáticamente al guardar."
+              >
+                <ReportSectionBox
+                  step="1"
+                  title="Antecedentes"
+                  hint="Historia médica, alergias, medicación y hábitos relevantes."
+                  required
+                  rows={5}
+                  value={form.sections.antecedentes}
+                  onChange={(v) => patchSection('antecedentes', v)}
+                />
+                <ReportSectionBox
+                  step="2"
+                  title="Informe clínico sobre tratamiento"
+                  hint="Motivo de consulta, contexto de la visita y actuación programada."
+                  required
+                  rows={4}
+                  value={form.sections.informeTratamiento}
+                  onChange={(v) => patchSection('informeTratamiento', v)}
+                />
+                <ReportSectionBox
+                  step="3"
+                  title="Fuentes del informe"
+                  hint="Historia clínica, exploración, radiografías, fotografías, etc."
+                  rows={4}
+                  value={form.sections.fuentesInforme}
+                  onChange={(v) => patchSection('fuentesInforme', v)}
+                />
+                <ReportSectionBox
+                  step="4"
+                  title="Anamnesis y exploración"
+                  hint="Motivo, hallazgos, piezas revisadas, actuación realizada y observaciones."
+                  required
                   rows={8}
-                  value={form.diagnosis}
-                  onChange={(e) => setForm({ ...form, diagnosis: e.target.value })}
+                  value={form.sections.anamnesisExploracion}
+                  onChange={(v) => patchSection('anamnesisExploracion', v)}
                 />
-              </Field>
-              <Field label="Recomendaciones *">
-                <Textarea
-                  className="cr-textarea cr-textarea--legal"
-                  rows={10}
-                  value={form.recommendations}
-                  onChange={(e) => setForm({ ...form, recommendations: e.target.value })}
+                <ReportSectionBox
+                  step="5"
+                  title="Tratamientos presupuestados y no ejecutados"
+                  hint="Tratamientos propuestos que el paciente no realizó en esta visita."
+                  rows={4}
+                  value={form.sections.tratamientosNoEjecutados}
+                  onChange={(v) => patchSection('tratamientosNoEjecutados', v)}
                 />
-                <p className="cr-legal-hint">
-                  Incluye el aviso legal para impresión en membrete y envío al Colegio de Dentistas de Cádiz (editable al
-                  final del texto).
-                </p>
-              </Field>
+              </ReportSectionGroup>
+
+              <ReportSectionGroup title="Diagnóstico" subtitle="Valoración clínica y estado del paciente.">
+                <ReportSectionBox
+                  step="A"
+                  title="Diagnóstico principal"
+                  required
+                  rows={3}
+                  value={form.sections.diagnosticoPrincipal}
+                  onChange={(v) => patchSection('diagnosticoPrincipal', v)}
+                />
+                <ReportSectionBox
+                  step="B"
+                  title="Hallazgos secundarios"
+                  hint="Lista de hallazgos adicionales."
+                  rows={4}
+                  value={form.sections.hallazgosSecundarios}
+                  onChange={(v) => patchSection('hallazgosSecundarios', v)}
+                />
+                <ReportSectionBox
+                  step="C"
+                  title="Estado general"
+                  hint="Estable, en seguimiento, requiere tratamiento, etc."
+                  rows={2}
+                  value={form.sections.estadoGeneral}
+                  onChange={(v) => patchSection('estadoGeneral', v)}
+                />
+              </ReportSectionGroup>
+
+              <ReportSectionGroup title="Recomendaciones y seguimiento" subtitle="Indicaciones para el paciente y controles.">
+                <ReportSectionBox
+                  step="I"
+                  title="Recomendaciones al paciente"
+                  required
+                  rows={4}
+                  value={form.sections.recomendacionesPaciente}
+                  onChange={(v) => patchSection('recomendacionesPaciente', v)}
+                />
+                <ReportSectionBox
+                  step="II"
+                  title="Tratamiento recomendado"
+                  rows={3}
+                  value={form.sections.tratamientoRecomendado}
+                  onChange={(v) => patchSection('tratamientoRecomendado', v)}
+                />
+                <div className="cr-section-duo">
+                  <ReportSectionBox
+                    step="III"
+                    title="Seguimiento"
+                    rows={3}
+                    value={form.sections.seguimiento}
+                    onChange={(v) => patchSection('seguimiento', v)}
+                  />
+                  <ReportSectionBox
+                    step="IV"
+                    title="Próxima revisión sugerida"
+                    rows={2}
+                    value={form.sections.proximaRevision}
+                    onChange={(v) => patchSection('proximaRevision', v)}
+                  />
+                </div>
+                <ReportSectionBox
+                  step="V"
+                  title="Indicaciones adicionales"
+                  rows={3}
+                  value={form.sections.indicacionesAdicionales}
+                  onChange={(v) => patchSection('indicacionesAdicionales', v)}
+                />
+                <ReportSectionBox
+                  step="§"
+                  title="Aviso legal (Colegio de Dentistas)"
+                  hint="Texto en tamaño reducido para impresión en membrete. Editable."
+                  variant="legal"
+                  rows={4}
+                  value={form.sections.avisoLegal}
+                  onChange={(v) => patchSection('avisoLegal', v)}
+                />
+              </ReportSectionGroup>
             </div>
 
             <div className="cr-upload-block">
@@ -520,11 +628,11 @@ export function AdminClinicalReports() {
                   <p className="cr-preview__meta">
                     {apptContext?.dateLabel ?? '—'} · {apptContext?.clinicName ?? 'Clínica'}
                   </p>
-                  <p className="cr-preview__snippet">{form.diagnosis.split('\n').slice(0, 2).join(' ')}</p>
+                  <p className="cr-preview__snippet">{form.sections.diagnosticoPrincipal.slice(0, 120)}</p>
                   <p className="cr-preview__snippet cr-preview__snippet--legal">
-                    {form.recommendations.includes('colegio@dentistascadiz.com')
+                    {form.sections.avisoLegal.includes('colegio@dentistascadiz.com')
                       ? 'Incluye aviso legal para el Colegio de Dentistas de Cádiz.'
-                      : form.recommendations.split('\n')[0]}
+                      : form.sections.recomendacionesPaciente.split('\n')[0]}
                   </p>
                   <div className="cr-preview__actions">
                     <span className="cr-btn cr-btn--outline cr-btn--sm">Ver informe</span>

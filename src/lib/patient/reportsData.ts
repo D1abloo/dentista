@@ -1,5 +1,6 @@
 import type { ClinicalReport, DemoState } from '@/types/demo';
 import { fmtDate } from '@/lib/format';
+import { reportPreviewLine } from '@/lib/patient/reportDisplay';
 
 const READ_KEY = 'dentista_patient_reports_read';
 
@@ -84,7 +85,7 @@ export function enrichPatientReports(state: DemoState, patientId: string, report
       professional: report.uploadedBy,
       typeLabel: inferReportType(report),
       publishedLabel: fmtDate(report.createdAt),
-      summary: report.description?.trim() || report.diagnosis || '—',
+      summary: reportPreviewLine(report),
       hasPdf: Boolean(report.fileRef),
       read: wasRead,
       isNew,

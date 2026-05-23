@@ -4,6 +4,10 @@ import { fmtDate, fmtDateTime } from '@/lib/format';
 import { patientDisplayCode } from '@/lib/nhc';
 import { patientName } from '@/lib/selectors';
 import { REPORT_COLEGIO_FOOTER } from '@/lib/clinical/reportLegal';
+import {
+  parseStoredReportSections,
+  type ClinicalReportSections
+} from '@/lib/clinical/reportSections';
 
 export type ReportTemplateId =
   | 'revision_general'
@@ -183,9 +187,7 @@ function formalDescription(ctx: AppointmentReportContext, extras: TemplateExtras
       '[Tratamiento presupuestado 2 — pendiente de decisión del paciente]'
     ];
 
-  return `${buildReportLetterhead(ctx)}
-
-ANTECEDENTES
+  return `ANTECEDENTES
 ${antecedentesBlock(ctx, extras.antecedentes)}
 
 INFORME CLÍNICO SOBRE TRATAMIENTO
@@ -354,11 +356,12 @@ const TEMPLATE_BUILDERS: Record<
 export function applyReportTemplate(
   templateId: ReportTemplateId,
   ctx: AppointmentReportContext
-): { title: string; description: string; diagnosis: string; recommendations: string } {
+): { title: string; sections: ClinicalReportSections } {
   const parts = TEMPLATE_BUILDERS[templateId](ctx);
+  const sections = parseStoredReportSections(parts.description, parts.diagnosis, parts.recommendations);
   return {
     title: buildReportTitle(ctx),
-    ...parts
+    sections
   };
 }
 
@@ -366,7 +369,7 @@ export function applyReportTemplateForAppointment(
   state: DemoState,
   appointmentId: string,
   templateId?: ReportTemplateId
-): { title: string; description: string; diagnosis: string; recommendations: string } | null {
+): { title: string; sections: ClinicalReportSections } | null {
   const ctx = getAppointmentReportContext(state, appointmentId);
   if (!ctx) return null;
   const id = templateId ?? inferReportTemplateFromTreatment(ctx.treatmentName);
