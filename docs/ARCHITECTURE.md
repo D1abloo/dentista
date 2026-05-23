@@ -69,6 +69,7 @@ Entidades principales:
 - availability_rules
 - audit_logs (event_type, module, severity, result, user_email, tenant_id, IP, user_agent — migración 0030)
 - login_events (historial de sesiones e intentos de login)
+- Panel `/platform/monitorizacion` (Super Admin): KPIs, alertas, gráficas y actividad en tiempo real
 - system_logs
 - role_permissions
 - clinic_settings

@@ -46,6 +46,7 @@ export { PlatformMetrics } from './PlatformMetrics';
 
 export { PlatformSecurity } from './PlatformSecurity';
 export { PlatformAudit } from './PlatformAudit';
+export { PlatformMonitoring } from './PlatformMonitoring';
 
 export { PlatformOrganizations } from './PlatformOrganizations';
 

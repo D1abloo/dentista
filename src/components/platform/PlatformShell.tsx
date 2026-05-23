@@ -5,13 +5,17 @@ export type PlatformShellProps = {
   subtitle?: string;
   headerActions?: ReactNode;
   children: ReactNode;
+  /** Oculta cabecera por defecto (p. ej. monitorización con topbar propio) */
+  hideHeader?: boolean;
+  /** Card inferior del sidebar exclusiva de plataforma */
+  exclusiveSidebarFooter?: boolean;
 };
 import { ExternalLink, LogOut, Menu, Shield } from 'lucide-react';
 import { LogoMark } from '@/components/brand/Logo';
 import { useLogout } from '@/components/auth/RoleGate';
 import { platformNavSections } from './nav';
 
-export function PlatformShell({ title, subtitle, headerActions, children }: PlatformShellProps) {
+export function PlatformShell({ title, subtitle, headerActions, children, hideHeader, exclusiveSidebarFooter }: PlatformShellProps) {
   const [open, setOpen] = useState(false);
   const path = typeof window !== 'undefined' ? window.location.pathname : '';
   const logout = useLogout();
@@ -63,10 +67,17 @@ export function PlatformShell({ title, subtitle, headerActions, children }: Plat
           </div>
         ))}
       </nav>
-      <a href="/" className="plt-rail-footer" target="_blank" rel="noopener noreferrer">
-        <ExternalLink className="h-4 w-4" aria-hidden />
-        Sitio público
-      </a>
+      {exclusiveSidebarFooter ? (
+        <div className="plt-rail-exclusive">
+          <p>Esta área es exclusiva para administración de la plataforma</p>
+          <a href="/ayuda#plataforma">Más información</a>
+        </div>
+      ) : (
+        <a href="/" className="plt-rail-footer" target="_blank" rel="noopener noreferrer">
+          <ExternalLink className="h-4 w-4" aria-hidden />
+          Sitio público
+        </a>
+      )}
       <button type="button" className="plt-rail-footer plt-rail-footer--btn" onClick={logout}>
         <LogOut className="h-4 w-4" aria-hidden />
         Salir
@@ -83,21 +94,23 @@ export function PlatformShell({ title, subtitle, headerActions, children }: Plat
         </div>
       ) : null}
       <div className="portal-main">
-        <header className="portal-top portal-top--admin plt-top">
-          <div className="plt-top__left">
-            <div className="portal-top__row">
-              <h1 className="portal-top__title">{title}</h1>
-              <span className="live-pill">PLATAFORMA</span>
+        {!hideHeader ? (
+          <header className="portal-top portal-top--admin plt-top">
+            <div className="plt-top__left">
+              <div className="portal-top__row">
+                <h1 className="portal-top__title">{title}</h1>
+                <span className="live-pill">PLATAFORMA</span>
+              </div>
+              {subtitle ? <p className="portal-top__sub">{subtitle}</p> : null}
             </div>
-            {subtitle ? <p className="portal-top__sub">{subtitle}</p> : null}
-          </div>
-          <div className="plt-top__right">
-            {headerActions}
-            <button type="button" className="pub-menu-btn lg:hidden" onClick={() => setOpen(true)} aria-label="Abrir menú">
-              <Menu className="h-5 w-5" />
-            </button>
-          </div>
-        </header>
+            <div className="plt-top__right">
+              {headerActions}
+              <button type="button" className="pub-menu-btn lg:hidden" onClick={() => setOpen(true)} aria-label="Abrir menú">
+                <Menu className="h-5 w-5" />
+              </button>
+            </div>
+          </header>
+        ) : null}
         <main className="portal-body portal-body--admin plt-body">{children}</main>
       </div>
     </div>
