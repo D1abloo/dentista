@@ -422,6 +422,11 @@
   color: #0d9488;
 }
 
+.plt-kpi__icon--red {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
 .plt-kpi__label {
   margin: 0;
   font-size: 0.65rem;
@@ -470,6 +475,10 @@
 }
 .plt-spark--teal {
   color: #14b8a6;
+}
+
+.plt-spark--red {
+  color: #f87171;
 }
 
 .plt-grid {

@@ -1,16 +1,28 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Building2,
+  CheckCircle2,
+  Clock,
+  Crown,
   Download,
+  ExternalLink,
   Eye,
+  FileText,
+  Link2,
   LogIn,
+  Mail,
   MoreVertical,
+  PauseCircle,
   Pencil,
   Plus,
   RefreshCw,
+  Search,
+  ShieldCheck,
   Upload,
+  Users,
   X
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useCountUp } from '@/hooks/useCountUp';
 import type { ClinicListRow } from '@/lib/platform/clinicsDemo';
 import { getClinicsKpis, planLabel } from '@/lib/platform/clinicsDemo';
@@ -60,6 +72,31 @@ function planBadgeClass(plan: SubscriptionPlan) {
   return 'cln-badge--plan-essential';
 }
 
+function Sparkline({ points, tone }: { points: number[]; tone: string }) {
+  const max = Math.max(...points, 1);
+  const coords = points
+    .map((p, i) => {
+      const x = (i / Math.max(points.length - 1, 1)) * 100;
+      const y = 100 - (p / max) * 100;
+      return `${x},${y}`;
+    })
+    .join(' ');
+  return (
+    <svg className={`plt-spark plt-spark--${tone}`} viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden>
+      <polyline className="plt-spark__line" points={coords} />
+    </svg>
+  );
+}
+
+const KPI_CONFIG: { label: string; key: keyof ReturnType<typeof getClinicsKpis>; icon: LucideIcon; tone: string; spark: number[] }[] = [
+  { label: 'Clínicas totales', key: 'total', icon: Building2, tone: 'blue', spark: [2, 3, 2, 4, 3, 5, 4] },
+  { label: 'Activas', key: 'active', icon: CheckCircle2, tone: 'green', spark: [1, 2, 2, 3, 2, 4, 3] },
+  { label: 'Pendientes', key: 'pending', icon: Clock, tone: 'orange', spark: [0, 1, 0, 1, 0, 0, 0] },
+  { label: 'Suspendidas', key: 'suspended', icon: PauseCircle, tone: 'red', spark: [0, 0, 1, 0, 0, 0, 0] },
+  { label: 'Plan PRO', key: 'planPro', icon: Crown, tone: 'purple', spark: [0, 1, 1, 2, 1, 2, 1] },
+  { label: 'Tenants vinculados', key: 'tenantsLinked', icon: Link2, tone: 'teal', spark: [1, 1, 2, 2, 2, 3, 2] }
+];
+
 export function PlatformClinics() {
   const [list, setList] = useState<ClinicListRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,6 +112,7 @@ export function PlatformClinics() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const [badgePulse, setBadgePulse] = useState<string | null>(null);
+  const [didAutoSelect, setDidAutoSelect] = useState(false);
   const importRef = useRef<HTMLInputElement>(null);
 
   const showToast = useCallback((type: 'ok' | 'err', text: string) => {
@@ -96,6 +134,13 @@ export function PlatformClinics() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (!didAutoSelect && list.length) {
+      setSelected(list[0]);
+      setDidAutoSelect(true);
+    }
+  }, [list, didAutoSelect]);
 
   useEffect(() => {
     if (!selected) return;
@@ -302,7 +347,7 @@ export function PlatformClinics() {
       </button>
       <button type="button" className="plt-btn plt-btn--primary" onClick={openCreate}>
         <Plus className="h-4 w-4" aria-hidden />
-        Nueva clínica
+        + Nueva clínica
       </button>
       <input
         ref={importRef}
@@ -321,13 +366,14 @@ export function PlatformClinics() {
   function renderRowActions(c: ClinicListRow, compact?: boolean) {
     return (
       <div className="cln-actions" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="cln-btn-text" onClick={() => setSelected(c)}>
-          {compact ? <Eye className="h-4 w-4" /> : 'Ver detalle'}
+        <button type="button" className="cln-icon-btn cln-icon-btn--tip" data-tip="Ver detalle" onClick={() => setSelected(c)}>
+          <Eye className="h-4 w-4" />
+          {!compact ? <span className="sr-only">Ver detalle</span> : null}
         </button>
-        <button type="button" className="cln-btn-text" onClick={() => void enterAsAdmin(c)}>
-          {compact ? <LogIn className="h-4 w-4" /> : 'Entrar como admin'}
+        <button type="button" className="cln-icon-btn cln-icon-btn--tip" data-tip="Entrar como admin" onClick={() => void enterAsAdmin(c)}>
+          <LogIn className="h-4 w-4" />
         </button>
-        <button type="button" className="cln-icon-btn" title="Editar" onClick={() => openEdit(c)}>
+        <button type="button" className="cln-icon-btn cln-icon-btn--tip" data-tip="Editar" onClick={() => openEdit(c)}>
           <Pencil className="h-4 w-4" />
         </button>
         <div className="cln-menu">
@@ -367,48 +413,51 @@ export function PlatformClinics() {
       subtitle="Gestiona sedes, estados, planes, tenants y accesos de cada clínica."
       headerActions={headerActions}
     >
-      <div className="cln-page cln-layout">
-        <div className="cln-kpis">
-          <ClnKpi label="Clínicas totales" value={kpis.total} delay={0} />
-          <ClnKpi label="Activas" value={kpis.active} delay={60} />
-          <ClnKpi label="Pendientes" value={kpis.pending} delay={120} />
-          <ClnKpi label="Suspendidas" value={kpis.suspended} delay={180} />
-          <ClnKpi label="Plan PRO" value={kpis.planPro} delay={240} />
-          <ClnKpi label="Tenants vinculados" value={kpis.tenantsLinked} delay={300} />
+      <div className={`cln-page cln-layout${selected ? ' cln-page--panel-open' : ''}`}>
+        <div className="cln-kpis plt-kpis">
+          {KPI_CONFIG.map((k, i) => (
+            <ClnKpi key={k.label} label={k.label} value={kpis[k.key]} icon={k.icon} tone={k.tone} spark={k.spark} delay={i * 70} />
+          ))}
         </div>
 
         <div className="cln-toolbar">
-          <input
-            className="cln-toolbar__search"
-            placeholder="Buscar por clínica, email, tenant, ciudad o plan…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label="Buscar clínicas"
-          />
-          <div className="cln-chips" role="tablist">
-            {chips.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                role="tab"
-                aria-selected={chip === c.id}
-                className={`cln-chip${chip === c.id ? ' cln-chip--active' : ''}`}
-                onClick={() => setChip(c.id)}
-              >
-                {c.label}
+          <label className="cln-search">
+            <Search className="cln-search__icon h-4 w-4" aria-hidden />
+            <input
+              placeholder="Buscar por clínica, email, tenant, ciudad o plan…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Buscar clínicas"
+            />
+          </label>
+          <div className="cln-toolbar__row">
+            <div className="cln-chips" role="tablist">
+              {chips.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={chip === c.id}
+                  className={`cln-chip${chip === c.id ? ' cln-chip--active' : ''}`}
+                  onClick={() => setChip(c.id)}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+            <div className="cln-toolbar__sort-wrap">
+              <select className="cln-toolbar__sort" value={sort} onChange={(e) => setSort(e.target.value as SortMode)} aria-label="Ordenar">
+                <option value="created">Ordenar por: fecha de alta</option>
+                <option value="name">Ordenar por: nombre</option>
+                <option value="activity">Ordenar por: actividad</option>
+                <option value="status">Ordenar por: estado</option>
+                <option value="plan">Ordenar por: plan</option>
+              </select>
+              <button type="button" className="cln-icon-btn" title="Actualizar" onClick={() => void load()}>
+                <RefreshCw className={`h-4 w-4${loading ? ' animate-spin' : ''}`} />
               </button>
-            ))}
+            </div>
           </div>
-          <select className="cln-toolbar__sort" value={sort} onChange={(e) => setSort(e.target.value as SortMode)} aria-label="Ordenar">
-            <option value="created">Ordenar por: fecha de alta</option>
-            <option value="name">Ordenar por: nombre</option>
-            <option value="activity">Ordenar por: actividad</option>
-            <option value="status">Ordenar por: estado</option>
-            <option value="plan">Ordenar por: plan</option>
-          </select>
-          <button type="button" className="cln-icon-btn" title="Actualizar" onClick={() => void load()}>
-            <RefreshCw className={`h-4 w-4${loading ? ' animate-spin' : ''}`} />
-          </button>
         </div>
 
         <section className="cln-card">
@@ -449,7 +498,8 @@ export function PlatformClinics() {
                       </span>
                     </td>
                     <td>
-                      <span className={`cln-badge cln-badge--${c.status}${badgePulse === c.id ? ' cln-badge--pulse' : ''}`}>
+                      <span className={`cln-badge cln-badge--status cln-badge--${c.status}${badgePulse === c.id ? ' cln-badge--pulse' : ''}`}>
+                        {c.status === 'active' ? <span className="cln-status-dot" aria-hidden /> : null}
                         {statusLabel(c.status)}
                       </span>
                     </td>
@@ -467,6 +517,13 @@ export function PlatformClinics() {
               </tbody>
             </table>
           </div>
+          {filtered.length > 0 && filtered.length < 3 ? (
+            <div className="cln-table-empty">
+              <Building2 className="cln-table-empty__icon" strokeWidth={1.2} aria-hidden />
+              <p className="cln-table-empty__title">No hay más clínicas para mostrar</p>
+              <p className="cln-table-empty__text">Cuando se registren nuevas clínicas, aparecerán aquí.</p>
+            </div>
+          ) : null}
           <div className="cln-mobile-list">
             {filtered.map((c, i) => (
               <article
@@ -509,83 +566,54 @@ export function PlatformClinics() {
               </div>
               <div className="cln-detail__body">
                 <ul className="cln-detail__meta">
-                  <li>
-                    <span>Estado</span>
-                    <span>{statusLabel(selected.status)}</span>
-                  </li>
-                  <li>
-                    <span>Plan</span>
-                    <span>{selected.plan_label}</span>
-                  </li>
-                  <li>
-                    <span>Email</span>
-                    <span>{selected.email ?? '—'}</span>
-                  </li>
-                  <li>
-                    <span>Slug</span>
-                    <span>{selected.slug}</span>
-                  </li>
-                  <li>
-                    <span>Tenant ID</span>
-                    <span>{selected.tenant_id ?? '—'}</span>
-                  </li>
-                  <li>
-                    <span>Organización</span>
-                    <span>{selected.organization_label}</span>
-                  </li>
-                  <li>
-                    <span>Fecha de alta</span>
-                    <span>{new Date(selected.created_at).toLocaleDateString('es-ES')}</span>
-                  </li>
-                  <li>
-                    <span>Última actividad</span>
-                    <span>{selected.activity_label}</span>
-                  </li>
-                  <li>
-                    <span>Usuarios staff</span>
-                    <span>{selected.staff_count}</span>
-                  </li>
-                  <li>
-                    <span>Pacientes</span>
-                    <span>{selected.patients_count}</span>
-                  </li>
-                  <li>
-                    <span>Citas del mes</span>
-                    <span>{selected.appointments_month}</span>
-                  </li>
-                  <li>
-                    <span>Facturas pendientes</span>
-                    <span>{selected.pending_invoices}</span>
-                  </li>
-                  <li>
-                    <span>Aislamiento</span>
-                    <span className={selected.isolation_ok ? 'font-bold text-emerald-700' : 'font-bold text-amber-700'}>
-                      {selected.isolation_ok ? 'Correcto' : 'Revisar'}
-                    </span>
-                  </li>
+                  <DetailRow icon={CheckCircle2} label="Estado" value={statusLabel(selected.status)} valueClass={`cln-val--${selected.status}`} />
+                  <DetailRow icon={Crown} label="Plan" value={selected.plan_label} valueClass="cln-val--plan" />
+                  <DetailRow icon={Mail} label="Email" value={selected.email ?? '—'} />
+                  <DetailRow icon={Link2} label="Slug" value={selected.slug} mono />
+                  <DetailRow icon={ShieldCheck} label="Tenant ID" value={selected.tenant_display} mono />
+                  <DetailRow icon={Building2} label="Organización" value={selected.organization_label} />
+                  <DetailRow icon={Clock} label="Fecha de alta" value={new Date(selected.created_at).toLocaleDateString('es-ES')} />
+                  <DetailRow icon={RefreshCw} label="Última actividad" value={selected.activity_label} />
+                  <DetailRow icon={Users} label="Usuarios staff" value={String(selected.staff_count)} />
+                  <DetailRow icon={Users} label="Pacientes" value={String(selected.patients_count)} />
+                  <DetailRow icon={Clock} label="Citas del mes" value={String(selected.appointments_month)} />
+                  <DetailRow
+                    icon={FileText}
+                    label="Facturas pendientes"
+                    value={String(selected.pending_invoices)}
+                    valueClass={selected.pending_invoices > 0 ? 'cln-val--danger' : undefined}
+                  />
+                  <DetailRow
+                    icon={ShieldCheck}
+                    label="Aislamiento"
+                    value={selected.isolation_ok ? 'Correcto ✓' : 'Revisar'}
+                    valueClass={selected.isolation_ok ? 'cln-val--ok' : 'cln-val--warn'}
+                  />
                 </ul>
-                <p className="mt-4 text-xs font-extrabold uppercase tracking-wide text-slate-500">Acciones rápidas</p>
+                <p className="cln-detail__actions-title">Acciones rápidas</p>
                 <div className="cln-detail__actions">
-                  <button type="button" className="plt-btn plt-btn--primary plt-btn--sm" onClick={() => void enterAsAdmin(selected)}>
+                  <button type="button" className="cln-qa-btn cln-qa-btn--primary" onClick={() => void enterAsAdmin(selected)}>
+                    <ExternalLink className="h-4 w-4" />
                     Entrar al panel
                   </button>
-                  <button type="button" className="plt-btn plt-btn--secondary plt-btn--sm" onClick={() => openEdit(selected)}>
+                  <button type="button" className="cln-qa-btn" onClick={() => openEdit(selected)}>
+                    <Pencil className="h-4 w-4" />
                     Editar clínica
                   </button>
-                  <button
-                    type="button"
-                    className="plt-btn plt-btn--secondary plt-btn--sm"
-                    onClick={() => (window.location.href = `/platform/usuarios?clinicId=${selected.id}`)}
-                  >
+                  <button type="button" className="cln-qa-btn" onClick={() => (window.location.href = `/platform/usuarios?clinicId=${selected.id}`)}>
+                    <Users className="h-4 w-4" />
                     Gestionar usuarios
                   </button>
-                  <button type="button" className="plt-btn plt-btn--secondary plt-btn--sm" onClick={() => void patchPlan(selected, 'enterprise')}>
+                  <button type="button" className="cln-qa-btn" onClick={() => void patchPlan(selected, 'professional')}>
+                    <RefreshCw className="h-4 w-4" />
                     Cambiar plan
                   </button>
-                  <button type="button" className="plt-btn plt-btn--secondary plt-btn--sm" onClick={() => (window.location.href = '/platform/seguridad')}>
+                  <button type="button" className="cln-qa-btn" onClick={() => (window.location.href = '/platform/seguridad')}>
+                    <FileText className="h-4 w-4" />
                     Ver auditoría
                   </button>
-                  <button type="button" className="plt-btn plt-btn--danger plt-btn--sm cln-detail__danger" onClick={() => void suspendClinic(selected)}>
+                  <button type="button" className="cln-qa-btn cln-qa-btn--danger" onClick={() => void suspendClinic(selected)}>
+                    <PauseCircle className="h-4 w-4" />
                     Suspender clínica
                   </button>
                 </div>
@@ -635,17 +663,65 @@ export function PlatformClinics() {
         ) : null}
 
         {toast ? <div className={`cln-toast cln-toast--${toast.type === 'ok' ? 'ok' : 'err'}`}>{toast.text}</div> : null}
+
+        <footer className="cln-footer">
+          <span>Dentista+ Super Admin v2.0.0</span>
+        </footer>
       </div>
     </PlatformShell>
   );
 }
 
-function ClnKpi({ label, value, delay }: { label: string; value: number; delay: number }) {
+function DetailRow({
+  icon: Icon,
+  label,
+  value,
+  valueClass,
+  mono
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+  valueClass?: string;
+  mono?: boolean;
+}) {
+  return (
+    <li className="cln-detail__row">
+      <span className="cln-detail__row-label">
+        <Icon className="h-3.5 w-3.5" aria-hidden />
+        {label}
+      </span>
+      <span className={`cln-detail__row-value${valueClass ? ` ${valueClass}` : ''}${mono ? ' cln-detail__row-value--mono' : ''}`}>{value}</span>
+    </li>
+  );
+}
+
+function ClnKpi({
+  label,
+  value,
+  icon: Icon,
+  tone,
+  spark,
+  delay
+}: {
+  label: string;
+  value: number;
+  icon: LucideIcon;
+  tone: string;
+  spark: number[];
+  delay: number;
+}) {
   const n = useCountUp(value, 750);
   return (
-    <article className="cln-kpi" style={{ animationDelay: `${delay}ms` }}>
-      <p className="cln-kpi__label">{label}</p>
-      <p className="cln-kpi__value">{n}</p>
+    <article className="plt-kpi cln-kpi" style={{ animationDelay: `${delay}ms` }}>
+      <span className={`plt-kpi__icon plt-kpi__icon--${tone}`}>
+        <Icon className="h-4 w-4" aria-hidden />
+      </span>
+      <div className="plt-kpi__body">
+        <p className="plt-kpi__label">{label}</p>
+        <p className="plt-kpi__value">{n}</p>
+      </div>
+      <Sparkline points={spark} tone={tone} />
     </article>
   );
 }
