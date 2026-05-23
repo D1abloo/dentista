@@ -34,55 +34,7 @@ export { PlatformDashboard } from './PlatformDashboard';
 
 export { PlatformClinics } from './PlatformClinics';
 
-export function PlatformRegistrations() {
-  const [list, setList] = useState<ClinicRegistration[]>([]);
-  const [msg, setMsg] = useState('');
-
-  async function load() {
-    setList(await api<ClinicRegistration[]>('/api/platform/registrations?status=pending'));
-  }
-
-  useEffect(() => {
-    void load().catch(() => setMsg('Error al cargar registros.'));
-  }, []);
-
-  async function review(id: string, decision: 'approved' | 'rejected') {
-    await api('/api/platform/registrations', {
-      method: 'POST',
-      body: JSON.stringify({ id, decision })
-    });
-    setMsg(
-      decision === 'approved'
-        ? 'Organización aprobada. Se ha enviado un correo al responsable con usuario y contraseña temporal (debe cambiarla en el primer acceso).'
-        : 'Solicitud rechazada.'
-    );
-    await load();
-  }
-
-  return (
-    <PlatformShell title="Registros de clínicas" subtitle="Aprueba o rechaza nuevas solicitudes">
-      {msg ? <p className="mb-4 text-sm font-bold text-emerald-700">{msg}</p> : null}
-      <div className="space-y-3">
-        {list.map((r) => (
-          <Card key={r.id} className="p-4">
-            <h3 className="font-bold">{r.clinic_name}</h3>
-            <p className="text-sm text-[var(--muted)]">
-              {r.owner_name} · {r.email} · {r.phone}
-            </p>
-            {r.message ? <p className="mt-2 text-sm">{r.message}</p> : null}
-            <div className="mt-3 flex gap-2">
-              <Button onClick={() => void review(r.id, 'approved')}>Aprobar</Button>
-              <Button tone="secondary" onClick={() => void review(r.id, 'rejected')}>
-                Rechazar
-              </Button>
-            </div>
-          </Card>
-        ))}
-        {!list.length ? <Empty title="Sin pendientes" text="No hay solicitudes por revisar." /> : null}
-      </div>
-    </PlatformShell>
-  );
-}
+export { PlatformRegistrations } from './PlatformRegistrations';
 
 export function PlatformSupport() {
   const [list, setList] = useState<SupportRequest[]>([]);

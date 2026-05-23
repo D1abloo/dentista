@@ -145,6 +145,51 @@ export const registrationReviewSchema = z.object({
   review_notes: z.string().max(500).optional()
 });
 
+export const registrationApproveSchema = z.object({
+  action: z.literal('approve'),
+  id: z.string().min(1),
+  plan: z.enum(['essential', 'professional', 'enterprise'], { message: 'Selecciona un plan.' }),
+  tenantSlug: z
+    .string()
+    .min(2, 'Introduce un slug de tenant válido.')
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Introduce un slug de tenant válido.'),
+  adminEmail: z.string().email('Introduce un email de administrador válido.'),
+  createCredentials: z.boolean().optional(),
+  welcomeEmail: z.boolean().optional(),
+  isolation: z.boolean().optional(),
+  subscription: z.boolean().optional()
+});
+
+export const registrationRejectSchema = z.object({
+  action: z.literal('reject'),
+  id: z.string().min(1),
+  reason: z.string().min(1, 'El motivo del rechazo es obligatorio.'),
+  notify: z.boolean().optional()
+});
+
+export const registrationRequestInfoSchema = z.object({
+  action: z.literal('request_info'),
+  id: z.string().min(1),
+  message: z.string().max(500).optional()
+});
+
+export const registrationManualSchema = z.object({
+  action: z.literal('manual_create'),
+  clinicName: z.string().min(2),
+  ownerName: z.string().min(2),
+  email: z.string().email(),
+  phone: z.string().min(6),
+  city: z.string().min(2),
+  plan: z.string().min(2)
+});
+
+export const registrationActionSchema = z.discriminatedUnion('action', [
+  registrationApproveSchema,
+  registrationRejectSchema,
+  registrationRequestInfoSchema,
+  registrationManualSchema
+]);
+
 export const clinicStatusSchema = z.object({
   clinicId: z.string().uuid(),
   status: z.enum(['pending', 'active', 'suspended', 'rejected'])
