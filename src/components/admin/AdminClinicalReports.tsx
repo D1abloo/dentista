@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Edit2, Eye, FileText, Lock, Plus, Trash2, Upload } from 'lucide-react';
+import { Edit2, Eye, FileText, List, Lock, Plus, Trash2, Upload, X } from 'lucide-react';
 import { isClientDemoMode } from '@/lib/appMode';
 import {
   appointmentBelongsToPatient,
@@ -370,42 +370,76 @@ export function AdminClinicalReports() {
   }
 
   const publishLocked = Boolean(editingReport?.lockedAt);
+  const filteredProfessional = dentistFilter ? state.dentists.find((d) => d.id === dentistFilter) : null;
+  const patientAppointments = useMemo(
+    () =>
+      state.appointments
+        .filter((a) => a.patientId === form.patientId)
+        .sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`)),
+    [state.appointments, form.patientId]
+  );
+
+  function openCompose() {
+    setTab('compose');
+  }
+
+  function openNewReport() {
+    resetForm();
+    setTab('compose');
+  }
 
   return (
     <div className="cr-module">
-      <header className="cr-module__head">
-        <div>
-          <h1 className="cr-module__title">
+      <header className="cr-toolbar">
+        <div className="cr-toolbar__intro">
+          <h1 className="cr-toolbar__title">
             <FileText className="h-6 w-6 text-teal-700" aria-hidden />
             Informes clínicos
           </h1>
+          <p className="cr-toolbar__sub">
+            {tab === 'compose'
+              ? editingId
+                ? 'Editando informe existente'
+                : 'Redacta y publica informes para el historial y el portal del paciente'
+              : `${list.length} informe${list.length === 1 ? '' : 's'} en el listado`}
+          </p>
         </div>
-        <div className="cr-module__tabs">
+        <div className="cr-segmented" role="tablist" aria-label="Vista de informes">
           <button
             type="button"
-            className={`cr-tab${tab === 'compose' ? ' cr-tab--active' : ''}`}
-            onClick={() => setTab('compose')}
+            role="tab"
+            aria-selected={tab === 'compose'}
+            className={`cr-segmented__btn${tab === 'compose' ? ' cr-segmented__btn--active' : ''}`}
+            onClick={openCompose}
           >
             <Plus className="h-4 w-4" aria-hidden />
-            {editingId ? 'Editar' : 'Nuevo'}
+            {editingId ? 'Editar informe' : 'Nuevo informe'}
           </button>
           <button
             type="button"
-            className={`cr-tab${tab === 'list' ? ' cr-tab--active' : ''}`}
+            role="tab"
+            aria-selected={tab === 'list'}
+            className={`cr-segmented__btn${tab === 'list' ? ' cr-segmented__btn--active' : ''}`}
             onClick={() => setTab('list')}
           >
-            Listado ({list.length})
+            <List className="h-4 w-4" aria-hidden />
+            Listado
+            <span className="cr-segmented__count">{list.length}</span>
           </button>
         </div>
       </header>
 
       {dentistFilter ? (
-        <p className="cr-context-bar">
-          Filtrando informes del profesional seleccionado.{' '}
-          <a href="/admin/informes" className="font-bold text-teal-800">
+        <div className="cr-filter-banner" role="status">
+          <span>
+            Filtrando informes de{' '}
+            <strong>{filteredProfessional?.fullName ?? 'profesional seleccionado'}</strong>
+          </span>
+          <a href="/admin/informes" className="cr-filter-banner__clear">
+            <X className="h-3.5 w-3.5" aria-hidden />
             Quitar filtro
           </a>
-        </p>
+        </div>
       ) : null}
 
       {tab === 'list' ? (
@@ -423,7 +457,7 @@ export function AdminClinicalReports() {
           ) : (
             <div className="cr-empty">
               <p>No hay informes.</p>
-              <button type="button" className="cr-btn cr-btn--primary" onClick={() => setTab('compose')}>
+              <button type="button" className="cr-btn cr-btn--primary" onClick={openNewReport}>
                 Crear informe
               </button>
             </div>
@@ -445,47 +479,72 @@ export function AdminClinicalReports() {
             ) : null}
 
             <div className="cr-setup">
-              <div className="cr-setup__row">
-                <PatientLookup
-                  state={state}
-                  patientId={form.patientId}
-                  onPatientId={(id) => setForm({ ...form, patientId: id, appointmentId: '' })}
-                  label="Paciente *"
-                  placeholder="NHC, DNI o nombre…"
-                  nhcPrimary
-                />
-                <Field label="Cita *">
-                  <Select
-                    value={form.appointmentId}
-                    onChange={(e) => onSelectAppointment(e.target.value)}
-                    disabled={formLocked}
-                  >
-                    <option value="">Seleccionar…</option>
-                    {state.appointments
-                      .filter((a) => a.patientId === form.patientId)
-                      .sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`))
-                      .map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {appointmentLabel(state, a.id)}
-                        </option>
-                      ))}
-                  </Select>
-                </Field>
-                <Field label="Título *">
-                  <Input
-                    value={form.title}
-                    onChange={(e) => setForm({ ...form, title: e.target.value })}
-                    disabled={formLocked}
+              <div className="cr-setup-grid">
+                <aside className="cr-setup-patient">
+                  <h2 className="cr-setup-block__title">
+                    Paciente <span className="cr-req">*</span>
+                  </h2>
+                  <p className="cr-setup-block__hint">Busca por NHC, DNI o nombre y selecciona de la lista.</p>
+                  <PatientLookup
+                    state={state}
+                    patientId={form.patientId}
+                    onPatientId={(id) => setForm({ ...form, patientId: id, appointmentId: '' })}
+                    placeholder="NHC, DNI o nombre…"
+                    nhcPrimary
+                    variant="card"
                   />
-                </Field>
-              </div>
+                </aside>
 
-              {apptContext ? (
-                <p className="cr-context-bar">
-                  {apptContext.clinicName} · {apptContext.dentistHonorific} {apptContext.dentistName} · Col.{' '}
-                  {apptContext.dentistCollegiateNumber}
-                </p>
-              ) : null}
+                <div className="cr-setup-meta">
+                  <h2 className="cr-setup-block__title">Datos del informe</h2>
+                  <div className="cr-setup-meta__fields">
+                    <Field label="Cita vinculada *">
+                      <Select
+                        value={form.appointmentId}
+                        onChange={(e) => onSelectAppointment(e.target.value)}
+                        disabled={formLocked || !form.patientId}
+                      >
+                        <option value="">
+                          {form.patientId ? 'Seleccionar cita…' : 'Primero elige un paciente'}
+                        </option>
+                        {patientAppointments.map((a) => (
+                          <option key={a.id} value={a.id}>
+                            {appointmentLabel(state, a.id)}
+                          </option>
+                        ))}
+                      </Select>
+                      {form.patientId && !patientAppointments.length ? (
+                        <p className="cr-field-note">Este paciente no tiene citas registradas.</p>
+                      ) : null}
+                    </Field>
+                    <Field label="Título del informe *">
+                      <Input
+                        value={form.title}
+                        onChange={(e) => setForm({ ...form, title: e.target.value })}
+                        disabled={formLocked}
+                        placeholder="Se genera al elegir la cita"
+                      />
+                    </Field>
+                  </div>
+
+                  {apptContext ? (
+                    <div className="cr-context-bar">
+                      <p className="cr-context-bar__line">
+                        <strong>{apptContext.clinicName}</strong>
+                      </p>
+                      <p className="cr-context-bar__line">
+                        {apptContext.dentistHonorific} {apptContext.dentistName} · Col.{' '}
+                        {apptContext.dentistCollegiateNumber}
+                      </p>
+                      <p className="cr-context-bar__line cr-context-bar__line--muted">
+                        {apptContext.treatmentName} · {apptContext.dateLabel}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="cr-setup-placeholder">Selecciona paciente y cita para cargar el contexto clínico.</p>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="cr-form-body">

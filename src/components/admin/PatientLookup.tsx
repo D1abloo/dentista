@@ -15,6 +15,8 @@ type Props = {
   candidates?: Patient[];
   /** Prioriza búsqueda por número NHC (campo numérico). */
   nhcPrimary?: boolean;
+  /** Tarjeta con lista desplazable (informes clínicos). */
+  variant?: 'default' | 'card';
 };
 
 export function PatientLookup({
@@ -24,7 +26,8 @@ export function PatientLookup({
   label = 'Buscar paciente',
   placeholder,
   candidates,
-  nhcPrimary
+  nhcPrimary,
+  variant = 'default'
 }: Props) {
   const [q, setQ] = useState('');
   const pool = candidates ?? state.patients;
@@ -45,9 +48,13 @@ export function PatientLookup({
 
   const isNumeric = /^\d+$/.test(normalizeNhcQuery(q));
 
+  const isCard = variant === 'card';
+
   return (
-    <div className={`patient-lookup ${nhcPrimary ? 'patient-lookup--nhc' : ''}`}>
-      <Field label={label}>
+    <div
+      className={`patient-lookup${nhcPrimary ? ' patient-lookup--nhc' : ''}${isCard ? ' patient-lookup--card' : ''}`}
+    >
+      <Field label={isCard ? 'Buscar' : label}>
         <div className="relative">
           {nhcPrimary ? (
             <Hash className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-teal-600" />
@@ -58,14 +65,41 @@ export function PatientLookup({
             className="!pl-10"
             type={nhcPrimary && isNumeric ? 'number' : 'search'}
             inputMode={nhcPrimary ? 'numeric' : 'search'}
-            placeholder={placeholder ?? (nhcPrimary ? 'Número NHC (ej. 12)' : 'NHC, DNI o nombre…')}
+            placeholder={placeholder ?? (nhcPrimary ? 'NHC, DNI o nombre…' : 'NHC, DNI o nombre…')}
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), applyQuery())}
           />
         </div>
       </Field>
-      {matches.length ? (
+
+      {isCard ? (
+        <div className="patient-lookup__card-list" role="listbox" aria-label="Pacientes">
+          {matches.length ? (
+            matches.slice(0, 12).map((p) => {
+              const active = p.id === patientId;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  role="option"
+                  aria-selected={active}
+                  className={`patient-lookup__card-item${active ? ' patient-lookup__card-item--active' : ''}`}
+                  onClick={() => {
+                    onPatientId(p.id);
+                    setQ('');
+                  }}
+                >
+                  {p.nhc ? <span className="patient-lookup__nhc">NHC {p.nhc}</span> : null}
+                  <span className="patient-lookup__name">{p.fullName}</span>
+                </button>
+              );
+            })
+          ) : (
+            <p className="patient-lookup__card-empty">Sin coincidencias. Prueba otro término.</p>
+          )}
+        </div>
+      ) : matches.length ? (
         <ul className="patient-lookup__results">
           {matches.slice(0, 8).map((p) => (
             <li key={p.id}>
@@ -85,17 +119,23 @@ export function PatientLookup({
           ))}
         </ul>
       ) : null}
+
       {selected ? (
-        <p className="patient-lookup__selected">
-          <strong>{patientDisplayCode(selected)}</strong> — {selected.fullName}
-        </p>
+        <div className={`patient-lookup__selected${isCard ? ' patient-lookup__selected--card' : ''}`}>
+          <span className="patient-lookup__selected-label">Seleccionado</span>
+          <p className="patient-lookup__selected-body">
+            <strong>{patientDisplayCode(selected)}</strong>
+            <span>{selected.fullName}</span>
+            {selected.dni ? <span className="patient-lookup__meta">DNI {selected.dni}</span> : null}
+          </p>
+        </div>
       ) : (
         <p className="patient-lookup__hint">
           {pool.length
             ? nhcPrimary
-              ? 'Introduce el número NHC y pulsa Enter, o elige de la lista.'
+              ? 'Busca por NHC, DNI o nombre y elige de la lista.'
               : 'Busca por NHC, DNI o nombre, o elige de la lista.'
-            : 'No hay pacientes registrados en esta clínica. Deben existir en el sistema (reserva online o alta acordada).'}
+            : 'No hay pacientes registrados en esta clínica.'}
         </p>
       )}
     </div>
