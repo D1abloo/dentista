@@ -1,0 +1,385 @@
+/* Super Admin — Soporte */
+
+.sop-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  min-width: 0;
+}
+
+.sop-kpi {
+  animation: sop-fade-in 0.5s ease both;
+}
+
+@keyframes sop-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sop-table tbody tr {
+  animation: sop-row-in 0.4s ease both;
+}
+
+@keyframes sop-row-in {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.sop-ticket-cell strong {
+  display: block;
+  font-size: 0.82rem;
+  color: #0f172a;
+}
+
+.sop-ticket-cell span {
+  display: block;
+  font-size: 0.7rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+}
+
+.sop-origin {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.74rem;
+}
+
+.sop-badge--priority-normal {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.sop-badge--priority-high {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.sop-badge--priority-urgent {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.sop-badge--status-open {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.sop-badge--status-pending {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.sop-badge--status-progress {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.sop-badge--status-resolved {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.sop-badge--status-closed {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.sop-badge--pulse {
+  animation: sop-badge-pulse 0.55s ease;
+}
+
+@keyframes sop-badge-pulse {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.sop-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.65rem;
+  padding: 2rem 1.5rem;
+  margin: 0.75rem;
+  background: #fff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+  animation: sop-fade-in 0.45s ease both;
+}
+
+.sop-empty__icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  color: #0d9488;
+}
+
+.sop-detail-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.sop-detail-card__title {
+  margin: 0 0 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+}
+
+.sop-message {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #334155;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.sop-timeline {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sop-timeline li {
+  position: relative;
+  padding-left: 1.1rem;
+  padding-bottom: 0.75rem;
+  font-size: 0.76rem;
+}
+
+.sop-timeline li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.35rem;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: #0d9488;
+}
+
+.sop-timeline li[data-tone='warn']::before {
+  background: #f97316;
+}
+
+.sop-timeline li[data-tone='success']::before {
+  background: #22c55e;
+}
+
+.sop-timeline strong {
+  display: block;
+  color: #0f172a;
+}
+
+.sop-timeline span {
+  color: #94a3b8;
+  font-size: 0.68rem;
+}
+
+.sop-reply {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 0.85rem;
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.3s ease;
+}
+
+.sop-reply--focus {
+  animation: sop-reply-expand 0.35s ease;
+}
+
+@keyframes sop-reply-expand {
+  from {
+    opacity: 0.85;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sop-reply textarea {
+  width: 100%;
+  min-height: 5.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.8rem;
+  resize: vertical;
+}
+
+.sop-reply__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.sop-reply__templates {
+  display: flex;
+  flex: 1;
+  min-width: 12rem;
+  gap: 0.35rem;
+}
+
+.sop-reply__templates select {
+  flex: 1;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.74rem;
+  padding: 0.4rem 0.5rem;
+}
+
+.sop-assign-warn {
+  color: #c2410c;
+  font-weight: 700;
+}
+
+.sop-qa-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin-bottom: 0.85rem;
+}
+
+.sop-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: sop-fade-in 0.2s ease;
+}
+
+.sop-modal {
+  width: min(100%, 28rem);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
+  animation: sop-slide-up 0.3s ease;
+}
+
+@keyframes sop-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sop-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.1rem 0.5rem;
+}
+
+.sop-modal__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.sop-modal__body {
+  padding: 0.5rem 1.1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.sop-modal__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.75rem 1.1rem 1rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.sop-field label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 0.25rem;
+}
+
+.sop-field input,
+.sop-field select,
+.sop-field textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.8rem;
+}
+
+.sop-field__err {
+  margin: 0.25rem 0 0;
+  font-size: 0.72rem;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.sop-chip--urgent::after {
+  content: '';
+  display: inline-block;
+  width: 0.35rem;
+  height: 0.35rem;
+  margin-left: 0.35rem;
+  border-radius: 50%;
+  background: #ef4444;
+  vertical-align: middle;
+}
+
+@media (max-width: 1024px) {
+  .cln-page--panel-open .cln-detail {
+    position: fixed;
+    inset: 0;
+    top: auto;
+    max-height: 92vh;
+    border-radius: 16px 16px 0 0;
+    z-index: 60;
+    animation: sop-drawer-in 0.35s ease;
+  }
+
+  @keyframes sop-drawer-in {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+}

@@ -58,7 +58,7 @@ export const platformNavSections: PlatformNavSection[] = [
     title: 'Operaciones',
     items: [
       { href: '/platform/suscripciones', label: 'Suscripciones', icon: CreditCard, description: 'Planes, renovaciones y facturación SaaS' },
-      { href: '/platform/soporte', label: 'Soporte', icon: LifeBuoy, description: 'Tickets de clínicas' },
+      { href: '/platform/soporte', label: 'Soporte', icon: LifeBuoy, description: 'Tickets, SLA y atención al cliente' },
       { href: '/platform/metricas', label: 'Métricas', icon: Activity, description: 'Uso agregado sin PHI' }
     ]
   },

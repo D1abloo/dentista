@@ -18,8 +18,6 @@ import type {
   PlatformSettingRow,
   PlatformSubscription,
   PlatformUsageRow,
-  SupportRequest,
-  SupportStatus
 } from '@/lib/platform/types';
 import { PlatformShell } from './PlatformShell';
 
@@ -36,49 +34,7 @@ export { PlatformClinics } from './PlatformClinics';
 
 export { PlatformRegistrations } from './PlatformRegistrations';
 
-export function PlatformSupport() {
-  const [list, setList] = useState<SupportRequest[]>([]);
-
-  async function load() {
-    setList(await api<SupportRequest[]>('/api/platform/support'));
-  }
-
-  useEffect(() => {
-    void load().catch(() => undefined);
-  }, []);
-
-  async function patchStatus(id: string, status: SupportStatus) {
-    await api('/api/platform/support', { method: 'PATCH', body: JSON.stringify({ id, status }) });
-    await load();
-  }
-
-  return (
-    <PlatformShell title="Soporte" subtitle="Tickets por clínica; el equipo de plataforma responde sin exponer datos cruzados">
-      <div className="space-y-3">
-        {list.map((s) => (
-          <Card key={s.id} className="p-4">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <p className="text-xs font-bold uppercase text-[var(--muted)]">{s.category}</p>
-              <Select className="field-control !w-auto" value={s.status} onChange={(e) => void patchStatus(s.id, e.target.value as SupportStatus)}>
-                <option value="open">open</option>
-                <option value="in_progress">in_progress</option>
-                <option value="resolved">resolved</option>
-                <option value="closed">closed</option>
-              </Select>
-            </div>
-            <h3 className="font-bold">{s.subject}</h3>
-            <p className="text-sm text-[var(--muted)]">
-              {s.requester_name} · {s.requester_email}
-              {s.clinic_id ? ` · clínica ${s.clinic_id.slice(0, 8)}…` : ''}
-            </p>
-            <p className="mt-2 text-sm">{s.body}</p>
-          </Card>
-        ))}
-        {!list.length ? <Empty title="Sin tickets" text="Las solicitudes de contacto aparecerán aquí." /> : null}
-      </div>
-    </PlatformShell>
-  );
-}
+export { PlatformSupport } from './PlatformSupport';
 
 export { PlatformRegistrationHistory } from './PlatformRegistrationHistory';
 

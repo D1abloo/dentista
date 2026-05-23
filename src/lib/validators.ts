@@ -287,6 +287,60 @@ export const supportStatusSchema = z.object({
   status: z.enum(['open', 'in_progress', 'resolved', 'closed'])
 });
 
+const ticketPriorityEnum = z.enum(['low', 'normal', 'high', 'urgent'], { message: 'Selecciona una prioridad.' });
+const ticketStatusEnum = z.enum(['open', 'pending', 'in_progress', 'resolved', 'closed']);
+const ticketTypeEnum = z.enum(['patient', 'clinic', 'staff', 'system', 'billing']);
+
+export const supportActionSchema = z.discriminatedUnion('action', [
+  z.object({
+    action: z.literal('create'),
+    subject: z.string().min(1, 'Introduce un asunto.'),
+    message: z.string().min(1, 'Introduce un mensaje.'),
+    priority: ticketPriorityEnum,
+    type: ticketTypeEnum,
+    requesterName: z.string().min(1, 'Introduce un nombre.'),
+    requesterEmail: z.string().email('Introduce un email válido.'),
+    clinicId: z.string().optional()
+  }),
+  z.object({
+    action: z.literal('assign'),
+    id: z.string().min(1),
+    assigneeId: z.string().min(1, 'Selecciona un responsable.')
+  }),
+  z.object({
+    action: z.literal('assign_bulk'),
+    assigneeId: z.string().min(1, 'Selecciona un responsable.')
+  }),
+  z.object({
+    action: z.literal('update_status'),
+    id: z.string().min(1),
+    status: ticketStatusEnum
+  }),
+  z.object({
+    action: z.literal('update_priority'),
+    id: z.string().min(1),
+    priority: ticketPriorityEnum
+  }),
+  z.object({
+    action: z.literal('link_clinic'),
+    id: z.string().min(1),
+    clinicId: z.string().min(1, 'Selecciona una clínica.')
+  }),
+  z.object({
+    action: z.literal('reply'),
+    id: z.string().min(1),
+    message: z.string().min(1, 'Introduce un mensaje.'),
+    template: z.string().optional(),
+    sendCopy: z.boolean().optional()
+  }),
+  z.object({ action: z.literal('close'), id: z.string().min(1) }),
+  z.object({
+    action: z.literal('update_sla'),
+    responseHours: z.number().int().min(1).max(168),
+    urgentHours: z.number().int().min(1).max(48)
+  })
+]);
+
 export const appointmentSchema = z.object({
   clinicId: z.string().min(1).default('demo-clinic'),
   patientId: z.string().min(1),

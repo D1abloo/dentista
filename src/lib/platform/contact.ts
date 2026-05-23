@@ -2,6 +2,7 @@ import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
 import { sendMailBatch, notifyInbox } from '@/lib/email/send';
 import { textToHtml } from '@/lib/email/templates';
 import type { SupportRequest } from '@/lib/platform/types';
+import { addPublicContactTicketDemo } from '@/lib/platform/supportDemo';
 import type { EmailProvider } from '@/lib/email/config';
 
 const CATEGORY_MAP = {
@@ -59,6 +60,16 @@ export async function submitContactForm(input: ContactFormInput) {
   }
 
   const inbox = notifyInbox();
+  if (!hasSupabaseConfig()) {
+    addPublicContactTicketDemo({
+      name: input.name,
+      email: input.email,
+      type: input.type,
+      message: input.message,
+      clinic: input.clinic
+    });
+  }
+
   const email = await sendMailBatch([
     {
       to: inbox,
