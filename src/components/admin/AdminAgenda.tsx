@@ -426,23 +426,21 @@ export function AdminAgenda() {
     if (!isClientDemoMode()) {
       for (const slot of slots) {
         const ids = slot.dentistIds?.length ? slot.dentistIds : [slot.dentistId];
-        for (const dId of ids) {
-          const live = await createScheduleBlockLive({
-            clinicId,
-            dentistId: dId,
-            dentistIds: slot.dentistIds,
-            date: slot.date,
-            time: slot.time,
-            endTime: slot.endTime,
-            reason: slot.reason,
-            durationMinutes: 60,
-            blockGroupId: groupId,
-            notes: slot.notes
-          });
-          if (!live.ok) {
-            setNotice({ type: 'error', message: live.message });
-            return;
-          }
+        const live = await createScheduleBlockLive({
+          clinicId,
+          dentistId: ids[0],
+          dentistIds: ids.length > 1 ? ids : undefined,
+          date: slot.date,
+          time: slot.time,
+          endTime: slot.endTime,
+          reason: slot.reason,
+          durationMinutes: slot.allDay ? (20 - 8) * 60 : 60,
+          blockGroupId: groupId,
+          notes: slot.notes
+        });
+        if (!live.ok) {
+          setNotice({ type: 'error', message: live.message });
+          return;
         }
       }
       await refresh();

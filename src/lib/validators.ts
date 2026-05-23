@@ -654,13 +654,21 @@ export const portalAccessExchangeSchema = z.object({
   token: z.string().min(16).max(200)
 });
 
+const scheduleTimeSchema = z
+  .string()
+  .regex(/^\d{1,2}:\d{2}$/)
+  .transform((t) => {
+    const [h, m] = t.split(':');
+    return `${String(Number(h)).padStart(2, '0')}:${m}`;
+  });
+
 export const scheduleBlockCreateSchema = z.object({
-  clinicId: z.string().uuid().optional(),
-  dentistId: z.string().uuid(),
-  dentistIds: z.array(z.string().uuid()).optional(),
+  clinicId: z.string().min(1).optional(),
+  dentistId: z.string().min(1),
+  dentistIds: z.array(z.string().min(1)).optional(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  time: z.string().regex(/^\d{2}:\d{2}$/),
-  endTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  time: scheduleTimeSchema,
+  endTime: scheduleTimeSchema.optional(),
   reason: z.string().min(1).max(200),
   durationMinutes: z.coerce.number().int().min(15).max(480).default(60),
   blockGroupId: z.string().min(4).max(80).optional(),
@@ -669,7 +677,7 @@ export const scheduleBlockCreateSchema = z.object({
 
 export const scheduleBlockDeleteSchema = z
   .object({
-    clinicId: z.string().uuid().optional(),
+    clinicId: z.string().min(1).optional(),
     id: z.string().min(1).max(120).optional(),
     blockGroupId: z.string().min(4).max(80).optional()
   })

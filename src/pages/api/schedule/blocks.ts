@@ -70,7 +70,8 @@ export const POST: APIRoute = async (context) => {
     return created({ block }, { message: 'Horario bloqueado.' });
   } catch (error) {
     logError('schedule.blocks.post', error);
-    return fail('No se pudo bloquear el horario.', 500);
+    const detail = error instanceof Error ? error.message : 'No se pudo bloquear el horario.';
+    return fail(detail, 500);
   }
 };
 

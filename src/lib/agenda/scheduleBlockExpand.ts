@@ -70,10 +70,15 @@ export function expandScheduleBlocks(input: ScheduleBlockInput): Omit<BlockedSlo
     input.mode === 'fullday'
       ? `${String(AGENDA_DAY_START).padStart(2, '0')}:00`
       : input.startTime.slice(0, 5);
-  const timeEnd =
+  let timeEnd =
     input.mode === 'fullday'
       ? `${String(AGENDA_DAY_END - 1).padStart(2, '0')}:59`
       : input.endTime.slice(0, 5);
+  if (input.mode === 'hours' && timeEnd <= timeStart) {
+    const [h, m] = timeStart.split(':').map(Number);
+    const endMin = (h ?? 0) * 60 + (m ?? 0) + 60;
+    timeEnd = `${String(Math.floor(endMin / 60)).padStart(2, '0')}:${String(endMin % 60).padStart(2, '0')}`;
+  }
 
   const rows: Omit<BlockedSlot, 'id' | 'tenantId'>[] = [];
 
@@ -85,7 +90,7 @@ export function expandScheduleBlocks(input: ScheduleBlockInput): Omit<BlockedSlo
       dentistIds: ids.length > 1 ? ids : undefined,
       date,
       time: timeStart,
-      endTime: timeEnd >= timeStart ? timeEnd : timeStart,
+      endTime: timeEnd,
       reason: input.reason,
       notes: input.notes,
       appliesToAll: false,

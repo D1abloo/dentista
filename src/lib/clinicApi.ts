@@ -120,8 +120,16 @@ export async function createScheduleBlockLive(input: {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input)
   });
-  const json = (await res.json()) as { error?: { message?: string } };
-  if (!res.ok) return { ok: false as const, message: json.error?.message ?? 'No se pudo bloquear.' };
+  const json = (await res.json()) as {
+    error?: { message?: string; details?: { fieldErrors?: Record<string, string[]> } };
+  };
+  if (!res.ok) {
+    const fieldMsg = json.error?.details?.fieldErrors
+      ? Object.values(json.error.details.fieldErrors).flat().join(' ')
+      : '';
+    const message = [json.error?.message, fieldMsg].filter(Boolean).join(' ') || 'No se pudo bloquear.';
+    return { ok: false as const, message };
+  }
   return { ok: true as const };
 }
 
