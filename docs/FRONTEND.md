@@ -19,6 +19,11 @@ Dentista+ es una aplicación SaaS premium para gestión de citas dentales. El fr
 - **Sesión demo:** `localStorage` con `role: "paciente"` y `patientId` (por defecto `PAT-0001`)
 - **Regla de datos:** el paciente ve **todos** sus registros por `patientId`, aunque provengan de distintos `tenantId` (multi-clínica)
 
+## Informes clínicos — nueva organización visual
+
+- **Panel clínica** (`/admin/informes`): formulario por recuadros numerados (antecedentes, informe clínico, fuentes, anamnesis, diagnóstico, recomendaciones), membrete con logo y nº de colegiado, plantillas rápidas por tipo de cita. Estilos: `admin-clinical-reports.css`, componentes `AdminClinicalReports` y `ReportSectionBox`.
+- **Portal paciente** (`/paciente/informes`): listado con vista previa; **Ver informe** abre visor a pantalla completa (móvil) o modal (escritorio) con pestañas *Informe clínico · Diagnóstico · Indicaciones* y bloques legibles. Componente `PatientReportViewer`, estilos `patient-reports.css`.
+
 ## Panel administrativo
 
 - **Rutas:** `/admin`, `/admin/agenda`, `/admin/citas`, `/admin/pacientes`, `/admin/pacientes/:id`, módulos de informes, documentos, facturas, pagos, dentistas, tratamientos, clínicas, configuración y normativa
