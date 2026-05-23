@@ -32,6 +32,7 @@ export type LoginUnifiedResult =
       passwordExpired?: boolean;
     }
   | { ok: true; choosePortal: true; email: string; options: PortalChoiceOption[] }
+  | { ok: true; redirectTo: string; portalRole: DemoRole }
   | { ok: false; message: string };
 
 function mapApiRole(role: string): DemoRole | null {
@@ -42,7 +43,7 @@ function mapApiRole(role: string): DemoRole | null {
 }
 
 function sessionRoleMatchesForced(userRole: string, forced: 'admin' | 'patient'): boolean {
-  if (forced === 'admin') return userRole === 'admin' || userRole === 'super_admin';
+  if (forced === 'admin') return userRole === 'admin';
   return userRole === 'patient';
 }
 
@@ -76,14 +77,22 @@ function redirectAfterLogin(user: SessionUser): string {
 
 function finishSessionLogin(
   user: SessionUser,
-  forcedRole?: 'admin' | 'patient'
+  forcedRole?: 'admin' | 'patient',
+  opts?: { deferRedirect?: boolean }
 ): LoginUnifiedResult {
+  if (forcedRole === 'admin' && user.role === 'super_admin') {
+    return { ok: false, message: 'Tu cuenta no tiene acceso al panel clínica.' };
+  }
+
   if (forcedRole && !sessionRoleMatchesForced(user.role, forcedRole)) {
+    if (forcedRole === 'admin') {
+      return { ok: false, message: 'Tu cuenta no tiene acceso al panel clínica.' };
+    }
     return { ok: false, message: 'Este acceso no corresponde a tu tipo de cuenta.' };
   }
 
-  const portalRole = user.role === 'super_admin' ? 'admin' : mapApiRole(user.role);
-  if (!portalRole && user.role !== 'super_admin') {
+  const portalRole = mapApiRole(user.role);
+  if (!portalRole) {
     return { ok: false, message: 'Rol de sesión no válido.' };
   }
 
@@ -93,20 +102,29 @@ function finishSessionLogin(
   const mustChange = Boolean(user.mustChangePassword || user.passwordExpired);
   if (mustChange) {
     const q = user.passwordExpired ? '?expired=1' : '';
-    window.location.href = `/login/cambiar-password${q}`;
-    return { ok: true, portalRole: portalRole ?? 'admin', mustChangePassword: true };
+    const dest = `/login/cambiar-password${q}`;
+    if (opts?.deferRedirect) {
+      return { ok: true, redirectTo: dest, portalRole };
+    }
+    window.location.href = dest;
+    return { ok: true, portalRole, mustChangePassword: true };
   }
 
-  window.location.href = redirectAfterLogin(user);
+  const dest = redirectAfterLogin(user);
+  if (opts?.deferRedirect) {
+    return { ok: true, redirectTo: dest, portalRole };
+  }
+
+  window.location.href = dest;
   return {
     ok: true,
-    portalRole: portalRole ?? 'admin',
+    portalRole,
     mustChangePassword: user.mustChangePassword,
     passwordExpired: user.passwordExpired
   };
 }
 
-async function postLogin(body: Record<string, unknown>) {
+async function postLogin(body: Record<string, unknown> & { remember?: boolean }) {
   const res = await fetch('/api/auth/login', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -132,13 +150,15 @@ export async function loginWithCredentials(
 export async function loginUnified(
   email: string,
   password: string,
-  forcedRole?: 'admin' | 'patient'
+  forcedRole?: 'admin' | 'patient',
+  opts?: { remember?: boolean; deferRedirect?: boolean }
 ): Promise<LoginUnifiedResult> {
   clearDemoSession();
   const { res, json } = await postLogin({
     role: forcedRole ?? 'auto',
     email,
-    password
+    password,
+    remember: opts?.remember
   });
 
   if (!res.ok) {
@@ -158,27 +178,29 @@ export async function loginUnified(
     return { ok: false, message: json.error?.message ?? 'Credenciales incorrectas.' };
   }
 
-  return finishSessionLogin(json.data, forcedRole);
+  return finishSessionLogin(json.data, forcedRole, { deferRedirect: opts?.deferRedirect });
 }
 
 export async function loginWithPortalChoice(
   email: string,
   password: string,
   portal: PortalChoiceId,
-  forcedRole?: 'admin' | 'patient'
+  forcedRole?: 'admin' | 'patient',
+  opts?: { remember?: boolean; deferRedirect?: boolean }
 ): Promise<LoginUnifiedResult> {
   const { res, json } = await postLogin({
     role: forcedRole ?? 'auto',
     email,
     password,
-    portal
+    portal,
+    remember: opts?.remember
   });
 
   if (!res.ok || !json.data?.role) {
     return { ok: false, message: json.error?.message ?? 'No se pudo completar el acceso.' };
   }
 
-  return finishSessionLogin(json.data, forcedRole);
+  return finishSessionLogin(json.data, forcedRole, { deferRedirect: opts?.deferRedirect });
 }
 
 export async function logoutSession(): Promise<void> {

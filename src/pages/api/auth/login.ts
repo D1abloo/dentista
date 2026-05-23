@@ -2,6 +2,11 @@ import type { APIRoute } from 'astro';
 import { createSessionToken, loginProductionUser, loginProductionUserWithPortal, sessionCookieName } from '@/lib/auth';
 import { isPortalChoiceLogin } from '@/lib/auth/loginResolve';
 import {
+  detectClinicLoginDenial,
+  isPortalChoiceLogin as isClinicPortalChoice,
+  loginClinicAdminOnly
+} from '@/lib/auth/clinicLoginFlow';
+import {
   hasValidAuthWithoutPlatformAccess,
   loginSuperAdminOnly
 } from '@/lib/auth/platformLoginFlow';
@@ -60,6 +65,104 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         action: 'auth.login_success',
         entity: 'platform_admin',
         actorEmail: user.email,
+        metadata: { remember }
+      });
+
+      cookies.set(sessionCookieName, createSessionToken(user), {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: import.meta.env.PROD,
+        path: '/',
+        maxAge
+      });
+
+      return ok(user, { message: 'Sesión iniciada correctamente.' });
+    }
+
+    if (parsed.data.role === 'admin') {
+      const email = parsed.data.email.trim().toLowerCase();
+      let user;
+      try {
+        user = await loginClinicAdminOnly(parsed.data);
+      } catch (err) {
+        if (err instanceof AccountNotActivatedError) {
+          return fail(err.message, 403);
+        }
+        throw err;
+      }
+
+      if (!user) {
+        const denial = await detectClinicLoginDenial(email, parsed.data.password);
+        if (denial === 'not_clinic_staff' || denial === 'platform_only') {
+          await logPlatformAudit({
+            action: 'auth.login_denied',
+            entity: 'clinic_staff',
+            metadata: { reason: denial },
+            actorEmail: email
+          });
+          return fail('Tu cuenta no tiene acceso al panel clínica.', 403);
+        }
+        await logPlatformAudit({
+          action: 'auth.login_failed',
+          entity: 'clinic_staff',
+          metadata: { reason: 'invalid_credentials' },
+          actorEmail: email
+        });
+        return fail('Credenciales incorrectas.', 401);
+      }
+
+      if (isClinicPortalChoice(user)) {
+        const adminOpts = user.options.filter((o) => o.id === 'admin');
+        if (!adminOpts.length) {
+          return fail('Tu cuenta no tiene acceso al panel clínica.', 403);
+        }
+        if (adminOpts.length === 1) {
+          const completed = await loginProductionUserWithPortal(
+            { email: parsed.data.email, password: parsed.data.password, role: 'admin' },
+            'admin'
+          );
+          if (!completed || isPortalChoiceLogin(completed)) {
+            return fail('Tu cuenta no tiene acceso al panel clínica.', 403);
+          }
+          if (completed.role === 'patient' || completed.role === 'super_admin') {
+            return fail('Tu cuenta no tiene acceso al panel clínica.', 403);
+          }
+          await logPlatformAudit({
+            action: 'auth.login_success',
+            entity: 'clinic_staff',
+            actorEmail: completed.email,
+            clinicId: completed.clinicId,
+            metadata: { remember }
+          });
+          cookies.set(sessionCookieName, createSessionToken(completed), {
+            httpOnly: true,
+            sameSite: 'lax',
+            secure: import.meta.env.PROD,
+            path: '/',
+            maxAge
+          });
+          return ok(completed, { message: 'Sesión iniciada correctamente.' });
+        }
+        return ok(
+          {
+            choosePortal: true,
+            email: user.email,
+            name: user.name,
+            options: adminOpts
+          },
+          { message: 'Selecciona el portal al que quieres acceder.' }
+        );
+      }
+
+      if (user.role === 'patient' || user.role === 'super_admin') {
+        return fail('Tu cuenta no tiene acceso al panel clínica.', 403);
+      }
+
+      await logPlatformAudit({
+        action: 'auth.login_success',
+        entity: 'clinic_staff',
+        actorEmail: user.email,
+        clinicId: user.clinicId,
         metadata: { remember }
       });
 
