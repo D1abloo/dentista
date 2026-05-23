@@ -7,9 +7,6 @@ import { handleLandingHashLink } from '@/lib/publicScroll';
 const premiumLinks = [
   { href: '/', label: 'Inicio' },
   { href: '/#funcionalidades', label: 'Funciones' },
-  { href: '/login/paciente', label: 'Portal paciente' },
-  { href: '/login/admin', label: 'Panel clínica' },
-  { href: '/platform/login', label: 'Plataforma' },
   { href: '/#precios', label: 'Planes' },
   { href: '/ayuda', label: 'Ayuda' },
   { href: '/contacto', label: 'Contacto' }
