@@ -1,4 +1,4 @@
-import { Facebook, Instagram, Linkedin } from 'lucide-react';
+import { Facebook, Instagram, Linkedin, Youtube } from 'lucide-react';
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
 
 const defaultNavLinks = [
@@ -16,31 +16,34 @@ const premiumColumns = [
       { href: '/#funcionalidades', label: 'Funciones' },
       { href: '/login/paciente', label: 'Portal paciente' },
       { href: '/login/admin', label: 'Panel clínica' },
-      { href: '/platform/login', label: 'Plataforma' }
-    ]
-  },
-  {
-    title: 'Empresa',
-    links: [
-      { href: '/contacto', label: 'Contacto' },
-      { href: '/registro-clinica', label: 'Registrar clínica' },
-      { href: '/#contacto-pro', label: 'Solicitar demo' }
+      { href: '/platform/login', label: 'Plataforma' },
+      { href: '/#precios', label: 'Planes' }
     ]
   },
   {
     title: 'Recursos',
     links: [
-      { href: '/ayuda', label: 'Centro de ayuda' },
-      { href: '/reserva', label: 'Reservar cita' },
-      { href: '/login', label: 'Acceso portales' }
+      { href: '/ayuda', label: 'Ayuda' },
+      { href: '/ayuda', label: 'Centro de soporte' },
+      { href: '/ayuda', label: 'Guías' },
+      { href: '/ayuda#faq', label: 'Preguntas frecuentes' },
+      { href: '/contacto', label: 'Blog' }
     ]
   },
   {
-    title: 'Seguridad y legal',
+    title: 'Legal',
     links: [
-      { href: '/privacidad', label: 'Privacidad' },
-      { href: '/terminos', label: 'Términos' },
-      { href: '/cookies', label: 'Cookies' }
+      { href: '/terminos', label: 'Términos y condiciones' },
+      { href: '/privacidad', label: 'Política de privacidad' },
+      { href: '/cookies', label: 'Política de cookies' }
+    ]
+  },
+  {
+    title: 'Accesos',
+    links: [
+      { href: '/login/paciente', label: 'Portal paciente' },
+      { href: '/login/admin', label: 'Panel clínica' },
+      { href: '/platform/login', label: 'Plataforma' }
     ]
   }
 ];
@@ -54,7 +57,7 @@ const legalLinks = [
 export function PublicFooter({ variant = 'default' }: { variant?: 'default' | 'pro' | 'premium' }) {
   const isPremium = variant === 'premium' || variant === 'pro';
   const tagline = isPremium
-    ? 'Plataforma dental SaaS: agenda, portal paciente, facturación y operación multi-tenant.'
+    ? 'La plataforma #1 para clínicas dentales que quieren digitalizar su gestión y ofrecer la mejor experiencia a sus pacientes.'
     : 'Citas, informes y facturas en un portal seguro para pacientes y familias.';
 
   if (variant === 'premium') {
@@ -76,6 +79,9 @@ export function PublicFooter({ variant = 'default' }: { variant?: 'default' | 'p
               <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
                 <Linkedin className="h-4 w-4" />
               </a>
+              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+                <Youtube className="h-4 w-4" />
+              </a>
             </div>
           </div>
           {premiumColumns.map((col) => (
@@ -83,7 +89,7 @@ export function PublicFooter({ variant = 'default' }: { variant?: 'default' | 'p
               <h4>{col.title}</h4>
               <nav aria-label={col.title}>
                 {col.links.map((l) => (
-                  <a key={l.href} href={l.href}>
+                  <a key={l.href + l.label} href={l.href}>
                     {l.label}
                   </a>
                 ))}
@@ -92,8 +98,7 @@ export function PublicFooter({ variant = 'default' }: { variant?: 'default' | 'p
           ))}
         </div>
         <div className="shell df-lp-footer__bottom">
-          <span>© {new Date().getFullYear()} Dentista+. Todos los derechos reservados.</span>
-          <span className="df-lp-footer__certs">RGPD · SSL · Multi-tenant</span>
+          <span>© 2026 Dentista+. Todos los derechos reservados.</span>
         </div>
       </footer>
     );

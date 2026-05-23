@@ -1,14 +1,18 @@
 import type { LucideIcon } from 'lucide-react';
 import {
+  BarChart3,
   Building2,
   Calendar,
+  CalendarClock,
   ClipboardList,
   CreditCard,
   FileText,
   Globe,
+  History,
   Layers,
   Lock,
   MessageSquare,
+  Receipt,
   Shield,
   ShieldCheck,
   UserRound,
@@ -21,18 +25,22 @@ export type LandingPlan = {
   name: string;
   price: string;
   period?: string;
+  blurb?: string;
   features: string[];
   cta: string;
   href: string;
   featured?: boolean;
   badge?: string;
+  demoPlan?: 'pro_clinica' | 'pro_multi';
 };
 
 export const landingHeroBadges = [
   { icon: UserRound, label: 'Portal paciente' },
   { icon: Calendar, label: 'Agenda inteligente' },
-  { icon: FileText, label: 'Facturación PDF' },
-  { icon: Shield, label: 'Multi-tenant seguro' }
+  { icon: Receipt, label: 'Facturación PDF' },
+  { icon: Shield, label: 'Multi-tenant seguro' },
+  { icon: FileText, label: 'Informes clínicos' },
+  { icon: ClipboardList, label: 'Consentimientos digitales' }
 ] as const;
 
 export const landingWhoCards = [
@@ -40,15 +48,15 @@ export const landingWhoCards = [
     id: 'patient',
     icon: UserRound,
     title: 'Soy paciente',
-    text: 'Reserva citas, consulta informes, descarga documentos y revisa facturas.',
-    cta: 'Entrar al portal',
+    text: 'Reserva citas, consulta informes, descarga documentos, revisa facturas, pagos y consentimientos desde tu portal privado.',
+    cta: 'Entrar al portal paciente',
     href: '/login/paciente'
   },
   {
     id: 'clinic',
     icon: Building2,
     title: 'Soy clínica',
-    text: 'Gestiona agenda, pacientes, informes, documentos, facturación y pagos.',
+    text: 'Gestiona agenda, pacientes, informes, documentos, facturación, pagos y comunicación con pacientes.',
     cta: 'Ver panel clínica',
     href: '/login/admin'
   },
@@ -56,131 +64,148 @@ export const landingWhoCards = [
     id: 'platform',
     icon: ShieldCheck,
     title: 'Soy administrador',
-    text: 'Gestiona clínicas, usuarios, suscripciones, soporte, seguridad y auditoría.',
+    text: 'Controla organizaciones, clínicas, usuarios, suscripciones, seguridad, auditoría y monitorización.',
     cta: 'Ver plataforma',
     href: '/platform/login'
   }
 ] as const;
 
 export const landingFeatures: LandingFeature[] = [
-  { icon: Calendar, title: 'Reservas online', text: 'Citas 24/7 con confirmación y recordatorios.' },
-  { icon: Calendar, title: 'Agenda clínica', text: 'Vista diaria, semanal y por profesional.' },
-  { icon: Users, title: 'Pacientes y NHC', text: 'Historial clínico y datos centralizados.' },
-  { icon: FileText, title: 'Informes clínicos', text: 'Publicación segura en el portal paciente.' },
-  { icon: Lock, title: 'Documentos seguros', text: 'Almacenamiento y descarga controlada.' },
-  { icon: CreditCard, title: 'Facturas y pagos', text: 'Cobros, estados y PDF profesionales.' },
-  { icon: ClipboardList, title: 'Consentimientos', text: 'Firma digital y trazabilidad.' },
-  { icon: MessageSquare, title: 'Mensajes', text: 'Comunicación clínica-paciente.' },
-  { icon: Shield, title: 'Auditoría', text: 'Registro de acciones sensibles.' },
-  { icon: Layers, title: 'Multi-sede', text: 'Varias clínicas con aislamiento por tenant.' }
-];
-
-export const landingPatientModules = [
-  'Inicio',
-  'Reservar cita',
-  'Mis citas',
-  'Informes',
-  'Documentos',
-  'Facturas',
-  'Pagos',
-  'Mensajes',
-  'Consentimientos',
-  'Perfil'
-];
-
-export const landingClinicModules = [
-  'Resumen',
-  'Agenda',
-  'Pacientes',
-  'Informes',
-  'Documentos',
-  'Facturación',
-  'Pagos',
-  'Reportes',
-  'Ajustes'
-];
-
-export const landingClinicWorkflow = [
-  'Crear paciente',
-  'Reservar cita',
-  'Subir informe o documento',
-  'Emitir factura',
-  'Registrar pago',
-  'Publicar en portal paciente'
-];
-
-export const landingPlatformModules = [
-  'Resumen',
-  'Organizaciones',
-  'Clínicas',
-  'Usuarios',
-  'Registros de clínicas',
-  'Suscripciones',
-  'Soporte',
-  'Métricas',
-  'Seguridad',
-  'Auditoría',
-  'Aislamiento multi-tenant'
+  { icon: Globe, title: 'Reservas online', text: 'Tus pacientes reservan citas 24/7 desde el portal.' },
+  { icon: Calendar, title: 'Agenda clínica', text: 'Organiza citas, bloqueos y disponibilidad de profesionales.' },
+  { icon: Users, title: 'Pacientes y NHC', text: 'Gestión completa de pacientes con historial y NHC único.' },
+  { icon: FileText, title: 'Informes clínicos', text: 'Crea informes con plantillas odontológicas y firma digital.' },
+  { icon: Lock, title: 'Documentos seguros', text: 'Sube y comparte documentos de forma segura y organizada.' },
+  { icon: Receipt, title: 'Facturas PDF', text: 'Genera facturas PDF automáticas y envíalas al paciente.' },
+  { icon: CreditCard, title: 'Pagos y recibos', text: 'Registra pagos y genera recibos fácilmente.' },
+  { icon: ClipboardList, title: 'Consentimientos digitales', text: 'Tus pacientes firman consentimientos desde el portal.' },
+  { icon: MessageSquare, title: 'Mensajes clínica-paciente', text: 'Comunicación directa y segura.' },
+  { icon: History, title: 'Historial de visitas', text: 'Consulta todo el historial de citas y tratamientos.' },
+  { icon: BarChart3, title: 'Reportes', text: 'Métricas y reportes para tomar mejores decisiones.' },
+  { icon: Layers, title: 'Seguridad multi-tenant', text: 'Aislamiento de datos por clínica y roles seguros.' }
 ];
 
 export const landingSecurityCards = [
-  { icon: Building2, title: 'Aislamiento por clínica', text: 'Datos separados por tenant y sede.' },
-  { icon: Users, title: 'Acceso por rol', text: 'Permisos para staff, paciente y plataforma.' },
-  { icon: ClipboardList, title: 'Auditoría de acciones', text: 'Trazabilidad de operaciones sensibles.' },
-  { icon: UserRound, title: 'Portal paciente privado', text: 'Solo ve su información clínica.' },
-  { icon: Lock, title: 'Sesiones cifradas', text: 'Autenticación y cookies seguras.' },
-  { icon: Shield, title: 'Datos clínicos protegidos', text: 'RGPD y buenas prácticas sanitarias.' }
+  {
+    icon: Building2,
+    title: 'Aislamiento por clínica',
+    text: 'Cada clínica opera dentro de su propio contexto de datos.'
+  },
+  { icon: Users, title: 'Acceso por rol', text: 'Permisos separados para cada tipo de usuario.' },
+  {
+    icon: UserRound,
+    title: 'Portal paciente privado',
+    text: 'Cada paciente solo accede a su información.'
+  },
+  {
+    icon: ClipboardList,
+    title: 'Auditoría de acciones',
+    text: 'Registro de accesos, descargas y acciones sensibles.'
+  },
+  {
+    icon: CalendarClock,
+    title: 'Bloqueo de horarios',
+    text: 'Horas ocupadas o bloqueadas no disponibles en el portal.'
+  },
+  {
+    icon: Shield,
+    title: 'Monitorización de plataforma',
+    text: 'Supervisa accesos, errores y eventos de seguridad.'
+  }
 ];
 
 export const landingPlans: LandingPlan[] = [
   {
     id: 'esencial',
     name: 'Esencial',
-    price: '0€',
+    price: '0 €',
     period: '/mes',
-    features: ['Agenda básica', 'Hasta 2 usuarios', 'Portal paciente', 'Soporte email'],
+    blurb: 'Para empezar con agenda básica y portal paciente.',
+    features: ['Agenda básica', 'Portal paciente', 'Pacientes limitados', 'Informes básicos'],
     cta: 'Empezar gratis',
     href: '/registro-clinica'
   },
   {
     id: 'profesional',
     name: 'Profesional',
-    price: '49€',
+    price: '49 €',
     period: '/mes',
-    features: ['Todo Esencial', 'Facturación PDF', 'Informes y documentos', 'Mensajes', 'Soporte prioritario'],
+    blurb: 'Para clínicas que necesitan gestión completa.',
+    features: [
+      'Todo lo de Esencial',
+      'Agenda avanzada',
+      'Informes clínicos',
+      'Documentos',
+      'Facturación PDF',
+      'Pagos',
+      'Consentimientos',
+      'Mensajes',
+      'Reportes'
+    ],
     cta: 'Probar 14 días gratis',
     href: '/#contacto-pro',
     featured: true,
-    badge: 'Recomendado'
+    badge: 'Recomendado',
+    demoPlan: 'pro_clinica'
   },
   {
     id: 'multi',
     name: 'Multi-sede',
-    price: '129€',
+    price: '129 €',
     period: '/mes',
-    features: ['Varias sedes', 'Panel centralizado', 'Métricas agregadas', 'Onboarding dedicado'],
+    blurb: 'Para clínicas con varias sedes.',
+    features: [
+      'Varias clínicas',
+      'Multi-sede',
+      'Usuarios ilimitados',
+      'Métricas',
+      'Auditoría',
+      'Soporte prioritario'
+    ],
     cta: 'Solicitar información',
-    href: '/#contacto-pro'
+    href: '/#contacto-pro',
+    demoPlan: 'pro_multi'
   },
   {
     id: 'enterprise',
     name: 'Enterprise',
     price: 'A medida',
-    features: ['SLA personalizado', 'Integraciones', 'SSO', 'Formación in situ'],
+    blurb: 'Para grupos dentales y redes de clínicas.',
+    features: [
+      'Plataforma avanzada',
+      'Monitorización',
+      'Seguridad avanzada',
+      'SLA',
+      'Integraciones',
+      'Soporte personalizado'
+    ],
     cta: 'Contactar ventas',
     href: '/contacto?tipo=clinica'
   }
 ];
 
-export const landingHelpCards = [
-  { title: 'Guías para pacientes', href: '/ayuda#portal-paciente', icon: UserRound },
-  { title: 'Guías para clínicas', href: '/ayuda#panel-admin', icon: Building2 },
-  { title: 'Preguntas frecuentes', href: '/ayuda#help-faq', icon: MessageSquare },
-  { title: 'Contactar soporte', href: '/contacto', icon: Globe }
-];
+export const landingTrustLogos = [
+  'Clínica Dental Nova',
+  'Sonrisa Clínica Dental',
+  'Dental Horizonte',
+  'Clínica Mediterráneo',
+  'Dental Plus'
+] as const;
 
 export const landingHeroDevices = [
-  { label: 'Portal paciente', src: '/images/guides/mobile/pdp-inicio.png', alt: 'Pantalla de inicio del portal paciente' },
-  { label: 'Agenda clínica', src: '/images/guides/mobile/admin-agenda.png', alt: 'Agenda del panel clínica' },
-  { label: 'Plataforma', src: '/images/guides/landing/admin-dashboard-hero.png', alt: 'Resumen de plataforma Super Admin' }
+  {
+    label: 'Panel clínica',
+    src: '/images/guides/mobile/admin-agenda.png',
+    alt: 'Agenda del panel clínica en portátil'
+  },
+  {
+    label: 'Plataforma',
+    src: '/images/guides/landing/admin-dashboard-hero.png',
+    alt: 'Estadísticas de plataforma en tablet'
+  },
+  {
+    label: 'Portal paciente',
+    src: '/images/guides/mobile/pdp-inicio.png',
+    alt: 'Portal del paciente en móvil'
+  }
 ] as const;

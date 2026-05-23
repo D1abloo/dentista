@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { Field, Input, Select, Textarea } from '@/components/ui';
-import { email, required } from '@/lib/validation';
+import { email, phone, required } from '@/lib/validation';
 
 export type ProPlan = 'pro_clinica' | 'pro_multi';
 
@@ -13,9 +13,10 @@ const planOptions = [
 type Props = {
   plan: ProPlan;
   onPlanChange: (plan: ProPlan) => void;
+  compact?: boolean;
 };
 
-export function ProAccessForm({ plan, onPlanChange }: Props) {
+export function ProAccessForm({ plan, onPlanChange, compact = false }: Props) {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -41,18 +42,19 @@ export function ProAccessForm({ plan, onPlanChange }: Props) {
     const errClinic = required(form.clinic_name, 'Nombre de la clínica');
     const errContact = required(form.contact_name, 'Nombre de contacto');
     const errEmail = email(form.email);
-    const errPhone = required(form.phone, 'Teléfono');
-    const errMsg = required(form.message, 'Mensaje');
+    const errPhone = phone(form.phone);
     const branches = Number.parseInt(form.branches, 10);
     if (errClinic) next.clinic_name = errClinic;
     if (errContact) next.contact_name = errContact;
     if (errEmail) next.email = errEmail;
     if (errPhone) next.phone = errPhone;
     if (!Number.isFinite(branches) || branches < 1) next.branches = 'Indica al menos 1 sede.';
-    if (errMsg) next.message = errMsg;
     if (!form.accept_terms) next.accept_terms = 'Debes aceptar la política de privacidad.';
     setErrors(next);
-    if (Object.keys(next).length) return;
+    if (Object.keys(next).length) {
+      if (!next.form) next.form = 'Completa los campos obligatorios.';
+      return;
+    }
 
     setLoading(true);
     setErrors({});
@@ -86,33 +88,31 @@ export function ProAccessForm({ plan, onPlanChange }: Props) {
             return;
           }
         }
-        setErrors({
-          form: json.error?.message ?? 'No se pudo enviar. Escríbenos a info@estructuraweb.es.'
-        });
+        setErrors({ form: json.error?.message ?? 'No se pudo enviar la solicitud.' });
         return;
       }
       setSent(true);
     } catch {
-      setErrors({ form: 'Error de conexión. Escríbenos a info@estructuraweb.es.' });
+      setErrors({ form: 'No se pudo enviar la solicitud.' });
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="pro-form-panel">
-      <header className="pro-form-panel__head">
-        <span className="pro-eyebrow">Acceso PRO</span>
-        <h2 id="contacto-pro-title">Solicitar acceso PRO</h2>
-        <p>
-          Cuéntanos sobre tu clínica y te contactaremos para activar Dentista+ PRO en tu operación.
-        </p>
-      </header>
+    <div className={`pro-form-panel${compact ? ' pro-form-panel--compact' : ''}`}>
+      {!compact ? (
+        <header className="pro-form-panel__head">
+          <span className="pro-eyebrow">Demo clínica</span>
+          <h2 id="contacto-pro-title">Solicitar demo para tu clínica</h2>
+          <p>Cuéntanos sobre tu clínica y te contactaremos para una demostración de Dentista+.</p>
+        </header>
+      ) : null}
 
       {sent ? (
         <div className="pro-form-success" role="status">
           <CheckCircle2 className="h-10 w-10" aria-hidden />
-          <p className="pro-form-success__title">Solicitud enviada</p>
+          <p className="pro-form-success__title">Solicitud enviada correctamente.</p>
           <p>
             Gracias, {form.contact_name}. Hemos recibido tu solicitud para <strong>{form.clinic_name}</strong> y
             te responderemos a {form.email}.
@@ -147,7 +147,7 @@ export function ProAccessForm({ plan, onPlanChange }: Props) {
                 autoComplete="organization"
               />
             </Field>
-            <Field label="Nombre de contacto" error={errors.contact_name}>
+            <Field label="Nombre" error={errors.contact_name}>
               <Input
                 value={form.contact_name}
                 onChange={(e) => setForm({ ...form, contact_name: e.target.value })}
@@ -195,12 +195,12 @@ export function ProAccessForm({ plan, onPlanChange }: Props) {
               </Select>
             </Field>
           </div>
-          <Field label="Mensaje" error={errors.message}>
+          <Field label="Mensaje (opcional)" error={errors.message}>
             <Textarea
               value={form.message}
               onChange={(e) => setForm({ ...form, message: e.target.value })}
-              placeholder="Cuéntanos tu situación actual, volumen de citas o necesidades de multi-sede…"
-              rows={4}
+              placeholder="Cuéntanos tu situación actual, volumen de citas o necesidades…"
+              rows={compact ? 3 : 4}
             />
           </Field>
           <label className="pro-form__terms">
@@ -226,7 +226,7 @@ export function ProAccessForm({ plan, onPlanChange }: Props) {
                 Enviando…
               </>
             ) : (
-              'Enviar solicitud PRO'
+              'Enviar solicitud'
             )}
           </button>
         </form>
