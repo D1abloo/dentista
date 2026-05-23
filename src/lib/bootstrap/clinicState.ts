@@ -136,18 +136,32 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
     }))
   }));
 
-  state.dentists = (dentists ?? []).map((d) => ({
-    id: d.id,
-    profileId: d.profile_id ?? undefined,
-    tenantId,
-    fullName: d.name,
-    specialty: d.specialty,
-    collegiateNumber: (d.collegiate_number as string | null) ?? undefined,
-    email: (d.email as string | null)?.trim() || `${d.id.slice(0, 8)}@clinic.local`,
-    phone: (d.phone as string | null)?.trim() || mainClinic.phone || '',
-    schedule: 'Lun–Vie 09:00–17:00',
-    active: d.active
-  }));
+  state.dentists = (dentists ?? []).map((d) => {
+    const mapped = {
+      id: d.id,
+      clinicId: d.clinic_id as string,
+      profileId: d.profile_id ?? undefined,
+      tenantId,
+      fullName: d.name,
+      specialty: d.specialty,
+      visibleTitle: (d.visible_title as string | null) ?? undefined,
+      collegiateNumber: (d.collegiate_number as string | null) ?? undefined,
+      professionalCollege: (d.professional_college as string | null) ?? undefined,
+      secondarySpecialties: (d.secondary_specialties as string[] | null) ?? [],
+      languages: (d.languages as string[] | null) ?? [],
+      reportBio: (d.report_bio as string | null) ?? undefined,
+      agendaColor: (d.agenda_color as string | null) ?? '#14b8a6',
+      photoRef: (d.photo_url as string | null) ?? undefined,
+      signatureRef: (d.signature_url as string | null) ?? undefined,
+      email: (d.email as string | null)?.trim() || `${d.id.slice(0, 8)}@clinic.local`,
+      phone: (d.phone as string | null)?.trim() || mainClinic.phone || '',
+      schedule: 'Lun–Vie 09:00–17:00',
+      active: d.active,
+      profileCompletion: (d.profile_completion as number | null) ?? undefined,
+      updatedAt: (d.updated_at as string | null) ?? undefined
+    };
+    return mapped;
+  });
 
   state.treatments = (treatments ?? []).map((t) => ({
     id: t.id,

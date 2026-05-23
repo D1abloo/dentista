@@ -135,6 +135,12 @@ export function AdminAgenda() {
   }, [staffLoading, ownAgenda, staff?.dentistId]);
 
   useEffect(() => {
+    if (typeof window === 'undefined' || ownAgenda) return;
+    const id = new URLSearchParams(window.location.search).get('dentist');
+    if (id) setDentistId(id);
+  }, [ownAgenda]);
+
+  useEffect(() => {
     const pre = consumeBookingPatientPrefill();
     if (pre) {
       setBookPatientId(pre);

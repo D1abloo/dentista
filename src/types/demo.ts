@@ -65,6 +65,7 @@ export interface Patient {
 
 export interface Dentist {
   id: string;
+  clinicId?: string;
   profileId?: string;
   tenantId: string;
   fullName: string;
@@ -74,6 +75,18 @@ export interface Dentist {
   schedule: string;
   /** Número de colegiado (aparece en informes clínicos). */
   collegiateNumber?: string;
+  visibleTitle?: string;
+  professionalCollege?: string;
+  secondarySpecialties?: string[];
+  languages?: string[];
+  reportBio?: string;
+  agendaColor?: string;
+  photoRef?: string;
+  photoName?: string;
+  signatureRef?: string;
+  signatureName?: string;
+  profileCompletion?: number;
+  updatedAt?: string;
   active: boolean;
 }
 

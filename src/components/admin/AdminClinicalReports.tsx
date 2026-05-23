@@ -52,6 +52,13 @@ export function AdminClinicalReports() {
   const [tab, setTab] = useState<'compose' | 'list'>('compose');
   const [listQ, setListQ] = useState('');
   const [patientQ, setPatientQ] = useState('');
+  const [dentistFilter, setDentistFilter] = useState('');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const id = new URLSearchParams(window.location.search).get('dentist');
+    if (id) setDentistFilter(id);
+  }, []);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [reportFile, setReportFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
@@ -74,6 +81,15 @@ export function AdminClinicalReports() {
 
   const list = useMemo(() => {
     let rows = [...state.clinicalReports];
+    if (dentistFilter) {
+      const pro = state.dentists.find((d) => d.id === dentistFilter);
+      rows = rows.filter((r) => {
+        const appt = r.appointmentId ? state.appointments.find((a) => a.id === r.appointmentId) : undefined;
+        if (appt?.dentistId === dentistFilter) return true;
+        if (pro && r.uploadedBy.includes(pro.fullName.replace(/^(dr\.?|dra\.?)\s+/i, '').trim())) return true;
+        return false;
+      });
+    }
     if (patientQ.trim()) rows = rows.filter((x) => recordMatchesPatientQuery(state, x.patientId, patientQ));
     if (listQ.trim()) {
       const s = listQ.toLowerCase();
@@ -85,7 +101,7 @@ export function AdminClinicalReports() {
       );
     }
     return rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  }, [state, listQ, patientQ]);
+  }, [state, listQ, patientQ, dentistFilter]);
 
   useEffect(() => {
     if (!form.appointmentId || !apptContext) return;
@@ -382,6 +398,15 @@ export function AdminClinicalReports() {
           </button>
         </div>
       </header>
+
+      {dentistFilter ? (
+        <p className="cr-context-bar">
+          Filtrando informes del profesional seleccionado.{' '}
+          <a href="/admin/informes" className="font-bold text-teal-800">
+            Quitar filtro
+          </a>
+        </p>
+      ) : null}
 
       {tab === 'list' ? (
         <section className="cr-list-panel">

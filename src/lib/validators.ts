@@ -546,6 +546,39 @@ export const dentistProfileUpdateSchema = z.object({
   phone: z.string().max(40).optional().or(z.literal(''))
 });
 
+export const clinicalProfessionalBodySchema = z.object({
+  clinicId: z.string().uuid(),
+  dentistId: z.string().uuid().optional(),
+  fullName: z.string().min(2).max(120),
+  visibleTitle: z.string().max(80).optional(),
+  collegiateNumber: z.string().max(40).optional(),
+  professionalCollege: z.string().max(120).optional(),
+  specialty: z.string().min(2).max(80),
+  secondarySpecialties: z.array(z.string().max(80)).optional(),
+  languages: z.array(z.string().max(40)).optional(),
+  email: z.string().max(160).optional(),
+  phone: z.string().max(40).optional(),
+  reportBio: z.string().max(4000).optional(),
+  agendaColor: z.string().max(20).optional(),
+  active: z.boolean(),
+  photoRef: z.string().max(50000).optional(),
+  signatureRef: z.string().max(50000).optional(),
+  photoName: z.string().max(255).optional(),
+  signatureName: z.string().max(255).optional(),
+  profileId: z.string().uuid().optional()
+});
+
+export const linkProfessionalUserSchema = z.object({
+  clinicId: z.string().uuid(),
+  dentistId: z.string().uuid(),
+  profileId: z.string().uuid()
+});
+
+export const unlinkProfessionalUserSchema = z.object({
+  clinicId: z.string().uuid(),
+  dentistId: z.string().uuid()
+});
+
 export const documentCreateSchema = z.object({
   clinicId: z.string().uuid(),
   patientId: z.string().uuid(),

@@ -65,6 +65,7 @@ export function getDemoFile(fileRef: string): StoredFile | null {
 
 /** URL para previsualizar (data URL local o ruta pública). */
 export function resolveDemoFileUrl(fileRef: string): string | null {
+  if (fileRef.startsWith('data:')) return fileRef;
   if (isPublicDemoAsset(fileRef)) return fileRef;
   return getDemoFile(fileRef)?.dataUrl ?? null;
 }

@@ -118,10 +118,11 @@ export const demoSeed: DemoState = {
       tenantId: TENANT_NORTE,
       fullName: 'Dr. Carlos Ramírez',
       specialty: 'Implantología',
-      collegiateNumber: '29/3890',
+      visibleTitle: 'Odontólogo',
       email: 'carlos@norte.demo',
       phone: '+34 600 201 002',
       schedule: 'Lun–Jue 10:00–18:00',
+      agendaColor: '#0ea5e9',
       active: true
     },
     {

@@ -1,3 +1,6 @@
+import { isClinicProfileManager } from '@/lib/services/clinicalProfessionals';
+
+export { isClinicProfileManager };
 import { getStaffContextForSession } from '@/lib/services/staffContext';
 import type { SessionUser } from '@/lib/auth';
 import { getSupabaseAdmin, hasSupabaseConfig, isDemoMode } from '@/lib/supabaseServer';
@@ -11,12 +14,6 @@ export type DentistProfileInput = {
   email?: string;
   phone?: string;
 };
-
-const MANAGER_ROLES = new Set(['clinic_admin', 'admin', 'owner']);
-
-export function isClinicProfileManager(role: string) {
-  return MANAGER_ROLES.has(role);
-}
 
 export async function updateDentistProfileRecord(
   user: SessionUser,

@@ -26,6 +26,7 @@ export type ClinicalReportPrintPayload = {
   professionalName: string;
   professionalSpecialty: string;
   professionalCollegiate: string;
+  professionalSignatureHtml?: string;
   sections: ReportPrintSection[];
 };
 
@@ -48,8 +49,14 @@ export function resolveReportPrintPayload(state: DemoState, report: ClinicalRepo
   const clinicName = ctx?.clinicName ?? state.clinics.find((c) => c.tenantId === report.tenantId)?.name ?? 'Clínica';
 
   const professionalName = ctx ? `${ctx.dentistHonorific} ${ctx.dentistName}` : report.uploadedBy;
-  const professionalSpecialty = ctx?.dentistSpecialty ?? dentist?.specialty ?? '—';
+  const professionalSpecialty =
+    dentist?.visibleTitle ?? ctx?.dentistSpecialty ?? dentist?.specialty ?? '—';
   const professionalCollegiate = ctx?.dentistCollegiateNumber ?? dentist?.collegiateNumber ?? '—';
+  const sigRef = dentist?.signatureRef;
+  const professionalSignatureHtml =
+    sigRef && (sigRef.startsWith('data:') || sigRef.startsWith('/') || sigRef.startsWith('http'))
+      ? `<img src="${escapeHtml(sigRef)}" alt="Firma" style="max-height:56px;margin-top:8px" />`
+      : undefined;
 
   const professionalFooter = [
     professionalName,
@@ -76,6 +83,7 @@ export function resolveReportPrintPayload(state: DemoState, report: ClinicalRepo
     professionalName,
     professionalSpecialty,
     professionalCollegiate,
+    professionalSignatureHtml,
     sections: buildStructuredPrintSections(report)
   };
 }
@@ -164,6 +172,7 @@ export function buildClinicalReportPrintHtml(payload: ClinicalReportPrintPayload
           <span><strong>Especialidad:</strong> ${escapeHtml(payload.professionalSpecialty)}</span>
           <span><strong>Nº colegiado:</strong> ${escapeHtml(payload.professionalCollegiate)}</span>
         </div>
+        ${payload.professionalSignatureHtml ?? ''}
       </footer>
 
       <p class="print-hint">Use «Imprimir» o «Guardar como PDF» del navegador para obtener el documento final.</p>
