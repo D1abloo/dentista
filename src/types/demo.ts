@@ -391,6 +391,8 @@ export interface BlockedSlot {
   reason: string;
   notes?: string;
   appliesToAll?: boolean;
+  /** Profesionales afectados cuando el bloqueo no es global. */
+  dentistIds?: string[];
 }
 
 export interface DemoState {

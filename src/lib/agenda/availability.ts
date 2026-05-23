@@ -18,7 +18,23 @@ export function hourInClinicRange(hour: string) {
 export function blockAppliesToDentist(block: BlockedSlot, dentistId: string) {
   if (block.appliesToAll) return true;
   if (!dentistId) return true;
+  if (block.dentistIds?.length) return block.dentistIds.includes(dentistId);
   return block.dentistId === dentistId;
+}
+
+export function blockTargetLabel(
+  block: BlockedSlot,
+  dentists: { id: string; fullName: string }[]
+): string {
+  if (block.appliesToAll) return 'Todos los profesionales';
+  const ids = block.dentistIds?.length ? block.dentistIds : block.dentistId ? [block.dentistId] : [];
+  if (!ids.length) return 'Profesional';
+  const names = ids
+    .map((id) => dentists.find((d) => d.id === id)?.fullName)
+    .filter(Boolean) as string[];
+  if (names.length === 1) return names[0];
+  if (names.length <= 3) return names.join(', ');
+  return `${names.slice(0, 2).join(', ')} y ${names.length - 2} más`;
 }
 
 export function blockCoversTime(block: BlockedSlot, time: string, dentistId: string) {

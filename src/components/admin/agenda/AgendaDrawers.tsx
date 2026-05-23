@@ -244,6 +244,8 @@ export function AgendaBookDrawer({
   );
 }
 
+type BlockScope = 'all' | 'pick';
+
 type BlockDrawerProps = {
   open: boolean;
   dentists: { id: string; fullName: string }[];
@@ -253,8 +255,8 @@ type BlockDrawerProps = {
   ownAgenda: boolean;
   onClose: () => void;
   onSubmit: (data: {
-    dentistId: string;
-    appliesToAll: boolean;
+    scope: BlockScope;
+    dentistIds: string[];
     date: string;
     startTime: string;
     endTime: string;
@@ -276,18 +278,37 @@ export function AgendaBlockDrawer({
   const [bookDate, setBookDate] = React.useState(initialDate);
   const [startTime, setStartTime] = React.useState(initialTime);
   const [endTime, setEndTime] = React.useState(initialTime);
-  const [dentistId, setDentistId] = React.useState(defaultDentistId);
-  const [appliesToAll, setAppliesToAll] = React.useState(false);
+  const [scope, setScope] = React.useState<BlockScope>('pick');
+  const [pickedIds, setPickedIds] = React.useState<string[]>([]);
   const [reason, setReason] = React.useState<(typeof BLOCK_REASONS)[number]>('Comida');
   const [notes, setNotes] = React.useState('');
+
+  const allPicked = dentists.length > 0 && pickedIds.length === dentists.length;
 
   useEffect(() => {
     if (!open) return;
     setBookDate(initialDate);
     setStartTime(initialTime);
     setEndTime(initialTime);
-    setDentistId((defaultDentistId || dentists[0]?.id) ?? '');
-  }, [open, initialDate, initialTime, defaultDentistId, dentists]);
+    if (ownAgenda && defaultDentistId) {
+      setScope('pick');
+      setPickedIds([defaultDentistId]);
+    } else if (defaultDentistId) {
+      setScope('pick');
+      setPickedIds([defaultDentistId]);
+    } else {
+      setScope('all');
+      setPickedIds([]);
+    }
+  }, [open, initialDate, initialTime, defaultDentistId, dentists, ownAgenda]);
+
+  function toggleDentist(id: string) {
+    setPickedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
+
+  function toggleAllDentists() {
+    setPickedIds(allPicked ? [] : dentists.map((d) => d.id));
+  }
 
   const footer = (
     <>
@@ -299,8 +320,8 @@ export function AgendaBlockDrawer({
         className="agd-drawer__primary agd-drawer__primary--danger"
         onClick={() =>
           onSubmit({
-            dentistId,
-            appliesToAll,
+            scope,
+            dentistIds: scope === 'all' ? [] : pickedIds,
             date: bookDate,
             startTime,
             endTime,
@@ -317,25 +338,60 @@ export function AgendaBlockDrawer({
 
   return (
     <AgendaDrawerShell open={open} title="Bloquear horario" onClose={onClose} footer={footer}>
-      <label className="agd-toggle">
-        <input
-          type="checkbox"
-          checked={appliesToAll}
-          onChange={(e) => setAppliesToAll(e.target.checked)}
-        />
-        <span>Aplicar a todos los dentistas</span>
-      </label>
-      {!appliesToAll ? (
-        <Field label="Dentista">
-          <Select value={dentistId} onChange={(e) => setDentistId(e.target.value)} disabled={ownAgenda}>
+      <div className="agd-block-scope">
+        <p className="agd-block-scope__label">Aplicar bloqueo a</p>
+        <div className="agd-segment agd-segment--scope" role="group" aria-label="Alcance del bloqueo">
+          <button
+            type="button"
+            className={`agd-segment__btn${scope === 'all' ? ' agd-segment__btn--active' : ''}`}
+            disabled={ownAgenda}
+            onClick={() => setScope('all')}
+          >
+            Todos los dentistas
+          </button>
+          <button
+            type="button"
+            className={`agd-segment__btn${scope === 'pick' ? ' agd-segment__btn--active' : ''}`}
+            onClick={() => setScope('pick')}
+          >
+            Uno o varios
+          </button>
+        </div>
+      </div>
+
+      {scope === 'pick' ? (
+        <div className="agd-pro-picker">
+          {!ownAgenda && dentists.length > 1 ? (
+            <button type="button" className="agd-pro-picker__toggle" onClick={toggleAllDentists}>
+              {allPicked ? 'Quitar selección' : 'Seleccionar todos'}
+            </button>
+          ) : null}
+          <ul className="agd-pro-picker__list">
             {dentists.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.fullName}
-              </option>
+              <li key={d.id}>
+                <label className="agd-pro-picker__item">
+                  <input
+                    type="checkbox"
+                    checked={pickedIds.includes(d.id)}
+                    disabled={ownAgenda && d.id !== defaultDentistId}
+                    onChange={() => toggleDentist(d.id)}
+                  />
+                  <span>{d.fullName}</span>
+                </label>
+              </li>
             ))}
-          </Select>
-        </Field>
-      ) : null}
+          </ul>
+          <p className="agd-pro-picker__hint">
+            {pickedIds.length
+              ? `${pickedIds.length} profesional${pickedIds.length === 1 ? '' : 'es'} seleccionado${pickedIds.length === 1 ? '' : 's'}`
+              : 'Marca al menos un profesional'}
+          </p>
+        </div>
+      ) : (
+        <p className="agd-helper agd-helper--muted">
+          El bloqueo afectará a todos los dentistas de la clínica en la franja indicada.
+        </p>
+      )}
       <Field label="Fecha">
         <Input type="date" value={bookDate} onChange={(e) => setBookDate(e.target.value)} />
       </Field>
@@ -480,13 +536,13 @@ export function AgendaApptDetailDrawer({
 export function AgendaBlockDetailDrawer({
   open,
   block,
-  dentistName,
+  targetLabel,
   onClose,
   onRemove
 }: {
   open: boolean;
   block: BlockedSlot | null;
-  dentistName: string;
+  targetLabel: string;
   onClose: () => void;
   onRemove: () => void;
 }) {
@@ -507,8 +563,8 @@ export function AgendaBlockDetailDrawer({
     <AgendaDrawerShell open={open} title="Detalle del bloqueo" onClose={onClose} footer={footer}>
       <dl className="agd-detail-dl">
         <div>
-          <dt>Dentista</dt>
-          <dd>{block.appliesToAll ? 'Todos los profesionales' : dentistName}</dd>
+          <dt>Profesionales</dt>
+          <dd>{targetLabel}</dd>
         </div>
         <div>
           <dt>Fecha</dt>

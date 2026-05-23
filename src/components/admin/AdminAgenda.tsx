@@ -15,7 +15,13 @@ import {
 import { dentistsForClinic, getPrimaryClinic } from '@/lib/clinic';
 import { isClientDemoMode } from '@/lib/appMode';
 import { appointmentsInRange, monthPrefix, weekRange } from '@/lib/appointments';
-import { addBlockedSlot, confirmAppointmentAttendance, removeBlockedSlot, rescheduleAppointment } from '@/lib/demoStore';
+import {
+  confirmAppointmentAttendance,
+  removeBlockedSlot,
+  rescheduleAppointment,
+  saveScheduleBlock
+} from '@/lib/demoStore';
+import { blockTargetLabel } from '@/lib/agenda/availability';
 import { createAdminAppointment, updateAdminAppointmentStatus } from '@/lib/adminAppointments';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { createScheduleBlockLive, deleteScheduleBlockLive } from '@/lib/clinicApi';
@@ -375,8 +381,8 @@ export function AdminAgenda() {
   }
 
   async function submitBlockFromDrawer(data: {
-    dentistId: string;
-    appliesToAll: boolean;
+    scope: 'all' | 'pick';
+    dentistIds: string[];
     date: string;
     startTime: string;
     endTime: string;
@@ -387,43 +393,58 @@ export function AdminAgenda() {
       setNotice({ type: 'error', message: 'Indica un motivo.' });
       return;
     }
-    const dId = data.appliesToAll ? clinicDentists[0]?.id ?? '' : data.dentistId || dentistId || clinicDentists[0]?.id;
-    if (!dId && !data.appliesToAll) {
-      setNotice({ type: 'error', message: 'Selecciona un dentista.' });
+    if (data.scope === 'pick' && !data.dentistIds.length) {
+      setNotice({ type: 'error', message: 'Selecciona al menos un dentista.' });
       return;
     }
     const start = data.startTime.slice(0, 5);
     const end = data.endTime.slice(0, 5);
+    const endNorm = end >= start ? end : start;
+    const appliesToAll = data.scope === 'all';
+    const ids = appliesToAll ? [] : data.dentistIds;
+
     if (!isClientDemoMode()) {
-      const live = await createScheduleBlockLive({
-        dentistId: dId,
-        date: data.date,
-        time: start,
-        reason: data.reason,
-        durationMinutes: 60
-      });
-      if (!live.ok) {
-        setNotice({ type: 'error', message: live.message });
+      const targets = appliesToAll ? clinicDentists.map((d) => d.id) : ids;
+      if (!targets.length) {
+        setNotice({ type: 'error', message: 'No hay dentistas para bloquear.' });
         return;
+      }
+      for (const dId of targets) {
+        const live = await createScheduleBlockLive({
+          dentistId: dId,
+          date: data.date,
+          time: start,
+          reason: data.reason,
+          durationMinutes: 60
+        });
+        if (!live.ok) {
+          setNotice({ type: 'error', message: live.message });
+          return;
+        }
       }
       await refresh();
     } else {
       commit(
-        addBlockedSlot(state, {
+        saveScheduleBlock(state, {
           clinicId,
-          dentistId: dId,
           cabinetId: activeClinic.cabinets[0]?.id ?? 'g-1',
           date: data.date,
           time: start,
-          endTime: end >= start ? end : start,
+          endTime: endNorm,
           reason: data.reason,
           notes: data.notes,
-          appliesToAll: data.appliesToAll
+          appliesToAll,
+          dentistIds: ids
         })
       );
     }
     setBlockOpen(false);
-    setNotice({ type: 'ok', message: 'Horario bloqueado correctamente.' });
+    const scopeMsg = appliesToAll
+      ? 'todos los dentistas'
+      : ids.length === 1
+        ? '1 profesional'
+        : `${ids.length} profesionales`;
+    setNotice({ type: 'ok', message: `Horario bloqueado para ${scopeMsg}.` });
   }
 
   async function removeBlock(blockId: string) {
@@ -796,11 +817,12 @@ export function AdminAgenda() {
       <AgendaBlockDetailDrawer
         open={Boolean(detailBlock)}
         block={detailBlock}
-        dentistName={
+        targetLabel={
           detailBlock
-            ? detailBlock.appliesToAll
-              ? 'Todos'
-              : (scope.dentists.find((d) => d.id === detailBlock.dentistId)?.fullName ?? 'Profesional')
+            ? blockTargetLabel(
+                detailBlock,
+                clinicDentists.map((d) => ({ id: d.id, fullName: d.fullName }))
+              )
             : ''
         }
         onClose={() => setDetailBlock(null)}
