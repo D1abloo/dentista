@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Archive,
   ArrowLeft,
@@ -93,15 +94,25 @@ export function PatientMessageViewer({
   initialTab = 'message'
 }: PatientMessageViewerProps) {
   const [tab, setTab] = useState<MessageViewerTab>(initialTab);
+  const [mounted, setMounted] = useState(false);
   const replyRef = useRef<HTMLTextAreaElement>(null);
   const { state } = useDemoStore();
   const logoUrl = settingsFor(state, view.message.tenantId).logoUrl ?? '/brand/clinic-shield.svg';
 
   useEffect(() => {
-    const prev = document.body.style.overflow;
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const prevHtml = document.documentElement.style.overflow;
+    const prevBody = document.body.style.overflow;
+    document.documentElement.classList.add('pmsg-viewer-open');
+    document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = prev;
+      document.documentElement.classList.remove('pmsg-viewer-open');
+      document.documentElement.style.overflow = prevHtml;
+      document.body.style.overflow = prevBody;
     };
   }, []);
 
@@ -121,7 +132,16 @@ export function PatientMessageViewer({
     if (tab === 'reply') replyRef.current?.focus();
   }, [tab]);
 
-  return (
+  if (!mounted) return null;
+
+  const hasQuickLinks =
+    !view.message.read ||
+    view.canDownloadPdf ||
+    Boolean(view.message.appointmentId) ||
+    Boolean(view.message.invoiceId) ||
+    Boolean(view.relatedHref && view.message.documentId);
+
+  const dialog = (
     <div className="pmsg-viewer" role="dialog" aria-modal="true" aria-labelledby="pmsg-viewer-title">
       <button type="button" className="pmsg-viewer__backdrop" onClick={onClose} aria-label="Cerrar mensaje" />
       <div className="pmsg-viewer__sheet">
@@ -189,6 +209,59 @@ export function PatientMessageViewer({
                   <Paperclip className="h-3.5 w-3.5 inline" aria-hidden /> Adjunto: {view.message.attachmentName}
                 </p>
               ) : null}
+              {hasQuickLinks ? (
+                <div className="pmsg-viewer__quick-links">
+                  {!view.message.read ? (
+                    <button type="button" className="pmsg-viewer__quick-link" onClick={onMarkRead}>
+                      <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
+                      Marcar leído
+                    </button>
+                  ) : null}
+                  {view.canDownloadPdf ? (
+                    <button
+                      type="button"
+                      className="pmsg-viewer__quick-link"
+                      disabled={downloading}
+                      onClick={onDownload}
+                    >
+                      <Download className="h-3.5 w-3.5" aria-hidden />
+                      {downloading ? 'Descargando…' : 'Descargar'}
+                    </button>
+                  ) : null}
+                  {view.message.appointmentId ? (
+                    <a href={appointmentLink(view.message.appointmentId)} className="pmsg-viewer__quick-link no-underline">
+                      <Calendar className="h-3.5 w-3.5" aria-hidden />
+                      Ver cita
+                    </a>
+                  ) : null}
+                  {view.message.invoiceId ? (
+                    <a
+                      href={`/paciente/facturas?factura=${encodeURIComponent(view.message.invoiceId)}`}
+                      className="pmsg-viewer__quick-link no-underline"
+                    >
+                      <Receipt className="h-3.5 w-3.5" aria-hidden />
+                      Ver factura
+                    </a>
+                  ) : null}
+                  {view.relatedHref && view.message.documentId ? (
+                    <a href={view.relatedHref} className="pmsg-viewer__quick-link no-underline">
+                      <FileText className="h-3.5 w-3.5" aria-hidden />
+                      Documento
+                    </a>
+                  ) : null}
+                  <button type="button" className="pmsg-viewer__quick-link pmsg-viewer__quick-link--muted" onClick={onArchive}>
+                    <Archive className="h-3.5 w-3.5" aria-hidden />
+                    Archivar
+                  </button>
+                </div>
+              ) : (
+                <div className="pmsg-viewer__quick-links">
+                  <button type="button" className="pmsg-viewer__quick-link pmsg-viewer__quick-link--muted" onClick={onArchive}>
+                    <Archive className="h-3.5 w-3.5" aria-hidden />
+                    Archivar
+                  </button>
+                </div>
+              )}
             </article>
           ) : (
             <div className="pmsg-viewer__reply-panel">
@@ -213,58 +286,12 @@ export function PatientMessageViewer({
           )}
         </div>
 
-        <footer className="pmsg-viewer__footer">
+        <footer className={`pmsg-viewer__footer${tab === 'message' ? ' pmsg-viewer__footer--message' : ''}`}>
           {tab === 'message' ? (
-            <>
-              {!view.message.read ? (
-                <button type="button" className="pmsg-btn pmsg-btn--outline pmsg-viewer__footer-btn" onClick={onMarkRead}>
-                  <CheckCircle2 className="h-4 w-4" aria-hidden />
-                  Marcar leído
-                </button>
-              ) : null}
-              {view.canDownloadPdf ? (
-                <button
-                  type="button"
-                  className="pmsg-btn pmsg-btn--primary pmsg-viewer__footer-btn"
-                  disabled={downloading}
-                  onClick={onDownload}
-                >
-                  <Download className="h-4 w-4" aria-hidden />
-                  {downloading ? 'Descargando…' : 'Descargar'}
-                </button>
-              ) : null}
-              {view.message.appointmentId ? (
-                <a
-                  href={appointmentLink(view.message.appointmentId)}
-                  className="pmsg-btn pmsg-btn--outline pmsg-viewer__footer-btn no-underline"
-                >
-                  <Calendar className="h-4 w-4" aria-hidden />
-                  Cita
-                </a>
-              ) : null}
-              {view.message.invoiceId ? (
-                <a
-                  href={`/paciente/facturas?factura=${encodeURIComponent(view.message.invoiceId)}`}
-                  className="pmsg-btn pmsg-btn--outline pmsg-viewer__footer-btn no-underline"
-                >
-                  <Receipt className="h-4 w-4" aria-hidden />
-                  Factura
-                </a>
-              ) : null}
-              {view.relatedHref && view.message.documentId ? (
-                <a href={view.relatedHref} className="pmsg-btn pmsg-btn--outline pmsg-viewer__footer-btn no-underline">
-                  <FileText className="h-4 w-4" aria-hidden />
-                  Documento
-                </a>
-              ) : null}
-              <button type="button" className="pmsg-btn pmsg-btn--primary pmsg-viewer__footer-btn" onClick={() => setTab('reply')}>
-                Responder
-              </button>
-              <button type="button" className="pmsg-btn pmsg-btn--ghost pmsg-viewer__footer-btn" onClick={onArchive}>
-                <Archive className="h-4 w-4" aria-hidden />
-                Archivar
-              </button>
-            </>
+            <button type="button" className="pmsg-btn pmsg-btn--primary pmsg-viewer__footer-btn" onClick={() => setTab('reply')}>
+              <Send className="h-4 w-4" aria-hidden />
+              Responder a la clínica
+            </button>
           ) : (
             <>
               <button type="button" className="pmsg-btn pmsg-btn--outline pmsg-viewer__footer-btn" onClick={onAttachClick}>
@@ -289,4 +316,6 @@ export function PatientMessageViewer({
       </div>
     </div>
   );
+
+  return createPortal(dialog, document.body);
 }

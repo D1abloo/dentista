@@ -340,7 +340,7 @@ export function PatientMessages() {
             : null;
 
   return (
-    <div className="pmsg-page">
+    <div className={`pmsg-page${viewerMessage ? ' pmsg-page--viewer-open' : ''}`}>
       {contextBanner ? (
         <div className="banner-alert flex flex-wrap items-center justify-between gap-2 mb-3">
           <span>{contextBanner.text}</span>
