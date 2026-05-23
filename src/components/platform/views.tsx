@@ -13,7 +13,6 @@ import { Button, Card, Empty, Field, Input, Select, Textarea } from '@/component
 import type {
   ClinicRegistration,
   PlatformClinic,
-  PlatformIsolationReport,
   PlatformOrganization,
   PlatformOverview,
   PlatformSettingRow,
@@ -198,59 +197,7 @@ export function PlatformSubscriptions() {
   );
 }
 
-export function PlatformIsolation() {
-  const [report, setReport] = useState<PlatformIsolationReport | null>(null);
-
-  useEffect(() => {
-    void api<PlatformIsolationReport>('/api/platform/isolation')
-      .then(setReport)
-      .catch(() => undefined);
-  }, []);
-
-  return (
-    <PlatformShell title="Aislamiento multi-tenant" subtitle="Garantía de que ninguna clínica contacta ni ve datos de otra">
-      <Card className="mb-6 p-6" title="Política de plataforma">
-        <ul className="list-disc space-y-2 pl-5 text-sm text-[var(--muted)]">
-          {(report?.policy ?? []).map((line) => (
-            <li key={line}>{line}</li>
-          ))}
-        </ul>
-      </Card>
-      {report ? (
-        <div className="mb-4 grid gap-3 sm:grid-cols-3">
-          <Card className="p-4 text-center">
-            <p className="text-2xl font-extrabold">{report.clinicsWithTenant}</p>
-            <p className="text-sm text-[var(--muted)]">Con tenant</p>
-          </Card>
-          <Card className="p-4 text-center">
-            <p className="text-2xl font-extrabold text-amber-700">{report.clinicsWithoutTenant}</p>
-            <p className="text-sm text-[var(--muted)]">Sin tenant (revisar)</p>
-          </Card>
-          <Card className="p-4 text-center">
-            <p className="text-2xl font-extrabold">{report.totalStaff}</p>
-            <p className="text-sm text-[var(--muted)]">Usuarios staff</p>
-          </Card>
-        </div>
-      ) : null}
-      <div className="space-y-3">
-        {report?.clinics.map((c) => (
-          <Card key={c.id} className="p-4">
-            <div className="flex flex-wrap justify-between gap-2">
-              <h3 className="font-bold">{c.name}</h3>
-              <span className={`text-xs font-bold uppercase ${c.has_tenant ? 'text-emerald-700' : 'text-amber-700'}`}>
-                {c.has_tenant ? 'Aislado' : 'Sin tenant'}
-              </span>
-            </div>
-            <p className="text-sm text-[var(--muted)]">{c.slug} · {c.status}</p>
-            <p className="mt-2 text-sm">
-              Staff: {c.staff_count} · Perfiles paciente: {c.patient_profiles} · Panel: /admin
-            </p>
-          </Card>
-        ))}
-      </div>
-    </PlatformShell>
-  );
-}
+export { PlatformIsolation } from './PlatformIsolation';
 
 export function PlatformSettings() {
   const [rows, setRows] = useState<PlatformSettingRow[]>([]);
