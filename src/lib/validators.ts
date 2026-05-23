@@ -341,6 +341,14 @@ export const supportActionSchema = z.discriminatedUnion('action', [
   })
 ]);
 
+export const metricsActionSchema = z.discriminatedUnion('action', [
+  z.object({ action: z.literal('refresh') }),
+  z.object({
+    action: z.literal('update_retention'),
+    retentionDays: z.number().int().min(7, 'Mínimo 7 días.').max(365, 'Máximo 365 días.')
+  })
+]);
+
 export const appointmentSchema = z.object({
   clinicId: z.string().min(1).default('demo-clinic'),
   patientId: z.string().min(1),

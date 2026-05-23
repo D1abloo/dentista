@@ -17,7 +17,6 @@ import type {
   PlatformOverview,
   PlatformSettingRow,
   PlatformSubscription,
-  PlatformUsageRow,
 } from '@/lib/platform/types';
 import { PlatformShell } from './PlatformShell';
 
@@ -106,34 +105,7 @@ export function PlatformSettings() {
   );
 }
 
-export function PlatformMetrics() {
-  const [rows, setRows] = useState<PlatformUsageRow[]>([]);
-
-  useEffect(() => {
-    void api<PlatformUsageRow[]>('/api/platform/metrics')
-      .then(setRows)
-      .catch(() => undefined);
-  }, []);
-
-  return (
-    <PlatformShell title="Métricas de uso" subtitle="Contadores agregados por clínica y día (sin datos clínicos sensibles)">
-      <div className="space-y-3">
-        {rows.map((r) => (
-          <Card key={`${r.clinic_id}-${r.day}`} className="p-4">
-            <h3 className="font-bold">{r.clinic_name}</h3>
-            <p className="text-sm text-[var(--muted)]">{r.day}</p>
-            <p className="mt-2 text-sm">
-              Citas: {r.appointments_count} · Pacientes: {r.patients_count} · Facturas: {r.invoices_count}
-            </p>
-          </Card>
-        ))}
-        {!rows.length ? (
-          <Empty title="Sin métricas aún" text="Los contadores diarios se rellenan con el uso en producción." />
-        ) : null}
-      </div>
-    </PlatformShell>
-  );
-}
+export { PlatformMetrics } from './PlatformMetrics';
 
 export function PlatformSecurity() {
   return (
