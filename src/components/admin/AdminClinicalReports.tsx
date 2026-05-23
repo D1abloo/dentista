@@ -1,0 +1,551 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  CheckCircle2,
+  Download,
+  Eye,
+  FileText,
+  Lock,
+  Plus,
+  Trash2,
+  Upload
+} from 'lucide-react';
+import { isClientDemoMode } from '@/lib/appMode';
+import {
+  applyReportTemplate,
+  appointmentBelongsToPatient,
+  buildReportTitle,
+  enrichReportListRow,
+  getAppointmentReportContext,
+  REPORT_TEMPLATES,
+  type ReportTemplateId
+} from '@/lib/clinical/reportTemplates';
+import { EMPTY_REPORT_FORM, validateClinicalReportForm, type ClinicalReportFormState } from '@/lib/clinical/reportForm';
+import {
+  addMessage,
+  createClinicalReport,
+  saveClinicalReport
+} from '@/lib/demoStore';
+import { isPdfMime, saveDemoFile } from '@/lib/demoFiles';
+import { fmtDateTime } from '@/lib/format';
+import { mapClinicalReportRow, type ClinicalReportRow } from '@/lib/records/clinicalReportMapper';
+import { recordMatchesPatientQuery } from '@/lib/patientSearch';
+import { patientDisplayCode } from '@/lib/nhc';
+import { useDemoStore } from '@/hooks/useDemoStore';
+import { useNotice } from '@/hooks/useNotice';
+import type { ClinicalReport } from '@/types/demo';
+import { FileActions } from '@/components/shared/FileActions';
+import { patientName } from '@/lib/selectors';
+import { PatientLookup } from './PatientLookup';
+import { Field, Input, SearchInput, Select, Textarea } from '@/components/ui';
+
+function appointmentLabel(state: ReturnType<typeof useDemoStore>['state'], appointmentId: string) {
+  const appt = state.appointments.find((a) => a.id === appointmentId);
+  if (!appt) return '';
+  const t = state.treatments.find((x) => x.id === appt.treatmentId);
+  return `${fmtDateTime(appt.date, appt.time)} · ${t?.name ?? 'Consulta'}`;
+}
+
+export function AdminClinicalReports() {
+  const { state, commit, refresh } = useDemoStore();
+  const { setNotice } = useNotice();
+  const [tab, setTab] = useState<'compose' | 'list'>('compose');
+  const [listQ, setListQ] = useState('');
+  const [patientQ, setPatientQ] = useState('');
+  const [templateId, setTemplateId] = useState<ReportTemplateId>('revision_general');
+  const [reportFile, setReportFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState<ClinicalReportFormState>(() => ({
+    ...EMPTY_REPORT_FORM,
+    patientId: state.patients[0]?.id ?? ''
+  }));
+
+  const apptContext = useMemo(
+    () => (form.appointmentId ? getAppointmentReportContext(state, form.appointmentId) : null),
+    [state, form.appointmentId]
+  );
+
+  const list = useMemo(() => {
+    let rows = [...state.clinicalReports];
+    if (patientQ.trim()) rows = rows.filter((x) => recordMatchesPatientQuery(state, x.patientId, patientQ));
+    if (listQ.trim()) {
+      const s = listQ.toLowerCase();
+      rows = rows.filter(
+        (x) =>
+          x.id.toLowerCase().includes(s) ||
+          x.title.toLowerCase().includes(s) ||
+          patientName(state, x.patientId).toLowerCase().includes(s)
+      );
+    }
+    return rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }, [state, listQ, patientQ]);
+
+  const applyTemplate = useCallback(
+    (id: ReportTemplateId, ctx = apptContext) => {
+      if (!ctx) {
+        setNotice({ type: 'error', message: 'Selecciona una cita válida para aplicar la plantilla.' });
+        return;
+      }
+      const filled = applyReportTemplate(id, ctx);
+      setForm((f) => ({
+        ...f,
+        title: filled.title,
+        description: filled.description,
+        diagnosis: filled.diagnosis,
+        recommendations: filled.recommendations,
+        dentistName: ctx.dentistName
+      }));
+      setTemplateId(id);
+    },
+    [apptContext, setNotice]
+  );
+
+  useEffect(() => {
+    if (!form.appointmentId || !apptContext) return;
+    if (form.patientId && apptContext.patientId !== form.patientId) {
+      setForm((f) => ({ ...f, appointmentId: '', dentistName: '' }));
+      return;
+    }
+    setForm((f) => ({
+      ...f,
+      patientId: apptContext.patientId,
+      dentistName: apptContext.dentistName,
+      title: f.title.trim() ? f.title : buildReportTitle(apptContext)
+    }));
+  }, [form.appointmentId, apptContext, form.patientId]);
+
+  function onSelectAppointment(appointmentId: string) {
+    if (!appointmentId) {
+      setForm((f) => ({ ...f, appointmentId: '', dentistName: '' }));
+      return;
+    }
+    if (form.patientId && !appointmentBelongsToPatient(state, appointmentId, form.patientId)) {
+      setNotice({ type: 'error', message: 'Selecciona una cita válida.' });
+      return;
+    }
+    const ctx = getAppointmentReportContext(state, appointmentId);
+    if (!ctx) return;
+    setForm((f) => ({
+      ...f,
+      appointmentId,
+      patientId: ctx.patientId,
+      dentistName: ctx.dentistName
+    }));
+    applyTemplate(templateId, ctx);
+  }
+
+  async function saveReport() {
+    const err = validateClinicalReportForm(form);
+    if (err) {
+      setNotice({ type: 'error', message: err });
+      return;
+    }
+    if (form.appointmentId && !appointmentBelongsToPatient(state, form.appointmentId, form.patientId)) {
+      setNotice({ type: 'error', message: 'Selecciona una cita válida.' });
+      return;
+    }
+
+    let fileRef: string | undefined;
+    let fileName: string | undefined;
+    let mimeType: string | undefined;
+    if (reportFile) {
+      if (!isPdfMime(reportFile.type, reportFile.name)) {
+        setNotice({ type: 'error', message: 'Solo se permiten archivos PDF.' });
+        return;
+      }
+      try {
+        fileRef = await saveDemoFile(reportFile);
+        fileName = reportFile.name;
+        mimeType = reportFile.type;
+      } catch (e) {
+        setNotice({ type: 'error', message: e instanceof Error ? e.message : 'No se pudo subir el PDF.' });
+        return;
+      }
+    }
+
+    const patient = state.patients.find((p) => p.id === form.patientId);
+    const clinicId = patient?.preferredClinicId ?? state.clinics.find((c) => c.active)?.id;
+    if (!clinicId) {
+      setNotice({ type: 'error', message: 'No se encontró clínica para vincular el informe.' });
+      return;
+    }
+
+    const reportInput = {
+      clinicId,
+      patientId: form.patientId,
+      appointmentId: form.appointmentId || undefined,
+      title: form.title.trim(),
+      description: form.description.trim(),
+      diagnosis: form.diagnosis.trim(),
+      recommendations: form.recommendations.trim(),
+      fileName,
+      fileRef,
+      mimeType,
+      uploadedBy: form.uploadedBy,
+      visibleToPatient: form.visibleToPatient
+    };
+
+    setSaving(true);
+    try {
+      if (!isClientDemoMode()) {
+        const res = await fetch('/api/records/report', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(reportInput)
+        });
+        const json = (await res.json()) as {
+          data?: Record<string, unknown>;
+          error?: { message?: string };
+        };
+        if (!res.ok) {
+          setNotice({ type: 'error', message: json.error?.message ?? 'No se pudo guardar el informe.' });
+          return;
+        }
+        if (json.data && typeof json.data.id === 'string') {
+          const mapped = mapClinicalReportRow(json.data as ClinicalReportRow);
+          let next = saveClinicalReport(state, mapped);
+          if (form.visibleToPatient) {
+            next = addMessage(next, {
+              patientId: form.patientId,
+              subject: `Nuevo informe disponible: ${form.title}`,
+              body: form.description,
+              channel: 'app',
+              type: 'clinica',
+              read: false,
+              sentAt: new Date().toISOString()
+            });
+          }
+          commit(next);
+          await refresh();
+          setNotice({
+            type: 'ok',
+            message: form.visibleToPatient ? 'Informe guardado correctamente.' : 'Informe guardado (solo clínica).'
+          });
+          resetForm();
+          setTab('list');
+          return;
+        }
+      }
+
+      const { clinicId: _c, ...reportData } = reportInput;
+      let next = createClinicalReport(state, reportData);
+      if (form.visibleToPatient) {
+        next = addMessage(next, {
+          patientId: form.patientId,
+          subject: `Nuevo informe disponible: ${form.title}`,
+          body: form.description,
+          channel: 'app',
+          type: 'clinica',
+          read: false,
+          sentAt: new Date().toISOString()
+        });
+      }
+      commit(next);
+      setNotice({ type: 'ok', message: 'Informe guardado correctamente.' });
+      resetForm();
+      setTab('list');
+    } catch {
+      setNotice({ type: 'error', message: 'No se pudo guardar el informe.' });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function resetForm() {
+    setForm({ ...EMPTY_REPORT_FORM, patientId: state.patients[0]?.id ?? '' });
+    setReportFile(null);
+    setTemplateId('revision_general');
+  }
+
+  const previewPatient = state.patients.find((p) => p.id === form.patientId);
+
+  return (
+    <div className="cr-module">
+      <header className="cr-module__head">
+        <div>
+          <h1 className="cr-module__title">
+            <FileText className="h-6 w-6 text-teal-700" aria-hidden />
+            {tab === 'compose' ? 'Nuevo informe odontológico' : 'Informes clínicos'}
+          </h1>
+          <p className="cr-module__subtitle">
+            {tab === 'compose'
+              ? 'Completa la información del informe. El paciente podrá verlo en su portal si lo marcas como visible.'
+              : 'Consulta, descarga y gestiona la visibilidad de los informes publicados.'}
+          </p>
+        </div>
+        <div className="cr-module__tabs">
+          <button
+            type="button"
+            className={`cr-tab${tab === 'compose' ? ' cr-tab--active' : ''}`}
+            onClick={() => setTab('compose')}
+          >
+            <Plus className="h-4 w-4" aria-hidden />
+            Nuevo informe
+          </button>
+          <button
+            type="button"
+            className={`cr-tab${tab === 'list' ? ' cr-tab--active' : ''}`}
+            onClick={() => setTab('list')}
+          >
+            Listado ({list.length})
+          </button>
+        </div>
+      </header>
+
+      {tab === 'list' ? (
+        <section className="cr-list-panel">
+          <div className="cr-list-toolbar">
+            <SearchInput value={patientQ} onChange={setPatientQ} placeholder="Filtrar por DNI, NHC o paciente…" />
+            <SearchInput value={listQ} onChange={setListQ} placeholder="Buscar por título o ID…" />
+          </div>
+          {list.length ? (
+            <div className="cr-table">
+              {list.map((r) => (
+                <ReportListRow key={r.id} report={r} />
+              ))}
+            </div>
+          ) : (
+            <div className="cr-empty">
+              <FileText className="h-8 w-8 text-teal-600" aria-hidden />
+              <p>No hay informes registrados.</p>
+              <button type="button" className="cr-btn cr-btn--primary" onClick={() => setTab('compose')}>
+                Crear informe
+              </button>
+            </div>
+          )}
+        </section>
+      ) : (
+        <div className="cr-compose-grid">
+          <section className="cr-form-panel">
+            <div className="cr-form-row cr-form-row--3">
+              <div className="cr-field-block">
+                <PatientLookup
+                  state={state}
+                  patientId={form.patientId}
+                  onPatientId={(id) => setForm({ ...form, patientId: id, appointmentId: '' })}
+                  label="Paciente *"
+                  placeholder="Buscar por NHC, DNI o nombre…"
+                  nhcPrimary
+                />
+                {previewPatient ? (
+                  <p className="cr-hint">
+                    {previewPatient.fullName} · {patientDisplayCode(previewPatient)}
+                  </p>
+                ) : null}
+              </div>
+              <Field label="Cita (motivo del informe) *">
+                <Select value={form.appointmentId} onChange={(e) => onSelectAppointment(e.target.value)}>
+                  <option value="">Seleccionar cita…</option>
+                  {state.appointments
+                    .filter((a) => a.patientId === form.patientId)
+                    .sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`))
+                    .map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {appointmentLabel(state, a.id)}
+                      </option>
+                    ))}
+                </Select>
+                <p className="cr-hint">El título y la plantilla se completan según la cita seleccionada.</p>
+              </Field>
+              <Field label="Profesional">
+                <Input value={form.dentistName} readOnly placeholder="Selecciona una cita…" />
+              </Field>
+            </div>
+
+            <Field label="Título del informe *">
+              <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+              <p className="cr-hint">Sugerencia: Informe odontológico - [Tratamiento] - [Fecha]</p>
+            </Field>
+
+            <Field label="Descripción *">
+              <Textarea
+                className="cr-textarea"
+                rows={12}
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+              />
+            </Field>
+
+            <div className="cr-form-row cr-form-row--2">
+              <Field label="Diagnóstico *">
+                <Textarea
+                  className="cr-textarea"
+                  rows={8}
+                  value={form.diagnosis}
+                  onChange={(e) => setForm({ ...form, diagnosis: e.target.value })}
+                />
+              </Field>
+              <Field label="Recomendaciones *">
+                <Textarea
+                  className="cr-textarea"
+                  rows={8}
+                  value={form.recommendations}
+                  onChange={(e) => setForm({ ...form, recommendations: e.target.value })}
+                />
+              </Field>
+            </div>
+
+            <div className="cr-upload-block">
+              <p className="cr-upload-label">Adjuntar informe (PDF)</p>
+              {reportFile ? (
+                <div className="cr-file-chip">
+                  <FileText className="h-4 w-4 text-teal-700 shrink-0" aria-hidden />
+                  <span className="min-w-0 truncate">{reportFile.name}</span>
+                  <span className="text-xs text-slate-500">{(reportFile.size / 1024).toFixed(0)} KB</span>
+                  <button type="button" className="cr-icon-btn" onClick={() => setReportFile(null)} aria-label="Quitar archivo">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <label className="cr-upload-zone">
+                  <Upload className="h-5 w-5 text-teal-700" aria-hidden />
+                  <span>Subir PDF</span>
+                  <input
+                    type="file"
+                    accept="application/pdf,.pdf"
+                    className="sr-only"
+                    onChange={(e) => setReportFile(e.target.files?.[0] ?? null)}
+                  />
+                </label>
+              )}
+            </div>
+
+            <label className="cr-check">
+              <input
+                type="checkbox"
+                checked={form.visibleToPatient}
+                onChange={(e) => setForm({ ...form, visibleToPatient: e.target.checked })}
+              />
+              <span>
+                <strong>Visible en portal del paciente</strong>
+                <small>El paciente podrá ver y descargar este informe en su portal.</small>
+              </span>
+            </label>
+
+            <div className="cr-form-actions">
+              <button type="button" className="cr-btn cr-btn--outline" onClick={resetForm}>
+                Cancelar
+              </button>
+              <button type="button" className="cr-btn cr-btn--primary" disabled={saving} onClick={() => void saveReport()}>
+                <Lock className="h-4 w-4" aria-hidden />
+                {saving ? 'Guardando…' : 'Guardar informe'}
+              </button>
+            </div>
+
+            <p className="cr-save-note">
+              <CheckCircle2 className="inline h-4 w-4 text-teal-700 mr-1" aria-hidden />
+              Al guardar el informe, quedará vinculado al paciente y a la cita seleccionada y se publicará en su portal si
+              está marcado como visible.
+            </p>
+          </section>
+
+          <aside className="cr-aside">
+            <div className="cr-aside-card">
+              <h3>Plantillas rápidas</h3>
+              <ul className="cr-templates">
+                {REPORT_TEMPLATES.map((t) => (
+                  <li key={t.id}>
+                    <button
+                      type="button"
+                      className={`cr-template${templateId === t.id ? ' cr-template--active' : ''}`}
+                      onClick={() => applyTemplate(t.id)}
+                    >
+                      <span aria-hidden>{t.icon}</span>
+                      {t.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="cr-aside-card cr-preview">
+              <h3>Vista previa del paciente</h3>
+              {form.title ? (
+                <>
+                  <div className="cr-preview__head">
+                    <span className="cr-preview__badge">Nuevo</span>
+                    <p className="cr-preview__title">{form.title}</p>
+                  </div>
+                  <p className="cr-preview__meta">
+                    {apptContext?.dateLabel ?? '—'} · {apptContext?.clinicName ?? 'Clínica'}
+                  </p>
+                  <p className="cr-preview__snippet">{form.diagnosis.split('\n')[0]}</p>
+                  <p className="cr-preview__snippet">{form.recommendations.split('\n')[0]}</p>
+                  <div className="cr-preview__actions">
+                    <span className="cr-btn cr-btn--outline cr-btn--sm">Ver informe</span>
+                    <span className="cr-btn cr-btn--outline cr-btn--sm">
+                      <Download className="h-3 w-3" aria-hidden />
+                      Descargar PDF
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-slate-500 m-0">Selecciona una cita y una plantilla para ver la vista previa.</p>
+              )}
+            </div>
+          </aside>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ReportListRow({ report }: { report: ClinicalReport }) {
+  const { state, commit } = useDemoStore();
+  const { setNotice } = useNotice();
+  const row = enrichReportListRow(state, report.id);
+  if (!row) return null;
+
+  return (
+    <article className="cr-row">
+      <div className="cr-row__main">
+        <p className="cr-row__title">{row.report.title}</p>
+        <p className="cr-row__meta">
+          {row.patientName} · {row.nhc} · {row.clinicName}
+        </p>
+        <p className="cr-row__meta">
+          {row.dateLabel} · {row.appointmentLabel} · {row.dentistName}
+        </p>
+        <span className={`cr-visibility${row.report.visibleToPatient ? ' cr-visibility--on' : ''}`}>
+          Portal: {row.visibleLabel}
+        </span>
+      </div>
+      <div className="cr-row__actions">
+        <FileActions fileRef={row.report.fileRef} fileName={row.report.fileName} mimeType={row.report.mimeType} />
+        <button type="button" className="cr-btn cr-btn--outline cr-btn--sm" title="Ver en portal paciente">
+          <Eye className="h-3.5 w-3.5" aria-hidden />
+        </button>
+        <button
+          type="button"
+          className="cr-btn cr-btn--outline cr-btn--sm"
+          onClick={() => {
+            void (async () => {
+              const nextVisible = !row.report.visibleToPatient;
+              if (!isClientDemoMode()) {
+                const clinicId =
+                  state.patients.find((p) => p.id === row.report.patientId)?.preferredClinicId ??
+                  state.clinics.find((c) => c.active)?.id;
+                if (clinicId) {
+                  const res = await fetch('/api/records/report', {
+                    method: 'PATCH',
+                    credentials: 'include',
+                    headers: { 'content-type': 'application/json' },
+                    body: JSON.stringify({ clinicId, id: row.report.id, visibleToPatient: nextVisible })
+                  });
+                  if (!res.ok) {
+                    setNotice({ type: 'error', message: 'No se pudo actualizar la visibilidad.' });
+                    return;
+                  }
+                }
+              }
+              commit(saveClinicalReport(state, { ...row.report, visibleToPatient: nextVisible }));
+              setNotice({ type: 'ok', message: 'Visibilidad actualizada.' });
+            })();
+          }}
+        >
+          {row.report.visibleToPatient ? 'Ocultar' : 'Publicar'}
+        </button>
+      </div>
+    </article>
+  );
+}

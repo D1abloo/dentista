@@ -51,7 +51,8 @@ import { PatientLookup } from './PatientLookup';
 import { AdminStaffPortalProfile } from './portalAccess';
 export { AdminAgenda } from './AdminAgenda';
 import { ClinicLogoUpload } from './ClinicLogoUpload';
-import { AdminClinicalReports, AdminPatientDetail } from './records';
+import { AdminClinicalReports } from './AdminClinicalReports';
+import { AdminPatientDetail } from './records';
 import { AdminDocuments, AdminInvoices } from './uploadViews';
 import { AdminPayments } from './AdminPayments';
 import {
