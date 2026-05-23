@@ -207,6 +207,7 @@ export function AdminAppointments() {
 }
 
 export { AdminPatients } from './AdminPatients';
+export { AdminProfessionalProfiles } from './AdminProfessionalProfiles';
 
 export function AdminDentists() {
   const { state, commit } = useDemoStore();

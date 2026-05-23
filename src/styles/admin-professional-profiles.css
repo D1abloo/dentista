@@ -1,0 +1,260 @@
+/* Panel admin — Perfiles Dr/Dra (informes clínicos) */
+
+.dr-module {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.dr-intro {
+  padding: 1rem 1.15rem;
+  border-radius: 0.85rem;
+  border: 1px solid #bae6fd;
+  background: linear-gradient(135deg, #f0f9ff, #f0fdfa);
+}
+
+.dr-intro__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--corp-navy, #0f2742);
+}
+
+.dr-intro__text {
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.dr-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.dr-layout--solo {
+  grid-template-columns: 1fr;
+}
+
+.dr-team {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.85rem;
+  background: #fff;
+  overflow: hidden;
+}
+
+.dr-team__head {
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.dr-team__list {
+  display: flex;
+  flex-direction: column;
+  max-height: min(70vh, 520px);
+  overflow-y: auto;
+}
+
+.dr-team__item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: none;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dr-team__item:hover {
+  background: #f8fafc;
+}
+
+.dr-team__item--active {
+  background: #f0fdfa;
+  box-shadow: inset 3px 0 0 #14b8a6;
+}
+
+.dr-team__name {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--corp-navy, #0f2742);
+}
+
+.dr-team__meta {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.dr-form-panel {
+  border: 2px solid #dbeafe;
+  border-radius: 0.85rem;
+  background: #fff;
+  padding: 1rem 1.15rem 1.15rem;
+  box-shadow: 0 6px 20px rgba(15, 39, 66, 0.06);
+}
+
+.dr-form-panel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.dr-form-panel__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--corp-navy, #0f2742);
+}
+
+.dr-form-panel__hint {
+  margin: 0.2rem 0 0;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.dr-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.dr-badge {
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.dr-badge--ok {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.dr-badge--warn {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.dr-badge--muted {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.dr-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.dr-field--wide {
+  grid-column: 1 / -1;
+}
+
+.dr-field-frame {
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.6rem;
+  background: #fafbfc;
+}
+
+.dr-field-frame:focus-within {
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.12);
+}
+
+.dr-field-frame label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--corp-navy, #0f2742);
+  margin-bottom: 0.35rem;
+}
+
+.dr-field-frame input,
+.dr-field-frame textarea {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.45rem;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.88rem;
+}
+
+.dr-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.dr-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.dr-btn--primary {
+  background: linear-gradient(135deg, #0ea5e9, #14b8a6);
+  color: #fff;
+}
+
+.dr-btn--outline {
+  background: #fff;
+  border-color: #cbd5e1;
+  color: var(--corp-navy, #0f2742);
+}
+
+.dr-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.dr-alert {
+  padding: 0.65rem 0.8rem;
+  border-radius: 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-bottom: 0.85rem;
+}
+
+.dr-alert--warn {
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  color: #92400e;
+}
+
+@media (max-width: 900px) {
+  .dr-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .dr-fields {
+    grid-template-columns: 1fr;
+  }
+}

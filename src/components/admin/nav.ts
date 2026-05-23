@@ -17,6 +17,7 @@ import {
   Scale,
   Settings,
   Stethoscope,
+  UserRound,
   Users
 } from 'lucide-react';
 
@@ -30,6 +31,7 @@ export type AdminView =
   | 'facturas'
   | 'pagos'
   | 'dentistas'
+  | 'profesionales'
   | 'tratamientos'
   | 'clinicas'
   | 'reportes'
@@ -51,7 +53,7 @@ export const adminNav: { href: string; label: string; icon: LucideIcon; view: Ad
   { href: '/admin/documentos', label: 'Documentos', icon: FileStack, view: 'documentos' },
   { href: '/admin/facturas', label: 'Facturación', icon: Receipt, view: 'facturas' },
   { href: '/admin/pagos', label: 'Pagos', icon: CreditCard, view: 'pagos' },
-  { href: '/admin/dentistas', label: 'Dentistas', icon: Stethoscope, view: 'dentistas' },
+  { href: '/admin/profesionales', label: 'Dr/Dra', icon: UserRound, view: 'profesionales' },
   { href: '/admin/tratamientos', label: 'Tratamientos', icon: ClipboardList, view: 'tratamientos' },
   { href: '/admin/clinicas', label: 'Clínicas', icon: Building2, view: 'clinicas' },
   { href: '/admin/reportes', label: 'Reportes', icon: FileText, view: 'reportes' },
@@ -74,6 +76,7 @@ export const adminTitles: Record<AdminView, string> = {
   facturas: 'Facturación',
   pagos: 'Pagos',
   dentistas: 'Dentistas',
+  profesionales: 'Perfiles Dr/Dra',
   tratamientos: 'Tratamientos',
   clinicas: 'Clínicas y gabinetes',
   reportes: 'Reportes',
@@ -98,6 +101,7 @@ export const adminSubtitles: Record<AdminView, string> = {
   facturas: 'Gestiona facturas, cobros, vencimientos y PDFs vinculados a cada paciente.',
   pagos: 'PAG-XXXX · búsqueda por DNI o ID paciente',
   dentistas: 'Equipo clínico de la sede',
+  profesionales: 'Colegiado, especialidad y datos para informes clínicos',
   tratamientos: 'Catálogo y precios',
   clinicas: 'Organización y sedes',
   reportes: 'Analiza citas, tratamientos, ingresos, ocupación y rendimiento de tu clínica.',

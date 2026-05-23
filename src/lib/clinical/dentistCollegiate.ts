@@ -7,5 +7,5 @@ export function isCollegiateNumberValid(value?: string | null): boolean {
 }
 
 export function collegiateRequiredMessage(honorific = 'El profesional'): string {
-  return `${honorific} debe tener un número de colegiado registrado. Complétalo en Dentistas o al dar de alta al usuario.`;
+  return `${honorific} debe tener un número de colegiado registrado. Complétalo en Dr/Dra del panel o al dar de alta al usuario.`;
 }

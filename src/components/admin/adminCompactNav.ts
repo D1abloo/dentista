@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Receipt,
   Settings,
+  UserRound,
   Users
 } from 'lucide-react';
 import type { AdminView } from './nav';
@@ -28,6 +29,7 @@ export const adminCompactNav: AdminCompactNavItem[] = [
   { href: '/admin/pacientes', label: 'Pacientes', icon: Users, view: 'pacientes' },
   { href: '/admin/documentos', label: 'Documentos', icon: FolderOpen, view: 'documentos' },
   { href: '/admin/informes', label: 'Informes', icon: FileText, view: 'informes' },
+  { href: '/admin/profesionales', label: 'Dr/Dra', icon: UserRound, view: 'profesionales' },
   { href: '/admin/facturas', label: 'Facturación', icon: Receipt, view: 'facturas' },
   { href: '/admin/pagos', label: 'Pagos', icon: CreditCard, view: 'pagos' },
   { href: '/admin/reportes', label: 'Estadísticas', icon: BarChart3, view: 'reportes' },

@@ -14,6 +14,7 @@ import {
   AdminClinicalReports,
   AdminClinics,
   AdminDentists,
+  AdminProfessionalProfiles,
   AdminNormativa,
   AdminPatientDetail,
   AdminTreatments
@@ -84,6 +85,8 @@ function Body({ view, patientId }: { view: AdminView; patientId?: string }) {
       );
     case 'dentistas':
       return <AdminDentists />;
+    case 'profesionales':
+      return <AdminProfessionalProfiles />;
     case 'tratamientos':
       return <AdminTreatments />;
     case 'clinicas':

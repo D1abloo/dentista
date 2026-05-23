@@ -143,8 +143,8 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
     fullName: d.name,
     specialty: d.specialty,
     collegiateNumber: (d.collegiate_number as string | null) ?? undefined,
-    email: `${d.id.slice(0, 8)}@clinic.local`,
-    phone: mainClinic.phone ?? '',
+    email: (d.email as string | null)?.trim() || `${d.id.slice(0, 8)}@clinic.local`,
+    phone: (d.phone as string | null)?.trim() || mainClinic.phone || '',
     schedule: 'Lun–Vie 09:00–17:00',
     active: d.active
   }));

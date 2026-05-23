@@ -536,6 +536,16 @@ export const reportUpdateSchema = reportCreateSchema.extend({
   id: z.string().uuid()
 });
 
+export const dentistProfileUpdateSchema = z.object({
+  clinicId: z.string().uuid(),
+  dentistId: z.string().uuid(),
+  fullName: z.string().min(2).max(120),
+  specialty: z.string().min(2).max(80),
+  collegiateNumber: z.string().min(3).max(40),
+  email: z.string().email().max(160).optional().or(z.literal('')),
+  phone: z.string().max(40).optional().or(z.literal(''))
+});
+
 export const documentCreateSchema = z.object({
   clinicId: z.string().uuid(),
   patientId: z.string().uuid(),
@@ -672,6 +682,7 @@ export type AppointmentNotificationInput = z.infer<typeof appointmentNotificatio
 export type ReportCreateInput = z.infer<typeof reportCreateSchema>;
 export type ReportVisibilityInput = z.infer<typeof reportVisibilitySchema>;
 export type ReportUpdateInput = z.infer<typeof reportUpdateSchema>;
+export type DentistProfileUpdateInput = z.infer<typeof dentistProfileUpdateSchema>;
 export type DocumentCreateInput = z.infer<typeof documentCreateSchema>;
 export type MessageCreateInput = z.infer<typeof messageCreateSchema>;
 export type ConsentCreateInput = z.infer<typeof consentCreateSchema>;

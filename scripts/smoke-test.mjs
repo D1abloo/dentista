@@ -16,7 +16,7 @@ const required = [
   'src/pages/admin/agenda.astro',
   'src/pages/admin/citas.astro',
   'src/pages/admin/pacientes.astro',
-  'src/pages/admin/dentistas.astro',
+  'src/pages/admin/profesionales.astro',
   'src/pages/admin/tratamientos.astro',
   'src/pages/admin/empresa.astro',
   'src/pages/admin/pagos.astro',

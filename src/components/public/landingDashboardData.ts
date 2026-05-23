@@ -35,7 +35,7 @@ export const landingDashNav: LandingDashNavItem[] = [
   { label: 'Documentos', icon: FileStack, href: '/admin/documentos' },
   { label: 'Facturas', icon: Receipt, href: '/admin/facturas' },
   { label: 'Pagos', icon: CreditCard, href: '/admin/pagos' },
-  { label: 'Dentistas', icon: Stethoscope, href: '/admin/dentistas' },
+  { label: 'Dr/Dra', icon: Stethoscope, href: '/admin/profesionales' },
   { label: 'Tratamientos', icon: ClipboardList, href: '/admin/tratamientos' },
   { label: 'Clínicas', icon: Building2, href: '/admin/clinicas' },
   { label: 'Reportes', icon: LineChart, href: '/admin/reportes' },
