@@ -684,12 +684,22 @@ export function createInformedConsent(
   return saveInformedConsent(state, consent);
 }
 
+export function effectiveConsentStatus(
+  consent: import('@/types/demo').InformedConsent,
+  today = todayIso()
+): 'pendiente' | 'firmado' | 'caducado' {
+  if (consent.status === 'firmado') return 'firmado';
+  if (consent.expiresAt && consent.expiresAt < today) return 'caducado';
+  return 'pendiente';
+}
+
 export function signInformedConsent(
   state: DemoState,
   id: string,
   signatureRef: string,
   fileRef?: string,
-  fileName?: string
+  fileName?: string,
+  opts?: { signatureMethod?: import('@/types/demo').ConsentSignatureMethod; signedCopyRef?: string }
 ): DemoState {
   const c = state.informedConsents.find((x) => x.id === id);
   if (!c) return state;
@@ -697,6 +707,8 @@ export function signInformedConsent(
     ...c,
     status: 'firmado',
     signatureRef,
+    signatureMethod: opts?.signatureMethod,
+    signedCopyRef: opts?.signedCopyRef ?? fileRef ?? c.fileRef ?? signatureRef,
     fileRef: fileRef ?? c.fileRef,
     fileName: fileName ?? c.fileName,
     signedAt: new Date().toISOString()
@@ -705,7 +717,10 @@ export function signInformedConsent(
 
 export function pendingConsentsForPatient(state: DemoState, patientId: string) {
   return state.informedConsents.filter(
-    (c) => c.patientId === patientId && c.requiredForPortal && c.status === 'pendiente'
+    (c) =>
+      c.patientId === patientId &&
+      c.requiredForPortal &&
+      effectiveConsentStatus(c) === 'pendiente'
   );
 }
 

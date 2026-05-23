@@ -331,6 +331,7 @@ export interface AppSettings {
 }
 
 export type ConsentStatus = 'pendiente' | 'firmado';
+export type ConsentSignatureMethod = 'draw' | 'typed';
 
 export interface InformedConsent {
   id: string;
@@ -340,12 +341,16 @@ export interface InformedConsent {
   treatmentName: string;
   title: string;
   body: string;
+  summary?: string;
   status: ConsentStatus;
   requiredForPortal: boolean;
   fileRef?: string;
   fileName?: string;
   signatureRef?: string;
+  signatureMethod?: ConsentSignatureMethod;
+  signedCopyRef?: string;
   signedAt?: string;
+  expiresAt?: string;
   createdAt: string;
 }
 

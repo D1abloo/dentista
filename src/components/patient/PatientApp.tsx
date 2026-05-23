@@ -32,7 +32,7 @@ import {
   PatientProfile,
   PatientReports
 } from './views';
-import { PatientConsents } from './consents';
+import { PatientConsents } from './PatientConsents';
 
 export type PatientView =
   | 'dashboard'

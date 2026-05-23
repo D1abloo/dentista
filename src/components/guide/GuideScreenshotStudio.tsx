@@ -3,7 +3,7 @@ import { demoSeed } from '@/data/demoData';
 import { NoticeProvider } from '@/hooks/useNotice';
 import { PatientAppointments, PatientDashboard, PatientInvoices, PatientReports } from '@/components/patient/views';
 import { PatientDocuments, PatientPayments } from '@/components/patient/records';
-import { PatientConsents } from '@/components/patient/consents';
+import { PatientConsents } from '@/components/patient/PatientConsents';
 import { AdminAgenda, AdminDashboard, AdminPatients } from '@/components/admin/views';
 import { AdminInvoices } from '@/components/admin/uploadViews';
 import { AdminPortalAccess } from '@/components/admin/portalAccess';

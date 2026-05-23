@@ -12,7 +12,8 @@ import {
 } from '@/lib/demoStore';
 import { fmtDate, fmtDateTime, money, statusLabel } from '@/lib/format';
 import { HelpEmbedded } from '@/components/help/HelpEmbedded';
-import { PatientConsents } from './consents';
+import { PatientConsentsCompact } from './consents';
+export { PatientConsents } from './PatientConsents';
 import { PatientIdentity } from './PatientIdentity';
 import { email, phone, required } from '@/lib/validation';
 import { useDemoStore } from '@/hooks/useDemoStore';
@@ -233,7 +234,7 @@ export function PatientProfile() {
         <Button type="submit">Guardar cambios</Button>
       </form>
     </Card>
-      <PatientConsents compact />
+      <PatientConsentsCompact />
     </div>
   );
 }
