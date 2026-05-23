@@ -13,10 +13,10 @@ import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { usePatient } from '@/hooks/usePatient';
 import { logPortalAudit, usePortalAccess } from '@/hooks/usePortalAccess';
-import { downloadDemoFileRef } from '@/lib/demoFiles';
 import { visibleReportsForPatient } from '@/lib/selectors';
 import {
   buildReportKpis,
+  downloadPatientReportPdf,
   enrichPatientReports,
   filterAndSortReports,
   markPatientReportRead,
@@ -47,7 +47,7 @@ function KpiStat({ label, value, delay, numeric }: { label: string; value: strin
 }
 
 export function PatientReports() {
-  const { state, dataSource } = useDemoStore();
+  const { state, dataSource, commit } = useDemoStore();
   const patient = usePatient();
   const { setNotice } = useNotice();
   const portalAccess = usePortalAccess();
@@ -122,13 +122,13 @@ export function PatientReports() {
 
   async function downloadPdf(v: PatientReportView, e?: React.MouseEvent) {
     e?.stopPropagation();
-    if (!v.hasPdf || !v.report.fileRef) {
+    if (!v.hasPdf) {
       setNotice({ type: 'error', message: 'No se pudo descargar el informe.' });
       return;
     }
     setDownloadingId(v.report.id);
     try {
-      const ok = downloadDemoFileRef(v.report.fileRef, v.report.fileName ?? `${v.report.id}.pdf`);
+      const ok = await downloadPatientReportPdf(state, v, commit);
       if (!ok) throw new Error('download failed');
       if (portalAccess.active) {
         void logPortalAudit({

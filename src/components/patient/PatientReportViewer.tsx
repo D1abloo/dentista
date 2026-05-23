@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ArrowLeft,
   Calendar,
@@ -10,7 +11,6 @@ import {
   User
 } from 'lucide-react';
 import { useDemoStore } from '@/hooks/useDemoStore';
-import { settingsFor } from '@/lib/demoStore';
 import {
   blocksForTab,
   buildPatientReportBlocks,
@@ -20,7 +20,8 @@ import {
 import type { PatientReportView } from '@/lib/patient/reportsData';
 import {
   messagesWithReportContext,
-  relatedDocumentsQuery
+  relatedDocumentsQuery,
+  viewPatientReportPdfHtml
 } from '@/lib/patient/reportsData';
 
 type PatientReportViewerProps = {
@@ -32,7 +33,7 @@ type PatientReportViewerProps = {
   onMarkRead: () => void;
 };
 
-const TABS: { id: PatientReportTab; label: string }[] = [
+const CONTENT_TABS: { id: PatientReportTab; label: string }[] = [
   { id: 'clinical', label: 'Informe clínico' },
   { id: 'diagnosis', label: 'Diagnóstico' },
   { id: 'care', label: 'Indicaciones' }
@@ -50,23 +51,33 @@ function formatBlockBody(text: string) {
 
 export function PatientReportViewer({
   view,
-  tenantId,
+  tenantId: _tenantId,
   downloading,
   onClose,
   onDownload,
   onMarkRead
 }: PatientReportViewerProps) {
   const blocks = useMemo(() => buildPatientReportBlocks(view.report), [view.report]);
-  const [tab, setTab] = useState<PatientReportTab>(() => defaultReportTab(blocks));
-  const tabBlocks = useMemo(() => blocksForTab(blocks, tab), [blocks, tab]);
+  const [tab, setTab] = useState<PatientReportTab | 'pdf'>(() => defaultReportTab(blocks));
+  const [mounted, setMounted] = useState(false);
+  const tabBlocks = useMemo(() => (tab === 'pdf' ? [] : blocksForTab(blocks, tab)), [blocks, tab]);
   const { state } = useDemoStore();
-  const logoUrl = settingsFor(state, tenantId).logoUrl ?? '/brand/clinic-shield.svg';
+  const pdfHtml = useMemo(() => viewPatientReportPdfHtml(state, view), [state, view]);
 
   useEffect(() => {
-    const prev = document.body.style.overflow;
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const prevHtml = document.documentElement.style.overflow;
+    const prevBody = document.body.style.overflow;
+    document.documentElement.classList.add('prt-viewer-open');
+    document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = prev;
+      document.documentElement.classList.remove('prt-viewer-open');
+      document.documentElement.style.overflow = prevHtml;
+      document.body.style.overflow = prevBody;
     };
   }, []);
 
@@ -82,7 +93,9 @@ export function PatientReportViewer({
     setTab(defaultReportTab(blocks));
   }, [view.report.id, blocks]);
 
-  return (
+  if (!mounted) return null;
+
+  const dialog = (
     <div className="prt-viewer" role="dialog" aria-modal="true" aria-labelledby="prt-viewer-title">
       <button type="button" className="prt-viewer__backdrop" onClick={onClose} aria-label="Cerrar informe" />
       <div className="prt-viewer__sheet">
@@ -92,7 +105,7 @@ export function PatientReportViewer({
             <span>Volver</span>
           </button>
           <div className="prt-viewer__brand">
-            <img src={logoUrl} alt="" className="prt-viewer__logo" width={40} height={40} />
+            <img src={view.clinicLogoUrl} alt="" className="prt-viewer__logo" width={40} height={40} />
             <div className="prt-viewer__brand-text">
               <p className="prt-viewer__clinic">{view.clinicName}</p>
               <p className="prt-viewer__date">{view.publishedLabel}</p>
@@ -125,7 +138,7 @@ export function PatientReportViewer({
         </div>
 
         <div className="prt-viewer__tabs" role="tablist" aria-label="Secciones del informe">
-          {TABS.map((t) => {
+          {CONTENT_TABS.map((t) => {
             const count = blocksForTab(blocks, t.id).length;
             if (!count) return null;
             return (
@@ -141,10 +154,30 @@ export function PatientReportViewer({
               </button>
             );
           })}
+          {view.hasPdf ? (
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'pdf'}
+              className={`prt-viewer__tab${tab === 'pdf' ? ' prt-viewer__tab--active' : ''}`}
+              onClick={() => setTab('pdf')}
+            >
+              PDF
+            </button>
+          ) : null}
         </div>
 
         <div className="prt-viewer__body" role="tabpanel">
-          {tabBlocks.length ? (
+          {tab === 'pdf' ? (
+            <div className="prt-viewer__pdf-wrap">
+              <iframe
+                title={`PDF: ${view.report.title}`}
+                className="prt-viewer__pdf-frame"
+                srcDoc={pdfHtml}
+                sandbox="allow-same-origin"
+              />
+            </div>
+          ) : tabBlocks.length ? (
             tabBlocks.map((block) => (
               <article key={block.id} className="prt-viewer__block">
                 <h3 className="prt-viewer__block-title">{block.title}</h3>
@@ -154,6 +187,12 @@ export function PatientReportViewer({
           ) : (
             <p className="prt-viewer__empty-tab">No hay contenido en esta sección.</p>
           )}
+          {tab !== 'pdf' && view.professionalFooter ? (
+            <footer className="prt-viewer__pro-footer">
+              <p className="prt-viewer__pro-footer-label">Profesional responsable</p>
+              <pre className="prt-viewer__pro-footer-text">{view.professionalFooter}</pre>
+            </footer>
+          ) : null}
         </div>
 
         <footer className="prt-viewer__footer">
@@ -192,4 +231,6 @@ export function PatientReportViewer({
       </div>
     </div>
   );
+
+  return createPortal(dialog, document.body);
 }

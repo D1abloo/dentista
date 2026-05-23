@@ -36,6 +36,7 @@ export function AdminClinicUsers() {
     email: '',
     role: 'dentist',
     specialty: 'General',
+    collegiateNumber: '',
     permission: 'write',
     sendEmail: true
   });
@@ -74,6 +75,10 @@ export function AdminClinicUsers() {
       setNotice({ type: 'error', message: 'Completa nombre y email.' });
       return;
     }
+    if (form.role === 'dentist' && !form.collegiateNumber.trim()) {
+      setNotice({ type: 'error', message: 'El número de colegiado es obligatorio para dentistas.' });
+      return;
+    }
     try {
       const res = await fetch('/api/clinic/users', {
         method: 'POST',
@@ -86,6 +91,7 @@ export function AdminClinicUsers() {
           role: form.role,
           permission: form.permission,
           specialty: form.role === 'dentist' ? form.specialty : undefined,
+          collegiateNumber: form.role === 'dentist' ? form.collegiateNumber.trim() : undefined,
           sendEmail: form.sendEmail
         })
       });
@@ -103,7 +109,7 @@ export function AdminClinicUsers() {
             ? `Usuario creado. Contraseña temporal: ${json.data.temporaryPassword}`
             : 'Usuario creado.')
       });
-      setForm((f) => ({ ...f, fullName: '', email: '' }));
+      setForm((f) => ({ ...f, fullName: '', email: '', collegiateNumber: '' }));
       await load();
     } catch (e) {
       setNotice({ type: 'error', message: e instanceof Error ? e.message : 'Error al crear.' });
@@ -134,9 +140,19 @@ export function AdminClinicUsers() {
             </Select>
           </Field>
           {form.role === 'dentist' ? (
-            <Field label="Especialidad">
-              <Input value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })} />
-            </Field>
+            <>
+              <Field label="Especialidad">
+                <Input value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })} />
+              </Field>
+              <Field label="Nº colegiado (obligatorio)">
+                <Input
+                  value={form.collegiateNumber}
+                  onChange={(e) => setForm({ ...form, collegiateNumber: e.target.value })}
+                  placeholder="Ej. 29/4521"
+                  required
+                />
+              </Field>
+            </>
           ) : null}
           <Button className="md:col-span-2" onClick={() => void createUser()}>
             <UserPlus className="h-4 w-4" /> Dar de alta usuario
@@ -144,7 +160,7 @@ export function AdminClinicUsers() {
         </div>
         <p className="mt-3 text-xs text-slate-500">
           Solo personal de clínica (panel /admin). Los pacientes no se dan de alta aquí: entran por reserva online o proceso acordado.
-          Al registrar un dentista se crea su ficha en Dentistas y agenda propia.
+          Al registrar un dentista se crea su ficha en Dentistas (con nº de colegiado para informes) y agenda propia.
         </p>
       </Card>
 

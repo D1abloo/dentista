@@ -616,17 +616,28 @@ export const scheduleBlockCreateSchema = z.object({
   durationMinutes: z.coerce.number().int().min(15).max(240).default(60)
 });
 
-export const clinicUserCreateSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6).max(120).optional(),
-  fullName: z.string().min(2).max(120),
-  accessType: z.literal('clinic').default('clinic'),
-  role: z.enum(['clinic_admin', 'admin', 'owner', 'dentist', 'receptionist']),
-  clinicId: z.string().uuid().optional(),
-  permission: z.enum(['read', 'write', 'execute']).default('write'),
-  specialty: z.string().max(80).optional(),
-  sendEmail: z.boolean().default(true)
-});
+export const clinicUserCreateSchema = z
+  .object({
+    email: z.string().email(),
+    password: z.string().min(6).max(120).optional(),
+    fullName: z.string().min(2).max(120),
+    accessType: z.literal('clinic').default('clinic'),
+    role: z.enum(['clinic_admin', 'admin', 'owner', 'dentist', 'receptionist']),
+    clinicId: z.string().uuid().optional(),
+    permission: z.enum(['read', 'write', 'execute']).default('write'),
+    specialty: z.string().max(80).optional(),
+    collegiateNumber: z.string().max(40).optional(),
+    sendEmail: z.boolean().default(true)
+  })
+  .superRefine((data, ctx) => {
+    if (data.role === 'dentist' && (!data.collegiateNumber?.trim() || data.collegiateNumber.trim().length < 3)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'El número de colegiado es obligatorio para dentistas.',
+        path: ['collegiateNumber']
+      });
+    }
+  });
 
 export const changePasswordSchema = z
   .object({

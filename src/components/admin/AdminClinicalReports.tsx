@@ -35,6 +35,11 @@ import {
   saveClinicalReport
 } from '@/lib/demoStore';
 import { isPdfMime, saveDemoFile } from '@/lib/demoFiles';
+import {
+  buildClinicalReportPrintHtmlFromState,
+  ensureClinicalReportPdf,
+  openClinicalReportPrintView
+} from '@/lib/pdfClinicalReport';
 import { fmtDateTime } from '@/lib/format';
 import { mapClinicalReportRow, type ClinicalReportRow } from '@/lib/records/clinicalReportMapper';
 import { recordMatchesPatientQuery } from '@/lib/patientSearch';
@@ -144,7 +149,7 @@ export function AdminClinicalReports() {
   }
 
   async function saveReport() {
-    const err = validateClinicalReportForm(form);
+    const err = validateClinicalReportForm(form, apptContext);
     if (err) {
       setNotice({ type: 'error', message: err });
       return;
@@ -219,7 +224,14 @@ export function AdminClinicalReports() {
           return;
         }
         if (json.data && typeof json.data.id === 'string') {
-          const mapped = mapClinicalReportRow(json.data as ClinicalReportRow);
+          let mapped = mapClinicalReportRow(json.data as ClinicalReportRow);
+          if (!fileRef) {
+            const ensured = await ensureClinicalReportPdf(state, mapped);
+            mapped = ensured.report;
+            fileRef = ensured.fileRef;
+            fileName = ensured.fileName;
+            mimeType = 'application/pdf';
+          }
           let next = saveClinicalReport(state, mapped);
           if (form.visibleToPatient) {
             next = addMessage(next, {
@@ -246,6 +258,11 @@ export function AdminClinicalReports() {
 
       const { clinicId: _c, ...reportData } = reportInput;
       let next = createClinicalReport(state, reportData);
+      const created = next.clinicalReports[next.clinicalReports.length - 1];
+      if (!fileRef && created) {
+        const ensured = await ensureClinicalReportPdf(next, created);
+        next = saveClinicalReport(next, ensured.report);
+      }
       if (form.visibleToPatient) {
         next = addMessage(next, {
           patientId: form.patientId,
@@ -635,11 +652,33 @@ export function AdminClinicalReports() {
                       : form.sections.recomendacionesPaciente.split('\n')[0]}
                   </p>
                   <div className="cr-preview__actions">
-                    <span className="cr-btn cr-btn--outline cr-btn--sm">Ver informe</span>
-                    <span className="cr-btn cr-btn--outline cr-btn--sm">
-                      <Download className="h-3 w-3" aria-hidden />
-                      Descargar PDF
-                    </span>
+                    <button
+                      type="button"
+                      className="cr-btn cr-btn--outline cr-btn--sm"
+                      onClick={() => {
+                        const profLine = apptContext
+                          ? `Profesional responsable: ${apptContext.dentistHonorific} ${apptContext.dentistName} · Colegiado n.º ${apptContext.dentistCollegiateNumber}`
+                          : undefined;
+                        const persistedPreview = formToPersistedFields(form, profLine);
+                        const draft: ClinicalReport = {
+                          id: 'preview',
+                          tenantId: state.clinics.find((c) => c.id === apptContext?.clinicId)?.tenantId ?? '',
+                          patientId: form.patientId,
+                          appointmentId: form.appointmentId,
+                          title: form.title,
+                          description: persistedPreview.description,
+                          diagnosis: persistedPreview.diagnosis,
+                          recommendations: persistedPreview.recommendations,
+                          uploadedBy: form.uploadedBy,
+                          visibleToPatient: form.visibleToPatient,
+                          createdAt: new Date().toISOString()
+                        };
+                        openClinicalReportPrintView(buildClinicalReportPrintHtmlFromState(state, draft));
+                      }}
+                    >
+                      <Eye className="h-3 w-3" aria-hidden />
+                      Ver PDF
+                    </button>
                   </div>
                 </>
               ) : (
@@ -675,8 +714,14 @@ function ReportListRow({ report }: { report: ClinicalReport }) {
       </div>
       <div className="cr-row__actions">
         <FileActions fileRef={row.report.fileRef} fileName={row.report.fileName} mimeType={row.report.mimeType} />
-        <button type="button" className="cr-btn cr-btn--outline cr-btn--sm" title="Ver en portal paciente">
+        <button
+          type="button"
+          className="cr-btn cr-btn--outline cr-btn--sm"
+          title="Ver PDF con membrete"
+          onClick={() => openClinicalReportPrintView(buildClinicalReportPrintHtmlFromState(state, row.report))}
+        >
           <Eye className="h-3.5 w-3.5" aria-hidden />
+          Ver PDF
         </button>
         <button
           type="button"

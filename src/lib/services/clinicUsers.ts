@@ -55,6 +55,7 @@ export type CreateClinicUserInput = {
   clinicId: string;
   permission?: 'read' | 'write' | 'execute';
   specialty?: string;
+  collegiateNumber?: string;
   sendEmail?: boolean;
 };
 
@@ -170,6 +171,8 @@ export async function createClinicUser(input: CreateClinicUserInput) {
         profile_id: profile.id,
         name: input.fullName,
         specialty: input.specialty ?? 'General',
+        collegiate_number: input.collegiateNumber?.trim() || null,
+        email: input.email.trim(),
         active: true
       });
       if (dentistErr && !dentistErr.message?.includes('duplicate')) throw dentistErr;

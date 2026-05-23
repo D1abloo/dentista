@@ -63,6 +63,7 @@ export const POST: APIRoute = async (context) => {
       clinicId,
       permission: parsed.data.permission,
       specialty: parsed.data.specialty,
+      collegiateNumber: parsed.data.collegiateNumber,
       sendEmail: parsed.data.sendEmail
     });
 

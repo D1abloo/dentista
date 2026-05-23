@@ -642,6 +642,58 @@
   word-break: break-word;
 }
 
+.prt-viewer__pdf-wrap {
+  flex: 1;
+  min-height: 16rem;
+  border-radius: 0.85rem;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.prt-viewer__pdf-frame {
+  width: 100%;
+  min-height: 22rem;
+  height: 100%;
+  border: none;
+  background: #fff;
+}
+
+.prt-viewer__pro-footer {
+  margin-top: 1.25rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.85rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.prt-viewer__pro-footer-label {
+  margin: 0 0 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+
+.prt-viewer__pro-footer-text {
+  margin: 0;
+  font-family: inherit;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: #334155;
+  white-space: pre-wrap;
+}
+
+html.prt-viewer-open,
+html.prt-viewer-open body {
+  overflow: hidden !important;
+}
+
+.prt-viewer {
+  z-index: 200;
+}
+
 .prt-viewer__empty-tab {
   text-align: center;
   padding: 2rem 1rem;

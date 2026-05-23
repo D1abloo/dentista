@@ -6,6 +6,8 @@ import {
   sectionsAreComplete,
   type ClinicalReportSections
 } from '@/lib/clinical/reportSections';
+import { collegiateRequiredMessage, isCollegiateNumberValid } from '@/lib/clinical/dentistCollegiate';
+import type { AppointmentReportContext } from '@/lib/clinical/reportTemplates';
 
 export type ClinicalReportFormState = {
   patientId: string;
@@ -44,10 +46,16 @@ export function parseReportApiError(json: {
   return json.error?.message ?? 'No se pudo guardar el informe.';
 }
 
-export function validateClinicalReportForm(form: ClinicalReportFormState): string | null {
+export function validateClinicalReportForm(
+  form: ClinicalReportFormState,
+  apptContext?: AppointmentReportContext | null
+): string | null {
   if (!form.patientId?.trim()) return 'Selecciona un paciente.';
   if (!form.appointmentId?.trim()) return 'Selecciona una cita válida.';
   if (!form.title?.trim()) return 'Completa el título del informe.';
+  if (apptContext && !isCollegiateNumberValid(apptContext.dentistCollegiateNumber)) {
+    return collegiateRequiredMessage(`${apptContext.dentistHonorific} ${apptContext.dentistName}`);
+  }
   return sectionsAreComplete(form.sections);
 }
 

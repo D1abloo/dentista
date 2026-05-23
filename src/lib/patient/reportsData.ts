@@ -1,5 +1,9 @@
 import type { ClinicalReport, DemoState } from '@/types/demo';
+import { downloadDemoFileRef } from '@/lib/demoFiles';
 import { fmtDate } from '@/lib/format';
+import { resolveReportPrintPayload } from '@/lib/clinical/reportPrintDocument';
+import { ensureClinicalReportPdf, openClinicalReportPrintView, buildClinicalReportPrintHtmlFromState } from '@/lib/pdfClinicalReport';
+import { saveClinicalReport } from '@/lib/demoStore';
 import { reportPreviewLine } from '@/lib/patient/reportDisplay';
 
 const READ_KEY = 'dentista_patient_reports_read';
@@ -11,6 +15,8 @@ export type PatientReportView = {
   clinicId: string;
   clinicName: string;
   professional: string;
+  professionalFooter: string;
+  clinicLogoUrl: string;
   typeLabel: ReportTypeLabel;
   publishedLabel: string;
   summary: string;
@@ -78,15 +84,18 @@ export function enrichPatientReports(state: DemoState, patientId: string, report
     const { clinicId, clinicName } = clinicForReport(state, report);
     const wasRead = read.has(report.id);
     const isNew = !wasRead && isRecent(report.createdAt, 45);
+    const printPayload = resolveReportPrintPayload(state, report);
     return {
       report,
       clinicId,
       clinicName,
       professional: report.uploadedBy,
+      professionalFooter: printPayload.professionalFooter,
+      clinicLogoUrl: printPayload.clinicLogoUrl,
       typeLabel: inferReportType(report),
       publishedLabel: fmtDate(report.createdAt),
       summary: reportPreviewLine(report),
-      hasPdf: Boolean(report.fileRef),
+      hasPdf: Boolean(report.fileRef) || printPayload.blocks.length > 0,
       read: wasRead,
       isNew,
       fileSizeLabel: report.fileRef ? '245 KB' : '—'
@@ -164,4 +173,30 @@ export function relatedDocumentsQuery(reportId: string, appointmentId?: string) 
 
 export function messagesWithReportContext(reportTitle: string) {
   return `/paciente/mensajes?contexto=${encodeURIComponent(`Consulta sobre: ${reportTitle}`)}`;
+}
+
+export async function downloadPatientReportPdf(
+  state: DemoState,
+  view: PatientReportView,
+  onPersist?: (next: DemoState) => void
+): Promise<boolean> {
+  try {
+    let report = view.report;
+    if (!report.fileRef) {
+      const ensured = await ensureClinicalReportPdf(state, report);
+      report = ensured.report;
+      if (onPersist) onPersist(saveClinicalReport(state, report));
+    }
+    if (report.fileRef) {
+      return downloadDemoFileRef(report.fileRef, report.fileName ?? `${report.id}.pdf`);
+    }
+    openClinicalReportPrintView(buildClinicalReportPrintHtmlFromState(state, report));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function viewPatientReportPdfHtml(state: DemoState, view: PatientReportView): string {
+  return buildClinicalReportPrintHtmlFromState(state, view.report);
 }

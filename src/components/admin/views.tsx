@@ -210,6 +210,7 @@ export { AdminPatients } from './AdminPatients';
 
 export function AdminDentists() {
   const { state, commit } = useDemoStore();
+  const { setNotice } = useNotice();
   const scope = useTenant();
   const emptyDentist: Dentist = {
     id: uid('d'),
@@ -218,30 +219,79 @@ export function AdminDentists() {
     specialty: '',
     email: '',
     phone: '',
+    collegiateNumber: '',
     schedule: 'Lun–Vie 09:00–17:00',
     active: true
   };
   const [form, setForm] = useState<Dentist>(scope.dentists[0] ?? emptyDentist);
+
+  function saveDentistForm() {
+    if (!form.fullName.trim()) {
+      setNotice({ type: 'error', message: 'Indica el nombre del profesional.' });
+      return;
+    }
+    if (!form.collegiateNumber?.trim()) {
+      setNotice({
+        type: 'error',
+        message: 'El número de colegiado es obligatorio. Aparece en el pie de los informes clínicos.'
+      });
+      return;
+    }
+    commit(saveDentist(state, { ...form, collegiateNumber: form.collegiateNumber.trim() }));
+    setNotice({ type: 'ok', message: 'Dentista guardado.' });
+  }
+
   return (
     <Card title="Dentistas">
+      <p className="mb-3 text-xs text-slate-600">
+        El nº de colegiado es obligatorio y se muestra en el pie de página de los informes generados por el profesional.
+      </p>
       <ul className="mb-4 space-y-2">{scope.dentists.map((d) => (
         <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2 text-sm">
           <span>
             <strong>{d.fullName}</strong> — {d.specialty}
+            {d.collegiateNumber ? (
+              <span className="ml-2 text-xs text-slate-600">Col. {d.collegiateNumber}</span>
+            ) : (
+              <span className="ml-2 rounded bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-950">Sin nº colegiado</span>
+            )}
             {d.profileId ? (
               <span className="ml-2 rounded bg-teal-100 px-2 py-0.5 text-xs font-semibold text-teal-900">Usuario vinculado</span>
             ) : (
               <span className="ml-2 rounded bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-950">Sin usuario — dar de alta en Usuarios clínica</span>
             )}
           </span>
-          <button type="button" className="font-bold text-dental-700" onClick={() => commit(saveDentist(state, { ...d, active: !d.active }))}>{d.active ? 'Desactivar' : 'Activar'}</button>
+          <div className="flex gap-2">
+            <button type="button" className="text-xs font-bold text-teal-800" onClick={() => setForm(d)}>Editar</button>
+            <button type="button" className="font-bold text-dental-700" onClick={() => commit(saveDentist(state, { ...d, active: !d.active }))}>{d.active ? 'Desactivar' : 'Activar'}</button>
+          </div>
         </li>
       ))}</ul>
       <div className="grid gap-3 md:grid-cols-2">
-        <Field label="Nombre"><Input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} /></Field>
-        <Field label="Especialidad"><Input value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })} /></Field>
-        <Field label="Horario"><Input value={form.schedule} onChange={(e) => setForm({ ...form, schedule: e.target.value })} /></Field>
-        <Button onClick={() => commit(saveDentist(state, form))}>Guardar dentista</Button>
+        <Field label="Nombre completo (Dr./Dra.)">
+          <Input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} placeholder="Dra. Ana López" />
+        </Field>
+        <Field label="Nº colegiado (obligatorio)">
+          <Input
+            value={form.collegiateNumber ?? ''}
+            onChange={(e) => setForm({ ...form, collegiateNumber: e.target.value })}
+            placeholder="Ej. 29/4521"
+            required
+          />
+        </Field>
+        <Field label="Especialidad">
+          <Input value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })} />
+        </Field>
+        <Field label="Email">
+          <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+        </Field>
+        <Field label="Teléfono">
+          <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+        </Field>
+        <Field label="Horario">
+          <Input value={form.schedule} onChange={(e) => setForm({ ...form, schedule: e.target.value })} />
+        </Field>
+        <Button className="md:col-span-2" onClick={saveDentistForm}>Guardar dentista</Button>
       </div>
     </Card>
   );
