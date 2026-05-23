@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Archive,
   Calendar,
   Check,
   Download,
@@ -13,11 +12,11 @@ import {
   Search,
   Send,
   Shield,
-  Sparkles,
-  X
+  Sparkles
 } from 'lucide-react';
 import { useCountUp } from '@/hooks/useCountUp';
-import { usePatientUrlParams } from '@/hooks/usePatientUrlParams';
+import { resolveFocusId, usePatientUrlParams } from '@/hooks/usePatientUrlParams';
+import { PatientMessageViewer } from './PatientMessageViewer';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { usePatient } from '@/hooks/usePatient';
@@ -93,7 +92,7 @@ export function PatientMessages() {
   const [q, setQ] = useState('');
   const [chip, setChip] = useState<MessageChip>('all');
   const [sort, setSort] = useState<PatientMessageSort>('recent');
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [viewerId, setViewerId] = useState<string | null>(null);
   const [reply, setReply] = useState('');
   const [replyOpen, setReplyOpen] = useState(false);
   const [attachName, setAttachName] = useState<string | null>(null);
@@ -134,9 +133,11 @@ export function PatientMessages() {
 
   const filtered = useMemo(() => filterAndSortMessages(views, { q, chip, sort }), [views, q, chip, sort]);
 
-  const selected = useMemo(
-    () => filtered.find((v) => v.message.id === selectedId) ?? views.find((v) => v.message.id === selectedId) ?? null,
-    [filtered, views, selectedId]
+  const focusId = resolveFocusId(urlParams, ['focus', 'mensaje', 'message']);
+
+  const viewerMessage = useMemo(
+    () => views.find((v) => v.message.id === viewerId) ?? null,
+    [views, viewerId]
   );
 
   useEffect(() => {
@@ -149,16 +150,25 @@ export function PatientMessages() {
     }
   }, [portalAccess.active]);
 
-  useEffect(() => {
-    if (!selectedId && filtered[0]) setSelectedId(filtered[0].message.id);
-    if (selectedId && !filtered.some((v) => v.message.id === selectedId) && filtered[0]) {
-      setSelectedId(filtered[0].message.id);
-    }
-  }, [filtered, selectedId]);
+  const openReplyTabFromUrl = Boolean(
+    urlParams.get('contexto')?.trim() || urlParams.get('asunto')?.trim() || urlParams.get('informe')
+  );
 
-  const openDetail = useCallback(
+  useEffect(() => {
+    if (focusId) {
+      const match = views.find((v) => v.message.id === focusId);
+      if (match) setViewerId(match.message.id);
+      return;
+    }
+    if (openReplyTabFromUrl && filtered[0]) setViewerId(filtered[0].message.id);
+  }, [focusId, views, openReplyTabFromUrl, filtered]);
+
+  const openViewer = useCallback(
     (v: PatientMessageView) => {
-      setSelectedId(v.message.id);
+      if (!v.message.read) {
+        commit(saveMessage(state, { ...v.message, read: true }));
+      }
+      setViewerId(v.message.id);
       if (portalAccess.active) {
         void logPortalAudit({
           eventType: 'other',
@@ -168,7 +178,7 @@ export function PatientMessages() {
         });
       }
     },
-    [portalAccess.active]
+    [portalAccess.active, commit, state]
   );
 
   function markRead(v: PatientMessageView, e?: React.MouseEvent) {
@@ -189,7 +199,7 @@ export function PatientMessages() {
   function archiveMessage(v: PatientMessageView) {
     commit(saveMessage(state, { ...v.message, archived: true, read: true }));
     setNotice({ type: 'ok', message: 'Mensaje archivado.' });
-    if (selectedId === v.message.id) setSelectedId(null);
+    if (viewerId === v.message.id) setViewerId(null);
     if (portalAccess.active) {
       void logPortalAudit({
         eventType: 'other',
@@ -217,7 +227,8 @@ export function PatientMessages() {
   function contactClinic() {
     setReplyOpen(true);
     replyRef.current?.focus();
-    if (!selected && filtered[0]) openDetail(filtered[0]);
+    setViewerId(null);
+    setReplyOpen(true);
   }
 
   async function onAttach(file: File | null) {
@@ -246,7 +257,8 @@ export function PatientMessages() {
       setNotice({ type: 'error', message: 'Escribe un mensaje antes de enviar.' });
       return;
     }
-    const tenantId = selected?.message.tenantId ?? state.clinics.find((c) => c.id === patient.preferredClinicId)?.tenantId;
+    const tenantId =
+      viewerMessage?.message.tenantId ?? state.clinics.find((c) => c.id === patient.preferredClinicId)?.tenantId;
     if (!tenantId) {
       setNotice({ type: 'error', message: 'No se pudo enviar el mensaje.' });
       return;
@@ -264,7 +276,7 @@ export function PatientMessages() {
           body: JSON.stringify({
             clinicId: clinic.id,
             patientId: patient.id,
-            subject: selected ? `Re: ${selected.message.subject}` : 'Mensaje del paciente',
+            subject: viewerMessage ? `Re: ${viewerMessage.message.subject}` : 'Mensaje del paciente',
             body,
             channel: 'app',
             type: 'clinica'
@@ -276,7 +288,7 @@ export function PatientMessages() {
           addMessage(state, {
             tenantId,
             patientId: patient.id,
-            subject: selected ? `Re: ${selected.message.subject}` : 'Mensaje del paciente',
+            subject: viewerMessage ? `Re: ${viewerMessage.message.subject}` : 'Mensaje del paciente',
             body,
             channel: 'app',
             type: 'clinica',
@@ -310,11 +322,6 @@ export function PatientMessages() {
 
   const showEmpty = views.length === 0;
   const showNoResults = !showEmpty && filtered.length === 0;
-
-  function viewDetail(e: React.MouseEvent, v: PatientMessageView) {
-    e.stopPropagation();
-    openDetail(v);
-  }
 
   const contextBanner = urlParams.get('informe')
     ? { text: 'Respondiendo en contexto de un informe clínico.', backHref: '/paciente/informes', backLabel: 'Volver a informes' }
@@ -466,23 +473,17 @@ export function PatientMessages() {
           </div>
         </section>
       ) : (
-        <div className="pmsg-layout">
-          <div className="pmsg-inbox">
+        <div className="pmsg-list-wrap">
             <h3 className="pmsg-list-title">Bandeja</h3>
-            {showNoResults ? (
-              <p className="pmsg-no-results">No hay mensajes que coincidan con tu búsqueda o filtros.</p>
-            ) : (
-              filtered.map((v, i) => (
+          {showNoResults ? (
+            <p className="pmsg-no-results">No hay mensajes que coincidan con tu búsqueda o filtros.</p>
+          ) : (
+            <div className="pmsg-list">
+              {filtered.map((v, i) => (
                 <article
                   key={v.message.id}
-                  className={`pmsg-card${selectedId === v.message.id ? ' pmsg-card--active' : ''}${!v.message.read ? ' pmsg-card--unread' : ''}`}
+                  className={`pmsg-card${viewerId === v.message.id ? ' pmsg-card--active' : ''}${!v.message.read ? ' pmsg-card--unread' : ''}`}
                   style={{ animationDelay: `${i * 45}ms` }}
-                  onClick={() => openDetail(v)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') openDetail(v);
-                  }}
-                  role="button"
-                  tabIndex={0}
                 >
                   <div className="pmsg-card__head">
                     <h4>{v.message.subject}</h4>
@@ -503,7 +504,7 @@ export function PatientMessages() {
                     </p>
                   ) : null}
                   <div className="pmsg-card__actions">
-                    <button type="button" className="pmsg-btn pmsg-btn--primary" onClick={(e) => viewDetail(e, v)}>
+                    <button type="button" className="pmsg-btn pmsg-btn--primary" onClick={() => openViewer(v)}>
                       <Eye className="h-3.5 w-3.5" aria-hidden />
                       Ver mensaje
                     </button>
@@ -555,143 +556,42 @@ export function PatientMessages() {
                     ) : null}
                   </div>
                 </article>
-              ))
-            )}
-          </div>
-
-          {selected ? (
-            <>
-              <div className="pmsg-detail__backdrop" onClick={() => setSelectedId(null)} aria-hidden />
-              <aside className="pmsg-detail">
-                <div className="pmsg-detail__top">
-                  <h3>Detalle del mensaje</h3>
-                  <button
-                    type="button"
-                    className="pmsg-btn pmsg-btn--outline pmsg-detail__close"
-                    onClick={() => setSelectedId(null)}
-                    aria-label="Cerrar"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-                <p className="pmsg-detail__subject">{selected.message.subject}</p>
-                <dl className="pmsg-detail__fields">
-                  <div>
-                    <dt>Clínica</dt>
-                    <dd>{selected.clinicName}</dd>
-                  </div>
-                  <div>
-                    <dt>Tipo</dt>
-                    <dd>
-                      <span className={`pmsg-type ${typeClass(selected.displayType)}`}>{selected.typeLabel}</span>
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Fecha</dt>
-                    <dd>{selected.dateLabel}</dd>
-                  </div>
-                  <div>
-                    <dt>Estado</dt>
-                    <dd>{selected.statusReadLabel}</dd>
-                  </div>
-                  {selected.relatedLabel !== '—' ? (
-                    <div>
-                      <dt>Recurso relacionado</dt>
-                      <dd>{selected.relatedLabel}</dd>
-                    </div>
-                  ) : null}
-                </dl>
-                <div className="pmsg-detail__body">{selected.message.body}</div>
-                <div className="pmsg-detail__actions">
-                  {selected.message.appointmentId ? (
-                    <a href={appointmentLink(selected.message.appointmentId)} className="pmsg-btn pmsg-btn--primary w-full no-underline">
-                      Ver cita
-                    </a>
-                  ) : null}
-                  {selected.message.invoiceId ? (
-                    <a
-                      href={`/paciente/facturas?factura=${encodeURIComponent(selected.message.invoiceId)}`}
-                      className="pmsg-btn pmsg-btn--outline w-full no-underline"
-                    >
-                      Ver factura
-                    </a>
-                  ) : null}
-                  {selected.message.documentId ? (
-                    <a href={documentLink(state, selected.message.documentId)} className="pmsg-btn pmsg-btn--outline w-full no-underline">
-                      Ver documento
-                    </a>
-                  ) : null}
-                  {selected.canDownloadPdf ? (
-                    <button
-                      type="button"
-                      className="pmsg-btn pmsg-btn--outline w-full"
-                      disabled={downloadingId === selected.message.id}
-                      onClick={() => void downloadPdf(selected)}
-                    >
-                      <Download className="h-4 w-4" aria-hidden />
-                      Descargar PDF
-                    </button>
-                  ) : null}
-                  {!selected.message.read ? (
-                    <button type="button" className="pmsg-btn pmsg-btn--outline w-full" onClick={() => markRead(selected)}>
-                      Marcar como leído
-                    </button>
-                  ) : null}
-                  <button type="button" className="pmsg-btn pmsg-btn--ghost w-full" onClick={() => archiveMessage(selected)}>
-                    <Archive className="h-4 w-4" aria-hidden />
-                    Archivar mensaje
-                  </button>
-                </div>
-
-                <section className={`pmsg-reply${replyOpen ? ' pmsg-reply--open' : ''}`}>
-                  <h4>Responder a la clínica</h4>
-                  <label className="pmsg-field">
-                    <span>Mensaje</span>
-                    <textarea
-                      ref={replyRef}
-                      value={reply}
-                      onChange={(e) => setReply(e.target.value)}
-                      onFocus={() => setReplyOpen(true)}
-                      placeholder="Escribe tu respuesta…"
-                      rows={4}
-                    />
-                  </label>
-                  <div className="pmsg-templates">
-                    {REPLY_TEMPLATES.map((t) => (
-                      <button key={t} type="button" className="pmsg-template" onClick={() => setReply(t)}>
-                        {t}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="pmsg-reply__foot">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      className="sr-only"
-                      accept=".pdf,image/*,.txt"
-                      onChange={(e) => void onAttach(e.target.files?.[0] ?? null)}
-                    />
-                    <button type="button" className="pmsg-btn pmsg-btn--outline" onClick={() => fileInputRef.current?.click()}>
-                      <Paperclip className="h-3.5 w-3.5" aria-hidden />
-                      Adjuntar archivo
-                    </button>
-                    {attachName ? <span className="pmsg-attach-name">{attachName}</span> : null}
-                    <button
-                      type="button"
-                      className={`pmsg-btn pmsg-btn--primary${sendOk ? ' pmsg-btn--success' : ''}`}
-                      disabled={sending}
-                      onClick={() => void sendReply()}
-                    >
-                      {sendOk ? <Check className="h-4 w-4" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
-                      {sending ? 'Enviando…' : 'Enviar mensaje'}
-                    </button>
-                  </div>
-                </section>
-              </aside>
-            </>
-          ) : null}
+              ))}
+            </div>
+          )}
         </div>
       )}
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="sr-only"
+        accept=".pdf,image/*,.txt"
+        onChange={(e) => void onAttach(e.target.files?.[0] ?? null)}
+      />
+
+      {viewerMessage ? (
+        <PatientMessageViewer
+          view={viewerMessage}
+          downloading={downloadingId === viewerMessage.message.id}
+          reply={reply}
+          attachName={attachName}
+          sending={sending}
+          sendOk={sendOk}
+          onClose={() => setViewerId(null)}
+          onDownload={() => void downloadPdf(viewerMessage)}
+          onMarkRead={() => markRead(viewerMessage)}
+          onArchive={() => archiveMessage(viewerMessage)}
+          onReplyChange={setReply}
+          onSendReply={() => void sendReply()}
+          onAttachClick={() => fileInputRef.current?.click()}
+          onTemplate={(t) => {
+            setReply(t);
+            setReplyOpen(true);
+          }}
+          initialTab={openReplyTabFromUrl && reply.trim() ? 'reply' : 'message'}
+        />
+      ) : null}
 
       <div className="pmsg-privacy">
         <h4>Privacidad</h4>
