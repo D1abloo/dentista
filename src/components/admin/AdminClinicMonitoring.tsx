@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Activity, BookOpen, Download, Eye, Search, Shield } from 'lucide-react';
+import { Activity, BookOpen, Download, Eye, Search } from 'lucide-react';
+import { AuditEventDetailPanel } from '@/components/shared/audit/AuditEventDetailPanel';
 import { Badge, Button, Card, Empty, Field, PageHeader } from '@/components/ui';
 import { useNotice } from '@/hooks/useNotice';
 import { useStaffContext } from '@/hooks/useStaffContext';
@@ -57,7 +58,7 @@ export function AdminClinicMonitoring() {
   }
 
   return (
-    <div className="grid gap-4">
+    <div className={`grid gap-4${selected && tab === 'activity' ? ' adm-monitor--panel-open' : ''}`}>
       <Card>
         <PageHeader
           title="Monitorización y registros"
@@ -207,52 +208,25 @@ export function AdminClinicMonitoring() {
         )}
       </Card>
 
-      {selected ? (
-        <Card>
-          <PageHeader title="Detalle del evento" subtitle={selected.event_code} />
-          <ul className="grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
-            <li>
-              <strong>Fecha:</strong> {selected.date_label}
-            </li>
-            <li>
-              <strong>Usuario:</strong> {selected.actor_name} ({selected.actor_role})
-            </li>
-            <li>
-              <strong>Ruta:</strong> {selected.route}
-            </li>
-            <li>
-              <strong>IP:</strong> {selected.ip}
-            </li>
-            <li>
-              <strong>Dispositivo:</strong> {selected.device}
-            </li>
-            <li>
-              <strong>Motivo:</strong> {selected.reason}
-            </li>
-          </ul>
-          <div className="mt-4 flex gap-2">
-            <Button type="button" tone="secondary" onClick={() => setSelected(null)}>
-              Cerrar
-            </Button>
-            <Button
-              type="button"
-              onClick={async () => {
-                await fetch('/api/admin/activity', {
-                  method: 'POST',
-                  credentials: 'include',
-                  headers: { 'content-type': 'application/json' },
-                  body: JSON.stringify({ action: 'mark_reviewed', id: selected.id })
-                });
-                setNotice({ type: 'ok', message: 'Marcado como revisado.' });
-                setSelected(null);
-                void load();
-              }}
-            >
-              <Shield className="h-4 w-4" aria-hidden />
-              Marcar revisado
-            </Button>
-          </div>
-        </Card>
+      {selected && tab === 'activity' ? (
+        <AuditEventDetailPanel
+          event={selected}
+          title="Detalle del evento"
+          onClose={() => setSelected(null)}
+          actions={{
+            onMarkReviewed: async () => {
+              await fetch('/api/admin/activity', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ action: 'mark_reviewed', id: selected.id })
+              });
+              setNotice({ type: 'ok', message: 'Marcado como revisado.' });
+              setSelected(null);
+              void load();
+            }
+          }}
+        />
       ) : null}
     </div>
   );

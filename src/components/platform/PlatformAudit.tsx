@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Activity,
   AlertTriangle,
@@ -12,9 +12,7 @@ import {
   MoreVertical,
   Search,
   Settings,
-  Shield,
-  User,
-  X
+  Shield
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useCountUp } from '@/hooks/useCountUp';
@@ -24,6 +22,7 @@ import {
   type AuditEventRow,
   type AuditPayload
 } from '@/lib/platform/auditDemo';
+import { AuditEventDetailPanel } from '@/components/shared/audit/AuditEventDetailPanel';
 import { PlatformShell } from './PlatformShell';
 
 async function apiGet<T>(): Promise<T> {
@@ -160,18 +159,6 @@ function ModuleDonut({ segments }: { segments: { label: string; percent: number 
         ))}
       </ul>
     </div>
-  );
-}
-
-function DetailRow({ label, value, icon: Icon, mono }: { label: string; value: ReactNode; icon: LucideIcon; mono?: boolean }) {
-  return (
-    <li className="cln-detail__row">
-      <Icon className="cln-detail__icon h-4 w-4" aria-hidden />
-      <div>
-        <span className="cln-detail__label">{label}</span>
-        <span className={`cln-detail__value${mono ? ' font-mono text-xs' : ''}`}>{value}</span>
-      </div>
-    </li>
   );
 }
 
@@ -648,82 +635,24 @@ export function PlatformAudit() {
         )}
 
         {selected ? (
-          <>
-            <div className="cln-detail__backdrop" onClick={() => setSelected(null)} />
-            <aside className="cln-detail">
-              <div className="cln-detail__head">
-                <div>
-                  <h2 className="m-0 text-base font-extrabold">Detalle de auditoría</h2>
-                  {selected.reviewed ? <span className="cln-badge plt-badge--ok">Revisado</span> : null}
-                </div>
-                <button type="button" className="cln-icon-btn" onClick={() => setSelected(null)}>
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-              <div className="cln-detail__body">
-                <ul className="cln-detail__meta">
-                  <DetailRow icon={FileText} label="ID evento" value={selected.event_code} mono />
-                  <DetailRow icon={Clock} label="Fecha y hora" value={selected.date_label} />
-                  <DetailRow icon={User} label="Actor" value={selected.actor_name} />
-                  <DetailRow icon={Shield} label="Rol" value={selected.actor_role} />
-                  <DetailRow icon={Lock} label="Clínica" value={selected.clinic_name} />
-                  <DetailRow icon={Lock} label="Tenant" value={selected.tenant_masked} mono />
-                  <DetailRow icon={Activity} label="Módulo" value={selected.module} />
-                  <DetailRow icon={Eye} label="Acción" value={selected.action} />
-                  <DetailRow icon={FileText} label="Recurso afectado" value={selected.resource_masked} mono />
-                  <DetailRow icon={CheckCircle2} label="Resultado" value={selected.result_label} />
-                  <DetailRow icon={AlertTriangle} label="Nivel de riesgo" value={selected.risk_label} />
-                  <DetailRow icon={Activity} label="IP" value={selected.ip} mono />
-                  <DetailRow icon={Settings} label="Dispositivo" value={selected.device} />
-                  <DetailRow icon={Eye} label="Ruta" value={selected.route} mono />
-                  {selected.related_event ? (
-                    <DetailRow icon={FileText} label="Evento relacionado" value={selected.related_event} mono />
-                  ) : null}
-                  <DetailRow icon={FileText} label="Motivo" value={selected.reason} />
-                </ul>
-                <p className="text-xs text-slate-600">
-                  <strong>Registro técnico:</strong> {selected.technical_log}
-                </p>
-                {selected.before_state || selected.after_state ? (
-                  <div className="aud-before-after">
-                    <h4 className="text-sm font-bold m-0 mb-2">Cambios registrados</h4>
-                    <div className="aud-before-after__grid">
-                      <div>
-                        <span className="text-xs text-slate-500">Antes</span>
-                        <p className="m-0">{selected.before_state ?? '—'}</p>
-                      </div>
-                      <span className="aud-before-after__arrow">→</span>
-                      <div>
-                        <span className="text-xs text-slate-500">Después</span>
-                        <p className="m-0">{selected.after_state ?? '—'}</p>
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
-                <div className="cln-detail__actions grid grid-cols-2 gap-2">
-                  <button type="button" className="plt-btn plt-btn--secondary plt-btn--sm" onClick={() => rowMenuAction(selected, 'export')}>
-                    Exportar evento
-                  </button>
-                  <button type="button" className="plt-btn plt-btn--secondary plt-btn--sm" onClick={() => openResource(selected)}>
-                    Ver recurso
-                  </button>
-                  <button type="button" className="plt-btn plt-btn--secondary plt-btn--sm" onClick={() => (window.location.href = '/platform/usuarios')}>
-                    Ver usuario
-                  </button>
-                  <button type="button" className="plt-btn plt-btn--secondary plt-btn--sm" onClick={() => (window.location.href = '/platform/clinicas')}>
-                    Ver tenant
-                  </button>
-                  <button type="button" className="plt-btn plt-btn--primary plt-btn--sm" disabled={busy || selected.reviewed} onClick={() => rowMenuAction(selected, 'reviewed')}>
-                    Marcar como revisado
-                  </button>
-                  <button type="button" className="plt-btn plt-btn--ghost plt-btn--sm text-red-600" disabled={busy} onClick={() => rowMenuAction(selected, 'escalate')}>
-                    Escalar incidencia
-                  </button>
-                </div>
-                <p className="text-[0.65rem] text-slate-400 mt-3">Los registros de auditoría no pueden modificarse ni eliminarse desde esta pantalla.</p>
-              </div>
-            </aside>
-          </>
+          <AuditEventDetailPanel
+            event={selected}
+            onClose={() => setSelected(null)}
+            showPlatformLinks
+            actions={{
+              busy,
+              onExport: () => rowMenuAction(selected, 'export'),
+              onOpenResource: () => openResource(selected),
+              onViewUser: () => {
+                window.location.href = '/platform/usuarios';
+              },
+              onViewTenant: () => {
+                window.location.href = '/platform/clinicas';
+              },
+              onMarkReviewed: () => rowMenuAction(selected, 'reviewed'),
+              onEscalate: () => rowMenuAction(selected, 'escalate')
+            }}
+          />
         ) : null}
 
         {modal === 'retention' ? (
