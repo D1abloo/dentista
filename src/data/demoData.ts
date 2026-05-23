@@ -224,45 +224,79 @@ export const demoSeed: DemoState = {
       id: 'MSG-0001',
       tenantId: TENANT_CENTRO,
       patientId: DEMO_PATIENT_ID,
-      subject: 'Recordatorio de cita',
-      body: 'Tu cita de ortodoncia en Clínica Centro está confirmada para hoy.',
-      channel: 'whatsapp',
-      type: 'recordatorio',
+      subject: 'Cita confirmada',
+      body: 'Tu cita para Limpieza dental profesional ha sido confirmada. Te esperamos en Clínica Centro el día acordado.',
+      channel: 'app',
+      type: 'confirmacion',
       read: false,
-      sentAt: '2026-05-19T09:00:00'
+      sentAt: '2026-05-20T10:35:00',
+      appointmentId: 'CIT-0004',
+      important: true
     },
     {
       id: 'MSG-0002',
-      tenantId: TENANT_NORTE,
+      tenantId: TENANT_CENTRO,
       patientId: DEMO_PATIENT_ID,
-      subject: 'Nueva factura',
-      body: 'Tienes una factura pendiente de implantes en Clínica Norte.',
-      channel: 'app',
-      type: 'clinica',
-      read: false,
-      sentAt: '2026-05-20T10:00:00'
+      subject: 'Recordatorio de cita',
+      body: 'Te recordamos que tienes una cita programada próximamente. Si necesitas cambiarla, contáctanos desde el portal.',
+      channel: 'whatsapp',
+      type: 'recordatorio',
+      read: true,
+      sentAt: (() => {
+        const d = new Date();
+        d.setDate(d.getDate() - 1);
+        d.setHours(18, 0, 0, 0);
+        return d.toISOString().slice(0, 16);
+      })(),
+      appointmentId: 'CIT-0004'
     },
     {
       id: 'MSG-0003',
-      tenantId: TENANT_CENTRO,
+      tenantId: TENANT_NORTE,
       patientId: DEMO_PATIENT_ID,
-      subject: 'Consentimiento pendiente',
-      body: 'Firma el consentimiento de endodoncia antes de tu próxima cita.',
-      channel: 'email',
-      type: 'clinica',
+      subject: 'Factura disponible',
+      body: 'Tu factura FAC-0002 ya está disponible para consultar y descargar desde el portal del paciente.',
+      channel: 'app',
+      type: 'factura',
       read: false,
-      sentAt: '2026-05-20T14:00:00'
+      sentAt: '2026-05-20T10:00:00',
+      invoiceId: 'FAC-0002',
+      important: true
     },
     {
       id: 'MSG-0004',
+      tenantId: TENANT_CENTRO,
+      patientId: DEMO_PATIENT_ID,
+      subject: 'Nuevo documento compartido',
+      body: 'La clínica ha compartido un nuevo documento en tu portal: consentimiento y archivos clínicos.',
+      channel: 'app',
+      type: 'documento',
+      read: true,
+      sentAt: '2026-05-18T11:00:00',
+      documentId: 'DOC-0001'
+    },
+    {
+      id: 'MSG-0005',
+      tenantId: TENANT_CENTRO,
+      patientId: DEMO_PATIENT_ID,
+      subject: 'Informe clínico publicado',
+      body: 'Tu informe de revisión ya está disponible en la sección Mis informes.',
+      channel: 'email',
+      type: 'clinica',
+      read: true,
+      sentAt: '2026-05-17T09:30:00'
+    },
+    {
+      id: 'MSG-0006',
       tenantId: TENANT_SUR,
       patientId: DEMO_PATIENT_ID,
-      subject: 'Documentos disponibles',
-      body: 'Ya puedes descargar el informe de blanqueamiento desde tu portal.',
-      channel: 'app',
-      type: 'general',
-      read: true,
-      sentAt: '2026-05-18T11:00:00'
+      subject: 'Recordatorio blanqueamiento',
+      body: 'Recuerda las indicaciones previas a tu sesión de blanqueamiento dental.',
+      channel: 'sms',
+      type: 'recordatorio',
+      read: false,
+      sentAt: '2026-05-19T08:00:00',
+      appointmentId: 'CIT-0008'
     }
   ],
   settingsByTenant: {

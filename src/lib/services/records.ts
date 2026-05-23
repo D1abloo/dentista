@@ -34,7 +34,7 @@ type MessageInput = {
   subject: string;
   body: string;
   channel: 'app' | 'email' | 'whatsapp' | 'sms';
-  type: 'recordatorio' | 'confirmacion' | 'clinica' | 'general';
+  type: 'recordatorio' | 'confirmacion' | 'clinica' | 'general' | 'factura' | 'documento';
 };
 
 type ConsentInput = {

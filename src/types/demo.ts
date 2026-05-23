@@ -259,6 +259,14 @@ export interface AdminNote {
   createdBy: string;
 }
 
+export type MessageType =
+  | 'recordatorio'
+  | 'confirmacion'
+  | 'clinica'
+  | 'general'
+  | 'factura'
+  | 'documento';
+
 export interface Message {
   id: string;
   tenantId: string;
@@ -266,9 +274,17 @@ export interface Message {
   subject: string;
   body: string;
   channel: 'app' | 'email' | 'whatsapp' | 'sms';
-  type: 'recordatorio' | 'confirmacion' | 'clinica' | 'general';
+  type: MessageType;
   read: boolean;
   sentAt: string;
+  appointmentId?: string;
+  invoiceId?: string;
+  documentId?: string;
+  archived?: boolean;
+  important?: boolean;
+  fromPatient?: boolean;
+  attachmentRef?: string;
+  attachmentName?: string;
 }
 
 export interface NormativeText {

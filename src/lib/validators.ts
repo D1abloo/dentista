@@ -550,7 +550,9 @@ export const messageCreateSchema = z.object({
   subject: z.string().min(2).max(160),
   body: z.string().min(2).max(8000),
   channel: z.enum(['app', 'email', 'whatsapp', 'sms']).default('app'),
-  type: z.enum(['recordatorio', 'confirmacion', 'clinica', 'general']).default('clinica')
+  type: z
+    .enum(['recordatorio', 'confirmacion', 'clinica', 'general', 'factura', 'documento'])
+    .default('clinica')
 });
 
 export const consentCreateSchema = z.object({

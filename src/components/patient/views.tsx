@@ -38,6 +38,7 @@ export { PatientReports } from './PatientReports';
 export { PatientDocuments } from './PatientDocuments';
 export { PatientInvoices } from './PatientInvoices';
 export { PatientPayments } from './PatientPayments';
+export { PatientMessages } from './PatientMessages';
 export { PatientBook } from './PatientBook';
 
 function useApptMeta(state: ReturnType<typeof useDemoStore>['state'], a: Appointment) {
@@ -233,50 +234,6 @@ export function PatientProfile() {
       </form>
     </Card>
       <PatientConsents compact />
-    </div>
-  );
-}
-
-export function PatientMessages() {
-  const { state, commit } = useDemoStore();
-  const patient = usePatient();
-  const [filter, setFilter] = useState<'todos' | 'recordatorio' | 'confirmacion' | 'clinica'>('todos');
-  const contexto =
-    typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('contexto') : null;
-  const list = state.messages.filter((m) => m.patientId === patient.id && (filter === 'todos' || m.type === filter));
-
-  return (
-    <div className="space-y-4">
-      {contexto ? (
-        <div className="banner-alert flex flex-wrap items-center justify-between gap-2">
-          <span>{contexto}</span>
-          <a href="/paciente/informes" className="text-xs font-bold text-teal-800 underline">
-            Volver a informes
-          </a>
-        </div>
-      ) : null}
-      <FilterTabs value={filter} onChange={setFilter} options={[
-        { id: 'todos', label: 'Todos' },
-        { id: 'recordatorio', label: 'Recordatorios' },
-        { id: 'confirmacion', label: 'Confirmaciones' },
-        { id: 'clinica', label: 'Clínica' }
-      ]} />
-      <Card title="Bandeja">
-        <ul className="space-y-3">
-          {list.map((m) => (
-            <li key={m.id} className={`rounded-2xl p-4 ring-1 ${m.read ? 'bg-white ring-slate-100' : 'bg-dental-50 ring-dental-100'}`}>
-              <div className="flex justify-between gap-2">
-                <p className="font-bold">{m.subject}</p>
-                {!m.read ? (
-                  <Button tone="ghost" className="!py-1 !text-xs" onClick={() => commit({ ...state, messages: state.messages.map((x) => x.id === m.id ? { ...x, read: true } : x) })}>Marcar leído</Button>
-                ) : null}
-              </div>
-              <p className="mt-2 text-sm text-slate-600">{m.body}</p>
-            </li>
-          ))}
-        </ul>
-        {!list.length ? <Empty title="Sin mensajes" text="No hay mensajes en esta categoría." /> : null}
-      </Card>
     </div>
   );
 }
