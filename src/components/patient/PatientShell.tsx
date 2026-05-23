@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { LogOut, Menu } from 'lucide-react';
+import { LogOut, Menu, Shield } from 'lucide-react';
 import { LogoMark } from '@/components/brand/Logo';
 import { useLogout } from '@/components/auth/RoleGate';
 import { logPortalAudit, usePortalAccess } from '@/hooks/usePortalAccess';
@@ -57,6 +57,11 @@ function Rail({
           );
         })}
       </nav>
+      <div className="corp-rail-secure" role="status">
+        <Shield className="inline h-3.5 w-3.5" aria-hidden />
+        Portal seguro
+        <span>Acceso cifrado · solo tus datos</span>
+      </div>
       <div className="corp-rail-footer">
         <button
           type="button"

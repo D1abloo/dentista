@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { CalendarPlus, CreditCard, MessageSquare, Sparkles } from 'lucide-react';
+import { CalendarPlus } from 'lucide-react';
 import { dentistsForClinic, getPrimaryClinic } from '@/lib/clinic';
 import { treatmentsForClinic } from '@/lib/clinic';
 import {
@@ -18,19 +18,13 @@ import {
   updateAppointmentStatus
 } from '@/lib/demoStore';
 import { clinicTenantId } from '@/lib/clinic';
-import {
-  patientPortalNews,
-  pendingInvoicesForPatient,
-  visibleDocumentsForPatient,
-  visibleReportsForPatient
-} from '@/lib/selectors';
 import { tenantName } from '@/lib/tenant';
 import { fmtDate, fmtDateTime, money, statusLabel, todayIso, uid } from '@/lib/format';
 import { daySlotMap } from '@/lib/slots';
 import { BookingDayCalendar } from '@/components/shared/BookingDayCalendar';
 import { HelpEmbedded } from '@/components/help/HelpEmbedded';
 import { SlotCalendar } from '@/components/shared/SlotCalendar';
-import { PatientConsentAlert, PatientConsents } from './consents';
+import { PatientConsents } from './consents';
 import { PatientIdentity } from './PatientIdentity';
 import { email, phone, required } from '@/lib/validation';
 import { useDemoStore } from '@/hooks/useDemoStore';
@@ -49,7 +43,6 @@ import {
   PageHeader,
   SearchInput,
   Select,
-  StatCard,
   Stepper,
   Textarea
 } from '@/components/ui';
@@ -64,129 +57,7 @@ function useApptMeta(state: ReturnType<typeof useDemoStore>['state'], a: Appoint
   return { treatment: t?.name ?? '—', dentist: d?.fullName ?? '—', clinic: c?.name ?? '—', price: t?.price ?? 0 };
 }
 
-export function PatientDashboard() {
-  const { state } = useDemoStore();
-  const patient = usePatient();
-  const mine = state.appointments.filter((a) => a.patientId === patient.id);
-  const upcoming = mine.filter((a) => isActiveStatus(a.status)).sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`));
-  const next = upcoming[0];
-  const pendingInv = pendingInvoicesForPatient(state, patient.id);
-  const lastReport = visibleReportsForPatient(state, patient.id)[0];
-  const newDocs = visibleDocumentsForPatient(state, patient.id).slice(0, 2);
-  const news = patientPortalNews(state, patient.id);
-  const recentPay = state.payments.filter((p) => p.patientId === patient.id).slice(0, 1);
-  const unread = state.messages.filter((m) => m.patientId === patient.id && !m.read);
-
-  const alerts: string[] = [];
-  if (pendingInv.length) alerts.push(`${pendingInv.length} factura(s) pendiente(s)`);
-  if (unread.length) alerts.push(`${unread.length} mensaje(s) sin leer`);
-  if (!next) alerts.push('Sin cita próxima — puedes reservar ahora');
-
-  return (
-    <div className="space-y-5">
-      <PageHeader
-        title="Inicio"
-        subtitle={patient.dni ? `${patient.fullName} · DNI ${patient.dni}` : patient.fullName}
-      />
-      <PatientConsentAlert />
-      {alerts.length ? <div className="banner-alert">{alerts.join(' · ')}</div> : null}
-
-      <section className="highlight-panel mb-2">
-        <h2>Toda tu información dental en un solo lugar</h2>
-        <p>
-          Aunque visites varias clínicas, tu portal agrupa citas, informes, facturas y pagos a tu nombre
-          {patient.dni ? (
-            <>
-              {' '}
-              (<strong>DNI {patient.dni}</strong>)
-            </>
-          ) : null}
-          . Solo ves tus propios registros.
-        </p>
-      </section>
-
-      {next ? (
-        <section className="next-appointment">
-          <p className="text-xs font-bold uppercase tracking-wide text-white/80">Próxima cita</p>
-          <p className="mt-2 font-display text-2xl">{fmtDateTime(next.date, next.time)}</p>
-          <p className="mt-1 text-sm text-white/90">{useApptMeta(state, next).treatment} · {statusLabel(next.status)}</p>
-          <a href="/paciente/citas" className="mt-4 inline-block rounded-xl bg-white/20 px-4 py-2 text-sm font-bold text-white">
-            Ver detalle
-          </a>
-        </section>
-      ) : (
-        <Card title="Sin citas próximas">
-          <Empty title="Agenda libre" text="Reserva tu próxima visita en un minuto." />
-          <a href="/paciente/reservar" className="mt-4 inline-block"><Button>Reservar cita</Button></a>
-        </Card>
-      )}
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Citas activas" value={upcoming.length} icon={CalendarPlus} tone="accent" />
-        <StatCard label="Facturas pendientes" value={money(pendingInv.reduce((s, i) => s + i.amount, 0))} icon={CreditCard} tone="warn" />
-        <StatCard label="Mensajes" value={unread.length} hint="sin leer" icon={MessageSquare} />
-        <StatCard label="Recordatorios" value={(patient.reminderChannels ?? []).join(', ') || '—'} hint="canales activos" icon={Sparkles} tone="success" />
-      </div>
-
-      <Card title="Novedades en tu portal">
-        <ul className="space-y-2 text-sm">
-          {news.map((n) => (
-            <li key={n.id} className="rounded-xl bg-dental-50 px-3 py-2 text-sm font-semibold text-dental-900">
-              {n.label}
-            </li>
-          ))}
-        </ul>
-        {!news.length ? <p className="text-sm text-slate-500">Sin novedades recientes.</p> : null}
-      </Card>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card title="Accesos rápidos">
-          <div className="grid gap-2 sm:grid-cols-2">
-            {[
-              { href: '/paciente/reservar', label: 'Reservar cita' },
-              { href: '/paciente/citas', label: 'Mis citas' },
-              { href: '/paciente/informes', label: 'Informes' },
-              { href: '/paciente/documentos', label: 'Documentos' },
-              { href: '/paciente/facturas', label: 'Facturas' },
-              { href: '/paciente/pagos', label: 'Pagos' },
-              { href: '/paciente/mensajes', label: 'Mensajes' }
-            ].map((l) => (
-              <a key={l.href} href={l.href} className="portal-quick-link">
-                {l.label}
-              </a>
-            ))}
-          </div>
-        </Card>
-        <Card title="Resumen clínico">
-          <ul className="space-y-2 text-sm text-slate-600">
-            <li>Último informe: {lastReport ? <strong>{lastReport.title}</strong> : '—'}</li>
-            <li>Documentos nuevos: {newDocs.length ? newDocs.map((d) => d.title).join(', ') : '—'}</li>
-            <li>Pago reciente: {recentPay[0] ? <strong>{money(recentPay[0].amount)}</strong> : '—'}</li>
-          </ul>
-        </Card>
-        <Card title="Antes de tu cita">
-          <ul className="space-y-2 text-sm font-medium text-slate-600">
-            <li>· Llega 10 minutos antes.</li>
-            <li>· Trae tu documentación si es primera visita.</li>
-            <li>· Avísanos de alergias actualizadas en Perfil.</li>
-          </ul>
-          <p className="mt-4 text-xs text-slate-500">
-            {normativeFor(state).find((n) => n.id === 'condiciones')?.body}
-          </p>
-        </Card>
-        <Card title="Recordatorios y mensajes">
-          <p className="text-sm text-slate-600">
-            Canales: {(patient.reminderChannels ?? []).join(', ') || 'ninguno configurado'}.
-          </p>
-          <a href="/paciente/mensajes" className="mt-3 inline-block text-sm font-bold text-dental-700 underline">
-            Ver bandeja ({unread.length} sin leer)
-          </a>
-        </Card>
-      </div>
-
-    </div>
-  );
-}
+export { PatientDashboard } from './PatientHome';
 
 export function PatientBook() {
   const { state, commit } = useDemoStore();

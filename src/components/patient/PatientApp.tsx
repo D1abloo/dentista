@@ -65,7 +65,7 @@ const titles: Record<PatientView, string> = {
 
 const nav = [
   { href: '/paciente', label: 'Inicio', icon: Home },
-  { href: '/paciente/reservar', label: 'Reservar', icon: CalendarPlus },
+  { href: '/paciente/reservar', label: 'Reservar cita', icon: CalendarPlus },
   { href: '/paciente/citas', label: 'Mis citas', icon: Calendar },
   { href: '/paciente/informes', label: 'Informes', icon: FileText },
   { href: '/paciente/documentos', label: 'Documentos', icon: FileStack },
