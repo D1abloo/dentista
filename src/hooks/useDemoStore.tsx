@@ -40,15 +40,22 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch('/api/clinic/bootstrap', { credentials: 'include' });
       const json = (await res.json()) as {
-        data?: { state?: DemoState; tenantId?: string };
+        data?: { state?: DemoState; tenantId?: string; patientId?: string };
         error?: { message?: string };
       };
       if (res.ok && json.data?.state) {
-        const patientId =
-          typeof window !== 'undefined' ? localStorage.getItem(STORAGE_PATIENT_ID) : null;
+        const sessionPatientId = json.data.patientId ?? null;
+        if (sessionPatientId) {
+          localStorage.setItem(STORAGE_PATIENT_ID, sessionPatientId);
+        }
+        const overlayPatientId =
+          sessionPatientId ??
+          (typeof window !== 'undefined' ? localStorage.getItem(STORAGE_PATIENT_ID) : null);
         const merged =
-          patientId && typeof window !== 'undefined' && window.location.pathname.startsWith('/paciente')
-            ? applyPatientPortalOverlay(json.data.state, patientId)
+          overlayPatientId &&
+          typeof window !== 'undefined' &&
+          window.location.pathname.startsWith('/paciente')
+            ? applyPatientPortalOverlay(json.data.state, overlayPatientId)
             : json.data.state;
         setState(merged);
         if (json.data.tenantId) localStorage.setItem(STORAGE_TENANT_ID, json.data.tenantId);
@@ -78,11 +85,15 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     const remote = await fetchClinicBootstrap();
     if (remote?.state) {
-      const patientId =
-        typeof window !== 'undefined' ? localStorage.getItem(STORAGE_PATIENT_ID) : null;
+      if (remote.patientId) localStorage.setItem(STORAGE_PATIENT_ID, remote.patientId);
+      const overlayPatientId =
+        remote.patientId ??
+        (typeof window !== 'undefined' ? localStorage.getItem(STORAGE_PATIENT_ID) : null);
       const merged =
-        patientId && typeof window !== 'undefined' && window.location.pathname.startsWith('/paciente')
-          ? applyPatientPortalOverlay(remote.state, patientId)
+        overlayPatientId &&
+        typeof window !== 'undefined' &&
+        window.location.pathname.startsWith('/paciente')
+          ? applyPatientPortalOverlay(remote.state, overlayPatientId)
           : remote.state;
       setState(merged);
       if (remote.tenantId) localStorage.setItem(STORAGE_TENANT_ID, remote.tenantId);

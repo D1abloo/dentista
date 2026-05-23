@@ -10,14 +10,22 @@ const STATUS_TO_ACTION: Partial<
   reprogramada: 'reschedule'
 };
 
-export async function fetchClinicBootstrap(): Promise<{ state?: DemoState; tenantId?: string } | null> {
+export async function fetchClinicBootstrap(): Promise<{
+  state?: DemoState;
+  tenantId?: string;
+  patientId?: string;
+} | null> {
   const res = await fetch('/api/clinic/bootstrap', { credentials: 'include' });
   const json = (await res.json()) as {
-    data?: { state?: DemoState; tenantId?: string };
+    data?: { state?: DemoState; tenantId?: string; patientId?: string };
     error?: { message?: string };
   };
   if (!res.ok || !json.data?.state) return null;
-  return { state: json.data.state, tenantId: json.data.tenantId };
+  return {
+    state: json.data.state,
+    tenantId: json.data.tenantId,
+    patientId: json.data.patientId
+  };
 }
 
 export async function patchAppointmentLive(input: {

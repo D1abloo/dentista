@@ -34,9 +34,14 @@ export function usePatient() {
   }, []);
 
   return useMemo(() => {
-    const id = (overrideId ?? getStoredPatientId()) || DEMO_PATIENT_LOGIN_ID;
+    const stored = getStoredPatientId();
+    const id = overrideId ?? stored;
+    if (id) {
+      const match = state.patients.find((p) => p.id === id);
+      if (match) return match;
+    }
+    if (state.patients.length === 1) return state.patients[0];
     return (
-      state.patients.find((p) => p.id === id) ??
       state.patients.find((p) => p.id === DEMO_PATIENT_LOGIN_ID) ??
       state.patients[0] ??
       FALLBACK_PATIENT

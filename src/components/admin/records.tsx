@@ -13,6 +13,7 @@ import { isPdfMime, saveDemoFile } from '@/lib/demoFiles';
 import { recordMatchesPatientQuery } from '@/lib/patientSearch';
 import { fmtDate, fmtDateTime, money, statusLabel, todayIso } from '@/lib/format';
 import { reportTitleFromAppointment } from '@/lib/clinical';
+import { mapClinicalReportRow, type ClinicalReportRow } from '@/lib/records/clinicalReportMapper';
 import { patientName, recordsForPatient } from '@/lib/selectors';
 import { positiveAmount, required } from '@/lib/validation';
 import { isClientDemoMode, modeCopy } from '@/lib/appMode';
@@ -338,7 +339,15 @@ export function AdminClinicalReports() {
         return;
       }
     }
+    const patient = state.patients.find((p) => p.id === form.patientId);
+    const clinicId = patient?.preferredClinicId ?? state.clinics.find((c) => c.active)?.id;
+    if (!clinicId) {
+      setNotice({ type: 'error', message: 'No se encontró clínica para vincular el informe.' });
+      return;
+    }
+
     const reportInput = {
+      clinicId,
       patientId: form.patientId,
       appointmentId: form.appointmentId || undefined,
       title: form.title,
@@ -351,19 +360,67 @@ export function AdminClinicalReports() {
       uploadedBy: form.uploadedBy,
       visibleToPatient: form.visibleToPatient
     };
+
     if (!isClientDemoMode()) {
-      const clinicId = state.patients.find((p) => p.id === form.patientId)?.preferredClinicId;
-      if (clinicId) {
-        await fetch('/api/records/report', {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ clinicId, ...reportInput })
+      const res = await fetch('/api/records/report', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(reportInput)
+      });
+      const json = (await res.json()) as {
+        data?: Record<string, unknown>;
+        error?: { message?: string };
+      };
+      if (!res.ok) {
+        setNotice({
+          type: 'error',
+          message: json.error?.message ?? 'No se pudo guardar el informe en el servidor.'
         });
+        return;
+      }
+      if (json.data && typeof json.data.id === 'string') {
+        const mapped = mapClinicalReportRow(json.data as ClinicalReportRow);
+        let next = saveClinicalReport(state, mapped);
+        if (form.visibleToPatient) {
+          next = addMessage(next, {
+            patientId: form.patientId,
+            subject: `Nuevo informe disponible: ${form.title}`,
+            body: form.description,
+            channel: 'app',
+            type: 'clinica',
+            read: false,
+            sentAt: new Date().toISOString()
+          });
+        }
+        commit(next);
+        await refresh();
+        setNotice({
+          type: 'ok',
+          message: form.visibleToPatient
+            ? 'Informe publicado. El paciente lo verá en su portal.'
+            : 'Informe guardado (solo clínica).'
+        });
+        setForm({ ...form, title: '', description: '', diagnosis: '', recommendations: '' });
+        setReportFile(null);
+        return;
       }
     }
-    commit(createClinicalReport(state, reportInput));
-    if (!isClientDemoMode()) await refresh();
+
+    const { clinicId: _clinic, ...reportData } = reportInput;
+    let next = createClinicalReport(state, reportData);
+    if (form.visibleToPatient) {
+      next = addMessage(next, {
+        patientId: form.patientId,
+        subject: `Nuevo informe disponible: ${form.title}`,
+        body: form.description,
+        channel: 'app',
+        type: 'clinica',
+        read: false,
+        sentAt: new Date().toISOString()
+      });
+    }
+    commit(next);
     setNotice({ type: 'ok', message: 'Informe creado y vinculado al paciente.' });
     setForm({ ...form, title: '', description: '', diagnosis: '', recommendations: '' });
     setReportFile(null);
@@ -443,19 +500,28 @@ function ReportRow({ r }: { r: ClinicalReport }) {
           tone="ghost"
           className="!text-xs"
           onClick={() => {
-            if (!isClientDemoMode()) {
-              const clinicId = state.patients.find((p) => p.id === r.patientId)?.preferredClinicId;
-              if (clinicId) {
-                void fetch('/api/records/report', {
-                  method: 'PATCH',
-                  credentials: 'include',
-                  headers: { 'content-type': 'application/json' },
-                  body: JSON.stringify({ clinicId, id: r.id, visibleToPatient: !r.visibleToPatient })
-                });
+            void (async () => {
+              const nextVisible = !r.visibleToPatient;
+              if (!isClientDemoMode()) {
+                const clinicId =
+                  state.patients.find((p) => p.id === r.patientId)?.preferredClinicId ??
+                  state.clinics.find((c) => c.active)?.id;
+                if (clinicId) {
+                  const res = await fetch('/api/records/report', {
+                    method: 'PATCH',
+                    credentials: 'include',
+                    headers: { 'content-type': 'application/json' },
+                    body: JSON.stringify({ clinicId, id: r.id, visibleToPatient: nextVisible })
+                  });
+                  if (!res.ok) {
+                    setNotice({ type: 'error', message: 'No se pudo actualizar la visibilidad.' });
+                    return;
+                  }
+                }
               }
-            }
-            commit(saveClinicalReport(state, { ...r, visibleToPatient: !r.visibleToPatient }));
-            setNotice({ type: 'ok', message: 'Visibilidad actualizada.' });
+              commit(saveClinicalReport(state, { ...r, visibleToPatient: nextVisible }));
+              setNotice({ type: 'ok', message: 'Visibilidad actualizada.' });
+            })();
           }}
         >
           {r.visibleToPatient ? 'Ocultar paciente' : 'Mostrar paciente'}

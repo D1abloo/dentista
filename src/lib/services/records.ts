@@ -1,3 +1,5 @@
+import { mapClinicalReportRow, type ClinicalReportRow } from '@/lib/records/clinicalReportMapper';
+import { logInfo } from '@/lib/logger';
 import { getSupabaseAdmin, hasSupabaseConfig, isDemoMode } from '@/lib/supabaseServer';
 
 type ReportInput = {
@@ -56,10 +58,42 @@ async function resolveTenantId(clinicId: string) {
   return data.tenant_id as string;
 }
 
+async function notifyPatientNewReport(
+  tenantId: string,
+  patientId: string,
+  title: string,
+  description: string
+) {
+  const db = getSupabaseAdmin();
+  const { error } = await db.from('messages').insert({
+    tenant_id: tenantId,
+    patient_id: patientId,
+    subject: `Nuevo informe disponible: ${title}`,
+    body: description.slice(0, 2000),
+    channel: 'app',
+    type: 'clinica',
+    read: false
+  });
+  if (error) {
+    logInfo('records.report.notify_failed', { patientId, message: error.message });
+  }
+}
+
 export async function createClinicalReportRecord(input: ReportInput) {
   if (isDemoMode() || !hasSupabaseConfig()) return null;
   const db = getSupabaseAdmin();
   const tenantId = await resolveTenantId(input.clinicId);
+
+  if (import.meta.env.DEV) {
+    logInfo('records.report.create', {
+      patientId: input.patientId,
+      clinicId: input.clinicId,
+      tenantId,
+      visibleToPatient: input.visibleToPatient,
+      title: input.title
+    });
+  }
+
   const { data, error } = await db
     .from('clinical_reports')
     .insert({
@@ -79,8 +113,23 @@ export async function createClinicalReportRecord(input: ReportInput) {
     .select('*')
     .single();
   if (error) throw error;
-  return data;
+
+  if (input.visibleToPatient) {
+    await notifyPatientNewReport(tenantId, input.patientId, input.title, input.description);
+  }
+
+  if (import.meta.env.DEV && data) {
+    logInfo('records.report.created', {
+      reportId: data.id,
+      patientId: data.patient_id,
+      visibleToPatient: data.visible_to_patient
+    });
+  }
+
+  return data as ClinicalReportRow;
 }
+
+export { mapClinicalReportRow };
 
 export async function toggleClinicalReportVisibility(clinicId: string, id: string, visibleToPatient: boolean) {
   if (isDemoMode() || !hasSupabaseConfig()) return null;

@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import type { SessionUser } from '@/lib/auth';
 import { createEmptyDemoState } from '@/lib/emptyState';
+import { logInfo } from '@/lib/logger';
 import { listScheduleBlocks } from '@/lib/services/scheduleBlocks';
 import { getSupabaseAdmin } from '@/lib/supabaseServer';
 import type { AppointmentStatus, DemoState, InvoiceStatus } from '@/types/demo';
@@ -222,9 +223,21 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
       createdAt: String(p.created_at ?? '').slice(0, 10)
     }));
 
-  state.clinicalReports = (reports ?? [])
-    .filter((r) => user.role !== 'patient' || (r.patient_id === user.patientId && r.visible_to_patient))
-    .map((r) => ({
+  const reportRows = (reports ?? []).filter(
+    (r) => user.role !== 'patient' || (r.patient_id === user.patientId && r.visible_to_patient)
+  );
+
+  if (import.meta.env.DEV && user.role === 'patient') {
+    logInfo('bootstrap.patient_reports', {
+      sessionPatientId: user.patientId,
+      tenantId: tenantHint,
+      totalInDb: reports?.length ?? 0,
+      visibleForPatient: reportRows.length,
+      reportIds: reportRows.map((r) => r.id)
+    });
+  }
+
+  state.clinicalReports = reportRows.map((r) => ({
       id: r.id,
       tenantId,
       patientId: r.patient_id,

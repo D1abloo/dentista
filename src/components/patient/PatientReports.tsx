@@ -51,7 +51,7 @@ function KpiStat({ label, value, delay, numeric }: { label: string; value: strin
 }
 
 export function PatientReports() {
-  const { state } = useDemoStore();
+  const { state, dataSource } = useDemoStore();
   const patient = usePatient();
   const { setNotice } = useNotice();
   const portalAccess = usePortalAccess();
@@ -163,6 +163,14 @@ export function PatientReports() {
 
   const showEmpty = views.length === 0;
   const showNoResults = !showEmpty && filtered.length === 0;
+
+  if (dataSource === 'empty') {
+    return (
+      <div className="prt-page">
+        <p className="banner-alert">No se pudieron cargar tus informes.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="prt-page">

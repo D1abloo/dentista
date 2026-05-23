@@ -24,7 +24,13 @@ export const GET: APIRoute = async (context) => {
   try {
     const state = await loadClinicDemoState(user);
     return ok(
-      { state, tenantId: user.tenantId ?? user.clinicId, clinicId: user.clinicId, platformInspect: user.platformInspect ?? false },
+      {
+        state,
+        tenantId: user.tenantId ?? user.clinicId,
+        clinicId: user.clinicId,
+        patientId: user.role === 'patient' ? user.patientId : undefined,
+        platformInspect: user.platformInspect ?? false
+      },
       { source: 'supabase' }
     );
   } catch (error) {

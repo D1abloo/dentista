@@ -39,27 +39,33 @@ export function extractPatientOverlay(state: DemoState, patientId: string): Omit
   };
 }
 
+/** Fusiona datos del paciente: servidor + cambios locales (el patch gana por id, sin borrar filas nuevas del servidor). */
+function mergePatientSlice<T extends { id: string }>(
+  baseAll: T[],
+  patch: T[],
+  belongsToPatient: (item: T) => boolean
+): T[] {
+  const others = baseAll.filter((x) => !belongsToPatient(x));
+  const baseMine = baseAll.filter(belongsToPatient);
+  return [...others, ...mergeById(baseMine, patch)];
+}
+
 export function mergePatientOverlay(base: DemoState, overlay: PatientOverlay): DemoState {
   const pid = overlay.patientId;
-  const keepAppt = (a: DemoState['appointments'][0]) => a.patientId !== pid;
-  const keepMsg = (m: DemoState['messages'][0]) => m.patientId !== pid;
-  const keepPay = (p: DemoState['payments'][0]) => p.patientId !== pid;
-  const keepInv = (i: DemoState['invoices'][0]) => i.patientId !== pid;
-  const keepDoc = (d: DemoState['patientDocuments'][0]) => d.patientId !== pid;
-  const keepRep = (r: DemoState['clinicalReports'][0]) => r.patientId !== pid;
-  const keepCon = (c: DemoState['informedConsents'][0]) => c.patientId !== pid;
-  const keepPat = (p: DemoState['patients'][0]) => p.id !== pid;
+  const isPat = <T extends { patientId: string }>(x: T) => x.patientId === pid;
+  const isPatDoc = (d: DemoState['patientDocuments'][0]) => d.patientId === pid;
+  const isPatSelf = (p: DemoState['patients'][0]) => p.id === pid;
 
   return {
     ...base,
-    appointments: mergeById(base.appointments.filter(keepAppt), overlay.appointments),
-    messages: mergeById(base.messages.filter(keepMsg), overlay.messages),
-    payments: mergeById(base.payments.filter(keepPay), overlay.payments),
-    invoices: mergeById(base.invoices.filter(keepInv), overlay.invoices),
-    patientDocuments: mergeById(base.patientDocuments.filter(keepDoc), overlay.patientDocuments),
-    clinicalReports: mergeById(base.clinicalReports.filter(keepRep), overlay.clinicalReports),
-    informedConsents: mergeById(base.informedConsents.filter(keepCon), overlay.informedConsents),
-    patients: mergeById(base.patients.filter(keepPat), overlay.patients)
+    appointments: mergePatientSlice(base.appointments, overlay.appointments, isPat),
+    messages: mergePatientSlice(base.messages, overlay.messages, isPat),
+    payments: mergePatientSlice(base.payments, overlay.payments, isPat),
+    invoices: mergePatientSlice(base.invoices, overlay.invoices, isPat),
+    patientDocuments: mergePatientSlice(base.patientDocuments, overlay.patientDocuments, isPatDoc),
+    clinicalReports: mergePatientSlice(base.clinicalReports, overlay.clinicalReports, isPat),
+    informedConsents: mergePatientSlice(base.informedConsents, overlay.informedConsents, isPat),
+    patients: mergePatientSlice(base.patients, overlay.patients, isPatSelf)
   };
 }
 
