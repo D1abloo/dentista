@@ -33,6 +33,7 @@ import {
   Select,
   Textarea
 } from '@/components/ui';
+export { PatientHistory } from './PatientHistory';
 export { PatientReports } from './PatientReports';
 export { PatientDocuments } from './PatientDocuments';
 export { PatientInvoices } from './PatientInvoices';
@@ -164,32 +165,6 @@ export function PatientAppointments() {
   );
 }
 
-export function PatientHistory() {
-  const { state } = useDemoStore();
-  const patient = usePatient();
-  const done = state.appointments.filter((a) => a.patientId === patient.id && ['completada', 'cancelada', 'no_asistio'].includes(a.status));
-
-  return (
-    <Card title="Historial de visitas">
-      <div className="table-cards">
-        {done.map((a) => {
-          const meta = useApptMeta(state, a);
-          return (
-            <div key={a.id} className="table-cards__row">
-              <div>
-                <p className="font-bold">{meta.treatment}</p>
-                <p className="text-sm text-slate-600">{meta.dentist} · {fmtDateTime(a.date, a.time)}</p>
-                <Badge status={a.status} label={statusLabel(a.status)} />
-              </div>
-              <a href={`/paciente/reservar`}><Button tone="secondary" className="!text-xs">Reservar de nuevo</Button></a>
-            </div>
-          );
-        })}
-      </div>
-      {!done.length ? <Empty title="Sin historial" text="Las visitas cerradas aparecerán aquí." /> : null}
-    </Card>
-  );
-}
 
 export function PatientProfile() {
   const { state, commit } = useDemoStore();

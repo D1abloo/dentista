@@ -71,6 +71,17 @@ export function PatientBook() {
   const [busy, setBusy] = useState(false);
   const [stepAnim, setStepAnim] = useState(0);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const p = new URLSearchParams(window.location.search);
+    const clinica = p.get('clinica');
+    const tratamiento = p.get('tratamiento');
+    const seguimiento = p.get('seguimiento');
+    if (clinica && state.clinics.some((c) => c.id === clinica)) setClinicId(clinica);
+    if (tratamiento && state.treatments.some((t) => t.id === tratamiento)) setTreatmentId(tratamiento);
+    if (seguimiento) setNotes(`Seguimiento de visita ${seguimiento}`);
+  }, [state.clinics, state.treatments]);
+
   const clinic = state.clinics.find((c) => c.id === clinicId);
   const treatment = state.treatments.find((t) => t.id === treatmentId);
   const dentists = dentistsForClinic(state, clinicId);
