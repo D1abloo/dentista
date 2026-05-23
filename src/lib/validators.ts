@@ -236,6 +236,72 @@ export const platformSettingsPatchSchema = z.object({
   value: z.record(z.unknown())
 });
 
+const platformSettingsConfigSchema = z.object({
+  branding: z.object({
+    appName: z.string().min(1, 'El nombre de la app es obligatorio.'),
+    supportEmail: z.string().email('Introduce un email de soporte válido.'),
+    publicUrl: z.string().url('Introduce una URL válida.'),
+    footerLegal: z.string().max(500),
+    primaryColor: z.string().min(4),
+    secondaryColor: z.string().min(4),
+    logoMain: z.string().nullable().optional(),
+    logoCompact: z.string().nullable().optional(),
+    favicon: z.string().nullable().optional()
+  }),
+  registration: z.object({
+    autoApprove: z.boolean(),
+    requireEmailVerification: z.boolean(),
+    requireTaxData: z.boolean(),
+    requirePhone: z.boolean(),
+    requireTerms: z.boolean(),
+    autoTenantOnApprove: z.boolean(),
+    sendAdminCredentials: z.boolean(),
+    defaultIsolation: z.boolean(),
+    manualReviewProMulti: z.boolean(),
+    defaultPlan: z.string().min(1),
+    initialSeats: z.number().int().min(1, 'El límite de asientos debe ser mayor que 0.')
+  }),
+  security: z.object({
+    require2fa: z.boolean(),
+    strongPassword: z.boolean(),
+    blockFailedAttempts: z.boolean(),
+    auditSensitive: z.boolean(),
+    sessionExpiryMinutes: z.number().int().min(5).max(480),
+    maxFailedAttempts: z.number().int().min(1).max(20)
+  }),
+  emails: z.object({
+    fromEmail: z.string().email('Introduce un email de soporte válido.'),
+    fromName: z.string().min(1),
+    templates: z.record(z.string())
+  }),
+  limits: z.object({
+    initialSeats: z.number().int().min(1),
+    maxFileSizeMb: z.number().int().min(1, 'El tamaño máximo de archivo debe ser válido.'),
+    logRetentionDays: z.number().int().min(7),
+    maxOpenTickets: z.number().int().min(1),
+    clinicsPerOrg: z.number().int().min(1),
+    docsPerClinic: z.number().int().min(100)
+  }),
+  integrations: z.object({
+    stripeEnabled: z.boolean(),
+    redisCache: z.boolean(),
+    webhooksEnabled: z.boolean()
+  }),
+  advanced: z.object({
+    maintenanceMode: z.boolean(),
+    debugRequests: z.boolean()
+  })
+});
+
+export const platformSettingsActionSchema = z.discriminatedUnion('action', [
+  z.object({ action: z.literal('save'), config: platformSettingsConfigSchema }),
+  z.object({ action: z.literal('reset') }),
+  z.object({
+    action: z.literal('test_email'),
+    to: z.string().email().optional()
+  })
+]);
+
 export const branchCreateSchema = z.object({
   name: z.string().min(2).max(120),
   address: z.string().max(200).optional(),

@@ -15,7 +15,6 @@ import type {
   PlatformClinic,
   PlatformOrganization,
   PlatformOverview,
-  PlatformSettingRow,
   PlatformSubscription,
 } from '@/lib/platform/types';
 import { PlatformShell } from './PlatformShell';
@@ -41,69 +40,7 @@ export { PlatformSubscriptions } from './PlatformSubscriptions';
 
 export { PlatformIsolation } from './PlatformIsolation';
 
-export function PlatformSettings() {
-  const [rows, setRows] = useState<PlatformSettingRow[]>([]);
-  const [msg, setMsg] = useState('');
-
-  async function load() {
-    setRows(await api<PlatformSettingRow[]>('/api/platform/settings'));
-  }
-
-  useEffect(() => {
-    void load().catch(() => undefined);
-  }, []);
-
-  async function save(key: 'branding' | 'registration', patch: Record<string, unknown>) {
-    const current = rows.find((r) => r.key === key)?.value ?? {};
-    await api('/api/platform/settings', { method: 'PATCH', body: JSON.stringify({ key, value: { ...current, ...patch } }) });
-    setMsg('Configuración guardada.');
-    await load();
-  }
-
-  const branding = rows.find((r) => r.key === 'branding')?.value ?? {};
-  const registration = rows.find((r) => r.key === 'registration')?.value ?? {};
-
-  return (
-    <PlatformShell title="Configuración de plataforma" subtitle="Branding global y reglas de alta de clínicas">
-      {msg ? <p className="mb-4 text-sm font-bold text-emerald-700">{msg}</p> : null}
-      <Card className="mb-4 p-6" title="Branding">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Nombre de la app">
-            <Input
-              defaultValue={String(branding.appName ?? 'Dentista+')}
-              onBlur={(e) => void save('branding', { appName: e.target.value })}
-            />
-          </Field>
-          <Field label="Email de soporte">
-            <Input
-              type="email"
-              defaultValue={String(branding.supportEmail ?? '')}
-              onBlur={(e) => void save('branding', { supportEmail: e.target.value })}
-            />
-          </Field>
-        </div>
-      </Card>
-      <Card className="p-6" title="Registro de clínicas">
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            defaultChecked={Boolean(registration.autoApprove)}
-            onChange={(e) => void save('registration', { autoApprove: e.target.checked })}
-          />
-          Aprobar automáticamente (no recomendado en producción)
-        </label>
-        <label className="mt-3 flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            defaultChecked={registration.requireEmailVerification !== false}
-            onChange={(e) => void save('registration', { requireEmailVerification: e.target.checked })}
-          />
-          Exigir verificación de email
-        </label>
-      </Card>
-    </PlatformShell>
-  );
-}
+export { PlatformSettings } from './PlatformSettings';
 
 export { PlatformMetrics } from './PlatformMetrics';
 
