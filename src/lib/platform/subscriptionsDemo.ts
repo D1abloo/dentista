@@ -89,9 +89,9 @@ export function getSubscriptionsDemo(): SubscriptionRow[] {
 
 export function getSubscriptionsKpis(rows: SubscriptionRow[]) {
   const active = rows.filter((r) => r.status === 'active' || r.status === 'trialing');
-  const mrr = rows.reduce((s, r) => s + r.mrr, 0);
-  const seatsUsed = rows.reduce((s, r) => s + r.seats_used, 0);
-  const seatsTotal = rows.reduce((s, r) => s + r.seats_contracted, 0);
+  const mrr = rows.reduce((s, r) => s + (r.mrr ?? 0), 0);
+  const seatsUsed = rows.reduce((s, r) => s + (r.seats_used ?? 0), 0);
+  const seatsTotal = rows.reduce((s, r) => s + (r.seats_contracted ?? 0), 0);
   return {
     active: active.length,
     mrr,

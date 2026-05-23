@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useCountUp } from '@/hooks/useCountUp';
-import { getClinicsDemo } from '@/lib/platform/clinicsDemo';
+import type { ClinicListRow } from '@/lib/platform/clinicsDemo';
 import {
   PLATFORM_PLANS,
   getSubscriptionsKpis,
@@ -67,7 +67,8 @@ const KPI_CONFIG = [
 function SubKpi({ label, value, icon: Icon, tone, spark, delay, numeric }: {
   label: string; value: string | number; icon: LucideIcon; tone: string; spark: number[]; delay: number; numeric?: boolean;
 }) {
-  const n = numeric && typeof value === 'number' ? useCountUp(value, 750) : value;
+  const counted = useCountUp(typeof value === 'number' ? value : 0, 750, Boolean(numeric && typeof value === 'number'));
+  const n = numeric && typeof value === 'number' ? counted : value;
   return (
     <article className="plt-kpi cln-kpi sub-kpi" style={{ animationDelay: `${delay}ms` }}>
       <span className={`plt-kpi__icon plt-kpi__icon--${tone}`}><Icon className="h-4 w-4" aria-hidden /></span>
@@ -83,6 +84,7 @@ function SubKpi({ label, value, icon: Icon, tone, spark, delay, numeric }: {
 export function PlatformSubscriptions() {
   const [rows, setRows] = useState<SubscriptionRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [chip, setChip] = useState<FilterChip>('all');
   const [sort, setSort] = useState<SortMode>('renewal');
@@ -100,6 +102,7 @@ export function PlatformSubscriptions() {
   const [planForm, setPlanForm] = useState<SubscriptionPlan | ''>('');
   const [seatsForm, setSeatsForm] = useState('10');
   const [billingForm, setBillingForm] = useState({ email: '', taxId: '' });
+  const [clinics, setClinics] = useState<ClinicListRow[]>([]);
 
   const showToast = useCallback((type: 'ok' | 'err', text: string) => {
     setToast({ type, text });
@@ -108,10 +111,15 @@ export function PlatformSubscriptions() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
-      setRows(await apiGet<SubscriptionRow[]>('/api/platform/subscriptions'));
-    } catch {
-      showToast('err', 'No se pudieron cargar las suscripciones.');
+      const data = await apiGet<SubscriptionRow[]>('/api/platform/subscriptions');
+      setRows(Array.isArray(data) ? data : []);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'No se pudieron cargar las suscripciones.';
+      setLoadError(msg);
+      setRows([]);
+      showToast('err', msg);
     } finally {
       setLoading(false);
     }
@@ -120,8 +128,19 @@ export function PlatformSubscriptions() {
   useEffect(() => { void load(); }, [load]);
 
   useEffect(() => {
+    void (async () => {
+      try {
+        const list = await apiGet<ClinicListRow[]>('/api/platform/clinics');
+        setClinics(list);
+      } catch {
+        setClinics([]);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
     if (!didAutoSelect && rows.length) {
-      setSelected(rows.find((r) => r.id === 'sub-nova-001') ?? rows[0]);
+      setSelected(rows[0]);
       setDidAutoSelect(true);
     }
   }, [rows, didAutoSelect]);
@@ -160,14 +179,18 @@ export function PlatformSubscriptions() {
     if (sort === 'clinic') list.sort((a, b) => a.clinic_name.localeCompare(b.clinic_name));
     else if (sort === 'plan') list.sort((a, b) => a.plan_label.localeCompare(b.plan_label));
     else if (sort === 'status') list.sort((a, b) => a.status_label.localeCompare(b.status_label));
-    else list.sort((a, b) => new Date(a.renews_at).getTime() - new Date(b.renews_at).getTime());
+    else {
+      list.sort((a, b) => {
+        const ta = new Date(a.renews_at).getTime();
+        const tb = new Date(b.renews_at).getTime();
+        return (Number.isNaN(ta) ? 0 : ta) - (Number.isNaN(tb) ? 0 : tb);
+      });
+    }
     return list;
   }, [rows, search, chip, sort]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
-  const clinics = getClinicsDemo();
-
   async function post(body: Record<string, unknown>, okMsg?: string) {
     setBusy(true);
     try {
@@ -271,6 +294,17 @@ export function PlatformSubscriptions() {
               icon={k.icon} tone={k.tone} spark={k.spark} delay={i * 70} numeric={'numeric' in k && k.numeric} />
           ))}
         </div>
+
+        {loadError && !loading ? (
+          <section className="sub-empty" role="alert">
+            <AlertTriangle className="sub-empty__icon" aria-hidden />
+            <h3 className="sub-empty__title">No se pudo cargar el listado</h3>
+            <p className="sub-empty__text">{loadError}</p>
+            <button type="button" className="plt-btn plt-btn--primary" onClick={() => void load()}>
+              Reintentar
+            </button>
+          </section>
+        ) : null}
 
         <div className="cln-toolbar">
           <label className="cln-search"><Search className="cln-search__icon h-4 w-4" aria-hidden />
