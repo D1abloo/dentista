@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Edit2, Eye, FileText, List, Lock, Plus, Trash2, Upload, X } from 'lucide-react';
+import { Edit2, Eye, FileText, Lock, Trash2, Upload } from 'lucide-react';
 import { isClientDemoMode } from '@/lib/appMode';
 import {
   appointmentBelongsToPatient,
@@ -28,7 +28,6 @@ import {
   openClinicalReportPrintView,
   printClinicalReportFromState
 } from '@/lib/pdfClinicalReport';
-import { fmtDateTime } from '@/lib/format';
 import { mapClinicalReportRow, type ClinicalReportRow } from '@/lib/records/clinicalReportMapper';
 import { recordMatchesPatientQuery } from '@/lib/patientSearch';
 import { useDemoStore } from '@/hooks/useDemoStore';
@@ -36,15 +35,13 @@ import { useNotice } from '@/hooks/useNotice';
 import type { ClinicalReport } from '@/types/demo';
 import { FileActions } from '@/components/shared/FileActions';
 import { patientName } from '@/lib/selectors';
-import { PatientLookup } from './PatientLookup';
-import { Field, Input, SearchInput, Select } from '@/components/ui';
-
-function appointmentLabel(state: ReturnType<typeof useDemoStore>['state'], appointmentId: string) {
-  const appt = state.appointments.find((a) => a.id === appointmentId);
-  if (!appt) return '';
-  const t = state.treatments.find((x) => x.id === appt.treatmentId);
-  return `${fmtDateTime(appt.date, appt.time)} · ${t?.name ?? 'Consulta'}`;
-}
+import { SearchInput } from '@/components/ui';
+import {
+  canEnableReportSections,
+  ClinicalReportBaseSetup,
+  ClinicalReportSectionsPlaceholder,
+  regenerateReportTitle
+} from './clinical-reports/ClinicalReportBaseSetup';
 
 export function AdminClinicalReports() {
   const { state, commit, refresh } = useDemoStore();
@@ -62,9 +59,10 @@ export function AdminClinicalReports() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [reportFile, setReportFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  const [withoutAppointment, setWithoutAppointment] = useState(false);
   const [form, setForm] = useState<ClinicalReportFormState>(() => ({
     ...EMPTY_REPORT_FORM,
-    patientId: state.patients[0]?.id ?? ''
+    patientId: ''
   }));
 
   const editingReport = useMemo(
@@ -128,6 +126,7 @@ export function AdminClinicalReports() {
       }
       setEditingId(report.id);
       setReportFile(null);
+      setWithoutAppointment(!report.appointmentId);
       setForm({
         patientId: report.patientId,
         appointmentId: report.appointmentId ?? '',
@@ -152,20 +151,37 @@ export function AdminClinicalReports() {
       return;
     }
     if (form.patientId && !appointmentBelongsToPatient(state, appointmentId, form.patientId)) {
-      setNotice({ type: 'error', message: 'Selecciona una cita válida.' });
+      setNotice({ type: 'error', message: 'La cita seleccionada no pertenece a este paciente.' });
       return;
     }
     const ctx = getAppointmentReportContext(state, appointmentId);
     if (!ctx) return;
+    setWithoutAppointment(false);
     setForm((f) => ({
       ...f,
       appointmentId,
       patientId: ctx.patientId,
       dentistName: `${ctx.dentistHonorific} ${ctx.dentistName}`,
       uploadedBy: `${ctx.dentistHonorific} ${ctx.dentistName}`,
-      title: editingId ? f.title : buildReportTitle(ctx)
+      title: editingId && f.title.trim() ? f.title : buildReportTitle(ctx)
     }));
   }
+
+  function toggleWithoutAppointment() {
+    if (withoutAppointment) {
+      setWithoutAppointment(false);
+      setForm((f) => ({ ...f, appointmentId: '' }));
+      return;
+    }
+    setWithoutAppointment(true);
+    setForm((f) => ({
+      ...f,
+      appointmentId: '',
+      title: regenerateReportTitle(state, '', f.patientId)
+    }));
+  }
+
+  const sectionsEnabled = canEnableReportSections(form, withoutAppointment) || Boolean(editingId);
 
   function previewDraft() {
     const profLine = professionalLineFromContext(apptContext);
@@ -191,7 +207,7 @@ export function AdminClinicalReports() {
       setNotice({ type: 'error', message: 'Este informe no se puede modificar.' });
       return;
     }
-    const err = validateClinicalReportForm(form, apptContext);
+    const err = validateClinicalReportForm(form, apptContext, { allowWithoutAppointment: withoutAppointment });
     if (err) {
       setNotice({ type: 'error', message: err });
       return;
@@ -361,7 +377,8 @@ export function AdminClinicalReports() {
 
   function resetForm() {
     setEditingId(null);
-    setForm({ ...EMPTY_REPORT_FORM, patientId: state.patients[0]?.id ?? '' });
+    setWithoutAppointment(false);
+    setForm({ ...EMPTY_REPORT_FORM, patientId: '' });
     setReportFile(null);
   }
 
@@ -379,68 +396,47 @@ export function AdminClinicalReports() {
     [state.appointments, form.patientId]
   );
 
-  function openCompose() {
-    setTab('compose');
-  }
-
   function openNewReport() {
     resetForm();
     setTab('compose');
   }
 
-  return (
-    <div className="cr-module">
-      <header className="cr-toolbar">
-        <div className="cr-toolbar__intro">
-          <h1 className="cr-toolbar__title">
-            <FileText className="h-6 w-6 text-teal-700" aria-hidden />
-            Informes clínicos
-          </h1>
-          <p className="cr-toolbar__sub">
-            {tab === 'compose'
-              ? editingId
-                ? 'Editando informe existente'
-                : 'Redacta y publica informes para el historial y el portal del paciente'
-              : `${list.length} informe${list.length === 1 ? '' : 's'} en el listado`}
-          </p>
-        </div>
-        <div className="cr-segmented" role="tablist" aria-label="Vista de informes">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === 'compose'}
-            className={`cr-segmented__btn${tab === 'compose' ? ' cr-segmented__btn--active' : ''}`}
-            onClick={openCompose}
-          >
-            <Plus className="h-4 w-4" aria-hidden />
-            {editingId ? 'Editar informe' : 'Nuevo informe'}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === 'list'}
-            className={`cr-segmented__btn${tab === 'list' ? ' cr-segmented__btn--active' : ''}`}
-            onClick={() => setTab('list')}
-          >
-            <List className="h-4 w-4" aria-hidden />
-            Listado
-            <span className="cr-segmented__count">{list.length}</span>
-          </button>
-        </div>
-      </header>
+  const baseSetupProps = {
+    state,
+    form,
+    listCount: list.length,
+    dentistFilter,
+    filteredProfessionalName: filteredProfessional?.fullName,
+    apptContext,
+    patientAppointments,
+    withoutAppointment,
+    onNewReport: openNewReport,
+    onOpenList: () => setTab('list'),
+    onClearDentistFilter: () => {
+      window.location.href = '/admin/informes';
+    },
+    onSelectAppointment,
+    onWithoutAppointment: toggleWithoutAppointment,
+    onRegenerateTitle: () =>
+      setForm((f) => ({
+        ...f,
+        title: regenerateReportTitle(state, f.appointmentId, f.patientId)
+      })),
+    activeTab: tab
+  } as const;
 
-      {dentistFilter ? (
-        <div className="cr-filter-banner" role="status">
-          <span>
-            Filtrando informes de{' '}
-            <strong>{filteredProfessional?.fullName ?? 'profesional seleccionado'}</strong>
-          </span>
-          <a href="/admin/informes" className="cr-filter-banner__clear">
-            <X className="h-3.5 w-3.5" aria-hidden />
-            Quitar filtro
-          </a>
-        </div>
-      ) : null}
+  return (
+    <div className="cr-module cr-module--v2">
+      <ClinicalReportBaseSetup
+        {...baseSetupProps}
+        formLocked={tab === 'list' ? false : formLocked}
+        showBaseForm={tab === 'compose'}
+        onPatientId={(id) => {
+          setWithoutAppointment(false);
+          setForm((f) => ({ ...f, patientId: id, appointmentId: '', title: '' }));
+        }}
+        onTitleChange={(title) => setForm((f) => ({ ...f, title }))}
+      />
 
       {tab === 'list' ? (
         <section className="cr-list-panel">
@@ -465,7 +461,10 @@ export function AdminClinicalReports() {
         </section>
       ) : (
         <div className="cr-compose">
-          <section className="cr-form-panel">
+          <ClinicalReportSectionsPlaceholder enabled={sectionsEnabled} />
+
+          {sectionsEnabled ? (
+          <section className="cr-form-panel cr-fade-in">
             {editingReport?.reopenedForEdit ? (
               <p className="cr-compose-banner cr-compose-banner--edit">
                 Informe reabierto para edición (desbloqueo en base de datos). Al guardar se vuelve a bloquear si sigue en
@@ -477,75 +476,9 @@ export function AdminClinicalReports() {
                 Informe bloqueado: publicado en el portal del paciente. Solo administración de BBDD puede reabrirlo.
               </p>
             ) : null}
-
-            <div className="cr-setup">
-              <div className="cr-setup-grid">
-                <aside className="cr-setup-patient">
-                  <h2 className="cr-setup-block__title">
-                    Paciente <span className="cr-req">*</span>
-                  </h2>
-                  <p className="cr-setup-block__hint">Busca por NHC, DNI o nombre y selecciona de la lista.</p>
-                  <PatientLookup
-                    state={state}
-                    patientId={form.patientId}
-                    onPatientId={(id) => setForm({ ...form, patientId: id, appointmentId: '' })}
-                    placeholder="NHC, DNI o nombre…"
-                    nhcPrimary
-                    variant="card"
-                  />
-                </aside>
-
-                <div className="cr-setup-meta">
-                  <h2 className="cr-setup-block__title">Datos del informe</h2>
-                  <div className="cr-setup-meta__fields">
-                    <Field label="Cita vinculada *">
-                      <Select
-                        value={form.appointmentId}
-                        onChange={(e) => onSelectAppointment(e.target.value)}
-                        disabled={formLocked || !form.patientId}
-                      >
-                        <option value="">
-                          {form.patientId ? 'Seleccionar cita…' : 'Primero elige un paciente'}
-                        </option>
-                        {patientAppointments.map((a) => (
-                          <option key={a.id} value={a.id}>
-                            {appointmentLabel(state, a.id)}
-                          </option>
-                        ))}
-                      </Select>
-                      {form.patientId && !patientAppointments.length ? (
-                        <p className="cr-field-note">Este paciente no tiene citas registradas.</p>
-                      ) : null}
-                    </Field>
-                    <Field label="Título del informe *">
-                      <Input
-                        value={form.title}
-                        onChange={(e) => setForm({ ...form, title: e.target.value })}
-                        disabled={formLocked}
-                        placeholder="Se genera al elegir la cita"
-                      />
-                    </Field>
-                  </div>
-
-                  {apptContext ? (
-                    <div className="cr-context-bar">
-                      <p className="cr-context-bar__line">
-                        <strong>{apptContext.clinicName}</strong>
-                      </p>
-                      <p className="cr-context-bar__line">
-                        {apptContext.dentistHonorific} {apptContext.dentistName} · Col.{' '}
-                        {apptContext.dentistCollegiateNumber}
-                      </p>
-                      <p className="cr-context-bar__line cr-context-bar__line--muted">
-                        {apptContext.treatmentName} · {apptContext.dateLabel}
-                      </p>
-                    </div>
-                  ) : (
-                    <p className="cr-setup-placeholder">Selecciona paciente y cita para cargar el contexto clínico.</p>
-                  )}
-                </div>
-              </div>
-            </div>
+            {withoutAppointment ? (
+              <p className="cr-compose-banner cr-compose-banner--edit">Informe sin cita vinculada.</p>
+            ) : null}
 
             <div className="cr-form-body">
               {REPORT_FORM_GROUPS.map((group) => (
@@ -631,6 +564,7 @@ export function AdminClinicalReports() {
               </div>
             </footer>
           </section>
+          ) : null}
         </div>
       )}
     </div>

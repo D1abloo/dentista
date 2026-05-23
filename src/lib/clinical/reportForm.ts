@@ -48,10 +48,14 @@ export function parseReportApiError(json: {
 
 export function validateClinicalReportForm(
   form: ClinicalReportFormState,
-  apptContext?: AppointmentReportContext | null
+  apptContext?: AppointmentReportContext | null,
+  opts?: { allowWithoutAppointment?: boolean }
 ): string | null {
   if (!form.patientId?.trim()) return 'Selecciona un paciente.';
-  if (!form.appointmentId?.trim()) return 'Selecciona una cita válida.';
+  if (!opts?.allowWithoutAppointment && !form.appointmentId?.trim()) return 'Selecciona una cita válida.';
+  if (form.appointmentId && apptContext && apptContext.patientId !== form.patientId) {
+    return 'La cita seleccionada no pertenece a este paciente.';
+  }
   if (!form.title?.trim()) return 'Completa el título del informe.';
   if (apptContext && !isCollegiateNumberValid(apptContext.dentistCollegiateNumber)) {
     return collegiateRequiredMessage(`${apptContext.dentistHonorific} ${apptContext.dentistName}`);
