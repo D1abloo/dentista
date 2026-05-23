@@ -54,6 +54,12 @@ export interface Patient {
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   notes?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  emailVerified?: boolean;
+  phoneVerified?: boolean;
+  profileUpdatedAt?: string;
   createdAt: string;
 }
 

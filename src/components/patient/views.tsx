@@ -6,7 +6,6 @@ import {
 } from '@/lib/appointments';
 import {
   rescheduleAppointment,
-  savePatient,
   settingsFor,
   updateAppointmentStatus
 } from '@/lib/demoStore';
@@ -40,6 +39,7 @@ export { PatientDocuments } from './PatientDocuments';
 export { PatientInvoices } from './PatientInvoices';
 export { PatientPayments } from './PatientPayments';
 export { PatientMessages } from './PatientMessages';
+export { PatientProfile } from './PatientProfile';
 export { PatientBook } from './PatientBook';
 
 function useApptMeta(state: ReturnType<typeof useDemoStore>['state'], a: Appointment) {
@@ -167,77 +167,6 @@ export function PatientAppointments() {
   );
 }
 
-
-export function PatientProfile() {
-  const { state, commit } = useDemoStore();
-  const base = usePatient();
-  const { setNotice } = useNotice();
-  const [form, setForm] = useState<Patient>(base);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  function save(e: React.FormEvent) {
-    e.preventDefault();
-    const e1 = required(form.fullName, 'Nombre') || email(form.email) || phone(form.phone);
-    const map: Record<string, string> = {};
-    if (e1) map.general = e1;
-    setErrors(map);
-    if (e1) return;
-    commit(savePatient(state, form));
-    setNotice({ type: 'ok', message: 'Perfil guardado correctamente.' });
-  }
-
-  const channels: Array<'email' | 'whatsapp' | 'sms'> = ['email', 'whatsapp', 'sms'];
-
-  return (
-    <div className="space-y-4">
-      <PageHeader title="Mi perfil" subtitle="Datos personales y preferencias" />
-      <Card title="Datos y preferencias">
-      <form className="grid gap-4 md:grid-cols-2" onSubmit={save}>
-        {errors.general ? <p className="md:col-span-2 text-sm font-bold text-rose-600">{errors.general}</p> : null}
-        <Field label="Nombre"><Input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} /></Field>
-        <div className="md:col-span-2">
-          <PatientIdentity patient={form} size="sm" />
-        </div>
-        <Field label="DNI"><Input value={form.dni ?? ''} onChange={(e) => setForm({ ...form, dni: e.target.value })} /></Field>
-        <Field label="Email"><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
-        <Field label="Teléfono"><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
-        <Field label="Fecha de nacimiento"><Input type="date" value={form.birthDate} onChange={(e) => setForm({ ...form, birthDate: e.target.value })} /></Field>
-        <Field label="Clínica preferida">
-          <Select value={form.preferredClinicId} onChange={(e) => setForm({ ...form, preferredClinicId: e.target.value })}>
-            {state.clinics.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </Select>
-        </Field>
-        <Field label="Contacto de emergencia"><Input value={form.emergencyContactName} onChange={(e) => setForm({ ...form, emergencyContactName: e.target.value })} /></Field>
-        <Field label="Teléfono emergencia"><Input value={form.emergencyContactPhone} onChange={(e) => setForm({ ...form, emergencyContactPhone: e.target.value })} /></Field>
-        <Field label="Alergias"><Input value={form.allergies} onChange={(e) => setForm({ ...form, allergies: e.target.value })} /></Field>
-        <Field label="Medicación"><Input value={form.medication} onChange={(e) => setForm({ ...form, medication: e.target.value })} /></Field>
-        <div className="md:col-span-2">
-          <p className="mb-2 text-sm font-bold text-slate-700">Recordatorios</p>
-          <div className="flex flex-wrap gap-3">
-            {channels.map((ch) => (
-              <label key={ch} className="flex items-center gap-2 text-sm font-semibold">
-                <input type="checkbox" checked={(form.reminderChannels ?? []).includes(ch)} onChange={(e) => {
-                  const channels = form.reminderChannels ?? [];
-                  setForm({
-                    ...form,
-                    reminderChannels: e.target.checked
-                      ? [...channels, ch]
-                      : channels.filter((c) => c !== ch)
-                  });
-                }} />
-                {ch}
-              </label>
-            ))}
-          </div>
-        </div>
-        <Field label="Notas"><Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></Field>
-        <Button type="submit">Guardar cambios</Button>
-      </form>
-    </Card>
-      <PatientConsentsCompact />
-    </div>
-  );
-}
 
 export function PatientHelp() {
   return <HelpEmbedded audience="patient" />;

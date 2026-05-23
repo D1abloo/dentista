@@ -41,6 +41,12 @@ export const demoPatients: Patient[] = [
     emergencyContactName: 'Miguel Vidal',
     emergencyContactPhone: '+34 612 111 222',
     notes: 'Paciente principal · historial completo en Clínica Centro.',
+    address: 'Calle Mayor 12',
+    city: 'Madrid',
+    postalCode: '28013',
+    emailVerified: true,
+    phoneVerified: false,
+    profileUpdatedAt: '2026-05-20T10:35:00',
     createdAt: '2024-03-10'
   },
   {
