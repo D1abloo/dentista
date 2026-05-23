@@ -679,10 +679,12 @@ export const scheduleBlockDeleteSchema = z
   .object({
     clinicId: z.string().min(1).optional(),
     id: z.string().min(1).max(120).optional(),
-    blockGroupId: z.string().min(4).max(80).optional()
+    blockGroupId: z.string().min(4).max(80).optional(),
+    /** UUIDs separados por coma (desbloqueo de grupos sin block_group_id en BD). */
+    ids: z.string().min(1).max(4000).optional()
   })
-  .refine((d) => Boolean(d.id || d.blockGroupId), {
-    message: 'Indica id o blockGroupId.'
+  .refine((d) => Boolean(d.id || d.blockGroupId || d.ids), {
+    message: 'Indica id, blockGroupId o ids.'
   });
 
 export const clinicUserCreateSchema = z

@@ -10,7 +10,15 @@ export function canDeleteScheduleBlock(
   const assigned = staff?.assignedClinicIds ?? options.assignedClinicIds;
   if (assigned?.length && !assigned.includes(block.clinicId)) return false;
 
-  if (staff?.canManageBlocks) return true;
+  if (!staff) {
+    if (options.ownAgenda && options.dentistId) {
+      const ids = block.dentistIds?.length ? block.dentistIds : [block.dentistId];
+      return ids.includes(options.dentistId);
+    }
+    return true;
+  }
+
+  if (staff.canManageBlocks) return true;
 
   if (staff?.dentistId) {
     const ids = block.dentistIds?.length ? block.dentistIds : [block.dentistId];

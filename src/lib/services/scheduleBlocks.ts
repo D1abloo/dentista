@@ -244,6 +244,32 @@ export async function deleteScheduleBlock(clinicId: string, blockId: string): Pr
   if (error) throw error;
 }
 
+export async function deleteScheduleBlocksByIds(clinicId: string, blockIds: string[]): Promise<number> {
+  const ids = [...new Set(blockIds.filter(Boolean))];
+  if (!ids.length) return 0;
+
+  if (isDemoMode() || !hasSupabaseConfig()) {
+    let removed = 0;
+    for (let i = memoryBlocks.length - 1; i >= 0; i--) {
+      if (memoryBlocks[i].clinicId === clinicId && ids.includes(memoryBlocks[i].id)) {
+        memoryBlocks.splice(i, 1);
+        removed++;
+      }
+    }
+    return removed;
+  }
+
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from('schedule_blocks')
+    .delete()
+    .eq('clinic_id', clinicId)
+    .in('id', ids)
+    .select('id');
+  if (error) throw error;
+  return data?.length ?? 0;
+}
+
 export async function deleteScheduleBlockGroup(clinicId: string, blockGroupId: string): Promise<number> {
   if (isDemoMode() || !hasSupabaseConfig()) {
     const before = memoryBlocks.length;
@@ -256,7 +282,7 @@ export async function deleteScheduleBlockGroup(clinicId: string, blockGroupId: s
   }
 
   const supabase = getSupabaseAdmin();
-  let { data, error } = await supabase
+  const { data, error } = await supabase
     .from('schedule_blocks')
     .delete()
     .eq('clinic_id', clinicId)

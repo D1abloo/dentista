@@ -137,10 +137,17 @@ export async function deleteScheduleBlockLive(input: {
   clinicId: string;
   blockId?: string;
   blockGroupId?: string;
+  blockIds?: string[];
 }) {
   const q = new URLSearchParams({ clinicId: input.clinicId });
-  if (input.blockGroupId) q.set('blockGroupId', input.blockGroupId);
-  else if (input.blockId) q.set('id', input.blockId);
+  if (input.blockIds?.length) {
+    q.set('ids', input.blockIds.join(','));
+  } else if (input.blockGroupId) {
+    q.set('blockGroupId', input.blockGroupId);
+    if (input.blockId) q.set('id', input.blockId);
+  } else if (input.blockId) {
+    q.set('id', input.blockId);
+  }
   const res = await fetch(`/api/schedule/blocks?${q.toString()}`, {
     method: 'DELETE',
     credentials: 'include'

@@ -19,6 +19,7 @@ import { appointmentsInRange, monthPrefix, weekRange } from '@/lib/appointments'
 import {
   confirmAppointmentAttendance,
   removeBlockedSlot,
+  removeScheduleBlocksByIds,
   removeScheduleBlockGroup,
   rescheduleAppointment,
   saveScheduleBlocks
@@ -135,6 +136,7 @@ export function AdminAgenda() {
   const [bookOpen, setBookOpen] = useState(false);
   const [blockOpen, setBlockOpen] = useState(false);
   const [unblockOpen, setUnblockOpen] = useState(false);
+  const [unblockingKey, setUnblockingKey] = useState<string | null>(null);
   const [bookPrefillTime, setBookPrefillTime] = useState('10:00');
   const [blockPrefillTime, setBlockPrefillTime] = useState('13:00');
   const [detailBlock, setDetailBlock] = useState<BlockedSlot | null>(null);
@@ -463,31 +465,66 @@ export function AdminAgenda() {
     });
   }
 
+  function blockIdsToRemove(block: BlockedSlot): string[] {
+    const activeClinicId = block.clinicId || clinicId;
+    if (block.blockGroupId) {
+      return state.blockedSlots
+        .filter((b) => b.blockGroupId === block.blockGroupId && b.clinicId === activeClinicId)
+        .map((b) => b.id);
+    }
+    return [block.id];
+  }
+
+  function applyLocalUnblock(block: BlockedSlot) {
+    const ids = blockIdsToRemove(block);
+    if (block.blockGroupId) {
+      commit(removeScheduleBlockGroup(state, block.blockGroupId));
+    } else if (ids.length > 1) {
+      commit(removeScheduleBlocksByIds(state, ids));
+    } else {
+      commit(removeBlockedSlot(state, block.id));
+    }
+  }
+
   async function removeBlock(block: BlockedSlot) {
     if (!canDeleteBlock(block)) {
       setNotice({ type: 'error', message: 'No tienes permiso para eliminar este bloqueo en esta sede.' });
       return;
     }
 
-    if (!isClientDemoMode()) {
-      const live = await deleteScheduleBlockLive({
-        clinicId: block.clinicId,
-        blockGroupId: block.blockGroupId,
-        blockId: block.blockGroupId ? undefined : block.id
-      });
-      if (!live.ok) {
-        setNotice({ type: 'error', message: live.message });
-        return;
+    const entryKey = block.blockGroupId ?? block.id;
+    setUnblockingKey(entryKey);
+
+    const activeClinicId = block.clinicId || clinicId;
+    const ids = blockIdsToRemove(block);
+
+    try {
+      if (!isClientDemoMode()) {
+        const live = await deleteScheduleBlockLive({
+          clinicId: activeClinicId,
+          blockIds: ids,
+          blockGroupId: block.blockGroupId,
+          blockId: block.id
+        });
+        if (!live.ok) {
+          setNotice({ type: 'error', message: live.message });
+          return;
+        }
+        applyLocalUnblock(block);
+        await refresh();
+      } else {
+        applyLocalUnblock(block);
       }
-      await refresh();
-    } else if (block.blockGroupId) {
-      commit(removeScheduleBlockGroup(state, block.blockGroupId));
-    } else {
-      commit(removeBlockedSlot(state, block.id));
+
+      setDetailBlock(null);
+      setNotice({
+        type: 'ok',
+        message:
+          ids.length > 1 ? `Horario desbloqueado (${ids.length} días).` : 'Horario desbloqueado.'
+      });
+    } finally {
+      setUnblockingKey(null);
     }
-    setDetailBlock(null);
-    setUnblockOpen(false);
-    setNotice({ type: 'ok', message: 'Bloqueo eliminado.' });
   }
 
   function canDeleteBlock(block: BlockedSlot) {
@@ -838,8 +875,9 @@ export function AdminAgenda() {
         dentistFilter={dentistId}
         ownAgenda={ownAgenda}
         canDelete={canDeleteBlock}
+        unblockingKey={unblockingKey}
         onClose={() => setUnblockOpen(false)}
-        onUnblock={(block) => void removeBlock(block)}
+        onUnblock={(block) => removeBlock(block)}
       />
 
       <AgendaBlockDrawer

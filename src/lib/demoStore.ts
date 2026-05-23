@@ -688,6 +688,11 @@ export function removeScheduleBlockGroup(state: DemoState, blockGroupId: string)
   };
 }
 
+export function removeScheduleBlocksByIds(state: DemoState, ids: string[]): DemoState {
+  const drop = new Set(ids);
+  return { ...state, blockedSlots: state.blockedSlots.filter((b) => !drop.has(b.id)) };
+}
+
 export function removeBlockedSlot(state: DemoState, id: string): DemoState {
   return { ...state, blockedSlots: state.blockedSlots.filter((b) => b.id !== id) };
 }

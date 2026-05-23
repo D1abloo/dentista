@@ -609,8 +609,9 @@ type UnblockDrawerProps = {
   dentistFilter: string;
   ownAgenda: boolean;
   canDelete: (block: BlockedSlot) => boolean;
+  unblockingKey?: string | null;
   onClose: () => void;
-  onUnblock: (block: BlockedSlot) => void;
+  onUnblock: (block: BlockedSlot) => void | Promise<void>;
 };
 
 export function AgendaUnblockDrawer({
@@ -622,6 +623,7 @@ export function AgendaUnblockDrawer({
   dentistFilter,
   ownAgenda,
   canDelete,
+  unblockingKey = null,
   onClose,
   onUnblock
 }: UnblockDrawerProps) {
@@ -701,6 +703,7 @@ export function AgendaUnblockDrawer({
               ? `${fmtDate(entry.dateFrom)} → ${fmtDate(entry.dateTo)} (${entry.dayCount} días)`
               : fmtDate(entry.dateFrom);
           const allowed = canDelete(block);
+          const busy = unblockingKey === entry.key;
 
           return (
             <li key={entry.key} className="agd-unblock-item">
@@ -714,12 +717,12 @@ export function AgendaUnblockDrawer({
                 type="button"
                 tone="secondary"
                 className="agd-unblock-item__btn"
-                disabled={!allowed}
+                disabled={!allowed || Boolean(unblockingKey)}
                 title={allowed ? 'Quitar bloqueo' : 'Sin permiso para desbloquear'}
-                onClick={() => onUnblock(block)}
+                onClick={() => void onUnblock(block)}
               >
                 <Unlock className="h-4 w-4" aria-hidden />
-                Desbloquear
+                {busy ? 'Desbloqueando…' : 'Desbloquear'}
               </Button>
             </li>
           );
