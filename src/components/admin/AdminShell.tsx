@@ -279,19 +279,22 @@ export function AdminShell({
           {dashboardToolbar ? (
             <div className="admin-topbar__dashboard-tools">{dashboardToolbar}</div>
           ) : (
-            <>
-              <div className="admin-topbar__search">
-                <AdminSearch />
-              </div>
-              <div className="admin-topbar__tools">
-                <AdminNotificationBell />
+            <div className="admin-topbar__search">
+              <AdminSearch />
+            </div>
+          )}
+
+          <div className="admin-topbar__tools">
+            <AdminNotificationBell />
+            {!dashboardToolbar ? (
+              <>
                 <AdminQuickAccess />
                 <div className="hidden md:block">
                   <ClinicBranchSwitcher />
                 </div>
-              </div>
-            </>
-          )}
+              </>
+            ) : null}
+          </div>
 
           <div className="admin-topbar__user">
             <AdminTopbarUser fallbackName={userLabel} />

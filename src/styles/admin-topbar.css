@@ -14,8 +14,8 @@
 }
 
 .portal-top.admin-topbar--dashboard {
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr) auto auto;
-  grid-template-areas: 'brand dash dash user menu';
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr) auto auto auto;
+  grid-template-areas: 'brand dash dash tools user menu';
 }
 
 .admin-topbar__brand {

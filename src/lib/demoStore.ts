@@ -24,7 +24,7 @@ import {
 } from '@/lib/storage/keys';
 import { nextDemoNhc } from '@/lib/nhc';
 import { isClientDemoMode } from '@/lib/appMode';
-import { pushClinicNotification } from '@/lib/clinicNotifications';
+import { notifyNewAppointmentRequest, pushClinicNotification } from '@/lib/clinicNotifications';
 import { displayPaymentId } from '@/lib/paymentAdmin';
 import { patientName } from '@/lib/selectors';
 import { TENANT_CENTRO } from '@/lib/tenantIds';
@@ -203,7 +203,11 @@ function resolveTenantId(state: DemoState, tenantId?: string, clinicId?: string)
 
 export function createAppointment(
   state: DemoState,
-  input: Omit<Appointment, 'id' | 'createdAt' | 'tenantId'> & { status?: AppointmentStatus; tenantId?: string }
+  input: Omit<Appointment, 'id' | 'createdAt' | 'tenantId'> & {
+    status?: AppointmentStatus;
+    tenantId?: string;
+    fromPatient?: boolean;
+  }
 ): DemoState {
   const appointment: Appointment = {
     ...input,
@@ -212,12 +216,20 @@ export function createAppointment(
     status: input.status ?? 'pendiente',
     createdAt: todayIso()
   };
-  return { ...state, appointments: [...state.appointments, appointment] };
+  let next: DemoState = { ...state, appointments: [...state.appointments, appointment] };
+  if (appointment.status === 'pendiente') {
+    next = notifyNewAppointmentRequest(next, appointment, { fromPatient: input.fromPatient });
+  }
+  return next;
 }
 
 export function tryCreateAppointment(
   state: DemoState,
-  input: Omit<Appointment, 'id' | 'createdAt' | 'tenantId'> & { status?: AppointmentStatus; tenantId?: string }
+  input: Omit<Appointment, 'id' | 'createdAt' | 'tenantId'> & {
+    status?: AppointmentStatus;
+    tenantId?: string;
+    fromPatient?: boolean;
+  }
 ): { state: DemoState; ok: boolean; message?: string } {
   if (isClinicSlotTaken(state, { clinicId: input.clinicId, date: input.date, time: input.time })) {
     return {

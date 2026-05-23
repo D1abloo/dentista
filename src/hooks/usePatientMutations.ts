@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import type { DemoState, Message, Patient, Payment } from '@/types/demo';
 import { createAppointmentLive, patchAppointmentLive } from '@/lib/clinicApi';
+import { notifyNewAppointmentRequest } from '@/lib/clinicNotifications';
 import {
   addMessage,
   createPayment,
@@ -48,7 +49,8 @@ export function usePatientMutations() {
         date: input.date,
         time: input.time,
         notes: input.notes ?? '',
-        status: 'pendiente'
+        status: 'pendiente',
+        fromPatient: true
       });
       if (!local.ok) {
         return { ok: false as const, message: local.message ?? 'No se pudo reservar la cita.' };
@@ -74,6 +76,7 @@ export function usePatientMutations() {
       });
 
       if (!live.ok) {
+        if (created) next = notifyNewAppointmentRequest(next, created, { fromPatient: true });
         persist(next);
         setNotice({ type: 'ok', message: 'Cita reservada correctamente.' });
         return { ok: true as const, appointmentId: created?.id };
@@ -84,7 +87,18 @@ export function usePatientMutations() {
         .then((r) => r.json())
         .catch(() => null)) as { data?: { state?: DemoState } } | null;
       if (refreshed?.data?.state) {
-        persist(refreshed.data.state);
+        next = refreshed.data.state;
+        const synced =
+          (created?.id ? next.appointments.find((a) => a.id === created.id) : undefined) ??
+          next.appointments
+            .filter((a) => a.patientId === patient.id && a.date === input.date && a.time === input.time)
+            .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+        if (synced && synced.status === 'pendiente') {
+          next = notifyNewAppointmentRequest(next, synced, { fromPatient: true });
+        }
+        persist(next);
+      } else if (created) {
+        persist(notifyNewAppointmentRequest(next, created, { fromPatient: true }));
       } else {
         persist(next);
       }

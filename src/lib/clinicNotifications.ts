@@ -1,4 +1,5 @@
 import type {
+  Appointment,
   ClinicNotification,
   ClinicNotificationCategory,
   ClinicNotificationEntity,
@@ -36,6 +37,31 @@ export const defaultNotificationPrefs = (): NotificationPrefs => ({
 
 function nid() {
   return `NTF-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+/** Aviso en panel cuando entra una cita pendiente (p. ej. reserva del paciente). */
+export function notifyNewAppointmentRequest(
+  state: DemoState,
+  appointment: Appointment,
+  opts?: { fromPatient?: boolean }
+): DemoState {
+  if (appointment.status !== 'pendiente') return state;
+  const name = patientName(state, appointment.patientId);
+  const treatment = state.treatments.find((t) => t.id === appointment.treatmentId);
+  const treatmentName = treatment?.name ?? (appointment.notes?.trim() || 'consulta');
+  const description = opts?.fromPatient
+    ? `${name} ha solicitado una cita para ${treatmentName} el ${appointment.date} a las ${appointment.time}.`
+    : `Nueva cita para ${name}: ${treatmentName} el ${appointment.date} a las ${appointment.time}.`;
+  return pushClinicNotification(state, {
+    tenantId: appointment.tenantId,
+    category: 'citas',
+    title: 'Nueva cita solicitada',
+    description,
+    patientId: appointment.patientId,
+    entityType: 'appointment',
+    entityId: appointment.id,
+    priority: 'importante'
+  });
 }
 
 export function pushClinicNotification(

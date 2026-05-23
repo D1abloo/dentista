@@ -271,6 +271,12 @@
   box-shadow: 0 10px 24px rgba(20, 184, 166, 0.45);
 }
 
+.agd-bell-wrap {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .agd-bell {
   position: relative;
   display: inline-grid;

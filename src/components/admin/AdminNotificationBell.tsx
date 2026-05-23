@@ -47,8 +47,8 @@ export function AdminNotificationBell() {
     if (next.clinicNotifications.length !== state.clinicNotifications.length) {
       commit(next);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- seed once on mount
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sync when citas o avisos cambian
+  }, [state.appointments.length, state.clinicNotifications.length, tenantId]);
 
   const items = useMemo(() => {
     const list = state.clinicNotifications

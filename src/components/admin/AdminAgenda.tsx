@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Bell,
   Calendar,
   CalendarClock,
   CheckCircle2,
@@ -18,6 +17,7 @@ import { isClientDemoMode } from '@/lib/appMode';
 import { appointmentsInRange, monthPrefix, weekRange } from '@/lib/appointments';
 import { addBlockedSlot, confirmAppointmentAttendance, removeBlockedSlot, rescheduleAppointment } from '@/lib/demoStore';
 import { createAdminAppointment, updateAdminAppointmentStatus } from '@/lib/adminAppointments';
+import { AdminNotificationBell } from './AdminNotificationBell';
 import { createScheduleBlockLive, deleteScheduleBlockLive } from '@/lib/clinicApi';
 import { consumeBookingPatientPrefill } from '@/lib/patientAdmin';
 import { patientsForClinic } from '@/lib/tenant';
@@ -511,10 +511,9 @@ export function AdminAgenda() {
           Nueva cita
         </button>
 
-        <a href="/admin/notificaciones" className="agd-bell" aria-label="Notificaciones">
-          <Bell className="h-4 w-4" />
-          <span className="agd-bell__dot" aria-hidden />
-        </a>
+        <div className="agd-bell-wrap">
+          <AdminNotificationBell />
+        </div>
 
         <div className={`agd-dropdown${profileOpen ? ' is-open' : ''}`} ref={profileRef}>
           <button type="button" className="agd-avatar" aria-expanded={profileOpen} onClick={() => setProfileOpen((v) => !v)}>
