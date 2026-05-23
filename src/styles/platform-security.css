@@ -1,0 +1,252 @@
+/* Super Admin — Seguridad y acceso */
+
+.sec-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.sec-kpi {
+  animation: sec-fade-in 0.5s ease both;
+}
+
+@keyframes sec-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sec-kpi__status {
+  color: #0f766e;
+}
+
+.sec-policies {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.sec-policy {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+  animation: sec-slide-in 0.45s ease both;
+  transition: box-shadow 0.2s, transform 0.15s;
+}
+
+.sec-policy:hover {
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  transform: translateY(-2px);
+}
+
+@keyframes sec-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sec-policy__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.sec-policy__title {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.sec-badge--active {
+  background: #ccfbf1;
+  color: #0f766e;
+  animation: sec-glow 2s ease-in-out infinite;
+}
+
+@keyframes sec-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(13, 148, 136, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.12);
+  }
+}
+
+.sec-policy__desc {
+  margin: 0 0 0.75rem;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: #64748b;
+}
+
+.sec-policy__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.sec-policy__actions button {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #334155;
+  cursor: pointer;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.sec-policy__actions button:hover {
+  border-color: #0d9488;
+  color: #0d9488;
+  box-shadow: 0 4px 10px rgba(13, 148, 136, 0.12);
+}
+
+.sec-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.sec-table tbody tr {
+  animation: sec-row-in 0.4s ease both;
+}
+
+@keyframes sec-row-in {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.sec-alert-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.74rem;
+}
+
+.sec-alert-row button {
+  background: none;
+  border: none;
+  color: #0d9488;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.72rem;
+}
+
+.sec-severity--low {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.sec-severity--medium {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.sec-severity--high {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.sec-severity {
+  animation: sec-badge-pulse 0.5s ease;
+}
+
+@keyframes sec-badge-pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.sec-isolation-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.74rem;
+}
+
+.sec-isolation-rows div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.sec-isolation-rows strong {
+  color: #0f172a;
+}
+
+.sec-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.sec-modal {
+  width: min(100%, 28rem);
+  background: #fff;
+  border-radius: 16px;
+  padding: 1rem 1.1rem;
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
+}
+
+.sec-modal__title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.sec-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.74rem;
+  margin-bottom: 0.45rem;
+}
+
+.sec-toggle input {
+  accent-color: #0d9488;
+  margin-top: 0.15rem;
+}
+
+@media (max-width: 1024px) {
+  .sec-policies,
+  .sec-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}

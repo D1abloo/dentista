@@ -415,6 +415,23 @@ export const metricsActionSchema = z.discriminatedUnion('action', [
   })
 ]);
 
+export const securityActionSchema = z.discriminatedUnion('action', [
+  z.object({ action: z.literal('run_review') }),
+  z.object({ action: z.literal('revoke_session'), sessionId: z.string().min(1) }),
+  z.object({
+    action: z.literal('update_policies'),
+    policies: z.object({
+      require2fa: z.boolean(),
+      strongPassword: z.boolean(),
+      blockFailedAttempts: z.boolean(),
+      auditSensitive: z.boolean(),
+      sessionExpiryMinutes: z.number().int().min(5).max(480),
+      maxFailedAttempts: z.number().int().min(1).max(20)
+    })
+  }),
+  z.object({ action: z.literal('run_policy_test'), policyId: z.string().min(1) })
+]);
+
 export const appointmentSchema = z.object({
   clinicId: z.string().min(1).default('demo-clinic'),
   patientId: z.string().min(1),

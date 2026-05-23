@@ -67,7 +67,7 @@ export const platformNavSections: PlatformNavSection[] = [
     title: 'Sistema',
     items: [
       { href: '/platform/configuracion', label: 'Configuración', icon: Settings, description: 'Marca global, registro y seguridad' },
-      { href: '/platform/seguridad', label: 'Seguridad', icon: ShieldCheck, description: 'RLS y acceso' },
+      { href: '/platform/seguridad', label: 'Seguridad', icon: ShieldCheck, description: 'Roles, sesiones y políticas' },
       { href: '/platform/seguridad', label: 'Auditoría', icon: Eye, description: 'Registro de actividad' }
     ]
   }
