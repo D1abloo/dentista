@@ -33,7 +33,8 @@ import {
   Select,
   Textarea
 } from '@/components/ui';
-export { PatientDocuments, PatientInvoices, PatientPayments, PatientReports } from './records';
+export { PatientDocuments, PatientInvoices, PatientPayments } from './records';
+export { PatientReports } from './PatientReports';
 export { PatientBook } from './PatientBook';
 
 function useApptMeta(state: ReturnType<typeof useDemoStore>['state'], a: Appointment) {
@@ -263,10 +264,20 @@ export function PatientMessages() {
   const { state, commit } = useDemoStore();
   const patient = usePatient();
   const [filter, setFilter] = useState<'todos' | 'recordatorio' | 'confirmacion' | 'clinica'>('todos');
+  const contexto =
+    typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('contexto') : null;
   const list = state.messages.filter((m) => m.patientId === patient.id && (filter === 'todos' || m.type === filter));
 
   return (
     <div className="space-y-4">
+      {contexto ? (
+        <div className="banner-alert flex flex-wrap items-center justify-between gap-2">
+          <span>{contexto}</span>
+          <a href="/paciente/informes" className="text-xs font-bold text-teal-800 underline">
+            Volver a informes
+          </a>
+        </div>
+      ) : null}
       <FilterTabs value={filter} onChange={setFilter} options={[
         { id: 'todos', label: 'Todos' },
         { id: 'recordatorio', label: 'Recordatorios' },

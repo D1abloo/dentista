@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
-import { logPortalAudit, usePortalAccess } from '@/hooks/usePortalAccess';
+import { useMemo, useState } from 'react';
 import { createPayment } from '@/lib/demoStore';
 import {
   downloadDemoFileRef,
@@ -13,8 +12,7 @@ import { fmtDate, money } from '@/lib/format';
 import {
   getPatientById,
   pendingInvoicesForPatient,
-  visibleDocumentsForPatient,
-  visibleReportsForPatient
+  visibleDocumentsForPatient
 } from '@/lib/selectors';
 import { getStoredTenantId, settingsFor } from '@/lib/demoStore';
 import { useDemoStore } from '@/hooks/useDemoStore';
@@ -34,88 +32,41 @@ async function downloadInvoicePdf(state: ReturnType<typeof useDemoStore>['state'
   downloadDemoFileRef(gen.fileRef, gen.fileName);
 }
 
-export function PatientReports() {
-  const { state } = useDemoStore();
-  const patient = usePatient();
-  const portalAccess = usePortalAccess();
-  const [q, setQ] = useState('');
-
-  useEffect(() => {
-    if (portalAccess.active) {
-      void logPortalAudit({
-        eventType: 'view_report',
-        pagePath: '/paciente/informes',
-        resourceLabel: 'Consulta de informes clínicos'
-      });
-    }
-  }, [portalAccess.active]);
-  const list = useMemo(() => {
-    let r = visibleReportsForPatient(state, patient.id);
-    if (q.trim()) {
-      const s = q.toLowerCase();
-      r = r.filter((x) => x.id.toLowerCase().includes(s) || x.title.toLowerCase().includes(s));
-    }
-    return r.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  }, [state, patient.id, q]);
-
-  return (
-    <div className="space-y-4">
-      <PageHeader title="Mis informes" subtitle="Solo informes visibles para ti" />
-      <SearchInput value={q} onChange={setQ} placeholder="Buscar por título o diagnóstico…" />
-      <div className="data-rows">
-        {list.map((r) => (
-          <article key={r.id} className="data-row">
-            <div className="data-row__main">
-              <p className="data-row__title">{r.title}</p>
-              <p className="data-row__meta">{fmtDate(r.createdAt)} · {r.diagnosis ?? r.description.slice(0, 60)}</p>
-              {r.recommendations ? <p className="data-row__meta">{r.recommendations}</p> : null}
-            </div>
-            <div className="data-row__aside">
-              {r.fileRef ? (
-                <FileActions
-                  fileRef={r.fileRef}
-                  fileName={r.fileName}
-                  mimeType={r.mimeType}
-                  onOpen={() => {
-                    if (portalAccess.active) {
-                      void logPortalAudit({
-                        eventType: 'view_report',
-                        pagePath: '/paciente/informes',
-                        resourceLabel: r.title,
-                        resourceId: r.id
-                      });
-                    }
-                  }}
-                />
-              ) : (
-                <Button tone="ghost" className="!text-xs" disabled>
-                  Sin PDF adjunto
-                </Button>
-              )}
-            </div>
-          </article>
-        ))}
-      </div>
-      {!list.length ? <Empty title="Sin informes" text="Cuando la clínica suba un informe visible, aparecerá aquí." /> : null}
-    </div>
-  );
-}
+export { PatientReports } from './PatientReports';
 
 export function PatientDocuments() {
   const { state } = useDemoStore();
   const patient = usePatient();
   const [q, setQ] = useState('');
+  const urlFilter = useMemo(() => {
+    if (typeof window === 'undefined') return { informe: '', cita: '' };
+    const p = new URLSearchParams(window.location.search);
+    return { informe: p.get('informe') ?? '', cita: p.get('cita') ?? '' };
+  }, []);
   const list = useMemo(() => {
     let d = visibleDocumentsForPatient(state, patient.id);
+    if (urlFilter.cita) d = d.filter((x) => x.appointmentId === urlFilter.cita);
+    if (urlFilter.informe) {
+      const rep = state.clinicalReports.find((r) => r.id === urlFilter.informe);
+      if (rep?.appointmentId) d = d.filter((x) => x.appointmentId === rep.appointmentId);
+    }
     if (q.trim()) {
       const s = q.toLowerCase();
       d = d.filter((x) => x.id.toLowerCase().includes(s) || x.title.toLowerCase().includes(s) || x.type.includes(s));
     }
     return d.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  }, [state, patient.id, q]);
+  }, [state, patient.id, q, urlFilter]);
 
   return (
     <div className="space-y-4">
+      {urlFilter.informe || urlFilter.cita ? (
+        <div className="banner-alert flex flex-wrap items-center justify-between gap-2">
+          <span>Documentos relacionados con tu informe o cita.</span>
+          <a href="/paciente/informes" className="text-xs font-bold text-teal-800 underline">
+            Volver a informes
+          </a>
+        </div>
+      ) : null}
       <PageHeader title="Mis documentos" subtitle="Consentimientos, radiografías y recibos" />
       <SearchInput value={q} onChange={setQ} placeholder="Buscar documento o tipo…" />
       <div className="grid gap-4 md:grid-cols-2">
