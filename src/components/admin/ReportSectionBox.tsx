@@ -9,6 +9,7 @@ type ReportSectionBoxProps = {
   onChange: (value: string) => void;
   rows?: number;
   required?: boolean;
+  wide?: boolean;
   variant?: 'default' | 'legal' | 'compact';
   children?: ReactNode;
 };
@@ -21,12 +22,15 @@ export function ReportSectionBox({
   onChange,
   rows = 3,
   required,
+  wide,
   variant = 'compact',
   children
 }: ReportSectionBoxProps) {
   const compact = variant === 'compact';
   return (
-    <label className={`cr-field${compact ? ' cr-field--compact' : ''}${variant === 'legal' ? ' cr-field--legal' : ''}`}>
+    <label
+      className={`cr-field${compact ? ' cr-field--compact' : ''}${variant === 'legal' ? ' cr-field--legal' : ''}${wide ? ' cr-field--wide' : ''}`}
+    >
       <span className="cr-field__label">
         {step && !compact ? <span className="cr-field__step">{step}</span> : null}
         {title}

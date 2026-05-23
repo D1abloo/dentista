@@ -14,11 +14,12 @@ export type CompactReportField = {
   label: string;
   rows: number;
   required?: boolean;
+  wide?: boolean;
   tab: ReportComposeTab;
 };
 
 export const COMPACT_REPORT_FIELDS: CompactReportField[] = [
-  { key: 'antecedentes', label: 'Antecedentes', rows: 3, required: true, tab: 'clinical' },
+  { key: 'antecedentes', label: 'Antecedentes', rows: 3, required: true, wide: true, tab: 'clinical' },
   {
     key: 'informeTratamiento',
     label: 'Motivo y contexto de la visita',
@@ -31,6 +32,7 @@ export const COMPACT_REPORT_FIELDS: CompactReportField[] = [
     label: 'Exploración y actuación realizada',
     rows: 4,
     required: true,
+    wide: true,
     tab: 'clinical'
   },
   {

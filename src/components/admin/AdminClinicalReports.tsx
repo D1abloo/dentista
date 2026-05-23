@@ -444,6 +444,7 @@ export function AdminClinicalReports() {
                   title={f.label}
                   rows={f.rows}
                   required={f.required}
+                  wide={f.wide}
                   value={form.sections[f.key]}
                   onChange={(v) => patchSection(f.key, v)}
                 />

@@ -47,10 +47,12 @@
 }
 
 .cr-compose {
-  max-width: 52rem;
+  width: 100%;
+  max-width: none;
 }
 
 .cr-form-panel {
+  width: 100%;
   background: #fff;
   border: 1px solid #e8eef4;
   border-radius: 1rem;
@@ -148,11 +150,9 @@
 
 .cr-body-fields {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.65rem;
   padding: 0.85rem 1rem;
-  max-height: min(52vh, 28rem);
-  overflow-y: auto;
 }
 
 .cr-field {
@@ -358,28 +358,24 @@
   font-size: 0.85rem;
 }
 
-@media (min-width: 900px) {
+.cr-body-fields .cr-field--wide {
+  grid-column: 1 / -1;
+}
+
+.cr-legal-details {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 1100px) {
   .cr-body-fields {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .cr-body-fields .cr-field:first-child,
-  .cr-body-fields .cr-field:nth-child(3) {
-    grid-column: 1 / -1;
-  }
-
-  .cr-legal-details {
-    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 640px) {
   .cr-setup__row,
-  .cr-list-toolbar {
-    grid-template-columns: 1fr;
-  }
-
+  .cr-list-toolbar,
   .cr-body-fields {
-    max-height: none;
+    grid-template-columns: 1fr;
   }
 }
