@@ -1,27 +1,29 @@
-import { adminGuideSections, patientGuideSections } from '@/lib/guide/content';
 import type { GuideSection, HelpAudience, HelpAudienceMeta, HelpFaq, HelpQuickLink } from '@/lib/guide/types';
+import { helpSectionsByAudience } from '@/lib/guide/hubCatalog';
 
 export type { GuideSection, HelpAudience, HelpFaq, HelpQuickLink } from '@/lib/guide/types';
+export { helpSectionsByAudience } from '@/lib/guide/hubCatalog';
 
 export const helpAudiences: HelpAudienceMeta[] = [
   {
     id: 'patient',
     label: 'Paciente',
     hash: 'portal-paciente',
-    description: 'Registro, citas, informes y facturas en tu portal.'
+    description: 'Guías para acceder a tu portal, ver citas, informes, documentos y más.'
   },
   {
     id: 'admin',
     label: 'Clínica',
     hash: 'panel-admin',
-    description: 'Agenda, pacientes, facturación y acceso al portal del paciente.'
+    description: 'Gestiona tu agenda, pacientes, facturación y portal del paciente.'
+  },
+  {
+    id: 'platform',
+    label: 'Administrador',
+    hash: 'plataforma',
+    description: 'Configuración avanzada, seguridad, auditoría y gestión de la plataforma.'
   }
 ];
-
-export const helpSectionsByAudience: Record<HelpAudience, GuideSection[]> = {
-  patient: patientGuideSections,
-  admin: adminGuideSections
-};
 
 export const helpQuickLinks: HelpQuickLink[] = [
   {
@@ -102,6 +104,30 @@ export const helpFaqs: HelpFaq[] = [
     audience: 'all',
     question: '¿Dónde contacto con soporte?',
     answer: 'Usa el formulario en /contacto indicando si eres paciente o clínica.'
+  },
+  {
+    id: 'docs-patient',
+    audience: 'patient',
+    question: '¿Dónde descargo mis informes o facturas?',
+    answer: 'En el portal paciente, secciones Informes, Documentos y Facturas. Solo verás lo publicado por tu clínica.'
+  },
+  {
+    id: 'consent-faq',
+    audience: 'patient',
+    question: '¿Cómo firmo un consentimiento?',
+    answer: 'Abre Consentimientos en el menú del portal y pulsa Leer y firmar en cada documento pendiente.'
+  },
+  {
+    id: 'invoice-admin',
+    audience: 'admin',
+    question: '¿Cómo emito una factura al paciente?',
+    answer: 'En Facturación crea FAC-XXXX vinculada al paciente y tratamiento. El PDF puede incluir el logo de tu clínica.'
+  },
+  {
+    id: 'platform-access',
+    audience: 'platform',
+    question: '¿Quién puede acceder al panel de plataforma?',
+    answer: 'Solo cuentas de administrador global autorizadas por Dentista+. No es visible para pacientes ni personal de clínica.'
   }
 ];
 
@@ -126,8 +152,20 @@ export function parseHelpHash(hash: string): HelpRoute {
     return { audience: 'patient', sectionId: null, showFaq: false };
   }
 
-  if (raw === 'panel-admin' || raw === 'admin') {
+  if (raw === 'panel-admin' || raw === 'admin' || raw === 'clinica') {
     return { audience: 'admin', sectionId: null, showFaq: false };
+  }
+
+  if (raw === 'plataforma' || raw === 'platform' || raw === 'administrador') {
+    return { audience: 'platform', sectionId: null, showFaq: false };
+  }
+
+  if (raw === 'documentacion' || raw === 'docs') {
+    return { audience: 'patient', sectionId: null, showFaq: false };
+  }
+
+  if (helpSectionsByAudience.platform.some((s) => s.id === raw)) {
+    return { audience: 'platform', sectionId: raw, showFaq: false };
   }
 
   if (helpSectionsByAudience.admin.some((s) => s.id === raw)) {
@@ -156,6 +194,10 @@ export function helpHashFaq(): string {
 
 export function faqsForAudience(audience: HelpAudience): HelpFaq[] {
   return helpFaqs.filter((f) => f.audience === 'all' || f.audience === audience);
+}
+
+export function faqsPatientAndClinic(): HelpFaq[] {
+  return helpFaqs.filter((f) => f.audience === 'all' || f.audience === 'patient' || f.audience === 'admin');
 }
 
 export function sectionThumb(section: GuideSection): string {

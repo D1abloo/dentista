@@ -362,3 +362,43 @@ export const adminGuideSections: GuideSection[] = [
     ]
   }
 ];
+
+export const platformGuideSections: GuideSection[] = [
+  {
+    id: 'plataforma-panel',
+    title: 'Panel de plataforma',
+    summary: 'Vista global de clínicas, suscripciones e incidencias del ecosistema Dentista+.',
+    goal: 'Supervisar el estado de las organizaciones y actuar ante alertas operativas.',
+    audience: 'Administradores globales Dentista+.',
+    screenshots: [{ src: mobile('admin-dashboard'), alt: 'Panel plataforma', caption: 'Resumen de clínicas y métricas.' }],
+    steps: [
+      { title: 'Accede a /plataforma', detail: 'Inicia sesión con cuenta de administrador global.' },
+      { title: 'Revisa KPIs', detail: 'Consulta clínicas activas, usuarios y estado de servicios.' }
+    ]
+  },
+  {
+    id: 'plataforma-clinicas',
+    title: 'Clínicas y usuarios',
+    summary: 'Alta de centros, invitaciones y roles de personal.',
+    goal: 'Gestionar el ciclo de vida de clínicas y cuentas vinculadas.',
+    audience: 'Administradores globales Dentista+.',
+    screenshots: [{ src: mobile('admin-pacientes'), alt: 'Gestión de clínicas', caption: 'Listado y detalle de organizaciones.' }],
+    steps: [
+      { title: 'Organizaciones', detail: 'Crea o edita clínicas desde el módulo de plataforma.' },
+      { title: 'Usuarios', detail: 'Asigna roles admin, recepción o dentista por centro.' }
+    ]
+  },
+  {
+    id: 'plataforma-seguridad',
+    title: 'Seguridad y auditoría',
+    summary: 'Registro de accesos, políticas y revisión de incidencias.',
+    goal: 'Garantizar trazabilidad y cumplimiento en todo el SaaS.',
+    audience: 'Administradores globales Dentista+.',
+    screenshots: [{ src: mobile('admin-acceso'), alt: 'Auditoría', caption: 'Historial de accesos y tokens.' }],
+    steps: [
+      { title: 'Historial', detail: 'Consulta accesos al portal paciente y cambios sensibles.' },
+      { title: 'Políticas', detail: 'Revisa contraseñas, caducidad y bloqueos de sesión.' }
+    ],
+    warnings: ['Las acciones de plataforma afectan a todas las clínicas: confirma antes de aplicar cambios globales.']
+  }
+];

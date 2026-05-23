@@ -27,7 +27,10 @@ const icons: Record<string, LucideIcon> = {
   'pacientes-informes': Users,
   facturacion: Receipt,
   'portal-acceso': Shield,
-  'logo-marca': Building2
+  'logo-marca': Building2,
+  'plataforma-panel': LayoutDashboard,
+  'plataforma-clinicas': Users,
+  'plataforma-seguridad': Shield
 };
 
 export function HelpTopicGrid({

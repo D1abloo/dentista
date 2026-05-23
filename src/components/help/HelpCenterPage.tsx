@@ -1,13 +1,13 @@
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { PublicHeader } from '@/components/public/PublicHeader';
-import { HelpDocsPage } from './HelpDocsPage';
+import { HelpHubPage } from './HelpHubPage';
 
 export function HelpCenterPage() {
   return (
     <>
       <PublicHeader activeHref="/ayuda" />
-      <main className="help-hub help-hub--docs">
-        <HelpDocsPage />
+      <main className="help-hub">
+        <HelpHubPage />
       </main>
       <PublicFooter />
     </>

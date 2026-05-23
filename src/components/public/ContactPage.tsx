@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowRight, CheckCircle2, Mail, MessageCircle, Phone } from 'lucide-react';
 import { Field, Input, Select, Textarea } from '@/components/ui';
 import { email, required } from '@/lib/validation';
@@ -27,6 +27,20 @@ export function ContactPage() {
     message: '',
     accept_terms: false
   });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tipo = params.get('tipo');
+    const mensaje = params.get('mensaje');
+    setForm((prev) => {
+      const next = { ...prev };
+      if (tipo && consultTypes.some((t) => t.value === tipo)) {
+        next.type = tipo as (typeof consultTypes)[number]['value'];
+      }
+      if (mensaje) next.message = decodeURIComponent(mensaje.replace(/\+/g, ' '));
+      return next;
+    });
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

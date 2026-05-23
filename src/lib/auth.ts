@@ -173,8 +173,18 @@ export function loginSuperAdmin(input: LoginInput): Omit<SessionUser, 'expiresAt
 export type { LoginProductionResult } from '@/lib/auth/loginResolve';
 
 export async function loginProductionUser(input: LoginInput): Promise<LoginProductionResult | null> {
-  const superUser = loginSuperAdmin(input);
-  if (superUser) return superUser;
+  if (input.role === 'super_admin') {
+    const envUser = loginSuperAdmin(input);
+    if (envUser) return envUser;
+    if (!hasSupabaseConfig()) return null;
+    try {
+      return await loginWithSupabaseProfile(input);
+    } catch (err) {
+      if (err instanceof AccountNotActivatedError) throw err;
+      return null;
+    }
+  }
+
   if (!hasSupabaseConfig()) return null;
   try {
     if (input.role === 'auto') {

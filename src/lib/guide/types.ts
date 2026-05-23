@@ -25,7 +25,7 @@ export type GuideSection = {
   related?: { label: string; href: string }[];
 };
 
-export type HelpAudience = 'patient' | 'admin';
+export type HelpAudience = 'patient' | 'admin' | 'platform';
 
 export type HelpFaq = {
   id: string;

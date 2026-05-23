@@ -1,16 +1,16 @@
 import { ArrowRight } from 'lucide-react';
-import { helpSectionsByAudience, sectionThumb, type HelpAudience } from '@/lib/guide/catalog';
+import { helpHashAudience, helpSectionsByAudience, sectionThumb, type HelpAudience } from '@/lib/guide/catalog';
 
 /** Vista compacta: tarjetas que enlazan al centro de ayuda completo. */
 export function HelpEmbedded({ audience = 'patient' }: { audience?: HelpAudience }) {
   const sections = helpSectionsByAudience[audience];
-  const hubHash = audience === 'patient' ? 'portal-paciente' : 'panel-admin';
+  const hubHash = helpHashAudience(audience);
 
   return (
     <div className="help-embedded-v2">
       <p className="help-embedded-v2__lead">
         Elige un tema o abre el{' '}
-        <a href={`/ayuda#${hubHash}`}>centro de ayuda</a> con capturas reales del portal.
+        <a href={`/ayuda${hubHash}`}>centro de ayuda</a> con capturas reales del portal.
       </p>
       <div className="help-embedded-v2__grid">
         {sections.map((s) => (
