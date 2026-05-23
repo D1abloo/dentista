@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import {
   Activity,
   AlertTriangle,
@@ -129,32 +129,51 @@ function ModuleDonut({ segments }: { segments: { label: string; percent: number 
   const c = 2 * Math.PI * r;
   let offset = 0;
   const colors = ['#0d9488', '#0891b2', '#6366f1', '#f59e0b', '#94a3b8'];
+  const total = segments.reduce((sum, s) => sum + s.percent, 0) || 100;
   return (
     <div className="aud-donut-wrap">
-      <svg className="aud-donut" viewBox="0 0 100 100" role="img" aria-label="Actividad por módulo">
-        <circle className="aud-donut__bg" cx="50" cy="50" r={r} />
-        {segments.map((s, i) => {
-          const dash = (s.percent / 100) * c;
-          const el = (
-            <circle
-              key={s.label}
-              className="aud-donut__fg"
-              cx="50"
-              cy="50"
-              r={r}
-              stroke={colors[i % colors.length]}
-              strokeDasharray={`${dash} ${c - dash}`}
-              strokeDashoffset={-offset}
-            />
-          );
-          offset += dash;
-          return el;
-        })}
-      </svg>
+      <div className="aud-donut__chart" aria-hidden>
+        <svg className="aud-donut" viewBox="0 0 100 100" role="img" aria-label="Actividad por módulo">
+          <circle className="aud-donut__bg" cx="50" cy="50" r={r} />
+          {segments.map((s, i) => {
+            const dash = (s.percent / 100) * c;
+            const gap = c - dash;
+            const el = (
+              <circle
+                key={s.label}
+                className="aud-donut__fg"
+                cx="50"
+                cy="50"
+                r={r}
+                stroke={colors[i % colors.length]}
+                strokeDasharray={`${dash} ${gap}`}
+                strokeDashoffset={-offset}
+                style={
+                  {
+                    '--aud-dash': dash,
+                    '--aud-gap': gap,
+                    '--aud-offset': -offset,
+                    '--aud-delay': `${i * 110}ms`
+                  } as CSSProperties
+                }
+              />
+            );
+            offset += dash;
+            return el;
+          })}
+        </svg>
+        <span className="aud-donut__center">
+          <strong>{total}%</strong>
+          <small>distribución</small>
+        </span>
+      </div>
       <ul className="aud-donut-legend">
-        {segments.map((s) => (
-          <li key={s.label}>
-            <strong>{s.percent}%</strong> {s.label}
+        {segments.map((s, i) => (
+          <li key={s.label} style={{ animationDelay: `${180 + i * 70}ms` }}>
+            <span className="aud-donut-legend__dot" style={{ background: colors[i % colors.length] }} aria-hidden />
+            <span className="aud-donut-legend__text">
+              <strong>{s.percent}%</strong> {s.label}
+            </span>
           </li>
         ))}
       </ul>
@@ -585,34 +604,51 @@ export function PlatformAudit() {
               ) : null}
             </section>
 
-            <div className="aud-bottom">
-              <article className="cln-card">
-                <h3 className="cln-card__title">Eventos críticos</h3>
-                <ul className="aud-mini-list">
-                  {payload?.critical_summary.map((row) => (
-                    <li key={row.id}>
-                      <span>{row.label}</span>
-                      <strong>{row.count}</strong>
-                    </li>
-                  ))}
-                </ul>
+            <div className="aud-charts">
+              <article className="cln-card aud-chart-card aud-chart-card--critical">
+                <h3 className="cln-card__title aud-chart-card__title">Eventos críticos</h3>
+                <div className="aud-chart-card__body">
+                  <ul className="aud-mini-list">
+                    {payload?.critical_summary.map((row, i) => (
+                      <li key={row.id} style={{ animationDelay: `${i * 75}ms` }}>
+                        <span>{row.label}</span>
+                        <strong className={row.count > 0 ? 'aud-mini-list__count--alert' : ''}>{row.count}</strong>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </article>
-              <article className="cln-card">
-                <h3 className="cln-card__title">Actividad por módulo</h3>
-                {payload ? <ModuleDonut segments={payload.by_module} /> : null}
+              <article className="cln-card aud-chart-card aud-chart-card--module">
+                <h3 className="cln-card__title aud-chart-card__title">Actividad por módulo</h3>
+                <div className="aud-chart-card__body">
+                  {payload ? <ModuleDonut segments={payload.by_module} /> : null}
+                </div>
               </article>
-              <article className="cln-card">
-                <h3 className="cln-card__title">Actividad por actor</h3>
-                <div className="aud-hbar">
-                  {payload?.by_actor.map((a, i) => (
-                    <div key={a.label} className="aud-hbar__row">
-                      <span>{a.label}</span>
-                      <div className="aud-hbar__track">
-                        <div className="aud-hbar__fill" style={{ width: `${(a.events / maxActor) * 100}%`, transitionDelay: `${i * 60}ms` }} />
-                      </div>
-                      <span>{a.events}</span>
-                    </div>
-                  ))}
+              <article className="cln-card aud-chart-card aud-chart-card--actor">
+                <h3 className="cln-card__title aud-chart-card__title">Actividad por actor</h3>
+                <div className="aud-chart-card__body">
+                  <div className="aud-hbar">
+                    {payload?.by_actor.map((a, i) => {
+                      const pct = (a.events / maxActor) * 100;
+                      return (
+                        <div key={a.label} className="aud-hbar__row" style={{ animationDelay: `${i * 80}ms` }}>
+                          <span className="aud-hbar__label">{a.label}</span>
+                          <div className="aud-hbar__track">
+                            <div
+                              className="aud-hbar__fill"
+                              style={
+                                {
+                                  '--aud-bar-pct': `${pct}%`,
+                                  '--aud-bar-delay': `${120 + i * 90}ms`
+                                } as CSSProperties
+                              }
+                            />
+                          </div>
+                          <span className="aud-hbar__value">{a.events}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </article>
             </div>
