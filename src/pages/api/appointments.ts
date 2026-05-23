@@ -1,5 +1,11 @@
 import type { APIRoute } from 'astro';
-import { assertClinicScope, requireClinicSession, requireSession } from '@/lib/api/guards';
+import {
+  assertClinicScopeAsync,
+  assertOwnPatient,
+  isPatientSession,
+  requireClinicSessionAsync,
+  requireSession
+} from '@/lib/api/guards';
 import { ok, created, fail } from '@/lib/http';
 import { sendAppointmentNotifications } from '@/lib/notifications';
 import { listAppointments, createAppointment, updateAppointment } from '@/lib/services/appointments';
@@ -15,14 +21,16 @@ export const GET: APIRoute = async (context) => {
     const parsed = appointmentListQuerySchema.safeParse(Object.fromEntries(context.url.searchParams));
     if (!parsed.success) return fail('Query de citas inválida.', 422, parsed.error.flatten());
     const { clinicId, dentistId } = parsed.data;
-    const scopeErr = assertClinicScope(user, clinicId);
+    const scopeErr = await assertClinicScopeAsync(user, clinicId);
     if (scopeErr) return scopeErr;
     const allAppointments = await listAppointments(clinicId);
     const scoped = dentistId ? allAppointments.filter((appointment) => appointment.dentistId === dentistId) : allAppointments;
-    const data = user.role === 'patient'
-      ? scoped.filter((appointment) => appointment.patientId === (user.patientId ?? 'p-maria'))
-      : scoped;
-    return ok(data, { count: data.length, mode: import.meta.env.PUBLIC_DEMO_MODE === 'false' ? 'real' : 'demo' });
+    if (isPatientSession(user)) {
+      if (!user.patientId) return fail('Sesión de paciente incompleta.', 403);
+      const data = scoped.filter((appointment) => appointment.patientId === user.patientId);
+      return ok(data, { count: data.length });
+    }
+    return ok(scoped, { count: scoped.length });
   } catch (error) {
     return fail('No se pudieron cargar las citas.', 500, error instanceof Error ? error.message : error);
   }
@@ -34,10 +42,11 @@ export const POST: APIRoute = async (context) => {
     const parsed = appointmentSchema.safeParse(payload);
     if (!parsed.success) return fail('Datos de cita inválidos.', 422, parsed.error.flatten());
 
-    const gate = requireClinicSession(context, parsed.data.clinicId);
+    const gate = await requireClinicSessionAsync(context, parsed.data.clinicId);
     if (gate.response) return gate.response;
-    if (gate.user!.role === 'patient' && parsed.data.patientId !== gate.user!.patientId) {
-      return fail('No puedes crear citas para otro paciente.', 403);
+    if (isPatientSession(gate.user)) {
+      const ownErr = assertOwnPatient(gate.user, parsed.data.patientId);
+      if (ownErr) return ownErr;
     }
 
     const data = await createAppointment(parsed.data);
@@ -74,14 +83,17 @@ export const PATCH: APIRoute = async (context) => {
     const payload = await context.request.json();
     const parsed = appointmentActionSchema.safeParse(payload);
     if (!parsed.success) return fail('Acción de cita inválida.', 422, parsed.error.flatten());
-    const scopeErr = assertClinicScope(user, parsed.data.clinicId);
+    const scopeErr = await assertClinicScopeAsync(user, parsed.data.clinicId);
     if (scopeErr) return scopeErr;
-    if (user.role === 'patient' && !['cancel', 'reschedule'].includes(parsed.data.action)) {
-      return fail('El paciente solo puede reprogramar o cancelar sus citas.', 403);
-    }
-    if (user.role === 'patient') {
-      const current = (await listAppointments(parsed.data.clinicId)).find((appointment) => appointment.id === parsed.data.appointmentId);
-      if (!current || current.patientId !== (user.patientId ?? 'p-maria')) {
+    if (isPatientSession(user)) {
+      if (!['cancel', 'reschedule'].includes(parsed.data.action)) {
+        return fail('El paciente solo puede reprogramar o cancelar sus citas.', 403);
+      }
+      if (!user.patientId) return fail('Sesión de paciente incompleta.', 403);
+      const current = (await listAppointments(parsed.data.clinicId)).find(
+        (appointment) => appointment.id === parsed.data.appointmentId
+      );
+      if (!current || current.patientId !== user.patientId) {
         return fail('No puedes modificar una cita de otro paciente.', 403);
       }
     }

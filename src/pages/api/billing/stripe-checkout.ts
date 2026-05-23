@@ -1,5 +1,11 @@
 import type { APIRoute } from 'astro';
-import { assertClinicScope, requireSession } from '@/lib/api/guards';
+import {
+  assertClinicScopeAsync,
+  assertOwnPatient,
+  isPatientSession,
+  requireSession,
+  requireStaffSession
+} from '@/lib/api/guards';
 import { created, fail } from '@/lib/http';
 import { getSupabaseAdmin } from '@/lib/supabaseServer';
 import { stripeCheckoutSchema } from '@/lib/validators';
@@ -18,8 +24,15 @@ export const POST: APIRoute = async (context) => {
     const payload = await context.request.json();
     const parsed = stripeCheckoutSchema.safeParse(payload);
     if (!parsed.success) return fail('Checkout inválido.', 422, parsed.error.flatten());
-    const scopeErr = assertClinicScope(gate.user, parsed.data.clinicId);
+    const scopeErr = await assertClinicScopeAsync(gate.user, parsed.data.clinicId);
     if (scopeErr) return scopeErr;
+    if (isPatientSession(gate.user)) {
+      const ownErr = assertOwnPatient(gate.user, parsed.data.patientId);
+      if (ownErr) return ownErr;
+    } else {
+      const staffGate = requireStaffSession(context);
+      if (staffGate.response) return staffGate.response;
+    }
 
     const amountCents = Math.round(parsed.data.amount * 100);
     const secret = env('STRIPE_SECRET_KEY');

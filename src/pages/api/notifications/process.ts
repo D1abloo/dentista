@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { requireSession } from '@/lib/api/guards';
+import { requireStaffSession } from '@/lib/api/guards';
 import { fail, ok } from '@/lib/http';
 import { processNotificationQueue } from '@/lib/notifications/queue';
 import { z } from 'zod';
@@ -12,11 +12,8 @@ const processSchema = z.object({
 
 export const POST: APIRoute = async (context) => {
   try {
-    const gate = requireSession(context);
+    const gate = requireStaffSession(context);
     if (gate.response) return gate.response;
-    if (gate.user.role !== 'admin' && gate.user.role !== 'super_admin') {
-      return fail('Solo staff puede procesar la cola de notificaciones.', 403);
-    }
 
     const payload = await context.request.json().catch(() => ({}));
     const parsed = processSchema.safeParse(payload);

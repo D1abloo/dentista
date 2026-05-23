@@ -63,6 +63,23 @@ export async function assertStaffOrOwnPatient(
   return fail('No autorizado.', 403);
 }
 
+export function isPatientSession(user: SessionUser) {
+  return user.role === 'patient' || Boolean(user.patientId);
+}
+
+export function assertOwnPatient(user: SessionUser, patientId: string) {
+  if (user.role === 'super_admin') return null;
+  if (!isPatientSession(user)) return fail('Se requiere sesión de paciente.', 403);
+  if (!user.patientId) return fail('Sesión de paciente incompleta.', 403);
+  if (user.patientId !== patientId) return fail('No puedes actuar sobre otro paciente.', 403);
+  return null;
+}
+
+/** Sede efectiva para staff: query o sesión. */
+export function resolveStaffClinicId(user: SessionUser, requestedClinicId?: string) {
+  return requestedClinicId ?? user.clinicId ?? '';
+}
+
 export async function requireClinicSessionAsync(context: APIContext, clinicId: string) {
   const gate = requireStaffSession(context);
   if (gate.response) return gate;

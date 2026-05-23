@@ -1,18 +1,20 @@
 import type { APIRoute } from 'astro';
-import { getSessionUser } from '@/lib/auth';
+import { assertClinicScopeAsync, requireStaffSession, resolveStaffClinicId } from '@/lib/api/guards';
 import { ok, fail } from '@/lib/http';
 import { getAdminMetrics } from '@/lib/services/metrics';
 import { clinicQuerySchema } from '@/lib/validators';
 
 export const prerender = false;
 
-export const GET: APIRoute = async ({ url, cookies }) => {
+export const GET: APIRoute = async (context) => {
   try {
-    const user = getSessionUser(cookies);
-    if (user?.role !== 'admin') return fail('No autorizado para métricas admin.', 401);
-    const parsed = clinicQuerySchema.safeParse(Object.fromEntries(url.searchParams));
+    const gate = requireStaffSession(context);
+    if (gate.response) return gate.response;
+    const parsed = clinicQuerySchema.safeParse(Object.fromEntries(context.url.searchParams));
     if (!parsed.success) return fail('Query de métricas inválida.', 422, parsed.error.flatten());
-    const { clinicId } = parsed.data;
+    const clinicId = resolveStaffClinicId(gate.user, parsed.data.clinicId);
+    const scopeErr = await assertClinicScopeAsync(gate.user, clinicId);
+    if (scopeErr) return scopeErr;
     const data = await getAdminMetrics(clinicId);
     return ok(data, { cache: 'redis-or-memory', clinicId });
   } catch (error) {

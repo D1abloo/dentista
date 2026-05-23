@@ -86,6 +86,8 @@ Nunca cachear datos clínicos sensibles sin estrategia explícita de seguridad.
 
 Toda entidad operativa contiene `clinic_id`. Las políticas RLS deben impedir acceso cruzado entre clínicas.
 
+Migración `0028_rls_records_gaps.sql` cierra huecos en consentimientos, documentos, mensajes, pagos y lectura de facturas por paciente. Las APIs usan `assertClinicScopeAsync` y `assertOwnPatient` en `src/lib/api/guards.ts`. Matriz QA: `docs/QA_E2E_MATRIX.md` · script `npm run qa:audit`.
+
 ## Roles
 
 - `patient`: portal propio.

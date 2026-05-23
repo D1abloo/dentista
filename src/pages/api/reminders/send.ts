@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getSessionUser } from '@/lib/auth';
+import { assertClinicScopeAsync, requireStaffSession } from '@/lib/api/guards';
 import { ok, fail } from '@/lib/http';
 import { processNotificationQueue } from '@/lib/notifications/queue';
 import { getSupabaseAdmin, hasSupabaseConfig, isDemoMode } from '@/lib/supabaseServer';
@@ -7,13 +7,15 @@ import { reminderSchema } from '@/lib/validators';
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async (context) => {
   try {
-    const user = getSessionUser(cookies);
-    if (user?.role !== 'admin') return fail('No autorizado para enviar recordatorios.', 401);
-    const payload = await request.json();
+    const gate = requireStaffSession(context);
+    if (gate.response) return gate.response;
+    const payload = await context.request.json();
     const parsed = reminderSchema.safeParse(payload);
     if (!parsed.success) return fail('Payload de recordatorio inválido.', 422, parsed.error.flatten());
+    const scopeErr = await assertClinicScopeAsync(gate.user, parsed.data.clinicId);
+    if (scopeErr) return scopeErr;
     const providers = {
       whatsapp: import.meta.env.WHATSAPP_PROVIDER ?? 'mock',
       email: import.meta.env.EMAIL_PROVIDER ?? 'mock',

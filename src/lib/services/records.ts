@@ -311,11 +311,13 @@ export async function createPatientDocumentRecord(input: DocumentInput) {
   if (isDemoMode() || !hasSupabaseConfig()) return null;
   const db = getSupabaseAdmin();
   const tenantId = await resolveTenantId(input.clinicId);
+  const patientProfileId = await resolvePatientProfileId(input.patientId);
+  await assertReportPayloadScope(input.clinicId, tenantId, patientProfileId, input.appointmentId);
   const { data, error } = await db
     .from('patient_documents')
     .insert({
       tenant_id: tenantId,
-      patient_id: input.patientId,
+      patient_id: patientProfileId,
       appointment_id: input.appointmentId ?? null,
       type: input.type,
       title: input.title,
@@ -335,11 +337,13 @@ export async function createPatientMessageRecord(input: MessageInput) {
   if (isDemoMode() || !hasSupabaseConfig()) return null;
   const db = getSupabaseAdmin();
   const tenantId = await resolveTenantId(input.clinicId);
+  const patientProfileId = await resolvePatientProfileId(input.patientId);
+  await assertReportPayloadScope(input.clinicId, tenantId, patientProfileId);
   const { data, error } = await db
     .from('messages')
     .insert({
       tenant_id: tenantId,
-      patient_id: input.patientId,
+      patient_id: patientProfileId,
       subject: input.subject,
       body: input.body,
       channel: input.channel,
@@ -356,11 +360,13 @@ export async function createInformedConsentRecord(input: ConsentInput) {
   if (isDemoMode() || !hasSupabaseConfig()) return null;
   const db = getSupabaseAdmin();
   const tenantId = await resolveTenantId(input.clinicId);
+  const patientProfileId = await resolvePatientProfileId(input.patientId);
+  await assertReportPayloadScope(input.clinicId, tenantId, patientProfileId, input.appointmentId);
   const { data, error } = await db
     .from('informed_consents')
     .insert({
       tenant_id: tenantId,
-      patient_id: input.patientId,
+      patient_id: patientProfileId,
       appointment_id: input.appointmentId ?? null,
       treatment_name: input.treatmentName,
       title: input.title,
@@ -377,7 +383,8 @@ export async function createInformedConsentRecord(input: ConsentInput) {
 }
 
 export async function consentBelongsToPatient(consentId: string, patientProfileId: string) {
-  if (isDemoMode() || !hasSupabaseConfig()) return true;
+  if (!hasSupabaseConfig()) return false;
+  if (isDemoMode()) return true;
   const db = getSupabaseAdmin();
   const { data, error } = await db
     .from('informed_consents')
