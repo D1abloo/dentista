@@ -12,6 +12,8 @@ export type ApptChip =
   | 'history'
   | 'active';
 
+export type ApptSection = 'current' | 'past' | 'completed';
+
 export type ApptSort = 'recent' | 'oldest';
 
 export type PatientAppointmentView = {
@@ -25,6 +27,9 @@ export type PatientAppointmentView = {
   dateTimeLabel: string;
   statusLabel: string;
   isUpcoming: boolean;
+  isCurrent: boolean;
+  isPast: boolean;
+  isCompleted: boolean;
   isHistory: boolean;
   canCancel: boolean;
   canReschedule: boolean;
@@ -50,8 +55,11 @@ export function enrichPatientAppointments(state: DemoState, patientId: string): 
       (r) => r.patientId === patientId && r.appointmentId === a.id
     );
     const active = isActiveStatus(a.status);
-    const isUpcoming = active && a.date >= today;
-    const isHistory = ['completada', 'cancelada', 'no_asistio'].includes(a.status);
+    const isCompleted = a.status === 'completada';
+    const isPast = a.date < today && !isCompleted;
+    const isCurrent = a.date >= today && active;
+    const isUpcoming = isCurrent;
+    const isHistory = isPast || isCompleted || ['cancelada', 'no_asistio'].includes(a.status);
 
     return {
       appointment: a,
@@ -64,9 +72,12 @@ export function enrichPatientAppointments(state: DemoState, patientId: string): 
       dateTimeLabel: fmtDateTime(a.date, a.time),
       statusLabel: statusLabel(a.status),
       isUpcoming,
+      isCurrent,
+      isPast,
+      isCompleted,
       isHistory,
-      canCancel: active && a.status !== 'cancelada',
-      canReschedule: active && a.status !== 'cancelada',
+      canCancel: isCurrent && active && a.status !== 'cancelada',
+      canReschedule: isCurrent && active && a.status !== 'cancelada',
       hasInvoice: Boolean(invoice),
       hasReport: Boolean(report),
       invoiceId: invoice?.id,
@@ -78,13 +89,28 @@ export function enrichPatientAppointments(state: DemoState, patientId: string): 
   });
 }
 
+export function filterAppointmentsBySection(
+  views: PatientAppointmentView[],
+  section: ApptSection
+): PatientAppointmentView[] {
+  switch (section) {
+    case 'past':
+      return views.filter((v) => v.isPast);
+    case 'completed':
+      return views.filter((v) => v.isCompleted);
+    default:
+      return views.filter((v) => v.isCurrent);
+  }
+}
+
 export function buildAppointmentKpis(views: PatientAppointmentView[]) {
-  const upcoming = views.filter((v) => v.isUpcoming).length;
-  const confirmed = views.filter((v) => v.appointment.status === 'confirmada').length;
-  const pending = views.filter((v) => v.appointment.status === 'pendiente').length;
-  const cancelled = views.filter((v) => v.appointment.status === 'cancelada').length;
-  const history = views.filter((v) => v.isHistory).length;
-  const next = views
+  const current = views.filter((v) => v.isCurrent);
+  const upcoming = current.filter((v) => v.isUpcoming).length;
+  const confirmed = current.filter((v) => v.appointment.status === 'confirmada').length;
+  const pending = current.filter((v) => v.appointment.status === 'pendiente').length;
+  const cancelled = current.filter((v) => v.appointment.status === 'cancelada').length;
+  const history = views.filter((v) => v.isPast || v.isCompleted).length;
+  const next = current
     .filter((v) => v.isUpcoming)
     .sort((a, b) =>
       `${a.appointment.date}${a.appointment.time}`.localeCompare(
@@ -112,7 +138,7 @@ function matchesChip(v: PatientAppointmentView, chip: ApptChip): boolean {
     case 'cancelled':
       return v.appointment.status === 'cancelada';
     case 'history':
-      return v.isHistory;
+      return v.appointment.status === 'no_asistio' || v.isHistory;
     case 'active':
       return isActiveStatus(v.appointment.status);
     default:

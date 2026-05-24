@@ -1,5 +1,6 @@
 import { isActiveStatus } from '@/lib/appointments';
 import { fmtDate, fmtDateTime, money, statusLabel } from '@/lib/format';
+import { formatNhcDisplay } from '@/lib/nhc';
 import {
   appointmentDetailHref,
   documentDetailHref,
@@ -51,9 +52,7 @@ export type AppointmentDisplay = {
 
 export function formatPatientNhc(nhc?: string) {
   if (!nhc) return '';
-  const digits = String(nhc).replace(/\D/g, '');
-  if (!digits) return `NHC ${nhc}`;
-  return `NHC ${digits.padStart(4, '0')}`;
+  return formatNhcDisplay(nhc);
 }
 
 function appointmentDisplay(state: DemoState, a: Appointment): AppointmentDisplay {
@@ -94,8 +93,9 @@ export function buildPatientHomeUpdates(state: DemoState, patientId: string, lim
     });
   }
 
+  const today = new Date().toISOString().slice(0, 10);
   const upcoming = state.appointments
-    .filter((a) => a.patientId === patientId && isActiveStatus(a.status))
+    .filter((a) => a.patientId === patientId && isActiveStatus(a.status) && a.date >= today)
     .sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`));
 
   if (upcoming[0]) {
@@ -155,8 +155,9 @@ export function buildPatientHomeUpdates(state: DemoState, patientId: string, lim
 }
 
 export function buildPatientHomeKpis(state: DemoState, patientId: string): PatientHomeKpis {
+  const today = new Date().toISOString().slice(0, 10);
   const activeAppointments = state.appointments.filter(
-    (a) => a.patientId === patientId && isActiveStatus(a.status)
+    (a) => a.patientId === patientId && isActiveStatus(a.status) && a.date >= today
   ).length;
   const pending = pendingInvoicesForPatient(state, patientId);
   const pendingTotal = pending.reduce((s, i) => s + i.amount, 0);
@@ -190,8 +191,9 @@ export function buildPatientHomeSummary(state: DemoState, patientId: string): Pa
 }
 
 export function getNextPatientAppointment(state: DemoState, patientId: string) {
+  const today = new Date().toISOString().slice(0, 10);
   const upcoming = state.appointments
-    .filter((a) => a.patientId === patientId && isActiveStatus(a.status))
+    .filter((a) => a.patientId === patientId && isActiveStatus(a.status) && a.date >= today)
     .sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`));
   const next = upcoming[0];
   if (!next) return null;

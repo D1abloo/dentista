@@ -1,12 +1,15 @@
+const LOGO_WEBP = '/images/logo.webp';
+
 export function LogoMark({ size = 44, className = '' }: { size?: number; className?: string }) {
   return (
-    <span className={`brand-logo-shine ${className}`} style={{ width: size, height: size }}>
+    <span className={`dentista-webp-lockup__mark brand-logo-shine ${className}`} style={{ width: size, height: size }}>
       <img
-        src="/brand/dentista-logo.svg"
+        src={LOGO_WEBP}
         alt="Dentista+"
         width={size}
         height={size}
-        className="brand-logo-shine__img"
+        className="dentista-webp-lockup__img brand-logo-shine__img"
+        decoding="async"
       />
     </span>
   );
@@ -25,9 +28,11 @@ export function LogoWordmark({ theme = 'light' }: { theme?: 'light' | 'dark' }) 
 
 export function Logo({ theme = 'light', size = 44 }: { theme?: 'light' | 'dark'; size?: number }) {
   return (
-    <span className="brand-logo-lockup inline-flex items-center gap-3">
+    <span className="brand-logo-lockup dentista-webp-lockup inline-flex items-center gap-3">
       <LogoMark size={size} />
       <LogoWordmark theme={theme} />
     </span>
   );
 }
+
+export { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';

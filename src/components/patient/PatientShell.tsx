@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { LogOut, Menu, Shield } from 'lucide-react';
-import { LogoMark } from '@/components/brand/Logo';
+import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
 import { useLogout } from '@/components/auth/RoleGate';
 import { logPortalAudit, usePortalAccess } from '@/hooks/usePortalAccess';
 import { usePatient } from '@/hooks/usePatient';
@@ -31,11 +31,8 @@ function Rail({
   return (
     <aside className={cls}>
       <a href="/paciente" className="corp-rail-brand no-underline">
-        <LogoMark size={40} />
-        <span>
-          <span className="corp-rail-brand__name">Dentista+</span>
-          <span className="corp-rail-brand__role">Portal paciente</span>
-        </span>
+        <DentistaWebpLockup placement="header" />
+        <span className="sr-only">Portal paciente</span>
       </a>
       <div className="corp-rail-user corp-rail-user--patient">
         <PatientIdentity patient={patient} size="sm" />

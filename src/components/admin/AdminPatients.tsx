@@ -34,6 +34,7 @@ import { useNotice } from '@/hooks/useNotice';
 import { useTenant } from '@/hooks/useTenant';
 import { email, phone, required } from '@/lib/validation';
 import { Button, Field, Input, Modal, Textarea } from '@/components/ui';
+import { formatNhcDisplay } from '@/lib/nhc';
 import { CreatePatientModal } from './CreatePatientModal';
 import { ImportPatientsModal } from './ImportPatientsModal';
 
@@ -44,12 +45,6 @@ function initials(name: string) {
     .join('')
     .slice(0, 2)
     .toUpperCase();
-}
-
-function formatNhc(nhc?: string) {
-  if (!nhc) return '—';
-  const n = String(nhc).replace(/\D/g, '');
-  return `NHC ${n.padStart(4, '0')}`;
 }
 
 function badgeLabel(kind: PatientRow['badges'][number]) {
@@ -340,7 +335,7 @@ export function AdminPatients() {
                 <div className="pt-card__main">
                   <strong>
                     {row.patient.fullName}
-                    <span className="pt-card__nhc">{formatNhc(row.patient.nhc)}</span>
+                    <span className="pt-card__nhc">{formatNhcDisplay(row.patient.nhc)}</span>
                   </strong>
                   <p className="pt-card__contact">
                     {row.patient.email} · {row.patient.phone}
@@ -402,7 +397,7 @@ export function AdminPatients() {
               <span className="pt-card__avatar">{initials(selected.patient.fullName)}</span>
               <div>
                 <strong className="block text-base text-slate-900">{selected.patient.fullName}</strong>
-                <span className="pt-card__nhc">{formatNhc(selected.patient.nhc)}</span>
+                <span className="pt-card__nhc">{formatNhcDisplay(selected.patient.nhc)}</span>
                 {selected.portalActive ? <span className="pt-badge pt-badge--portal mt-1 inline-block">Portal activo</span> : null}
               </div>
             </div>

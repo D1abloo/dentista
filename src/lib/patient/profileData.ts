@@ -2,6 +2,7 @@ import type { DemoState, Patient, ReminderChannel } from '@/types/demo';
 import { effectiveConsentStatus } from '@/lib/demoStore';
 import { email, phone, required } from '@/lib/validation';
 import { fmtDate } from '@/lib/format';
+import { formatNhcDisplay } from '@/lib/nhc';
 
 export type ProfileTab = 'personal' | 'contact' | 'health' | 'preferences' | 'consents' | 'security';
 
@@ -15,10 +16,7 @@ export function patientInitials(fullName: string): string {
 }
 
 export function displayNhc(nhc?: string): string {
-  if (!nhc) return '—';
-  const n = nhc.replace(/\D/g, '');
-  if (n.length <= 4) return `NHC ${n.padStart(4, '0')}`;
-  return `NHC ${nhc}`;
+  return formatNhcDisplay(nhc);
 }
 
 export function clinicNameForPatient(state: DemoState, clinicId?: string): string {

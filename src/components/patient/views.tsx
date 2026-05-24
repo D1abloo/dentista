@@ -1,7 +1,11 @@
 import { HelpEmbedded } from '@/components/help/HelpEmbedded';
 import { PatientConsentsCompact } from './consents';
 export { PatientConsents } from './PatientConsents';
-export { PatientAppointments } from './PatientAppointments';
+export {
+  PatientAppointments,
+  PatientCompletedAppointments,
+  PatientPastAppointments
+} from './PatientAppointments';
 export { PatientHistory } from './PatientHistory';
 export { PatientReports } from './PatientReports';
 export { PatientDocuments } from './PatientDocuments';

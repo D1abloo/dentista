@@ -23,22 +23,62 @@ import { formatPatientNhc } from '@/lib/patient/homeData';
 import {
   buildAppointmentKpis,
   enrichPatientAppointments,
+  filterAppointmentsBySection,
   filterPatientAppointments,
   statusTone,
   type ApptChip,
+  type ApptSection,
   type ApptSort,
   type PatientAppointmentView
 } from '@/lib/patient/citasData';
 import { Button, ConfirmModal, Modal } from '@/components/ui';
 
-const CHIPS: { id: ApptChip; label: string }[] = [
-  { id: 'all', label: 'Todas' },
-  { id: 'upcoming', label: 'Próximas' },
-  { id: 'confirmed', label: 'Confirmadas' },
-  { id: 'pending', label: 'Pendientes' },
-  { id: 'cancelled', label: 'Canceladas' },
-  { id: 'history', label: 'Historial' }
-];
+const CHIPS_BY_SECTION: Record<ApptSection, { id: ApptChip; label: string }[]> = {
+  current: [
+    { id: 'all', label: 'Todas' },
+    { id: 'upcoming', label: 'Próximas' },
+    { id: 'confirmed', label: 'Confirmadas' },
+    { id: 'pending', label: 'Pendientes' },
+    { id: 'cancelled', label: 'Canceladas' }
+  ],
+  past: [
+    { id: 'all', label: 'Todas' },
+    { id: 'cancelled', label: 'Canceladas' },
+    { id: 'pending', label: 'Pendientes' },
+    { id: 'history', label: 'No asistió' }
+  ],
+  completed: [{ id: 'all', label: 'Todas' }]
+};
+
+const SECTION_META: Record<
+  ApptSection,
+  { title: string; subtitle: string; path: string; auditLabel: string; emptyTitle: string; emptyBody: string }
+> = {
+  current: {
+    title: 'Mis citas',
+    subtitle: 'Gestiona tus próximas visitas, cancelaciones y reprogramaciones.',
+    path: '/paciente/citas',
+    auditLabel: 'Listado de citas activas del paciente',
+    emptyTitle: 'Aún no tienes citas activas',
+    emptyBody: 'Reserva tu próxima cita online y aparecerá aquí con su estado actualizado.'
+  },
+  past: {
+    title: 'Citas pasadas',
+    subtitle: 'Citas cuya fecha ya ha transcurrido. No aparecen en Mis citas.',
+    path: '/paciente/citas-pasadas',
+    auditLabel: 'Listado de citas pasadas del paciente',
+    emptyTitle: 'Sin citas pasadas',
+    emptyBody: 'Cuando una cita supere su fecha, la verás aquí automáticamente.'
+  },
+  completed: {
+    title: 'Citas completadas',
+    subtitle: 'Todas las visitas que la clínica ha marcado como completadas.',
+    path: '/paciente/citas-completadas',
+    auditLabel: 'Listado de citas completadas del paciente',
+    emptyTitle: 'Sin citas completadas',
+    emptyBody: 'Tras cada visita finalizada, la cita completada se mostrará en esta sección.'
+  }
+};
 
 function KpiStat({ label, value, delay, numeric }: { label: string; value: string | number; delay: number; numeric?: boolean }) {
   const n = numeric && typeof value === 'number' ? useCountUp(value, 650) : value;
@@ -50,14 +90,16 @@ function KpiStat({ label, value, delay, numeric }: { label: string; value: strin
   );
 }
 
-export function PatientAppointments() {
+export function PatientAppointments({ section = 'current' }: { section?: ApptSection }) {
+  const meta = SECTION_META[section];
+  const chips = CHIPS_BY_SECTION[section];
   const { state } = useDemoStore();
   const patient = usePatient();
   const { cancelAppointment, rescheduleAppointment } = usePatientMutations();
   const { setNotice } = useNotice();
   const portalAccess = usePortalAccess();
   const [q, setQ] = useState('');
-  const [chip, setChip] = useState<ApptChip>('all');
+  const [chip, setChip] = useState<ApptChip>(section === 'current' ? 'upcoming' : 'all');
   const [sort, setSort] = useState<ApptSort>('recent');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showCancel, setShowCancel] = useState(false);
@@ -69,8 +111,9 @@ export function PatientAppointments() {
   const urlParams = usePatientUrlParams();
   const focusId = resolveFocusId(urlParams, ['focus', 'cita']);
 
-  const views = useMemo(() => enrichPatientAppointments(state, patient.id), [state, patient.id]);
-  const kpis = useMemo(() => buildAppointmentKpis(views), [views]);
+  const allViews = useMemo(() => enrichPatientAppointments(state, patient.id), [state, patient.id]);
+  const views = useMemo(() => filterAppointmentsBySection(allViews, section), [allViews, section]);
+  const kpis = useMemo(() => buildAppointmentKpis(allViews), [allViews]);
   const filtered = useMemo(
     () => filterPatientAppointments(state, views, { q, chip, sort }),
     [state, views, q, chip, sort]
@@ -85,11 +128,24 @@ export function PatientAppointments() {
     if (portalAccess.active) {
       void logPortalAudit({
         eventType: 'other',
-        pagePath: '/paciente/citas',
-        resourceLabel: 'Listado de citas del paciente'
+        pagePath: meta.path,
+        resourceLabel: meta.auditLabel
       });
     }
-  }, [portalAccess.active]);
+  }, [portalAccess.active, meta.auditLabel, meta.path]);
+
+  useEffect(() => {
+    if (!focusId || section !== 'current') return;
+    const match = allViews.find((v) => v.appointment.id === focusId);
+    if (!match) return;
+    if (match.isCompleted) {
+      window.location.replace(`/paciente/citas-completadas?focus=${encodeURIComponent(focusId)}`);
+      return;
+    }
+    if (match.isPast) {
+      window.location.replace(`/paciente/citas-pasadas?focus=${encodeURIComponent(focusId)}`);
+    }
+  }, [focusId, section, allViews]);
 
   useEffect(() => {
     if (focusId) {
@@ -118,13 +174,13 @@ export function PatientAppointments() {
       if (portalAccess.active) {
         void logPortalAudit({
           eventType: 'other',
-          pagePath: '/paciente/citas',
+          pagePath: meta.path,
           resourceLabel: v.treatment,
           resourceId: v.appointment.id
         });
       }
     },
-    [portalAccess.active]
+    [portalAccess.active, meta.path]
   );
 
   async function downloadJustificante(v: PatientAppointmentView) {
@@ -182,11 +238,24 @@ export function PatientAppointments() {
   return (
     <div className="prt-page">
       <header className="prt-header">
-        <h2>Mis citas</h2>
+        <h2>{meta.title}</h2>
         <p>
-          Gestiona tus próximas visitas, cancelaciones y reprogramaciones.
+          {meta.subtitle}
           {nhc ? ` · ${nhc}` : ''}
         </p>
+        {section === 'current' ? (
+          <p className="text-sm text-slate-600 mt-2 mb-0">
+            Las citas con fecha pasada están en{' '}
+            <a href="/paciente/citas-pasadas" className="font-semibold text-teal-800 underline">
+              Citas pasadas
+            </a>
+            ; las completadas, en{' '}
+            <a href="/paciente/citas-completadas" className="font-semibold text-teal-800 underline">
+              Citas completadas
+            </a>
+            .
+          </p>
+        ) : null}
         <div className="prt-security">
           <div className="prt-security__text">
             <Shield className="inline h-4 w-4 text-teal-700 mr-1" aria-hidden />
@@ -196,7 +265,7 @@ export function PatientAppointments() {
         </div>
       </header>
 
-      {!showEmpty ? (
+      {section === 'current' && !showEmpty ? (
         <div className="prt-kpis">
           <KpiStat label="Próximas citas" value={kpis.upcoming} delay={0} numeric />
           <KpiStat label="Confirmadas" value={kpis.confirmed} delay={70} numeric />
@@ -218,7 +287,7 @@ export function PatientAppointments() {
           </label>
           <div className="prt-toolbar__row">
             <div className="prt-chips" role="tablist">
-              {CHIPS.map((c) => (
+              {chips.map((c) => (
                 <button
                   key={c.id}
                   type="button"
@@ -246,14 +315,18 @@ export function PatientAppointments() {
           <div className="prt-empty__icon" aria-hidden>
             <Calendar className="h-8 w-8" />
           </div>
-          <h3 className="text-lg font-extrabold text-[var(--corp-navy)] m-0">Aún no tienes citas</h3>
-          <p className="text-sm text-slate-500 mt-2 mb-4 max-w-md mx-auto">
-            Reserva tu primera cita online y aparecerá aquí con su estado actualizado.
-          </p>
+          <h3 className="text-lg font-extrabold text-[var(--corp-navy)] m-0">{meta.emptyTitle}</h3>
+          <p className="text-sm text-slate-500 mt-2 mb-4 max-w-md mx-auto">{meta.emptyBody}</p>
           <div className="flex flex-wrap gap-2 justify-center">
-            <a href="/paciente/reservar" className="prt-btn prt-btn--primary no-underline">
-              Reservar cita
-            </a>
+            {section === 'current' ? (
+              <a href="/paciente/reservar" className="prt-btn prt-btn--primary no-underline">
+                Reservar cita
+              </a>
+            ) : (
+              <a href="/paciente/citas" className="prt-btn prt-btn--primary no-underline">
+                Ver mis citas
+              </a>
+            )}
             <a href="/paciente/mensajes" className="prt-btn prt-btn--outline no-underline">
               Contactar clínica
             </a>
@@ -267,7 +340,7 @@ export function PatientAppointments() {
       ) : (
         <div className={`prt-layout${selected ? ' prt-layout--open' : ''}`}>
           <div>
-            <h3 className="prt-list-title">Tus citas</h3>
+            <h3 className="prt-list-title">{meta.title}</h3>
             {filtered.map((v, i) => (
               <article
                 key={v.appointment.id}
@@ -309,7 +382,13 @@ export function PatientAppointments() {
 
             <div className="prt-privacy">
               <h4>Recordatorio</h4>
-              <p>Las citas completadas también aparecen en tu historial clínico.</p>
+              <p>
+                {section === 'completed'
+                  ? 'Las citas completadas también figuran en tu historial clínico.'
+                  : section === 'past'
+                    ? 'Si la clínica marca la visita como completada, la cita pasará a Citas completadas.'
+                    : 'Las citas con fecha pasada se mueven automáticamente a Citas pasadas.'}
+              </p>
               <div className="prt-privacy-badges">
                 <span>
                   <CalendarClock className="h-3 w-3" aria-hidden />
@@ -404,14 +483,20 @@ export function PatientAppointments() {
                       Ver factura
                     </a>
                   ) : null}
-                  {selected.isHistory ? (
+                  {selected.isHistory || selected.isCompleted ? (
                     <a href="/paciente/historial" className="prt-btn prt-btn--outline w-full no-underline text-center">
                       Ver en historial
                     </a>
                   ) : null}
-                  <a href="/paciente/reservar" className="prt-btn prt-btn--primary w-full no-underline text-center">
-                    Reservar otra cita
-                  </a>
+                  {section === 'current' ? (
+                    <a href="/paciente/reservar" className="prt-btn prt-btn--primary w-full no-underline text-center">
+                      Reservar otra cita
+                    </a>
+                  ) : (
+                    <a href="/paciente/citas" className="prt-btn prt-btn--primary w-full no-underline text-center">
+                      Ver citas activas
+                    </a>
+                  )}
                 </div>
               </aside>
             </>
@@ -467,4 +552,12 @@ export function PatientAppointments() {
       </Modal>
     </div>
   );
+}
+
+export function PatientPastAppointments() {
+  return <PatientAppointments section="past" />;
+}
+
+export function PatientCompletedAppointments() {
+  return <PatientAppointments section="completed" />;
 }

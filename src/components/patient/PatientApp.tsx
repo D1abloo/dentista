@@ -1,5 +1,7 @@
 import {
   Calendar,
+  CalendarCheck,
+  CalendarClock,
   CalendarPlus,
   CreditCard,
   FileSignature,
@@ -22,6 +24,8 @@ import { PatientShell } from './PatientShell';
 import { PatientPortalStatus } from './PatientPortalStatus';
 import {
   PatientAppointments,
+  PatientCompletedAppointments,
+  PatientPastAppointments,
   PatientBook,
   PatientDashboard,
   PatientDocuments,
@@ -39,6 +43,8 @@ export type PatientView =
   | 'dashboard'
   | 'reservar'
   | 'citas'
+  | 'citas-pasadas'
+  | 'citas-completadas'
   | 'historial'
   | 'informes'
   | 'documentos'
@@ -53,6 +59,8 @@ const titles: Record<PatientView, string> = {
   dashboard: 'Inicio',
   reservar: 'Reservar cita',
   citas: 'Mis citas',
+  'citas-pasadas': 'Citas pasadas',
+  'citas-completadas': 'Citas completadas',
   historial: 'Historial',
   informes: 'Mis informes',
   documentos: 'Mis documentos',
@@ -68,6 +76,8 @@ const nav = [
   { href: '/paciente', label: 'Inicio', icon: Home },
   { href: '/paciente/reservar', label: 'Reservar cita', icon: CalendarPlus },
   { href: '/paciente/citas', label: 'Mis citas', icon: Calendar },
+  { href: '/paciente/citas-pasadas', label: 'Citas pasadas', icon: CalendarClock },
+  { href: '/paciente/citas-completadas', label: 'Citas completadas', icon: CalendarCheck },
   { href: '/paciente/informes', label: 'Informes', icon: FileText },
   { href: '/paciente/documentos', label: 'Documentos', icon: FileStack },
   { href: '/paciente/facturas', label: 'Facturas', icon: Receipt },
@@ -85,6 +95,10 @@ function Body({ view }: { view: PatientView }) {
       return <PatientBook />;
     case 'citas':
       return <PatientAppointments />;
+    case 'citas-pasadas':
+      return <PatientPastAppointments />;
+    case 'citas-completadas':
+      return <PatientCompletedAppointments />;
     case 'historial':
       return <PatientHistory />;
     case 'informes':

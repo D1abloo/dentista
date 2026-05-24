@@ -17,7 +17,7 @@ export async function allocateNextNhc(clinicId: string): Promise<string> {
     .not('nhc', 'is', null);
   if (error) throw error;
 
-  let maxNum = 0;
+  let maxNum = -1;
   for (const row of data ?? []) {
     const raw = String(row.nhc ?? '').replace(/\D/g, '');
     const n = parseInt(raw, 10);
