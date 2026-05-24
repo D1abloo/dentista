@@ -36,7 +36,7 @@ export function LoginHubPage() {
       <ul className="login-portal__options login-portal__options--hub">
         <li className="login-portal__option-wrap" style={{ animationDelay: '0.05s' }}>
           <a
-            href="/login/paciente"
+            href="/portal-paciente"
             className="login-portal__option login-portal__option--patient login-portal__option--highlight login-portal__link"
           >
             <span className="login-portal__option-icon login-portal__option-icon--teal" aria-hidden>

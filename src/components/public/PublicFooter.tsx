@@ -8,7 +8,7 @@ const FOOTER_COLUMNS = [
       { href: '/#producto', label: 'Producto' },
       { href: '/#funcionalidades', label: 'Funciones' },
       { href: '/#precios', label: 'Planes' },
-      { href: '/reserva', label: 'Reservar cita' }
+      { href: '/portal-paciente', label: 'Portal del paciente' }
     ]
   },
   {
@@ -40,8 +40,8 @@ export function PublicFooter() {
             <DentistaWebpLockup placement="footer" />
           </a>
           <p>
-            La plataforma dental para explorar, reservar y gestionar citas, informes y facturación con la calidez que
-            merece tu consulta.
+            La plataforma dental para gestionar clínicas con portal del paciente, informes y facturación con la
+            calidez que merece tu consulta.
           </p>
           <div className="ps-footer__social">
             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">

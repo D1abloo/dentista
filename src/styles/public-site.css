@@ -24,10 +24,12 @@
   --ps-shadow-md: 0 8px 24px rgba(23, 59, 64, 0.08);
 }
 
-/* —— Shell —— */
+/* —— Shell (ancho completo como paneles admin) —— */
 .ps-shell {
-  width: min(100% - 2rem, 72rem);
+  width: 100%;
+  max-width: none;
   margin-inline: auto;
+  padding-inline: clamp(1rem, 2.5vw, 2rem);
 }
 
 /* —— Buttons —— */
@@ -675,7 +677,9 @@
 
 @media (min-width: 768px) {
   .ps-paths {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 56rem;
+    margin-inline: auto;
   }
 }
 
@@ -1616,4 +1620,282 @@ body:has(.ps-header) .help-hub__support {
     opacity: 1 !important;
     transform: none !important;
   }
+}
+
+/* —— Header: portal del paciente —— */
+.ps-nav__portal {
+  margin-left: 0.35rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--ps-teal-deep);
+  background: var(--ps-mint-soft);
+  border: 1px solid rgba(22, 138, 148, 0.2);
+}
+
+.ps-nav__portal--active,
+.ps-nav__portal:hover {
+  background: var(--ps-mint);
+  border-color: rgba(22, 138, 148, 0.35);
+}
+
+.ps-drawer__portal {
+  font-weight: 700;
+  color: var(--ps-teal-deep);
+}
+
+/* —— Portal del paciente (página pública) —— */
+.ppp-page {
+  min-height: calc(100vh - 4rem);
+  background: linear-gradient(165deg, var(--ps-paper) 0%, #fff 42%, var(--ps-paper-alt) 100%);
+}
+
+.ppp-layout {
+  display: grid;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  width: 100%;
+  max-width: none;
+  margin-inline: auto;
+  padding: clamp(1.25rem, 2.5vw, 2rem) clamp(1rem, 2.5vw, 2rem) 3rem;
+}
+
+@media (min-width: 1024px) {
+  .ppp-layout {
+    grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.ppp-auth__card {
+  position: sticky;
+  top: 5.5rem;
+  padding: 1.35rem;
+  border-radius: 1rem;
+  background: var(--ps-surface);
+  border: 1px solid var(--ps-line);
+  box-shadow: var(--ps-shadow-md);
+}
+
+.ppp-auth__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ps-teal-deep);
+  background: var(--ps-mint-soft);
+}
+
+.ppp-auth__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.35rem;
+  line-height: 1.25;
+  color: var(--ps-ink);
+}
+
+.ppp-auth__lead {
+  margin: 0 0 1rem;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--ps-muted);
+}
+
+.ppp-auth__hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ps-muted);
+}
+
+.ppp-auth__tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+  padding: 0.25rem;
+  border-radius: 0.65rem;
+  background: var(--ps-paper-alt);
+}
+
+.ppp-auth__tab {
+  padding: 0.55rem 0.65rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-family: var(--ps-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ps-muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.ppp-auth__tab--active {
+  color: var(--ps-ink);
+  background: var(--ps-surface);
+  box-shadow: var(--ps-shadow-sm);
+}
+
+.ppp-auth__panel .login-form {
+  margin-top: 0.25rem;
+}
+
+.ppp-auth__steps {
+  margin: 0 0 1rem;
+  padding-left: 1.1rem;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: var(--ps-muted);
+}
+
+.ppp-auth__foot {
+  margin: 1rem 0 0;
+  font-size: 0.82rem;
+  color: var(--ps-muted);
+  text-align: center;
+}
+
+.ppp-auth__foot a,
+.ppp-auth__link {
+  color: var(--ps-teal-deep);
+  font-weight: 600;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.ppp-auth__panel-btn {
+  margin-top: 0.5rem;
+}
+
+.ppp-showcase__head {
+  max-width: 42rem;
+  margin-bottom: 1.5rem;
+}
+
+.ppp-showcase__head h2 {
+  margin: 0.35rem 0 0.75rem;
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  line-height: 1.2;
+  color: var(--ps-ink);
+}
+
+.ppp-showcase__head p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--ps-muted);
+}
+
+.ppp-showcase__visual {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.ppp-showcase__visual img {
+  width: min(100%, 280px);
+  height: auto;
+  border-radius: 1.25rem;
+  box-shadow: var(--ps-shadow-md);
+  border: 1px solid var(--ps-line);
+}
+
+.ppp-showcase__badge {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ps-ink);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--ps-line);
+  box-shadow: var(--ps-shadow-sm);
+}
+
+.ppp-features {
+  display: grid;
+  gap: 0.85rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 640px) {
+  .ppp-features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .ppp-features {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.ppp-feature {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: var(--ps-radius);
+  background: var(--ps-surface);
+  border: 1px solid var(--ps-line);
+}
+
+.ppp-feature__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: 0.55rem;
+  color: var(--ps-teal-deep);
+  background: var(--ps-mint-soft);
+}
+
+.ppp-feature h3 {
+  margin: 0 0 0.25rem;
+  font-size: 0.92rem;
+  color: var(--ps-ink);
+}
+
+.ppp-feature p {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--ps-muted);
+}
+
+.ppp-trust {
+  padding: 1.25rem 1.35rem;
+  border-radius: var(--ps-radius-lg);
+  background: linear-gradient(135deg, var(--ps-mint-soft), #fff);
+  border: 1px solid rgba(22, 138, 148, 0.15);
+}
+
+.ppp-trust h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  color: var(--ps-ink);
+}
+
+.ppp-trust p {
+  margin: 0 0 1rem;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--ps-muted);
 }

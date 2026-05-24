@@ -11,7 +11,7 @@ const consultTypes = [
   { value: 'clinica', label: 'Soporte clínica' },
   { value: 'facturacion', label: 'Facturación' },
   { value: 'tecnico', label: 'Problema técnico' },
-  { value: 'reserva', label: 'Reserva de cita' },
+  { value: 'portal', label: 'Acceso al portal' },
   { value: 'otro', label: 'Otro' }
 ] as const;
 
@@ -96,7 +96,7 @@ export function ContactPage() {
               </span>
               <h1>Formulario de contacto</h1>
               <p className="cp-form-intro">
-                Cuéntanos tu consulta sobre citas, portal paciente o panel de clínica. Respondemos en menos de 24
+                Cuéntanos tu consulta sobre el portal del paciente o el panel de clínica. Respondemos en menos de 24
                 horas laborables.
               </p>
 
@@ -214,9 +214,8 @@ export function ContactPage() {
                 </li>
               </ul>
               <p className="cp-info-note">
-                Para reservar cita online usa{' '}
-                <a href="/reserva">Reservar cita</a>. Para acceder a tu historial,{' '}
-                <a href="/login/paciente">Portal paciente</a>.
+                Para acceder a tu historial clínico usa{' '}
+                <a href="/portal-paciente">Portal del paciente</a>.
               </p>
             </aside>
           </div>

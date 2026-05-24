@@ -49,9 +49,9 @@ export const landingWhoCards = [
     icon: UserRound,
     tone: 'mint',
     title: 'Soy paciente',
-    text: 'Reserva citas, consulta informes, descarga documentos, revisa facturas, pagos y consentimientos desde tu portal privado.',
+    text: 'Consulta informes, descarga documentos, revisa facturas, pagos y consentimientos desde tu portal privado.',
     cta: 'Entrar al portal paciente',
-    href: '/login/paciente'
+    href: '/portal-paciente'
   },
   {
     id: 'clinic',
@@ -74,8 +74,8 @@ export const landingWhoCards = [
 ] as const;
 
 export const landingFeatures: LandingFeature[] = [
-  { icon: Globe, title: 'Reservas online', text: 'Tus pacientes reservan citas 24/7 desde el portal.' },
-  { icon: Calendar, title: 'Agenda clínica', text: 'Organiza citas, bloqueos y disponibilidad de profesionales.' },
+  { icon: Globe, title: 'Portal del paciente', text: 'Tus pacientes acceden 24/7 a informes, documentos y facturas.' },
+  { icon: Calendar, title: 'Agenda clínica', text: 'Organiza disponibilidad, bloqueos y profesionales en un solo panel.' },
   { icon: Users, title: 'Pacientes y NHC', text: 'Gestión completa de pacientes con historial y NHC único.' },
   { icon: FileText, title: 'Informes clínicos', text: 'Crea informes con plantillas odontológicas y firma digital.' },
   { icon: Lock, title: 'Documentos seguros', text: 'Sube y comparte documentos de forma segura y organizada.' },
@@ -83,7 +83,7 @@ export const landingFeatures: LandingFeature[] = [
   { icon: CreditCard, title: 'Pagos y recibos', text: 'Registra pagos y genera recibos fácilmente.' },
   { icon: ClipboardList, title: 'Consentimientos digitales', text: 'Tus pacientes firman consentimientos desde el portal.' },
   { icon: MessageSquare, title: 'Mensajes clínica-paciente', text: 'Comunicación directa y segura.' },
-  { icon: History, title: 'Historial de visitas', text: 'Consulta todo el historial de citas y tratamientos.' },
+  { icon: History, title: 'Historial de visitas', text: 'Consulta el historial clínico y tratamientos del paciente.' },
   { icon: BarChart3, title: 'Reportes', text: 'Métricas y reportes para tomar mejores decisiones.' },
   { icon: Layers, title: 'Seguridad multi-tenant', text: 'Aislamiento de datos por clínica y roles seguros.' }
 ];

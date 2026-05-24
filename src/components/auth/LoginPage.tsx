@@ -14,7 +14,7 @@ export function LoginPage() {
       return;
     }
     if (role === 'paciente') {
-      window.location.replace('/login/paciente');
+      window.location.replace('/portal-paciente');
     }
   }, []);
 
@@ -30,7 +30,7 @@ export function LoginPage() {
         </div>
 
         <a
-          href="/login/paciente"
+          href="/portal-paciente"
           className="mt-8 flex flex-col rounded-2xl border border-teal-200 bg-teal-50 p-5 no-underline transition hover:border-teal-300"
         >
           <span className="text-xs font-bold uppercase tracking-wide text-teal-800">Portal paciente</span>

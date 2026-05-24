@@ -1,7 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import {
   Building2,
-  CalendarCheck,
   FileText,
   MessageSquare,
   Receipt,
@@ -26,31 +25,21 @@ export type PublicStat = { value: string; label: string; hint?: string };
 export type PublicStep = { step: string; title: string; text: string; icon: LucideIcon };
 
 export const publicHeroStats: PublicStat[] = [
-  { value: '24/7', label: 'Reservas online', hint: 'Portal paciente siempre abierto' },
+  { value: '24/7', label: 'Portal activo', hint: 'Acceso del paciente cuando lo necesite' },
   { value: '−40%', label: 'Llamadas de recepción', hint: 'Según clínicas en demo' },
-  { value: '1', label: 'Plataforma unificada', hint: 'Citas, informes y facturas' }
+  { value: '1', label: 'Plataforma unificada', hint: 'Informes, documentos y facturas' }
 ];
 
 export const publicExplorePaths = [
   {
     id: 'patient',
-    eyebrow: 'Para ti',
-    title: 'Soy paciente',
-    text: 'Reserva citas, consulta informes, descarga documentos y revisa facturas desde un portal privado y seguro.',
+    eyebrow: 'Para pacientes',
+    title: 'Portal del paciente',
+    text: 'Consulta informes, descarga documentos, revisa facturas y mensajes desde un espacio privado y seguro.',
     cta: 'Entrar al portal',
-    href: '/login/paciente',
+    href: '/portal-paciente',
     icon: UserRound,
     tone: 'mint'
-  },
-  {
-    id: 'book',
-    eyebrow: 'Sin esperas',
-    title: 'Quiero reservar',
-    text: 'Elige día y hora disponibles en tu clínica. Regístrate una vez y gestiona todo desde el móvil.',
-    cta: 'Reservar cita',
-    href: '/reserva',
-    icon: CalendarCheck,
-    tone: 'teal'
   },
   {
     id: 'clinic',
@@ -68,19 +57,19 @@ export const publicExplorePaths = [
 export const publicShowcaseTiles: PublicShowcaseTile[] = [
   {
     id: 'agenda',
-    title: 'Agenda clínica',
-    text: 'Vista día, semana y mes con bloqueos y profesionales.',
+    title: 'Panel clínico',
+    text: 'Vista operativa para recepción, gabinete y administración.',
     image: '/images/guides/landing/admin-dashboard-hero.png',
-    alt: 'Agenda del panel clínica en portátil',
+    alt: 'Panel clínica en portátil',
     span: 'hero',
     tone: 'mint'
   },
   {
-    id: 'citas',
+    id: 'portal',
     title: 'Portal del paciente',
-    text: 'Citas, historial y mensajes en el móvil.',
-    image: '/images/guides/mobile/pdp-citas.png',
-    alt: 'Citas en el portal del paciente',
+    text: 'Informes, documentos y mensajes en el móvil.',
+    image: '/images/guides/mobile/pdp-inicio.png',
+    alt: 'Portal del paciente en móvil',
     span: 'tall',
     tone: 'sand'
   },
@@ -116,8 +105,8 @@ export const publicShowcaseTiles: PublicShowcaseTile[] = [
 export const publicSteps: PublicStep[] = [
   {
     step: '01',
-    title: 'Explora y elige tu camino',
-    text: 'Paciente, reserva o clínica: cada perfil tiene su acceso directo desde la web pública.',
+    title: 'Explora la plataforma',
+    text: 'Pacientes acceden al portal; las clínicas gestionan operaciones desde el panel privado.',
     icon: Sparkles
   },
   {
@@ -129,17 +118,12 @@ export const publicSteps: PublicStep[] = [
   {
     step: '03',
     title: 'Gestiona sin fricción',
-    text: 'Citas, informes, documentos y facturas conectados en un solo flujo odontológico.',
+    text: 'Informes, documentos y facturas conectados en un solo flujo odontológico.',
     icon: Stethoscope
   }
 ];
 
 export const publicValuePillars = [
-  {
-    icon: CalendarCheck,
-    title: 'Citas que fluyen',
-    text: 'Reservas online, recordatorios y estados visibles para recepción y paciente.'
-  },
   {
     icon: FileText,
     title: 'Historia clínica digital',
@@ -154,5 +138,10 @@ export const publicValuePillars = [
     icon: MessageSquare,
     title: 'Comunicación directa',
     text: 'Mensajería segura entre clínica y paciente con notificaciones.'
+  },
+  {
+    icon: Shield,
+    title: 'Privacidad por diseño',
+    text: 'Cada paciente solo ve su información; datos aislados por clínica.'
   }
 ] as const;

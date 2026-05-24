@@ -71,8 +71,8 @@ export function ActivationPage() {
               <a href="/login" className="no-underline">
                 <Button>Iniciar sesión</Button>
               </a>
-              <a href="/reserva" className="no-underline">
-                <Button tone="secondary">Reservar cita</Button>
+              <a href="/portal-paciente" className="no-underline">
+                <Button tone="secondary">Portal del paciente</Button>
               </a>
             </div>
           </>

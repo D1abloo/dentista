@@ -199,7 +199,7 @@ export function ProAccessForm({ plan, onPlanChange, compact = false }: Props) {
             <Textarea
               value={form.message}
               onChange={(e) => setForm({ ...form, message: e.target.value })}
-              placeholder="Cuéntanos tu situación actual, volumen de citas o necesidades…"
+              placeholder="Cuéntanos tu situación actual, volumen de pacientes o necesidades…"
               rows={compact ? 3 : 4}
             />
           </Field>

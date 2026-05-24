@@ -2,7 +2,7 @@ import { ChevronRight, Home, LayoutDashboard, UserRound, X } from 'lucide-react'
 
 const PORTALS = [
   {
-    href: '/login/paciente',
+    href: '/portal-paciente',
     label: 'Portal paciente',
     desc: 'Citas, informes clínicos y pagos',
     icon: UserRound,

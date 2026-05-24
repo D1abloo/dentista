@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowRight, CalendarCheck, Check, X } from 'lucide-react';
+import { ArrowRight, Check, Sparkles, X } from 'lucide-react';
 import { scrollToSection } from '@/lib/publicScroll';
 import { useReveal } from '@/hooks/useReveal';
 import {
@@ -64,22 +64,22 @@ export function LandingPage() {
           <div className={`ps-shell ps-hero__grid ${revealClass(heroR.visible)}`} ref={heroR.ref}>
             <div className="ps-hero__copy">
               <span className="ps-hero__eyebrow">
-                <CalendarCheck className="h-3.5 w-3.5" aria-hidden />
-                Citas odontológicas online
+                <Sparkles className="h-3.5 w-3.5" aria-hidden />
+                Software dental para clínicas
               </span>
-              <h1 id="ps-hero-title">Gestiona citas dentales con precisión clínica</h1>
+              <h1 id="ps-hero-title">Gestiona tu clínica dental con precisión</h1>
               <p className="ps-hero__lead">
-                Reserva, agenda, portal del paciente e historial clínico en una plataforma segura diseñada para
+                Portal del paciente, panel clínico e historial digital en una plataforma segura diseñada para
                 consultas dentales modernas.
               </p>
               <div className="ps-hero__ctas">
-                <a href="/reserva" className="ps-btn ps-btn--primary ps-btn--lg">
-                  Reservar cita dental
-                  <ArrowRight className="h-4 w-4" aria-hidden />
-                </a>
-                <button type="button" className="ps-btn ps-btn--outline ps-btn--lg" onClick={() => openDemo()}>
+                <button type="button" className="ps-btn ps-btn--primary ps-btn--lg" onClick={() => openDemo()}>
                   Demo para clínicas
+                  <ArrowRight className="h-4 w-4" aria-hidden />
                 </button>
+                <a href="/portal-paciente" className="ps-btn ps-btn--outline ps-btn--lg">
+                  Portal del paciente
+                </a>
               </div>
             </div>
 
@@ -107,8 +107,8 @@ export function LandingPage() {
         <section id="perfiles" className="ps-section ps-shell">
           <header className="ps-section__head">
             <span className="ps-kicker">Acceso rápido</span>
-            <h2>Reserva, consulta o gestiona tu clínica</h2>
-            <p>Tres accesos directos según tu perfil: paciente, reserva o equipo clínico.</p>
+            <h2>Accede al portal o gestiona tu clínica</h2>
+            <p>Dos accesos directos según tu perfil: paciente o equipo clínico.</p>
           </header>
           <div className={`ps-paths ${revealClass(pathsR.visible)}`} ref={pathsR.ref}>
             {publicExplorePaths.map((card) => {
@@ -273,19 +273,17 @@ export function LandingPage() {
         <section className="ps-cta ps-shell" aria-labelledby="ps-cta-title">
           <div className="ps-cta__panel">
             <div className="ps-cta__copy">
-              <h2 id="ps-cta-title">Empieza a digitalizar las citas de tu clínica</h2>
+              <h2 id="ps-cta-title">Digitaliza la gestión de tu clínica</h2>
               <p>
-                Reserva online para pacientes, agenda para recepción y panel clínico en un solo entorno seguro.
+                Portal privado para pacientes, panel clínico para tu equipo y operaciones conectadas en un entorno
+                seguro.
               </p>
               <div className="ps-cta__actions">
-                <a href="/reserva" className="ps-btn ps-btn--primary">
-                  Reservar cita
-                </a>
-                <button type="button" className="ps-btn ps-btn--ghost" onClick={() => openDemo()}>
+                <button type="button" className="ps-btn ps-btn--primary" onClick={() => openDemo()}>
                   Solicitar demo
                 </button>
-                <a href="/login/paciente" className="ps-btn ps-btn--outline ps-cta__portal-link">
-                  Portal paciente
+                <a href="/portal-paciente" className="ps-btn ps-btn--outline ps-cta__portal-link">
+                  Portal del paciente
                 </a>
               </div>
             </div>

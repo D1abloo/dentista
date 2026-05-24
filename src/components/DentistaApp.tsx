@@ -1,4 +1,5 @@
 export { LandingPage } from '@/components/public/LandingPage';
+export { PatientPortalPublicPage } from '@/components/public/PatientPortalPublicPage';
 export { LoginPage } from '@/components/auth/LoginPage';
 export { LoginHubPage } from '@/components/auth/LoginHubPage';
 export { UnifiedLoginPage } from '@/components/auth/UnifiedLoginPage';

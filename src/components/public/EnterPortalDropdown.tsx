@@ -3,7 +3,7 @@ import { ChevronDown, LogIn, ShieldCheck, UserRound } from 'lucide-react';
 
 const OPTIONS = [
   {
-    href: '/login/paciente',
+    href: '/portal-paciente',
     icon: UserRound,
     title: 'Portal paciente',
     text: 'Accede a tu portal privado'

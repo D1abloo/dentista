@@ -6,7 +6,7 @@ export function isSafeInternalPath(path: string): boolean {
 }
 
 export function isPatientPortalPath(path: string): boolean {
-  return path === '/reserva' || path.startsWith('/paciente');
+  return path === '/portal-paciente' || path.startsWith('/paciente');
 }
 
 export function getLoginNextParam(): string | null {
@@ -25,7 +25,7 @@ export function loginPath(role: DemoRole, tenantId?: string): string {
     return `/login/admin${tenantQ}`;
   }
 
-  const base = '/login/paciente';
+  const base = '/portal-paciente';
   if (next) return `${base}?next=${encodeURIComponent(next)}`;
   return base;
 }

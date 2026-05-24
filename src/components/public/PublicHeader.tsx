@@ -1,5 +1,5 @@
 import { useEffect, useState, type MouseEvent } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, UserRound, X } from 'lucide-react';
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
 import { EnterPortalDropdown } from './EnterPortalDropdown';
 import { handleLandingHashLink } from '@/lib/publicScroll';
@@ -43,6 +43,8 @@ export function PublicHeader({ activeHref, onWantDemo }: Props) {
     window.location.href = '/?plan=pro_clinica#contacto-pro';
   }
 
+  const portalActive = activeHref === '/portal-paciente' || activeHref === '/login/paciente';
+
   return (
     <header className={`ps-header${scrolled ? ' ps-header--scrolled' : ''}`}>
       <div className="ps-shell ps-header__inner">
@@ -62,11 +64,22 @@ export function PublicHeader({ activeHref, onWantDemo }: Props) {
               {l.label}
             </a>
           ))}
+          <a
+            href="/portal-paciente"
+            className={`ps-nav__portal${portalActive ? ' ps-nav__portal--active' : ''}`}
+            aria-current={portalActive ? 'page' : undefined}
+          >
+            Portal del paciente
+          </a>
         </nav>
 
         <div className="ps-header__actions">
-          <a href="/reserva" className="ps-btn ps-btn--ghost ps-btn--sm hidden md:inline-flex">
-            Reservar
+          <a
+            href="/portal-paciente"
+            className={`ps-btn ps-btn--primary ps-btn--sm ps-header__portal-btn hidden md:inline-flex${portalActive ? ' ps-btn--active-portal' : ''}`}
+          >
+            <UserRound className="h-3.5 w-3.5" aria-hidden />
+            Portal del paciente
           </a>
           <button type="button" className="ps-btn ps-btn--ghost ps-btn--sm ps-header__demo" onClick={wantDemoClick}>
             Demo clínica
@@ -91,16 +104,16 @@ export function PublicHeader({ activeHref, onWantDemo }: Props) {
               {l.label}
             </a>
           ))}
+          <a href="/portal-paciente" className="ps-drawer__portal">
+            Portal del paciente
+          </a>
           <div className="ps-drawer__cta">
-            <a href="/reserva" className="ps-btn ps-btn--primary ps-btn--block">
-              Reservar cita
+            <a href="/portal-paciente" className="ps-btn ps-btn--primary ps-btn--block">
+              Entrar al portal del paciente
             </a>
-            <button type="button" className="ps-btn ps-btn--primary ps-btn--block" onClick={wantDemoClick}>
-              Solicitar demo
+            <button type="button" className="ps-btn ps-btn--outline ps-btn--block" onClick={wantDemoClick}>
+              Solicitar demo clínica
             </button>
-            <a href="/login/paciente" className="ps-btn ps-btn--outline ps-btn--block">
-              Portal paciente
-            </a>
           </div>
         </nav>
       ) : null}

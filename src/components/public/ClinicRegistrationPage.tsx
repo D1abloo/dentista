@@ -434,7 +434,7 @@ export function ClinicRegistrationPage() {
               <ul className="cr-aside__list">
                 <li>Panel <strong>/admin</strong> para tu equipo</li>
                 <li>Portal paciente bajo tu clínica</li>
-                <li>Agenda, citas, informes y facturación</li>
+                <li>Agenda, informes y facturación</li>
                 <li>Consentimientos y documentos con control de acceso</li>
                 <li>Suscripción plan Essential inicial</li>
               </ul>

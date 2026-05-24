@@ -1,0 +1,10 @@
+---
+import AppLayout from '@/layouts/AppLayout.astro';
+import { PatientPortalPublicPage } from '@/components/public/PatientPortalPublicPage';
+---
+<AppLayout
+  title="Portal del paciente · Dentista+"
+  description="Accede de forma segura a informes, documentos, facturas y mensajes de tu clínica dental con Dentista+."
+>
+  <PatientPortalPublicPage client:load />
+</AppLayout>
