@@ -696,6 +696,50 @@
   }
 }
 
+.plt-login__panel-center {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  width: 100%;
+  max-width: 26rem;
+  margin: 0 auto;
+  min-height: min(100%, 100vh);
+  padding: 2rem 1.25rem;
+  gap: 1rem;
+}
+
+.plt-login__card--compact {
+  margin: 0;
+}
+
+.plt-login__card-head--compact {
+  margin-bottom: 0.85rem;
+}
+
+.plt-login__card-head--compact .plt-login__card-title {
+  margin-top: 0.45rem;
+}
+
+.plt-login__remember--solo {
+  margin: 0.1rem 0 0;
+}
+
+.plt-login__legal--compact {
+  margin-top: 0.25rem;
+  padding-top: 0;
+  border-top: none;
+  text-align: center;
+  font-size: 0.72rem;
+}
+
+@media (min-width: 1024px) {
+  .plt-login__panel {
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .plt-login__hero-overlay,
   .plt-login__card,

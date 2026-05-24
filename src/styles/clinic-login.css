@@ -707,6 +707,22 @@
   }
 }
 
+.cln-login__remember--solo {
+  margin: 0.15rem 0 0;
+}
+
+.cln-login__card-head--compact {
+  margin-bottom: 0.85rem;
+}
+
+.cln-login__card-head--compact h2 {
+  margin-top: 0.25rem;
+}
+
+.cln-login__panel {
+  justify-content: center;
+}
+
 @media (min-width: 900px) {
   .cln-login__stage {
     grid-template-columns: minmax(0, 1.05fr) minmax(22rem, 0.95fr);

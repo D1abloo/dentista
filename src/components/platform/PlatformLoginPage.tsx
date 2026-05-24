@@ -1,19 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  ArrowRight,
-  Building2,
-  Check,
-  ClipboardList,
-  Eye,
-  EyeOff,
-  Globe,
-  Headphones,
-  Lock,
-  Mail,
-  Shield,
-  ShieldCheck,
-  Users
-} from 'lucide-react';
+import { ChevronRight, Eye, EyeOff, Lock, Mail, ShieldCheck } from 'lucide-react';
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
 
 const HERO_IMAGE = '/images/login-dentista-paciente.jpg';
@@ -21,28 +7,11 @@ const REMEMBER_KEY = 'df_platform_remember';
 const REMEMBER_EMAIL_KEY = 'df_platform_remember_email';
 
 const TRUST_BADGES = [
-  { icon: Shield, label: 'Acceso restringido' },
-  { icon: Building2, label: 'Multi-clínica aislada' },
-  { icon: Lock, label: 'Sesión cifrada' },
-  { icon: ClipboardList, label: 'Auditoría activa' }
+  { label: 'Acceso restringido' },
+  { label: 'Multi-clínica aislada' },
+  { label: 'Sesión cifrada' },
+  { label: 'Auditoría activa' }
 ] as const;
-
-const METRICS = [
-  { icon: Building2, value: '128', label: 'Clínicas gestionadas' },
-  { icon: Users, value: '256', label: 'Tenants aislados' },
-  { icon: Headphones, value: '24/7', label: 'Soporte centralizado' }
-] as const;
-
-const ACCESS_LINKS = [
-  { href: '/login/admin', label: 'Panel clínica', desc: 'Acceso para clínicas', icon: Building2 },
-  { href: '/login/paciente', label: 'Portal paciente', desc: 'Acceso para pacientes', icon: Users },
-  { href: '/', label: 'Sitio público', desc: 'Ir al sitio oficial', icon: Globe }
-] as const;
-
-const SECURITY_ITEMS = ['Sesión cifrada', 'Registro de accesos', 'Control por rol', 'Aislamiento multi-tenant'] as const;
-
-const FORGOT_HREF =
-  '/contacto?tipo=tecnico&mensaje=Necesito%20recuperar%20acceso%20al%20panel%20Super%20Admin%20de%20plataforma.';
 
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
@@ -79,7 +48,7 @@ export function PlatformLoginPage() {
   function validate(): boolean {
     const next: { email?: string; password?: string } = {};
     const email = emailVal.trim();
-    if (!email) next.email = 'Introduce tu email corporativo.';
+    if (!email) next.email = 'Introduce tu email.';
     else if (!isValidEmail(email)) next.email = 'Introduce un email válido.';
     if (!password) next.password = 'Introduce tu contraseña.';
     setFieldErrors(next);
@@ -140,7 +109,7 @@ export function PlatformLoginPage() {
     <main className={`plt-login ${entered ? 'plt-login--ready' : ''}`}>
       <aside className="plt-login__hero" aria-hidden={false}>
         <img src={HERO_IMAGE} alt="" className="plt-login__hero-img" loading="eager" decoding="async" />
-        <div className="plt-login__hero-overlay" />
+        <div className="plt-login__hero-overlay" aria-hidden />
         <div className="plt-login__hero-inner">
           <a href="/" className="plt-login__brand">
             <DentistaWebpLockup placement="header" />
@@ -157,65 +126,37 @@ export function PlatformLoginPage() {
             </p>
 
             <ul className="plt-login__badges">
-              {TRUST_BADGES.map(({ icon: Icon, label }, i) => (
-                <li
-                  key={label}
-                  className="plt-login__badge"
-                  style={{ animationDelay: `${0.08 * i}s` }}
-                >
-                  <Icon className="h-4 w-4 shrink-0" aria-hidden />
+              {TRUST_BADGES.map(({ label }, i) => (
+                <li key={label} className="plt-login__badge" style={{ animationDelay: `${0.08 * i}s` }}>
                   {label}
                 </li>
               ))}
             </ul>
-
-            <div className="plt-login__metrics">
-              {METRICS.map(({ icon: Icon, value, label }) => (
-                <div key={label} className="plt-login__metric">
-                  <Icon className="h-5 w-5 shrink-0" aria-hidden />
-                  <div>
-                    <strong>{value}</strong>
-                    <span>{label}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
-
-          <p className="plt-login__hero-foot">
-            <Shield className="h-4 w-4 shrink-0" aria-hidden />
-            Plataforma segura y auditada. Todos los accesos quedan registrados.
-          </p>
         </div>
       </aside>
 
       <section className="plt-login__panel">
-        <div className="plt-login__panel-scroll">
-          <div className={`plt-login__card${formError ? ' plt-login__card--error' : ''}`}>
-            <header className="plt-login__card-head">
+        <div className="plt-login__panel-center">
+          <div className={`plt-login__card plt-login__card--compact${formError ? ' plt-login__card--error' : ''}`}>
+            <header className="plt-login__card-head plt-login__card-head--compact">
               <span className="plt-login__super-badge">
                 <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
                 Super Admin
               </span>
               <h2 className="plt-login__card-title">Acceso plataforma</h2>
-              <p className="plt-login__card-sub">Solo personal autorizado</p>
             </header>
-
-            <p className="plt-login__mode">
-              <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden />
-              Estás entrando como Super Admin
-            </p>
 
             <form onSubmit={submit} className="plt-login__form" noValidate>
               <div className="plt-login__field">
-                <label htmlFor="platform-email">Email corporativo</label>
+                <label htmlFor="platform-email">Email</label>
                 <div className={`plt-login__input${fieldErrors.email ? ' plt-login__input--invalid' : ''}`}>
                   <Mail className="h-4 w-4 shrink-0" aria-hidden />
                   <input
                     id="platform-email"
                     type="email"
                     autoComplete="username"
-                    placeholder="admin@dentista.app"
+                    placeholder="Introduce tu email"
                     value={emailVal}
                     onChange={(e) => {
                       setEmailVal(e.target.value);
@@ -263,19 +204,10 @@ export function PlatformLoginPage() {
                 ) : null}
               </div>
 
-              <div className="plt-login__row">
-                <label className="plt-login__remember">
-                  <input
-                    type="checkbox"
-                    checked={remember}
-                    onChange={(e) => setRemember(e.target.checked)}
-                  />
-                  Recordar sesión
-                </label>
-                <a href={FORGOT_HREF} className="plt-login__forgot">
-                  Olvidé mi contraseña
-                </a>
-              </div>
+              <label className="plt-login__remember plt-login__remember--solo">
+                <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+                Recordar sesión
+              </label>
 
               {error ? (
                 <p className="plt-login__alert" role="alert">
@@ -286,65 +218,16 @@ export function PlatformLoginPage() {
               <button type="submit" className="plt-login__submit" disabled={loading}>
                 <Lock className="h-4 w-4 shrink-0" aria-hidden />
                 {loading ? 'Entrando…' : 'Entrar al panel'}
+                <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
               </button>
-
-              <p className="plt-login__secure-note">
-                <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                Acceso protegido con auditoría y control de sesiones.
-              </p>
             </form>
           </div>
 
-          <nav className="plt-login__access" aria-label="Otros accesos">
-            {ACCESS_LINKS.map(({ href, label, desc, icon: Icon }) => (
-              <a key={href} href={href} className="plt-login__access-card">
-                <span className="plt-login__access-icon" aria-hidden>
-                  <Icon className="h-5 w-5" />
-                </span>
-                <span className="plt-login__access-text">
-                  <strong>{label}</strong>
-                  <small>{desc}</small>
-                </span>
-                <ArrowRight className="h-4 w-4 shrink-0 plt-login__access-arrow" aria-hidden />
-              </a>
-            ))}
-          </nav>
-
-          <div className="plt-login__bottom">
-            <div className="plt-login__support plt-login__support--fade">
-              <Headphones className="h-6 w-6 shrink-0 text-teal-700" aria-hidden />
-              <div>
-                <h3>¿Problemas para acceder?</h3>
-                <p>
-                  Contacta con soporte si no recuerdas tus credenciales o tu cuenta está bloqueada.
-                </p>
-                <a href="/contacto?tipo=tecnico" className="plt-login__support-btn">
-                  Contactar soporte
-                </a>
-              </div>
-            </div>
-
-            <div className="plt-login__security-card">
-              <h3>
-                <Shield className="h-5 w-5 shrink-0" aria-hidden />
-                Seguridad activa
-              </h3>
-              <ul>
-                {SECURITY_ITEMS.map((item) => (
-                  <li key={item}>
-                    <Check className="h-4 w-4 shrink-0" aria-hidden />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <footer className="plt-login__legal">
-            <span>© {new Date().getFullYear()} Dentista+. Todos los derechos reservados.</span>
+          <footer className="plt-login__legal plt-login__legal--compact">
+            <span>© {new Date().getFullYear()} Dentista+</span>
             <span className="plt-login__legal-links">
-              <a href="/terminos">Términos y condiciones</a>
-              <a href="/privacidad">Política de privacidad</a>
+              <a href="/terminos">Términos</a>
+              <a href="/privacidad">Privacidad</a>
             </span>
           </footer>
         </div>

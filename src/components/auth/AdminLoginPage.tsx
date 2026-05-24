@@ -1,4 +1,4 @@
-import { Building2, ChevronRight, Eye, EyeOff, Home, LayoutDashboard, Lock, Mail, Shield, ShieldCheck, UserRound, CalendarDays, FileText, CreditCard } from 'lucide-react';
+import { Building2, ChevronRight, Eye, EyeOff, Lock, Mail, Shield, UserRound, CalendarDays, FileText, CreditCard } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { LogoMark } from '@/components/brand/Logo';
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
@@ -18,31 +18,7 @@ const FEATURES = [
   { icon: FileText, label: 'Documentos seguros' }
 ] as const;
 
-const PORTAL_LINKS = [
-  {
-    href: '/login/paciente',
-    label: 'Portal paciente',
-    desc: 'Accede a citas, informes, documentos y facturas.',
-    icon: UserRound
-  },
-  {
-    href: '/platform/login',
-    label: 'Plataforma',
-    desc: 'Acceso exclusivo para Super Admin.',
-    icon: LayoutDashboard
-  },
-  {
-    href: '/',
-    label: 'Inicio',
-    desc: 'Volver al sitio público.',
-    icon: Home
-  }
-] as const;
-
-const SECURITY_ITEMS = ['Sesión cifrada', 'Control por rol', 'Acceso por clínica', 'Auditoría de actividad'] as const;
-
-const FORGOT_HREF =
-  '/contacto?tipo=clinica&mensaje=Necesito%20recuperar%20acceso%20al%20panel%20de%20cl%C3%ADnica%20Dentista%2B.';
+const SECURITY_ITEMS = ['Sesión cifrada', 'Control de acceso por rol', 'Acceso por clínica', 'Auditoría de actividad'] as const;
 
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
@@ -85,7 +61,7 @@ export function AdminLoginPage() {
   function validate(): boolean {
     const next: { email?: string; password?: string } = {};
     const email = emailVal.trim();
-    if (!email) next.email = 'Introduce tu email profesional.';
+    if (!email) next.email = 'Introduce tu email.';
     else if (!isValidEmail(email)) next.email = 'Introduce un email válido.';
     if (!password) next.password = 'Introduce tu contraseña.';
     setFieldErrors(next);
@@ -221,12 +197,11 @@ export function AdminLoginPage() {
 
         <section className="cln-login__panel">
           <article className={`cln-login__card${formError ? ' cln-login__card--error' : ''}${success ? ' cln-login__card--success' : ''}`}>
-            <header className="cln-login__card-head">
+            <header className="cln-login__card-head cln-login__card-head--compact">
               <LogoMark size={44} />
               <div>
                 <p className="cln-login__eyebrow">Dentista+ · Administración</p>
                 <h2>Acceso a tu clínica</h2>
-                <p>Gestiona agenda, pacientes, informes y facturación.</p>
               </div>
             </header>
 
@@ -255,22 +230,16 @@ export function AdminLoginPage() {
                 </button>
               </div>
             ) : (
-              <>
-                <p className="cln-login__pill">
-                  <ShieldCheck className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                  Sesión segura · acceso con credenciales
-                </p>
-
-                <form onSubmit={submit} className="cln-login__form" noValidate>
+              <form onSubmit={submit} className="cln-login__form" noValidate>
                   <div className="cln-login__field">
-                    <label htmlFor="clinic-email">Email profesional</label>
+                    <label htmlFor="clinic-email">Email</label>
                     <div className={`cln-login__input${fieldErrors.email ? ' cln-login__input--invalid' : ''}`}>
                       <Mail className="h-4 w-4 shrink-0" aria-hidden />
                       <input
                         id="clinic-email"
                         type="email"
                         autoComplete="username"
-                        placeholder="tu@clinica.com"
+                        placeholder="Introduce tu email"
                         value={emailVal}
                         onChange={(e) => {
                           setEmailVal(e.target.value);
@@ -318,15 +287,10 @@ export function AdminLoginPage() {
                     ) : null}
                   </div>
 
-                  <div className="cln-login__row">
-                    <label className="cln-login__remember">
-                      <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
-                      Recordar sesión
-                    </label>
-                    <a href={FORGOT_HREF} className="cln-login__forgot">
-                      Olvidé mi contraseña
-                    </a>
-                  </div>
+                  <label className="cln-login__remember cln-login__remember--solo">
+                    <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+                    Recordar sesión
+                  </label>
 
                   {error ? (
                     <p className="cln-login__alert cln-login__alert--shake" role="alert">
@@ -347,42 +311,9 @@ export function AdminLoginPage() {
                       </>
                     )}
                   </button>
-
-                  <p className="cln-login__secure-note">
-                    <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                    Acceso protegido con control de sesión y auditoría.
-                  </p>
                 </form>
-
-                <nav className="cln-login__portals" aria-label="Otros portales">
-                  {PORTAL_LINKS.map(({ href, label, desc, icon: Icon }) => (
-                    <a key={href} href={href} className="cln-login__portal-card">
-                      <span className="cln-login__portal-icon" aria-hidden>
-                        <Icon className="h-4 w-4" />
-                      </span>
-                      <span>
-                        <strong>{label}</strong>
-                        <small>{desc}</small>
-                      </span>
-                      <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
-                    </a>
-                  ))}
-                </nav>
-              </>
             )}
           </article>
-
-          <aside className="cln-login__support">
-            <div>
-              <h3>¿Problemas para acceder?</h3>
-              <p>
-                Si no recuerdas tus credenciales o tu cuenta está bloqueada, contacta con soporte.
-              </p>
-              <a href="/contacto?tipo=clinica" className="cln-login__support-btn">
-                Contactar soporte
-              </a>
-            </div>
-          </aside>
         </section>
       </div>
 
