@@ -1,5 +1,6 @@
 import { addMinutes } from 'date-fns';
 import { format } from 'date-fns';
+import { blockAppliesToDentist } from '../agenda/availability';
 import { getSupabaseAdmin, hasSupabaseConfig, isDemoMode } from '../supabaseServer';
 
 const BLOCK_SELECT_FULL =
@@ -277,6 +278,37 @@ export async function deleteScheduleBlocksByIds(clinicId: string, blockIds: stri
     .select('id');
   if (error) throw error;
   return data?.length ?? 0;
+}
+
+/** Elimina todos los bloqueos de la clínica en un rango; opcionalmente solo los de un dentista. */
+export async function deleteScheduleBlocksInRange(
+  clinicId: string,
+  opts: { fromDate: string; toDate: string; dentistId?: string }
+): Promise<number> {
+  const toDate = opts.toDate >= opts.fromDate ? opts.toDate : opts.fromDate;
+  const rows = await listScheduleBlocks(clinicId);
+  const matching = rows.filter((row) => {
+    if (row.date < opts.fromDate || row.date > toDate) return false;
+    if (!opts.dentistId) return true;
+    return blockAppliesToDentist(
+      {
+        id: row.id,
+        clinicId: row.clinicId,
+        tenantId: row.tenantId,
+        dentistId: row.dentistId,
+        dentistIds: row.dentistIds,
+        cabinetId: '',
+        date: row.date,
+        time: row.time,
+        reason: row.reason,
+        blockGroupId: row.blockGroupId
+      },
+      opts.dentistId
+    );
+  });
+  const ids = matching.map((r) => r.id);
+  if (!ids.length) return 0;
+  return deleteScheduleBlocksByIds(clinicId, ids);
 }
 
 export async function deleteScheduleBlockGroup(clinicId: string, blockGroupId: string): Promise<number> {

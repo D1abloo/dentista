@@ -71,3 +71,18 @@ export function formatUnblockTime(block: BlockedSlot) {
   const end = block.endTime && block.endTime !== block.time ? ` – ${block.endTime}` : '';
   return `${block.time}${end}`;
 }
+
+/** Bloqueos crudos en un rango (para desbloqueo masivo). */
+export function listBlocksForBulkUnblock(
+  blocks: BlockedSlot[],
+  opts: { clinicId: string; fromDate: string; toDate: string; dentistId?: string }
+): BlockedSlot[] {
+  const to = opts.toDate >= opts.fromDate ? opts.toDate : opts.fromDate;
+  return blocks.filter(
+    (b) =>
+      b.clinicId === opts.clinicId &&
+      b.date >= opts.fromDate &&
+      b.date <= to &&
+      (!opts.dentistId || blockAppliesToDentist(b, opts.dentistId))
+  );
+}

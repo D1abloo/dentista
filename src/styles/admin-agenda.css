@@ -1803,6 +1803,36 @@
   white-space: nowrap;
 }
 
+.agd-unblock-bulk {
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px dashed #99f6e4;
+  background: linear-gradient(180deg, #f0fdfa, #ecfeff);
+  margin-bottom: 0.5rem;
+}
+
+.agd-unblock-bulk__title {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #0f766e;
+}
+
+.agd-unblock-bulk__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.agd-unblock-bulk__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+}
+
 .agd-drawer-backdrop {
   position: fixed;
   inset: 0;

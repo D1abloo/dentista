@@ -10,7 +10,12 @@ import {
   X
 } from 'lucide-react';
 import { availableSlotsForDentist, blockRangeLabel, blockTargetLabel, validateAppointmentSlot } from '@/lib/agenda/availability';
-import { formatUnblockTime, listUnblockEntries, type UnblockEntry } from '@/lib/agenda/unblockEntries';
+import {
+  formatUnblockTime,
+  listBlocksForBulkUnblock,
+  listUnblockEntries,
+  type UnblockEntry
+} from '@/lib/agenda/unblockEntries';
 import {
   datesForMonthGrid,
   datesInRangeInclusive,
@@ -612,8 +617,11 @@ type UnblockDrawerProps = {
   deleteDenialReason?: (block: BlockedSlot) => string | null;
   onDeleteDenied?: (message: string) => void;
   unblockingKey?: string | null;
+  bulkUnblocking?: boolean;
   onClose: () => void;
   onUnblock: (entry: UnblockEntry) => void | Promise<void>;
+  onBulkUnblockAll: (fromDate: string, toDate: string) => void | Promise<void>;
+  onBulkUnblockDentist: (fromDate: string, toDate: string, dentistId: string) => void | Promise<void>;
 };
 
 export function AgendaUnblockDrawer({
@@ -628,8 +636,11 @@ export function AgendaUnblockDrawer({
   deleteDenialReason,
   onDeleteDenied,
   unblockingKey = null,
+  bulkUnblocking = false,
   onClose,
-  onUnblock
+  onUnblock,
+  onBulkUnblockAll,
+  onBulkUnblockDentist
 }: UnblockDrawerProps) {
   const [fromDate, setFromDate] = React.useState(anchorDate);
   const [toDate, setToDate] = React.useState(() => endOfMonthIso(anchorDate));
@@ -642,16 +653,60 @@ export function AgendaUnblockDrawer({
     setFilterDentist(dentistFilter);
   }, [open, anchorDate, dentistFilter]);
 
+  const effectiveTo = toDate >= fromDate ? toDate : fromDate;
+
   const scopedEntries = useMemo(
     () =>
       listUnblockEntries(blocks, {
         clinicId,
         dentistId: filterDentist || undefined,
         fromDate,
-        toDate: toDate >= fromDate ? toDate : fromDate
+        toDate: effectiveTo
       }),
-    [blocks, clinicId, filterDentist, fromDate, toDate]
+    [blocks, clinicId, filterDentist, fromDate, effectiveTo]
   );
+
+  const bulkAllDentistScope = ownAgenda && filterDentist ? filterDentist : undefined;
+
+  const bulkAllCount = useMemo(
+    () =>
+      listBlocksForBulkUnblock(blocks, {
+        clinicId,
+        fromDate,
+        toDate: effectiveTo,
+        dentistId: bulkAllDentistScope
+      }).length,
+    [blocks, clinicId, fromDate, effectiveTo, bulkAllDentistScope]
+  );
+
+  const bulkDentistCount = useMemo(
+    () =>
+      filterDentist
+        ? listBlocksForBulkUnblock(blocks, {
+            clinicId,
+            fromDate,
+            toDate: effectiveTo,
+            dentistId: filterDentist
+          }).length
+        : 0,
+    [blocks, clinicId, filterDentist, fromDate, effectiveTo]
+  );
+
+  const bulkBusy = bulkUnblocking || Boolean(unblockingKey);
+  const selectedDentistName = filterDentist
+    ? professionalDisplayName(
+        dentists.find((d) => d.id === filterDentist)?.fullName ?? 'Profesional',
+        dentists.find((d) => d.id === filterDentist)?.visibleTitle
+      )
+    : '';
+
+  function confirmBulk(label: string, count: number) {
+    return window.confirm(
+      count === 1
+        ? `${label}\n\nSe eliminará 1 bloqueo en el periodo ${fmtDate(fromDate)} – ${fmtDate(effectiveTo)}.`
+        : `${label}\n\nSe eliminarán ${count} bloqueos en el periodo ${fmtDate(fromDate)} – ${fmtDate(effectiveTo)}.`
+    );
+  }
 
   const footer = (
     <Button tone="ghost" type="button" onClick={onClose}>
@@ -680,9 +735,9 @@ export function AgendaUnblockDrawer({
       </div>
 
       {!ownAgenda ? (
-        <Field label="Profesional">
+        <Field label="Profesional (filtro y desbloqueo por Dr./Dra.)">
           <Select value={filterDentist} onChange={(e) => setFilterDentist(e.target.value)}>
-            <option value="">Todos</option>
+            <option value="">Todos — ver listado completo</option>
             {dentists.map((d) => (
               <option key={d.id} value={d.id}>
                 {professionalDisplayName(d.fullName, d.visibleTitle)}
@@ -691,6 +746,61 @@ export function AgendaUnblockDrawer({
           </Select>
         </Field>
       ) : null}
+
+      <div className="agd-unblock-bulk">
+        <p className="agd-unblock-bulk__title">Desbloqueo masivo</p>
+        <div className="agd-unblock-bulk__actions">
+          <Button
+            type="button"
+            tone="secondary"
+            className="agd-unblock-bulk__btn"
+            disabled={bulkBusy || bulkAllCount < 1}
+            onClick={() => {
+              if (!confirmBulk('¿Desbloquear todo el horario del periodo?', bulkAllCount)) return;
+              void onBulkUnblockAll(fromDate, effectiveTo);
+            }}
+          >
+            <Unlock className="h-4 w-4" aria-hidden />
+            {bulkUnblocking
+              ? 'Desbloqueando…'
+              : ownAgenda
+                ? `Mi agenda (${bulkAllCount})`
+                : `Todo el periodo (${bulkAllCount})`}
+          </Button>
+          {!ownAgenda ? (
+            <Button
+              type="button"
+              tone="secondary"
+              className="agd-unblock-bulk__btn"
+              disabled={bulkBusy || !filterDentist || bulkDentistCount < 1}
+              title={
+                filterDentist
+                  ? `Quitar bloqueos de ${selectedDentistName}`
+                  : 'Selecciona un profesional arriba'
+              }
+              onClick={() => {
+                if (!filterDentist) {
+                  onDeleteDenied?.('Selecciona un Dr. o Dra. en el desplegable para desbloquear solo su agenda.');
+                  return;
+                }
+                if (!confirmBulk(`¿Desbloquear la agenda de ${selectedDentistName}?`, bulkDentistCount)) return;
+                void onBulkUnblockDentist(fromDate, effectiveTo, filterDentist);
+              }}
+            >
+              <Unlock className="h-4 w-4" aria-hidden />
+              {bulkUnblocking
+                ? 'Desbloqueando…'
+                : filterDentist
+                  ? `${selectedDentistName} (${bulkDentistCount})`
+                  : 'Por profesional'}
+            </Button>
+          ) : null}
+        </div>
+        <p className="agd-helper agd-helper--muted">
+          Usa el periodo «Desde / Hasta». «Todo el periodo» quita todos los bloqueos de la sede; el botón del
+          profesional solo afecta al Dr./Dra. seleccionado.
+        </p>
+      </div>
 
       <p className="agd-unblock-summary">
         {scopedEntries.length
@@ -708,7 +818,7 @@ export function AgendaUnblockDrawer({
               : fmtDate(entry.dateFrom);
           const denial = deleteDenialReason?.(block) ?? (canDelete(block) ? null : 'No tienes permiso para desbloquear este horario.');
           const allowed = !denial;
-          const busy = unblockingKey === entry.key;
+          const busy = !bulkUnblocking && unblockingKey === entry.key;
 
           function tryUnblock() {
             if (busy) return;
@@ -732,7 +842,7 @@ export function AgendaUnblockDrawer({
                 type="button"
                 tone={allowed ? 'secondary' : 'ghost'}
                 className="agd-unblock-item__btn"
-                disabled={busy}
+                disabled={bulkBusy}
                 title={allowed ? 'Quitar bloqueo' : denial ?? 'Sin permiso'}
                 aria-disabled={!allowed}
                 onClick={tryUnblock}

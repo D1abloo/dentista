@@ -698,6 +698,21 @@ export const treatmentCreateSchema = z.object({
   active: z.boolean().default(true)
 });
 
+export const scheduleBlockBulkUnblockSchema = z
+  .object({
+    clinicId: z.string().uuid().optional(),
+    fromDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    toDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    /** all = todo el periodo en la sede; dentist = solo el profesional indicado */
+    scope: z.enum(['all', 'dentist']),
+    dentistId: z.string().uuid().optional()
+  })
+  .refine((d) => d.toDate >= d.fromDate, { message: 'La fecha final debe ser posterior a la inicial.' })
+  .refine((d) => d.scope !== 'dentist' || d.dentistId, {
+    message: 'Indica el profesional para desbloquear su agenda.',
+    path: ['dentistId']
+  });
+
 export const scheduleBlockDeleteSchema = z
   .object({
     clinicId: z.string().min(1).optional(),

@@ -27,11 +27,16 @@ import {
 import { blockTargetLabel } from '@/lib/agenda/availability';
 import { canDeleteScheduleBlock, scheduleBlockDeleteDenialReason } from '@/lib/agenda/blockPermissions';
 import { expandScheduleBlocks, type ScheduleBlockInput } from '@/lib/agenda/scheduleBlockExpand';
-import type { UnblockEntry } from '@/lib/agenda/unblockEntries';
+import { listBlocksForBulkUnblock, type UnblockEntry } from '@/lib/agenda/unblockEntries';
 import { useActiveClinic } from '@/hooks/useActiveClinic';
 import { createAdminAppointment, updateAdminAppointmentStatus } from '@/lib/adminAppointments';
 import { AdminNotificationBell } from './AdminNotificationBell';
-import { createScheduleBlockLive, deleteScheduleBlockLive, fetchClinicBootstrap } from '@/lib/clinicApi';
+import {
+  bulkUnblockScheduleLive,
+  createScheduleBlockLive,
+  deleteScheduleBlockLive,
+  fetchClinicBootstrap
+} from '@/lib/clinicApi';
 import { consumeBookingPatientPrefill } from '@/lib/patientAdmin';
 import { patientsForClinic } from '@/lib/tenant';
 import { statusLabel, todayIso } from '@/lib/format';
@@ -138,6 +143,7 @@ export function AdminAgenda() {
   const [blockOpen, setBlockOpen] = useState(false);
   const [unblockOpen, setUnblockOpen] = useState(false);
   const [unblockingKey, setUnblockingKey] = useState<string | null>(null);
+  const [bulkUnblocking, setBulkUnblocking] = useState(false);
   const [agendaFeedback, setAgendaFeedback] = useState<{ type: 'ok' | 'error'; message: string } | null>(null);
   const [sessionRole, setSessionRole] = useState<string>('');
   const [bookPrefillTime, setBookPrefillTime] = useState('10:00');
@@ -583,6 +589,76 @@ export function AdminAgenda() {
     return removeBlock(entry.representative, entry.blocks);
   }
 
+  async function removeBlocksBulk(
+    scope: 'all' | 'dentist',
+    fromDate: string,
+    toDate: string,
+    targetDentistId?: string
+  ) {
+    const effectiveTo = toDate >= fromDate ? toDate : fromDate;
+    const dentistFilter = scope === 'dentist' ? targetDentistId : undefined;
+
+    if (scope === 'dentist' && !dentistFilter) {
+      notifyUnblockDenied('Selecciona un Dr. o Dra. para desbloquear solo su agenda.');
+      return;
+    }
+
+    const matching = listBlocksForBulkUnblock(clinicBlocks, {
+      clinicId,
+      fromDate,
+      toDate: effectiveTo,
+      dentistId: dentistFilter
+    });
+
+    if (!matching.length) {
+      notifyUnblockDenied('No hay bloqueos en el periodo indicado para ese criterio.');
+      return;
+    }
+
+    const denied = matching.map((b) => denialReasonForBlock(b)).find(Boolean);
+    if (denied) {
+      notifyUnblockDenied(denied);
+      return;
+    }
+
+    const ids = [...new Set(matching.map((b) => b.id))];
+    setBulkUnblocking(true);
+    setUnblockingKey(null);
+
+    try {
+      if (!isClientDemoMode()) {
+        const live = await bulkUnblockScheduleLive({
+          clinicId,
+          fromDate,
+          toDate: effectiveTo,
+          scope,
+          dentistId: dentistFilter
+        });
+        if (!live.ok) {
+          notifyUnblockDenied(live.message);
+          return;
+        }
+        setState((prev) => removeScheduleBlocksByIds(prev, ids));
+        await refresh();
+      } else {
+        setState((prev) => removeScheduleBlocksByIds(prev, ids));
+      }
+
+      const label =
+        scope === 'dentist'
+          ? `Agenda del profesional desbloqueada (${ids.length} bloqueo${ids.length === 1 ? '' : 's'}).`
+          : `Periodo desbloqueado (${ids.length} bloqueo${ids.length === 1 ? '' : 's'}).`;
+      showAgendaFeedback('ok', label);
+      setDetailBlock(null);
+    } catch (err) {
+      notifyUnblockDenied(
+        err instanceof Error ? err.message : 'Error al desbloquear en bloque. Recarga la agenda e inténtalo de nuevo.'
+      );
+    } finally {
+      setBulkUnblocking(false);
+    }
+  }
+
   function canDeleteBlock(block: BlockedSlot) {
     return canDeleteScheduleBlock(staff, block, blockDeleteOptions);
   }
@@ -948,8 +1024,18 @@ export function AdminAgenda() {
         deleteDenialReason={denialReasonForBlock}
         onDeleteDenied={notifyUnblockDenied}
         unblockingKey={unblockingKey}
+        bulkUnblocking={bulkUnblocking}
         onClose={() => setUnblockOpen(false)}
         onUnblock={(entry) => void removeBlockEntry(entry)}
+        onBulkUnblockAll={(from, to) =>
+          void removeBlocksBulk(
+            ownAgenda && staff?.dentistId ? 'dentist' : 'all',
+            from,
+            to,
+            ownAgenda && staff?.dentistId ? staff.dentistId : undefined
+          )
+        }
+        onBulkUnblockDentist={(from, to, dId) => void removeBlocksBulk('dentist', from, to, dId)}
       />
 
       <AgendaBlockDrawer
