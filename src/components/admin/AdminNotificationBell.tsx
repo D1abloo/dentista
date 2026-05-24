@@ -1,23 +1,27 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Bell,
+  BellOff,
   Calendar,
   Check,
   CreditCard,
   ExternalLink,
   FileStack,
   FileText,
-  Globe
+  Globe,
+  Moon
 } from 'lucide-react';
 import {
   ensureClinicNotifications,
+  isDoNotDisturbActive,
   markAllNotificationsRead,
   markNotificationRead,
-  unreadCount
+  unreadCount,
+  defaultNotificationPrefs
 } from '@/lib/clinicNotifications';
 import { actionRoute, categoryLabel, priorityLabel } from '@/lib/notificationCenter';
 import { formatPayTime } from '@/lib/paymentAdmin';
-import { getStoredTenantId } from '@/lib/demoStore';
+import { getStoredTenantId, saveSettings, settingsFor } from '@/lib/demoStore';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import type { ClinicNotification, ClinicNotificationCategory } from '@/types/demo';
 
@@ -41,6 +45,7 @@ export function AdminNotificationBell() {
   const wrapRef = useRef<HTMLDivElement>(null);
 
   const count = unreadCount(state, tenantId);
+  const doNotDisturb = isDoNotDisturbActive(state, tenantId);
 
   useEffect(() => {
     const next = ensureClinicNotifications(state, tenantId);
@@ -83,18 +88,35 @@ export function AdminNotificationBell() {
     commit(markAllNotificationsRead(state, tenantId));
   }
 
+  function toggleDoNotDisturb() {
+    const settings = settingsFor(state, tenantId);
+    const notificationPrefs = {
+      ...(settings.notificationPrefs ?? defaultNotificationPrefs()),
+      doNotDisturb: !doNotDisturb
+    };
+    commit(saveSettings(state, tenantId, { ...settings, notificationPrefs }));
+  }
+
   return (
-    <div className={`admin-notif-menu${open ? ' admin-notif-menu--open' : ''}`} ref={wrapRef}>
+    <div className={`admin-notif-menu${open ? ' admin-notif-menu--open' : ''}${doNotDisturb ? ' admin-notif-menu--dnd' : ''}`} ref={wrapRef}>
       <button
         type="button"
-        className={`admin-notif-bell${count > 0 ? ' admin-notif-bell--pulse' : ''}`}
+        className={`admin-notif-bell${count > 0 && !doNotDisturb ? ' admin-notif-bell--pulse' : ''}${doNotDisturb ? ' admin-notif-bell--dnd' : ''}`}
         aria-expanded={open}
         aria-haspopup="dialog"
-        aria-label={count > 0 ? `${count} notificaciones sin leer` : 'Notificaciones'}
+        aria-label={
+          doNotDisturb
+            ? 'No molestar activo'
+            : count > 0
+              ? `${count} notificaciones sin leer`
+              : 'Notificaciones'
+        }
         onClick={() => setOpen((v) => !v)}
       >
-        <Bell className="h-4 w-4" aria-hidden />
-        {count > 0 ? <span className="admin-notif-bell__count">{count > 99 ? '99+' : count}</span> : null}
+        {doNotDisturb ? <BellOff className="h-4 w-4" aria-hidden /> : <Bell className="h-4 w-4" aria-hidden />}
+        {count > 0 && !doNotDisturb ? (
+          <span className="admin-notif-bell__count">{count > 99 ? '99+' : count}</span>
+        ) : null}
       </button>
 
       {open ? (
@@ -103,7 +125,11 @@ export function AdminNotificationBell() {
             <div>
               <p className="admin-notif-panel__title">Notificaciones</p>
               <p className="admin-notif-panel__sub">
-                {count > 0 ? `${count} sin leer` : 'Estás al día'}
+                {doNotDisturb
+                  ? 'No molestar — avisos nuevos pausados'
+                  : count > 0
+                    ? `${count} sin leer`
+                    : 'Estás al día'}
               </p>
             </div>
             {count > 0 ? (
@@ -156,6 +182,27 @@ export function AdminNotificationBell() {
               </li>
             )}
           </ul>
+
+          <div className="admin-notif-panel__dnd">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={doNotDisturb}
+              className={`admin-notif-dnd${doNotDisturb ? ' admin-notif-dnd--on' : ''}`}
+              onClick={toggleDoNotDisturb}
+            >
+              <span className="admin-notif-dnd__icon" aria-hidden>
+                <Moon className="h-4 w-4" />
+              </span>
+              <span className="admin-notif-dnd__text">
+                <strong>No molestar</strong>
+                <small>{doNotDisturb ? 'Activo — no llegarán avisos nuevos' : 'Pausa avisos nuevos en el panel'}</small>
+              </span>
+              <span className="admin-notif-dnd__track" aria-hidden>
+                <span className="admin-notif-dnd__thumb" />
+              </span>
+            </button>
+          </div>
 
           <footer className="admin-notif-panel__foot">
             <a href="/admin/notificaciones" className="admin-notif-panel__all" onClick={() => setOpen(false)}>

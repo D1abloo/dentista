@@ -778,6 +778,110 @@
   background: #ecfdf5;
 }
 
+.admin-notif-panel__all:hover {
+  background: #ecfdf5;
+}
+
+.admin-notif-menu--dnd .admin-notif-bell--dnd {
+  background: #475569;
+  color: #f8fafc;
+  border-color: #334155;
+}
+
+.admin-notif-bell--dnd:hover {
+  background: #334155;
+}
+
+.admin-notif-panel__dnd {
+  padding: 0.55rem 0.75rem;
+  border-top: 1px solid #f1f5f9;
+  background: #fff;
+}
+
+.admin-notif-dnd {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  background: #f8fafc;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.admin-notif-dnd--on {
+  border-color: #6366f1;
+  background: #eef2ff;
+}
+
+.admin-notif-dnd__icon {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.55rem;
+  background: #e2e8f0;
+  color: #475569;
+  flex-shrink: 0;
+}
+
+.admin-notif-dnd--on .admin-notif-dnd__icon {
+  background: #6366f1;
+  color: #fff;
+}
+
+.admin-notif-dnd__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-notif-dnd__text strong {
+  display: block;
+  font-size: 0.78rem;
+  color: #0f172a;
+}
+
+.admin-notif-dnd__text small {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.68rem;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.admin-notif-dnd__track {
+  position: relative;
+  width: 2.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: #cbd5e1;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.admin-notif-dnd--on .admin-notif-dnd__track {
+  background: #6366f1;
+}
+
+.admin-notif-dnd__thumb {
+  position: absolute;
+  top: 0.15rem;
+  left: 0.15rem;
+  width: 0.95rem;
+  height: 0.95rem;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.18);
+  transition: transform 0.15s ease;
+}
+
+.admin-notif-dnd--on .admin-notif-dnd__thumb {
+  transform: translateX(1rem);
+}
+
 @media (min-width: 900px) {
   .admin-user-menu__meta {
     display: flex;

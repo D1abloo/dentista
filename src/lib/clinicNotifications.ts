@@ -38,8 +38,19 @@ export const defaultNotificationPrefs = (): NotificationPrefs => ({
   alertUploadError: true,
   alertInvalidToken: true,
   dailyDigest: false,
-  urgentImmediate: true
+  urgentImmediate: true,
+  doNotDisturb: false
 });
+
+function resolveNotificationPrefs(state: DemoState, tenantId: string): NotificationPrefs {
+  const settings =
+    state.settingsByTenant[tenantId] ?? Object.values(state.settingsByTenant)[0];
+  return settings?.notificationPrefs ?? defaultNotificationPrefs();
+}
+
+export function isDoNotDisturbActive(state: DemoState, tenantId = getStoredTenantId()): boolean {
+  return Boolean(resolveNotificationPrefs(state, tenantId).doNotDisturb);
+}
 
 function nid() {
   return `NTF-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -106,6 +117,7 @@ export function pushClinicNotification(
   }
 ): DemoState {
   const tenantId = input.tenantId ?? getStoredTenantId();
+  if (isDoNotDisturbActive(state, tenantId)) return state;
   const note: ClinicNotification = {
     ...input,
     id: nid(),
@@ -372,6 +384,12 @@ export function ensureClinicNotifications(state: DemoState, tenantId = getStored
     state.clinicNotifications.filter((n) => n.tenantId === tenantId),
     tenantId
   );
+  if (isDoNotDisturbActive(state, tenantId)) {
+    return {
+      ...state,
+      clinicNotifications: [...state.clinicNotifications.filter((n) => n.tenantId !== tenantId), ...existing]
+    };
+  }
   if (existing.length >= 8) {
     if (existing.length === state.clinicNotifications.length) return state;
     return { ...state, clinicNotifications: [...state.clinicNotifications.filter((n) => n.tenantId !== tenantId), ...existing] };

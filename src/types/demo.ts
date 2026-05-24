@@ -259,6 +259,8 @@ export interface NotificationPrefs {
   alertInvalidToken: boolean;
   dailyDigest: boolean;
   urgentImmediate: boolean;
+  /** Pausa avisos nuevos en panel hasta desactivarlo. */
+  doNotDisturb?: boolean;
 }
 
 export interface PatientDocument {

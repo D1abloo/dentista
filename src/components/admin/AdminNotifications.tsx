@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   Archive,
   Bell,
+  BellOff,
   Calendar,
   Check,
   CreditCard,
@@ -15,6 +16,7 @@ import {
 import {
   archiveNotification,
   ensureClinicNotifications,
+  isDoNotDisturbActive,
   markAllNotificationsRead,
   markNotificationRead,
   unreadCount
@@ -69,6 +71,7 @@ export function AdminNotifications() {
   const tenantId = getStoredTenantId();
   const settings = settingsFor(state, tenantId);
   const prefs = settings.notificationPrefs ?? defaultNotificationPrefs();
+  const doNotDisturb = isDoNotDisturbActive(state, tenantId);
 
   const [ready, setReady] = useState(false);
   const [filter, setFilter] = useState<NotificationListFilter>('todas');
@@ -78,6 +81,10 @@ export function AdminNotifications() {
   const [configOpen, setConfigOpen] = useState(false);
   const [prefsDraft, setPrefsDraft] = useState<NotificationPrefs>(prefs);
   const [archiving, setArchiving] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (configOpen) setPrefsDraft(settings.notificationPrefs ?? defaultNotificationPrefs());
+  }, [configOpen, settings.notificationPrefs]);
 
   useEffect(() => {
     const next = ensureClinicNotifications(state, tenantId);
@@ -132,6 +139,19 @@ export function AdminNotifications() {
     setNotice({ type: 'ok', message: 'Preferencias de notificación guardadas.' });
   }
 
+  function toggleDoNotDisturb() {
+    const notificationPrefs = {
+      ...(settings.notificationPrefs ?? defaultNotificationPrefs()),
+      doNotDisturb: !doNotDisturb
+    };
+    commit(saveSettings(state, tenantId, { ...settings, notificationPrefs }));
+    setPrefsDraft((draft) => ({ ...draft, doNotDisturb: !doNotDisturb }));
+    setNotice({
+      type: 'ok',
+      message: !doNotDisturb ? 'No molestar activado. Los avisos nuevos quedan pausados.' : 'No molestar desactivado.'
+    });
+  }
+
   function quickActions(n: ClinicNotification) {
     const go = () => {
       markRead(n);
@@ -183,6 +203,14 @@ export function AdminNotifications() {
           <p>Consulta y gestiona los avisos generados por pacientes, citas, documentos, facturas, pagos y portal del paciente.</p>
         </div>
         <div className="ntf-module__actions">
+          <button
+            type="button"
+            className={`ntf-btn-secondary${doNotDisturb ? ' ntf-btn-secondary--dnd' : ''}`}
+            onClick={toggleDoNotDisturb}
+            aria-pressed={doNotDisturb}
+          >
+            <BellOff className="h-4 w-4" /> No molestar{doNotDisturb ? ' (activo)' : ''}
+          </button>
           <button type="button" className="ntf-btn-secondary" onClick={markAll}>
             <Check className="h-4 w-4" /> Marcar todas como leídas
           </button>
@@ -191,6 +219,13 @@ export function AdminNotifications() {
           </button>
         </div>
       </header>
+
+      {doNotDisturb ? (
+        <div className="ntf-dnd-banner" role="status">
+          <BellOff className="h-4 w-4 shrink-0" aria-hidden />
+          <p>No molestar activo. Los avisos nuevos no llegarán al panel hasta que lo desactives.</p>
+        </div>
+      ) : null}
 
       <div className="ntf-toolbar">
         <div className="ntf-toolbar__filters">
@@ -327,6 +362,17 @@ export function AdminNotifications() {
               </button>
             </header>
             <p className="ntf-modal__sub">Activa avisos por categoría y canal. También disponible en Ajustes → Notificaciones.</p>
+            <label className="ntf-pref-dnd">
+              <input
+                type="checkbox"
+                checked={Boolean(prefsDraft.doNotDisturb)}
+                onChange={(e) => setPrefsDraft({ ...prefsDraft, doNotDisturb: e.target.checked })}
+              />
+              <span>
+                <strong>No molestar</strong>
+                <small>Pausa avisos nuevos en el panel mientras esté activo</small>
+              </span>
+            </label>
             <div className="ntf-pref-grid">
               {(
                 ['citas', 'pacientes', 'documentos', 'informes', 'facturas', 'pagos', 'portal', 'sistema'] as ClinicNotificationCategory[]

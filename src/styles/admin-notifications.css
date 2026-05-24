@@ -353,6 +353,55 @@
   animation: ntf-bell-pulse 2s ease infinite;
 }
 
+.ntf-btn-secondary--dnd {
+  border-color: #6366f1;
+  background: #eef2ff;
+  color: #3730a3;
+}
+
+.ntf-dnd-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid #c7d2fe;
+  background: #eef2ff;
+  color: #312e81;
+}
+
+.ntf-dnd-banner p {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.ntf-pref-dnd {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  cursor: pointer;
+}
+
+.ntf-pref-dnd strong {
+  display: block;
+  font-size: 0.85rem;
+  color: #0f172a;
+}
+
+.ntf-pref-dnd small {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
 @keyframes ntf-bell-pulse {
   0%,
   100% {
