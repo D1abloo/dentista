@@ -2,20 +2,18 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   Activity,
   AlertTriangle,
-  Bell,
-  Calendar,
-  ChevronDown,
   ChevronRight,
   Download,
   Lock,
   LogIn,
   Search,
-  Shield,
   ShieldAlert,
   XCircle
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useCountUp } from '@/hooks/useCountUp';
+import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
+import { PlatformMonitoringToolbar } from './PlatformMonitoringToolbar';
 import { PlatformShell } from './PlatformShell';
 import { MonitoringDetail } from './monitoring/MonitoringDetail';
 import type {
@@ -65,6 +63,19 @@ function severityClass(s: string) {
 
 function resultClass(r: string) {
   return `mon-result mon-result--${r}`;
+}
+
+function buildPageList(current: number, total: number): (number | 'gap')[] {
+  if (total <= 1) return [1];
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages: (number | 'gap')[] = [1];
+  if (current > 3) pages.push('gap');
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+  for (let p = start; p <= end; p += 1) pages.push(p);
+  if (current < total - 2) pages.push('gap');
+  pages.push(total);
+  return pages;
 }
 
 function MonKpiCard({
@@ -287,6 +298,8 @@ export function PlatformMonitoring() {
   };
 
   const total = data?.filtered_total ?? 0;
+  const totalPages = data?.total_pages ?? 1;
+  const pageList = buildPageList(page, totalPages);
   const from = total ? (page - 1) * pageSize + 1 : 0;
   const to = Math.min(page * pageSize, total);
 
@@ -306,45 +319,21 @@ export function PlatformMonitoring() {
           </div>
         ) : null}
 
-        <header className="mon-topbar">
-          <div className="mon-topbar__search">
-            <Search className="h-4 w-4 text-slate-400" aria-hidden />
-            <input type="search" placeholder="Buscar en la plataforma…" aria-label="Buscar en la plataforma" />
-            <kbd>⌘ K</kbd>
-          </div>
-          <div className="mon-topbar__actions">
-            <button type="button" className="mon-topbar__icon" aria-label="Notificaciones">
-              <Bell className="h-4 w-4" />
-              <span className="mon-topbar__badge">8</span>
-            </button>
-            <button type="button" className="mon-topbar__icon" aria-label="Seguridad">
-              <Shield className="h-4 w-4" />
-            </button>
-            <button type="button" className="mon-topbar__date">
-              <Calendar className="h-4 w-4" aria-hidden />
-              24/05/2026 - 24/05/2026
-              <ChevronDown className="h-3.5 w-3.5" />
-            </button>
-            <div className="mon-topbar__user">
-              <span className="mon-topbar__avatar" aria-hidden>
-                SA
-              </span>
-              <div>
-                <strong>Super Admin</strong>
-                <span>Plataforma Dentista+</span>
-              </div>
-              <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-            </div>
-          </div>
-        </header>
+        <PlatformMonitoringToolbar alerts={data?.alerts ?? []} onOpenAlert={openAlert} />
+
 
         <div className="mon-head-row">
           <div className="mon-head">
-            <h1 className="mon-head__title">Monitorización y seguridad</h1>
-            <p className="mon-head__sub">
-              Supervisa accesos, actividad, errores y eventos de seguridad de la plataforma Dentista+.
-            </p>
-            <span className="mon-head__badge">Aplicación principal: gestión de citas para clínicas dentales</span>
+            <div className="mon-head__brand">
+              <DentistaWebpLockup placement="header" showWordmark={false} />
+              <div>
+                <h1 className="mon-head__title">Monitorización y seguridad</h1>
+                <p className="mon-head__sub">
+                  Supervisa accesos, actividad, errores y eventos de seguridad de la plataforma Dentista+.
+                </p>
+              </div>
+            </div>
+            <span className="mon-head__badge">Aplicación principal: gestión clínica multi-tenant</span>
           </div>
           <aside className="mon-alerts">
             <div className="mon-alerts__head">
@@ -535,16 +524,21 @@ export function PlatformMonitoring() {
                 <button type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
                   anterior
                 </button>
-                {[1, 2, 3].map((p) => (
-                  <button key={p} type="button" className={page === p ? 'mon-pagination__active' : ''} onClick={() => setPage(p)}>
-                    {p}
-                  </button>
-                ))}
-                <span>…</span>
-                <button type="button" onClick={() => setPage(25)}>
-                  25
-                </button>
-                <button type="button" disabled={page >= (data?.total_pages ?? 1)} onClick={() => setPage((p) => p + 1)}>
+                {pageList.map((p, idx) =>
+                  p === 'gap' ? (
+                    <span key={`gap-${idx}`}>…</span>
+                  ) : (
+                    <button
+                      key={p}
+                      type="button"
+                      className={page === p ? 'mon-pagination__active' : ''}
+                      onClick={() => setPage(p)}
+                    >
+                      {p}
+                    </button>
+                  )
+                )}
+                <button type="button" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
                   siguiente
                 </button>
                 <select
