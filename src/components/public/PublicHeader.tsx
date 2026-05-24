@@ -68,7 +68,7 @@ export function PublicHeader({ activeHref, onWantDemo }: Props) {
           <a href="/reserva" className="ps-btn ps-btn--ghost ps-btn--sm hidden md:inline-flex">
             Reservar
           </a>
-          <button type="button" className="ps-btn ps-btn--outline ps-btn--sm ps-header__demo" onClick={wantDemoClick}>
+          <button type="button" className="ps-btn ps-btn--ghost ps-btn--sm ps-header__demo" onClick={wantDemoClick}>
             Demo clínica
           </button>
           <EnterPortalDropdown onNavigate={() => setOpen(false)} />
