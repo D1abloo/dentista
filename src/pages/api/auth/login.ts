@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createSessionToken, loginProductionUser, loginProductionUserWithPortal, sessionCookieName } from '@/lib/auth';
+import { applyAdminPanelGateCookie, isClinicPanelUser } from '@/lib/auth/adminPanelGate';
 import { isPortalChoiceLogin } from '@/lib/auth/loginResolve';
 import {
   detectClinicLoginDenial,
@@ -20,6 +21,22 @@ export const prerender = false;
 
 const SESSION_HOURS = 8;
 const REMEMBER_DAYS = 30;
+
+function setSessionCookie(
+  cookies: Parameters<APIRoute>[0]['cookies'],
+  user: Parameters<typeof createSessionToken>[0],
+  maxAge: number,
+  grantAdminGate = false
+) {
+  cookies.set(sessionCookieName, createSessionToken(user), {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: import.meta.env.PROD,
+    path: '/',
+    maxAge
+  });
+  if (grantAdminGate) applyAdminPanelGateCookie(cookies, maxAge);
+}
 
 export const POST: APIRoute = async (context) => {
   const { request, cookies } = context;
@@ -73,13 +90,7 @@ export const POST: APIRoute = async (context) => {
         route: '/platform/login'
       });
 
-      cookies.set(sessionCookieName, createSessionToken(user), {
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: import.meta.env.PROD,
-        path: '/',
-        maxAge
-      });
+      setSessionCookie(cookies, user, maxAge);
 
       return ok(user, { message: 'Sesión iniciada correctamente.' });
     }
@@ -144,13 +155,7 @@ export const POST: APIRoute = async (context) => {
             userId: completed.profileId,
             route: '/login/admin'
           });
-          cookies.set(sessionCookieName, createSessionToken(completed), {
-            httpOnly: true,
-            sameSite: 'lax',
-            secure: import.meta.env.PROD,
-            path: '/',
-            maxAge
-          });
+          setSessionCookie(cookies, completed, maxAge, true);
           return ok(completed, { message: 'Sesión iniciada correctamente.' });
         }
         return ok(
@@ -178,13 +183,7 @@ export const POST: APIRoute = async (context) => {
         route: '/login/admin'
       });
 
-      cookies.set(sessionCookieName, createSessionToken(user), {
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: import.meta.env.PROD,
-        path: '/',
-        maxAge
-      });
+      setSessionCookie(cookies, user, maxAge, true);
 
       return ok(user, { message: 'Sesión iniciada correctamente.' });
     }
@@ -239,13 +238,7 @@ export const POST: APIRoute = async (context) => {
       route: parsed.data.portal === 'patient' ? '/login/paciente' : '/login'
     });
 
-    cookies.set(sessionCookieName, createSessionToken(user), {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: import.meta.env.PROD,
-      path: '/',
-      maxAge
-    });
+    setSessionCookie(cookies, user, maxAge, isClinicPanelUser(user));
 
     return ok(user, { message: 'Sesión iniciada correctamente.' });
   } catch (error) {

@@ -1,9 +1,20 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { getEffectiveSessionUser, type SessionUser } from '@/lib/auth';
 
 export const adminPanelGateCookieName = 'df_admin_gate';
 
 const encoder = new TextEncoder();
 const GATE_TTL_MS = 12 * 60 * 60 * 1000;
+const GATE_MAX_AGE_SEC = 60 * 60 * 12;
+
+type CookieReader = { get(name: string): { value?: string } | undefined };
+type CookieWriter = CookieReader & {
+  set: (
+    name: string,
+    value: string,
+    opts: { httpOnly: boolean; sameSite: 'lax'; secure: boolean; path: string; maxAge: number }
+  ) => void;
+};
 
 function secret() {
   const s = import.meta.env.ADMIN_PANEL_ENTRY_SECRET ?? import.meta.env.AUTH_SESSION_SECRET;
@@ -59,8 +70,33 @@ export function parseAdminPanelGateCookie(token: string | undefined): boolean {
   }
 }
 
-export function hasAdminPanelGate(cookies: { get(name: string): { value?: string } | undefined }): boolean {
+export function hasAdminPanelGate(cookies: CookieReader): boolean {
   return parseAdminPanelGateCookie(cookies.get(adminPanelGateCookieName)?.value);
+}
+
+/** Usuario con acceso al panel clínica (admin o super_admin en inspección). */
+export function isClinicPanelUser(user: Pick<SessionUser, 'role' | 'platformInspect' | 'inspectMode'>): boolean {
+  if (user.role === 'patient') return false;
+  if (user.role === 'super_admin') {
+    return Boolean(user.platformInspect && user.inspectMode === 'clinic_admin');
+  }
+  return user.role === 'admin';
+}
+
+/** Sesión válida de personal clínica (post-login). */
+export function hasClinicPanelSession(cookies: CookieReader): boolean {
+  const user = getEffectiveSessionUser(cookies);
+  return user ? isClinicPanelUser(user) : false;
+}
+
+export function applyAdminPanelGateCookie(cookies: CookieWriter, maxAge = GATE_MAX_AGE_SEC) {
+  cookies.set(adminPanelGateCookieName, createAdminPanelGateCookie(), {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: import.meta.env.PROD,
+    path: '/',
+    maxAge
+  });
 }
 
 export function isDemoGateBypass(): boolean {
@@ -72,6 +108,11 @@ export function isAdminPanelProtectedPath(pathname: string): boolean {
   if (pathname === '/admin' || pathname.startsWith('/admin/')) return true;
   if (pathname === '/login/admin') return true;
   return false;
+}
+
+/** Solo rutas del panel (no login). Tras autenticación basta la sesión clínica. */
+export function isAdminPanelRoute(pathname: string): boolean {
+  return pathname === '/admin' || pathname.startsWith('/admin/');
 }
 
 export function isAdminEntryPath(pathname: string): boolean {

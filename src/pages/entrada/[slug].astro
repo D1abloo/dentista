@@ -2,8 +2,7 @@
 export const prerender = false;
 
 import {
-  adminPanelGateCookieName,
-  createAdminPanelGateCookie,
+  applyAdminPanelGateCookie,
   validateAdminEntrySlug
 } from '@/lib/auth/adminPanelGate';
 
@@ -13,14 +12,7 @@ if (!validateAdminEntrySlug(slug)) {
   return Astro.redirect('/');
 }
 
-const maxAge = 60 * 60 * 12;
-Astro.cookies.set(adminPanelGateCookieName, createAdminPanelGateCookie(), {
-  httpOnly: true,
-  sameSite: 'lax',
-  secure: import.meta.env.PROD,
-  path: '/',
-  maxAge
-});
+applyAdminPanelGateCookie(Astro.cookies);
 
 return Astro.redirect('/login/admin');
 ---
