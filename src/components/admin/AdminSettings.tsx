@@ -8,6 +8,7 @@ import {
   Instagram,
   Key,
   Lock,
+  MapPin,
   Receipt,
   Save
 } from 'lucide-react';
@@ -384,6 +385,17 @@ export function AdminSettings() {
     if (tab === 'seguridad') {
       return (
         <>
+          <section className="set-card">
+            <h2>Centro clínico activo</h2>
+            <p className="set-card__sub">
+              Cada clínica tiene configuración y datos aislados. Cambia de centro para acceder a otra sede donde
+              tienes permiso.
+            </p>
+            <a href="/admin/elegir-centro" className="set-btn-secondary inline-flex items-center gap-2 no-underline">
+              <MapPin className="h-4 w-4" aria-hidden />
+              Cambiar centro
+            </a>
+          </section>
           <section className="set-card">
             <h2>Seguridad</h2>
             <p className="set-card__sub">Acceso y credenciales del personal.</p>

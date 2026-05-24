@@ -78,6 +78,7 @@ function redirectAfterLogin(user: SessionUser): string {
   }
   if (user.role === 'super_admin') return '/platform';
   if (user.role === 'patient') return '/paciente';
+  if (user.role === 'admin') return '/admin/elegir-centro?auto=1';
   return '/admin';
 }
 

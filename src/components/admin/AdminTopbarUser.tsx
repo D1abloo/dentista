@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Camera, ChevronDown, KeyRound, LogOut, Settings, Trash2, UserCircle } from 'lucide-react';
+import { Camera, ChevronDown, KeyRound, LogOut, MapPin, Settings, Trash2, UserCircle } from 'lucide-react';
 import { useLogout } from '@/components/auth/RoleGate';
 import { useAdminSession } from '@/hooks/useAdminSession';
 import { useNotice } from '@/hooks/useNotice';
@@ -12,7 +12,7 @@ type Props = {
 export function AdminTopbarUser({ fallbackName }: Props) {
   const logout = useLogout();
   const { setNotice } = useNotice();
-  const { displayName, email, roleLabel, initials, avatarUrl, tenantId, refreshAvatar } =
+  const { displayName, email, roleLabel, initials, avatarUrl, tenantId, clinicId, refreshAvatar } =
     useAdminSession(fallbackName);
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -31,7 +31,7 @@ export function AdminTopbarUser({ fallbackName }: Props) {
     if (!file) return;
     try {
       const dataUrl = await fileToAvatarDataUrl(file);
-      saveStaffAvatarUrl(dataUrl, tenantId);
+      saveStaffAvatarUrl(dataUrl, clinicId, tenantId);
       refreshAvatar();
       setNotice({ type: 'ok', message: 'Foto de perfil actualizada.' });
     } catch (e) {
@@ -45,7 +45,7 @@ export function AdminTopbarUser({ fallbackName }: Props) {
   }
 
   function removeAvatar() {
-    clearStaffAvatarUrl(tenantId);
+    clearStaffAvatarUrl(clinicId, tenantId);
     refreshAvatar();
     setOpen(false);
     setNotice({ type: 'ok', message: 'Foto de perfil eliminada.' });
@@ -108,6 +108,12 @@ export function AdminTopbarUser({ fallbackName }: Props) {
                 </button>
               </li>
             ) : null}
+            <li>
+              <a href="/admin/elegir-centro" role="menuitem">
+                <MapPin className="h-4 w-4" aria-hidden />
+                Cambiar centro
+              </a>
+            </li>
             <li>
               <a href="/admin/configuracion" role="menuitem">
                 <Settings className="h-4 w-4" aria-hidden />

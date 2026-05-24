@@ -1899,3 +1899,152 @@ body:has(.ps-header) .help-hub__support {
   line-height: 1.55;
   color: var(--ps-muted);
 }
+
+/* —— Elegir centro clínico (staff) —— */
+.clinic-center-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem clamp(1rem, 2.5vw, 2rem);
+  background: linear-gradient(165deg, var(--ps-paper) 0%, #fff 50%, var(--ps-paper-alt) 100%);
+}
+
+.clinic-center-page__shell {
+  width: 100%;
+  max-width: 32rem;
+}
+
+.clinic-center-page__brand {
+  display: inline-flex;
+  margin-bottom: 1.5rem;
+}
+
+.clinic-center-page__foot {
+  margin-top: 1.25rem;
+  text-align: center;
+  font-size: 0.82rem;
+}
+
+.clinic-center-page__foot a {
+  color: var(--ps-teal-deep);
+  font-weight: 600;
+}
+
+.clinic-center-picker__head h1 {
+  margin: 0.35rem 0 0.5rem;
+  font-size: 1.5rem;
+  color: var(--ps-ink);
+}
+
+.clinic-center-picker__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ps-teal-deep);
+}
+
+.clinic-center-picker__head p {
+  margin: 0 0 1.25rem;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--ps-muted);
+}
+
+.clinic-center-picker__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.clinic-center-picker__card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  padding: 1rem 1.1rem;
+  border-radius: var(--ps-radius);
+  border: 1px solid var(--ps-line);
+  background: var(--ps-surface);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.clinic-center-picker__card:hover:not(:disabled) {
+  border-color: rgba(22, 138, 148, 0.35);
+  box-shadow: var(--ps-shadow-sm);
+}
+
+.clinic-center-picker__card--current {
+  border-color: rgba(22, 138, 148, 0.45);
+  background: var(--ps-mint-soft);
+}
+
+.clinic-center-picker__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.65rem;
+  background: var(--ps-mint-soft);
+  color: var(--ps-teal-deep);
+  flex-shrink: 0;
+}
+
+.clinic-center-picker__meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.clinic-center-picker__meta strong {
+  font-size: 0.95rem;
+  color: var(--ps-ink);
+}
+
+.clinic-center-picker__meta small {
+  font-size: 0.78rem;
+  color: var(--ps-muted);
+}
+
+.clinic-center-picker__badge {
+  display: inline-block;
+  margin-top: 0.25rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--ps-teal-deep);
+  background: #fff;
+  border: 1px solid rgba(22, 138, 148, 0.2);
+  width: fit-content;
+}
+
+.clinic-center-picker__status,
+.clinic-center-picker__empty {
+  font-size: 0.85rem;
+  color: var(--ps-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.clinic-center-picker__error {
+  margin: 0 0 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #b42318;
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+}

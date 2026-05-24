@@ -19,20 +19,27 @@ function writeMap(map: Record<string, string>) {
   localStorage.setItem(AVATAR_KEY, JSON.stringify(map));
 }
 
-export function getStaffAvatarUrl(tenantId = getStoredTenantId()): string | null {
-  const url = readMap()[tenantId];
+/** Clave aislada por centro clínico (cada sede tiene su carpeta de preferencias locales). */
+export function staffAvatarScopeKey(clinicId?: string | null, tenantId = getStoredTenantId()) {
+  if (clinicId) return `clinic:${clinicId}`;
+  return `tenant:${tenantId}`;
+}
+
+export function getStaffAvatarUrl(clinicId?: string | null, tenantId = getStoredTenantId()): string | null {
+  const scope = staffAvatarScopeKey(clinicId, tenantId);
+  const url = readMap()[scope];
   return url && url.startsWith('data:image/') ? url : null;
 }
 
-export function saveStaffAvatarUrl(dataUrl: string, tenantId = getStoredTenantId()) {
+export function saveStaffAvatarUrl(dataUrl: string, clinicId?: string | null, tenantId = getStoredTenantId()) {
   const map = readMap();
-  map[tenantId] = dataUrl;
+  map[staffAvatarScopeKey(clinicId, tenantId)] = dataUrl;
   writeMap(map);
 }
 
-export function clearStaffAvatarUrl(tenantId = getStoredTenantId()) {
+export function clearStaffAvatarUrl(clinicId?: string | null, tenantId = getStoredTenantId()) {
   const map = readMap();
-  delete map[tenantId];
+  delete map[staffAvatarScopeKey(clinicId, tenantId)];
   writeMap(map);
 }
 

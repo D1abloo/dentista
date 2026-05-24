@@ -27,6 +27,10 @@ export const loginSchema = z.object({
   remember: z.boolean().optional()
 });
 
+export const switchClinicSchema = z.object({
+  clinicId: z.string().uuid('Centro clínico no válido.')
+});
+
 export const clinicLogoSchema = z.object({
   logoDataUrl: z
     .string()

@@ -10,6 +10,7 @@ export type AdminSessionInfo = {
   roleLabel: string;
   initials: string;
   avatarUrl: string | null;
+  clinicId: string | null;
 };
 
 function initialsFrom(name: string) {
@@ -32,6 +33,7 @@ function roleLabelFrom(staffRole?: string) {
 export function useAdminSession(fallbackName = 'Usuario conectado') {
   const tenantId = getStoredTenantId();
   const { staff } = useStaffContext();
+  const [clinicId, setClinicId] = useState<string | null>(null);
   const [info, setInfo] = useState<AdminSessionInfo>(() => {
     const staffLocal = getStaffProfile(tenantId);
     const name = staffLocal?.fullName?.trim() || fallbackName;
@@ -40,7 +42,8 @@ export function useAdminSession(fallbackName = 'Usuario conectado') {
       email: '',
       roleLabel: roleLabelFrom(staff?.role ?? staffLocal?.role),
       initials: initialsFrom(name) || 'AD',
-      avatarUrl: getStaffAvatarUrl(tenantId)
+      avatarUrl: getStaffAvatarUrl(null, tenantId),
+      clinicId: null
     };
   });
 
@@ -49,18 +52,21 @@ export function useAdminSession(fallbackName = 'Usuario conectado') {
       .then((r) => r.json())
       .then(
         (j: {
-          data?: { name?: string; email?: string; staffRole?: string; role?: string };
+          data?: { name?: string; email?: string; staffRole?: string; role?: string; clinicId?: string };
         }) => {
           const staffLocal = getStaffProfile(tenantId);
           const name = j.data?.name?.trim() || staffLocal?.fullName?.trim() || fallbackName;
           const email = j.data?.email?.trim() ?? '';
           const role = j.data?.staffRole ?? j.data?.role ?? staff?.role ?? staffLocal?.role;
+          const activeClinic = j.data?.clinicId ?? staff?.clinicId ?? null;
+          setClinicId(activeClinic);
           setInfo({
             displayName: name,
             email,
             roleLabel: roleLabelFrom(role),
             initials: initialsFrom(name) || 'AD',
-            avatarUrl: getStaffAvatarUrl(tenantId)
+            avatarUrl: getStaffAvatarUrl(activeClinic, tenantId),
+            clinicId: activeClinic
           });
         }
       )
@@ -72,14 +78,15 @@ export function useAdminSession(fallbackName = 'Usuario conectado') {
           email: '',
           roleLabel: roleLabelFrom(staff?.role ?? staffLocal?.role),
           initials: initialsFrom(name) || 'AD',
-          avatarUrl: getStaffAvatarUrl(tenantId)
+          avatarUrl: getStaffAvatarUrl(clinicId, tenantId),
+          clinicId
         });
       });
-  }, [tenantId, staff?.role, fallbackName]);
+  }, [tenantId, staff?.role, staff?.clinicId, fallbackName, clinicId]);
 
   function refreshAvatar() {
-    setInfo((prev) => ({ ...prev, avatarUrl: getStaffAvatarUrl(tenantId) }));
+    setInfo((prev) => ({ ...prev, avatarUrl: getStaffAvatarUrl(clinicId ?? prev.clinicId, tenantId) }));
   }
 
-  return { ...info, tenantId, refreshAvatar };
+  return { ...info, tenantId, clinicId: clinicId ?? info.clinicId, refreshAvatar };
 }
