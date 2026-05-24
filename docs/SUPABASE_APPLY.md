@@ -22,16 +22,17 @@ Si en Supabase **no has ejecutado ninguna migración**, sigue este orden en el *
 | 19 | `0019`–`0030` | **Sí** | NHC, bloques agenda, RLS records, auditoría/monitorización |
 | 20 | `0031_security_rls_hardening.sql` | **Sí** | Hardening RLS + backfill idempotente de `0030` |
 | 21 | `0032_schedule_block_dentist_ids.sql` | **Sí** | Columna `dentist_ids` en `schedule_blocks` (desbloqueo multi-profesional) |
+| 22 | `0033_messages_from_patient.sql` | **Sí** | Columna `from_patient` en `messages` (mensajes bidireccionales portal) |
 
 ### Resumen rápido — modo PRO (`PUBLIC_DEMO_MODE=false`)
 
 Ejecuta como mínimo:
 
 ```
-0001 → 0003 → 0006 → 0008 → 0009 → 0010 → 0011 → … → 0032
+0001 → 0003 → 0006 → 0008 → 0009 → 0010 → 0011 → … → 0033
 ```
 
-**Estado remoto (may 2026):** `0032` aplicada en el proyecto Supabase de producción (`dentist_ids` + `block_group_id` verificados).
+**Estado remoto (may 2026):** `0032` y `0033` aplicadas en el proyecto Supabase de producción.
 
 Opcional: `0007_demo_app_state.sql` (solo demo remoto).
 
