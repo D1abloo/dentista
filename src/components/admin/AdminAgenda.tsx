@@ -31,7 +31,7 @@ import type { UnblockEntry } from '@/lib/agenda/unblockEntries';
 import { useActiveClinic } from '@/hooks/useActiveClinic';
 import { createAdminAppointment, updateAdminAppointmentStatus } from '@/lib/adminAppointments';
 import { AdminNotificationBell } from './AdminNotificationBell';
-import { createScheduleBlockLive, deleteScheduleBlockLive } from '@/lib/clinicApi';
+import { createScheduleBlockLive, deleteScheduleBlockLive, fetchClinicBootstrap } from '@/lib/clinicApi';
 import { consumeBookingPatientPrefill } from '@/lib/patientAdmin';
 import { patientsForClinic } from '@/lib/tenant';
 import { statusLabel, todayIso } from '@/lib/format';
@@ -138,6 +138,8 @@ export function AdminAgenda() {
   const [blockOpen, setBlockOpen] = useState(false);
   const [unblockOpen, setUnblockOpen] = useState(false);
   const [unblockingKey, setUnblockingKey] = useState<string | null>(null);
+  const [agendaFeedback, setAgendaFeedback] = useState<{ type: 'ok' | 'error'; message: string } | null>(null);
+  const [sessionRole, setSessionRole] = useState<string>('');
   const [bookPrefillTime, setBookPrefillTime] = useState('10:00');
   const [blockPrefillTime, setBlockPrefillTime] = useState('13:00');
   const [detailBlock, setDetailBlock] = useState<BlockedSlot | null>(null);
@@ -176,9 +178,10 @@ export function AdminAgenda() {
   useEffect(() => {
     void fetch('/api/auth/me', { credentials: 'include' })
       .then((r) => r.json())
-      .then((j: { data?: { name?: string; email?: string } }) => {
+      .then((j: { data?: { name?: string; email?: string; role?: string; staffRole?: string } }) => {
         if (j.data?.name) setUserLabel(j.data.name);
         else if (j.data?.email) setUserLabel(j.data.email);
+        setSessionRole(j.data?.staffRole ?? j.data?.role ?? '');
       })
       .catch(() => undefined);
   }, []);
@@ -491,17 +494,23 @@ export function AdminAgenda() {
       ownAgenda,
       dentistId: staff?.dentistId ?? dentistId,
       assignedClinicIds: staff?.assignedClinicIds,
-      staffLoading
+      staffLoading,
+      sessionRole
     }),
-    [ownAgenda, staff?.dentistId, staff?.assignedClinicIds, dentistId, staffLoading]
+    [ownAgenda, staff?.dentistId, staff?.assignedClinicIds, dentistId, staffLoading, sessionRole]
   );
 
   function denialReasonForBlock(block: BlockedSlot) {
     return scheduleBlockDeleteDenialReason(staff, block, blockDeleteOptions);
   }
 
+  function showAgendaFeedback(type: 'ok' | 'error', message: string) {
+    setAgendaFeedback({ type, message });
+    setNotice({ type, message });
+  }
+
   function notifyUnblockDenied(message: string) {
-    setNotice({ type: 'error', message });
+    showAgendaFeedback('error', message);
   }
 
   async function removeBlock(block: BlockedSlot, groupBlocks?: BlockedSlot[]) {
@@ -541,16 +550,30 @@ export function AdminAgenda() {
         }
         applyLocalUnblock(block, ids);
         await refresh();
+
+        const remote = await fetchClinicBootstrap();
+        const remoteBlocks = remote?.state?.blockedSlots ?? [];
+        const stillBlocked = ids.some((id) =>
+          remoteBlocks.some((b) => b.id === id && b.clinicId === activeClinicId)
+        );
+        if (stillBlocked) {
+          notifyUnblockDenied(
+            'El servidor no eliminó el bloqueo. Comprueba la sede activa, recarga (F5) y vuelve a intentarlo.'
+          );
+          return;
+        }
       } else {
         applyLocalUnblock(block, ids);
       }
 
       setDetailBlock(null);
-      setNotice({
-        type: 'ok',
-        message:
-          ids.length > 1 ? `Horario desbloqueado (${ids.length} días).` : 'Horario desbloqueado.'
-      });
+      const okMsg =
+        ids.length > 1 ? `Horario desbloqueado (${ids.length} días).` : 'Horario desbloqueado correctamente.';
+      showAgendaFeedback('ok', okMsg);
+    } catch (err) {
+      notifyUnblockDenied(
+        err instanceof Error ? err.message : 'Error inesperado al desbloquear. Recarga la agenda e inténtalo de nuevo.'
+      );
     } finally {
       setUnblockingKey(null);
     }
@@ -574,6 +597,23 @@ export function AdminAgenda() {
 
   return (
     <div className={`agd-module${loading ? ' agd-module--loading' : ''}`}>
+      {agendaFeedback ? (
+        <div
+          className={`agd-feedback agd-feedback--${agendaFeedback.type}`}
+          role="alert"
+          aria-live="assertive"
+        >
+          <p className="agd-feedback__text">{agendaFeedback.message}</p>
+          <button
+            type="button"
+            className="agd-feedback__close"
+            aria-label="Cerrar aviso"
+            onClick={() => setAgendaFeedback(null)}
+          >
+            ×
+          </button>
+        </div>
+      ) : null}
       <header className="agd-toolbar">
         <div className="agd-segment" role="tablist" aria-label="Vista de agenda">
           {(['dia', 'semana', 'mes'] as const).map((m) => (

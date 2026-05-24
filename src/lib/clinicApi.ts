@@ -174,9 +174,20 @@ export async function deleteScheduleBlockLive(input: {
     method: 'DELETE',
     credentials: 'include'
   });
-  const json = (await res.json()) as { error?: { message?: string } };
+  const json = (await res.json()) as {
+    data?: { removed?: number };
+    error?: { message?: string };
+  };
   if (!res.ok) return { ok: false as const, message: json.error?.message ?? 'No se pudo quitar el bloqueo.' };
-  return { ok: true as const };
+  const removed = Number(json.data?.removed ?? 0);
+  if (removed < 1) {
+    return {
+      ok: false as const,
+      message:
+        'No se eliminó ningún bloqueo en el servidor. Recarga la página (F5) e inténtalo otra vez; si persiste, contacta con soporte.'
+    };
+  }
+  return { ok: true as const, removed };
 }
 
 export async function processNotificationQueueLive(limit = 20) {

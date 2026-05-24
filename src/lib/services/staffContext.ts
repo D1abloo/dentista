@@ -48,10 +48,35 @@ async function listAssignedClinicIds(user: SessionUser): Promise<string[]> {
   return listAssignedClinicIdsForSession(user);
 }
 
+function syntheticClinicAdminContext(user: SessionUser, assignedClinicIds: string[]): StaffContext {
+  return {
+    profileId: user.profileId ?? '',
+    clinicId: user.clinicId as string,
+    tenantId: user.tenantId ?? null,
+    role: 'clinic_admin',
+    fullName: user.name ?? user.email,
+    email: user.email,
+    dentistId: null,
+    hasLinkedDentist: false,
+    canAccessPatientPortal: false,
+    agendaScope: 'clinic',
+    assignedClinicIds,
+    canManageBlocks: true
+  };
+}
+
 export async function getStaffContextForSession(user: SessionUser): Promise<StaffContext | null> {
-  if (!hasSupabaseConfig() || !user.profileId || !user.clinicId) return null;
+  if (!hasSupabaseConfig() || !user.clinicId) return null;
+
+  const assignedClinicIds = await listAssignedClinicIdsForSession(user);
+
+  if (user.role === 'super_admin' || user.role === 'admin') {
+    return syntheticClinicAdminContext(user, assignedClinicIds.length ? assignedClinicIds : [user.clinicId]);
+  }
+
+  if (!user.profileId) return null;
   const role = user.staffRole ?? user.role;
-  if (!STAFF_ROLES.has(role) && user.role !== 'admin') return null;
+  if (!STAFF_ROLES.has(role)) return null;
 
   const db = getSupabaseAdmin();
   const { data: profile, error } = await db
@@ -71,7 +96,7 @@ export async function getStaffContextForSession(user: SessionUser): Promise<Staf
   const profileRole = String(profile.role);
   const dentistId = (dentist?.id as string | undefined) ?? null;
   const isDentist = profileRole === 'dentist';
-  const assignedClinicIds = await listAssignedClinicIds(user);
+  const canManageBlocks = BLOCK_MANAGER_ROLES.has(profileRole) || user.role === 'admin';
 
   return {
     profileId: profile.id as string,
@@ -85,6 +110,6 @@ export async function getStaffContextForSession(user: SessionUser): Promise<Staf
     canAccessPatientPortal: Boolean(profile.id),
     agendaScope: isDentist && dentistId ? 'own' : 'clinic',
     assignedClinicIds,
-    canManageBlocks: BLOCK_MANAGER_ROLES.has(profileRole)
+    canManageBlocks
   };
 }

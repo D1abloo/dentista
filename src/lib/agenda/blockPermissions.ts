@@ -6,6 +6,8 @@ export type BlockDeleteOptions = {
   dentistId?: string;
   assignedClinicIds?: string[];
   staffLoading?: boolean;
+  /** Rol de sesión (p. ej. super_admin con acceso total al panel clínica). */
+  sessionRole?: string;
 };
 
 function blockDentistIds(block: BlockedSlot): string[] {
@@ -18,8 +20,13 @@ export function scheduleBlockDeleteDenialReason(
   block: BlockedSlot,
   options: BlockDeleteOptions
 ): string | null {
-  if (options.staffLoading) {
-    return 'Cargando permisos de tu usuario. Espera un momento e inténtalo de nuevo.';
+  const sessionRole = options.sessionRole ?? '';
+  if (sessionRole === 'super_admin' || sessionRole === 'admin') {
+    const assigned = staff?.assignedClinicIds ?? options.assignedClinicIds;
+    if (assigned?.length && !assigned.includes(block.clinicId)) {
+      return 'Este bloqueo pertenece a otra sede. Selecciona la clínica correcta en el panel superior.';
+    }
+    return null;
   }
 
   const assigned = staff?.assignedClinicIds ?? options.assignedClinicIds;
