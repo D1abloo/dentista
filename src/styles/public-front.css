@@ -56,6 +56,14 @@
   }
 }
 
+.pub-header--corp .dentista-webp-lockup__mark,
+.pub-header--corp .dentista-webp-lockup__img {
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 50%;
+  background: transparent;
+}
+
 .pub-header--corp .dentista-webp-lockup--header .dentista-webp-lockup__text {
   display: block !important;
 }
@@ -241,7 +249,10 @@
   color: #5eead4;
 }
 
-.lp-footer--corp .dentista-webp-lockup__img {
+.lp-footer--corp .dentista-webp-lockup__mark,
+.lp-footer--corp .dentista-webp-lockup__img,
+.df-lp-footer .dentista-webp-lockup__mark,
+.df-lp-footer .dentista-webp-lockup__img {
   width: 2.35rem;
   height: 2.35rem;
   max-width: none;
