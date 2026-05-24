@@ -11,7 +11,7 @@ import { clientIp } from '@/lib/audit/sanitize';
 export const prerender = false;
 
 export const GET: APIRoute = async (context) => {
-  const gate = requireStaffSession(context);
+  const gate = await requireStaffSession(context);
   if (gate.response) return gate.response;
 
   try {
@@ -37,7 +37,7 @@ export const GET: APIRoute = async (context) => {
 };
 
 export const POST: APIRoute = async (context) => {
-  const gate = requireStaffSession(context);
+  const gate = await requireStaffSession(context);
   if (gate.response) return gate.response;
 
   try {

@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { loadClinicDemoState } from '@/lib/bootstrap/clinicState';
 import { getEffectiveSessionUser } from '@/lib/auth';
+import { enrichDualRoleClinicSession } from '@/lib/auth/dualRoleClinic';
 import { fail, ok } from '@/lib/http';
 import { logError } from '@/lib/logger';
 import { hasSupabaseConfig } from '@/lib/supabaseServer';
@@ -12,8 +13,13 @@ export const GET: APIRoute = async (context) => {
     return fail('Servicio no disponible.', 503);
   }
 
-  const user = getEffectiveSessionUser(context.cookies);
+  let user = getEffectiveSessionUser(context.cookies);
   if (!user) return fail('No autenticado.', 401);
+
+  if (user.role === 'super_admin' && !user.platformInspect) {
+    user = await enrichDualRoleClinicSession(user);
+  }
+
   if (user.role === 'super_admin' && !user.platformInspect && !user.clinicId) {
     return fail('Usa el panel /platform para administración global.', 400);
   }

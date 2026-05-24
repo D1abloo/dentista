@@ -20,7 +20,7 @@ function clinicIdFromRequest(context: { url: URL }, bodyClinicId?: string) {
 
 export const GET: APIRoute = async (context) => {
   if (!hasSupabaseConfig()) return fail('Servicio no disponible.', 503);
-  const gate = requireStaffSession(context);
+  const gate = await requireStaffSession(context);
   if (gate.response) return gate.response;
 
   const clinicId = clinicIdFromRequest(context) ?? gate.user.clinicId;
@@ -41,7 +41,7 @@ export const GET: APIRoute = async (context) => {
 
 export const POST: APIRoute = async (context) => {
   if (!hasSupabaseConfig()) return fail('Servicio no disponible.', 503);
-  const gate = requireStaffSession(context);
+  const gate = await requireStaffSession(context);
   if (gate.response) return gate.response;
 
   try {
@@ -78,7 +78,7 @@ export const POST: APIRoute = async (context) => {
 
 export const DELETE: APIRoute = async (context) => {
   if (!hasSupabaseConfig()) return fail('Servicio no disponible.', 503);
-  const gate = requireStaffSession(context);
+  const gate = await requireStaffSession(context);
   if (gate.response) return gate.response;
 
   const params = {

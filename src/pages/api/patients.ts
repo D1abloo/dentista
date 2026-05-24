@@ -25,7 +25,7 @@ export const GET: APIRoute = async (context) => {
       return ok(data, { count: data.length, clinicId });
     }
 
-    const staffGate = requireStaffSession(context);
+    const staffGate = await requireStaffSession(context);
     if (staffGate.response) return staffGate.response;
     const scopeErr = await assertClinicScopeAsync(staffGate.user, parsed.data.clinicId);
     if (scopeErr) return scopeErr;

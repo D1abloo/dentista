@@ -40,10 +40,29 @@ export function AdminLoginPage() {
     options: PortalChoiceOption[];
   } | null>(null);
   const [portalLoading, setPortalLoading] = useState<PortalChoiceId | null>(null);
+  const [platformSession, setPlatformSession] = useState(false);
 
   useEffect(() => {
     const t = window.setTimeout(() => setEntered(true), 40);
     return () => window.clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    try {
+      const prefill = new URLSearchParams(window.location.search).get('email');
+      if (prefill) setEmailVal(prefill);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetch('/api/auth/me', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j: { data?: { role?: string; clinicId?: string } } | null) => {
+        if (j?.data?.role === 'super_admin' && !j.data.clinicId) setPlatformSession(true);
+      })
+      .catch(() => undefined);
   }, []);
 
   useEffect(() => {
@@ -204,6 +223,12 @@ export function AdminLoginPage() {
                 <h2>Acceso a tu clínica</h2>
               </div>
             </header>
+
+            {platformSession && !portalChoice ? (
+              <p className="cln-login__hint" role="status">
+                Tienes sesión de plataforma activa. Introduce tu contraseña para abrir el panel clínica.
+              </p>
+            ) : null}
 
             {portalChoice ? (
               <div className="cln-login__choice">

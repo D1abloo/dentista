@@ -12,7 +12,7 @@ const processSchema = z.object({
 
 export const POST: APIRoute = async (context) => {
   try {
-    const gate = requireStaffSession(context);
+    const gate = await requireStaffSession(context);
     if (gate.response) return gate.response;
 
     const payload = await context.request.json().catch(() => ({}));

@@ -15,7 +15,7 @@ export const prerender = false;
 
 export const POST: APIRoute = async (context) => {
   try {
-    const gate = requireStaffSession(context);
+    const gate = await requireStaffSession(context);
     if (gate.response) return gate.response;
     const payload = await context.request.json();
     const parsed = reportCreateSchema.safeParse(payload);
@@ -54,7 +54,7 @@ export const POST: APIRoute = async (context) => {
 
 export const PUT: APIRoute = async (context) => {
   try {
-    const gate = requireStaffSession(context);
+    const gate = await requireStaffSession(context);
     if (gate.response) return gate.response;
     const payload = await context.request.json();
     const parsed = reportUpdateSchema.safeParse(payload);
@@ -71,7 +71,7 @@ export const PUT: APIRoute = async (context) => {
 
 export const PATCH: APIRoute = async (context) => {
   try {
-    const gate = requireStaffSession(context);
+    const gate = await requireStaffSession(context);
     if (gate.response) return gate.response;
     const payload = await context.request.json();
     const parsed = reportVisibilitySchema.safeParse(payload);

@@ -392,6 +392,17 @@
   animation: cln-login-shake 0.35s ease;
 }
 
+.cln-login__hint {
+  margin: 0 0 0.85rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0f766e;
+  background: #ecfdf5;
+  border: 1px solid #99f6e4;
+}
+
 @keyframes cln-login-shake {
   0%,
   100% {

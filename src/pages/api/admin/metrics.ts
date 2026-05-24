@@ -8,7 +8,7 @@ export const prerender = false;
 
 export const GET: APIRoute = async (context) => {
   try {
-    const gate = requireStaffSession(context);
+    const gate = await requireStaffSession(context);
     if (gate.response) return gate.response;
     const parsed = clinicQuerySchema.safeParse(Object.fromEntries(context.url.searchParams));
     if (!parsed.success) return fail('Query de métricas inválida.', 422, parsed.error.flatten());

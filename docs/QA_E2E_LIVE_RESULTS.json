@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-23T19:43:26.881Z",
+  "generatedAt": "2026-05-24T02:57:58.942Z",
   "baseUrl": "http://[::1]:4321",
   "summary": {
     "pass": 38,
@@ -12,266 +12,266 @@
       "test": "GET /",
       "status": "PASS",
       "note": "status=200",
-      "at": "2026-05-23T19:43:20.362Z"
+      "at": "2026-05-24T02:57:52.683Z"
     },
     {
       "module": "Landing",
       "test": "GET /api/public/clinics",
       "status": "PASS",
       "note": "status=200",
-      "at": "2026-05-23T19:43:20.494Z"
+      "at": "2026-05-24T02:57:52.779Z"
     },
     {
       "module": "Seguridad",
       "test": "GET /api/auth/me sin sesión",
       "status": "PASS",
       "note": "status=401",
-      "at": "2026-05-23T19:43:20.527Z"
+      "at": "2026-05-24T02:57:52.780Z"
     },
     {
       "module": "Seguridad",
       "test": "GET métricas sin sesión",
       "status": "PASS",
       "note": "status=401",
-      "at": "2026-05-23T19:43:20.565Z"
+      "at": "2026-05-24T02:57:52.782Z"
     },
     {
       "module": "Seguridad",
       "test": "POST notificación cita sin sesión",
       "status": "PASS",
       "note": "status=401",
-      "at": "2026-05-23T19:43:20.577Z"
+      "at": "2026-05-24T02:57:52.785Z"
     },
     {
       "module": "Auth",
       "test": "Login admin clínica",
       "status": "PASS",
       "note": "admin@dentista.app",
-      "at": "2026-05-23T19:43:21.468Z"
+      "at": "2026-05-24T02:57:53.849Z"
     },
     {
       "module": "Auth",
       "test": "GET /api/auth/me con sesión admin",
       "status": "PASS",
       "note": "admin",
-      "at": "2026-05-23T19:43:21.470Z"
+      "at": "2026-05-24T02:57:53.852Z"
     },
     {
       "module": "Bootstrap",
       "test": "GET /api/clinic/bootstrap",
       "status": "PASS",
       "note": "clinic=0858d185…",
-      "at": "2026-05-23T19:43:22.037Z"
+      "at": "2026-05-24T02:57:54.451Z"
     },
     {
       "module": "Clínica",
       "test": "GET staff-context",
       "status": "PASS",
       "note": "status=200",
-      "at": "2026-05-23T19:43:22.298Z"
+      "at": "2026-05-24T02:57:54.683Z"
     },
     {
       "module": "Profesionales",
       "test": "GET clinical-professionals",
       "status": "PASS",
       "note": "status=200",
-      "at": "2026-05-23T19:43:22.365Z"
+      "at": "2026-05-24T02:57:54.742Z"
     },
     {
       "module": "Seguridad",
       "test": "Pacientes sede ajena",
       "status": "PASS",
       "note": "status=403",
-      "at": "2026-05-23T19:43:22.495Z"
+      "at": "2026-05-24T02:57:54.855Z"
     },
     {
       "module": "Seguridad",
       "test": "Métricas sede ajena",
       "status": "PASS",
       "note": "status=403",
-      "at": "2026-05-23T19:43:22.616Z"
+      "at": "2026-05-24T02:57:54.974Z"
     },
     {
       "module": "Seguridad",
       "test": "Admin clínica no accede plataforma",
       "status": "PASS",
       "note": "status=403",
-      "at": "2026-05-23T19:43:22.647Z"
+      "at": "2026-05-24T02:57:54.976Z"
     },
     {
       "module": "Agenda",
       "test": "POST bloqueo horario",
       "status": "PASS",
       "note": "ok",
-      "at": "2026-05-23T19:43:22.780Z"
+      "at": "2026-05-24T02:57:55.103Z"
     },
     {
       "module": "Agenda",
       "test": "GET bloqueos del día",
       "status": "PASS",
-      "note": "count=2",
-      "at": "2026-05-23T19:43:22.921Z"
+      "note": "count=3",
+      "at": "2026-05-24T02:57:55.220Z"
     },
     {
       "module": "Agenda",
       "test": "DELETE desbloquear (ids)",
       "status": "PASS",
       "note": "removed=1",
-      "at": "2026-05-23T19:43:22.982Z"
+      "at": "2026-05-24T02:57:55.280Z"
     },
     {
       "module": "Agenda",
       "test": "Bloqueo eliminado en listado",
       "status": "PASS",
       "note": "left=0",
-      "at": "2026-05-23T19:43:23.112Z"
+      "at": "2026-05-24T02:57:55.402Z"
     },
     {
       "module": "Citas",
       "test": "GET citas clínica",
       "status": "PASS",
       "note": "status=200",
-      "at": "2026-05-23T19:43:23.186Z"
+      "at": "2026-05-24T02:57:55.459Z"
     },
     {
       "module": "Reserva",
       "test": "GET disponibilidad pública",
       "status": "PASS",
       "note": "slots=0",
-      "at": "2026-05-23T19:43:23.253Z"
+      "at": "2026-05-24T02:57:55.519Z"
     },
     {
       "module": "Citas",
       "test": "POST crear cita",
       "status": "PASS",
-      "note": "e9f0435e…",
-      "at": "2026-05-23T19:43:24.358Z"
+      "note": "b78e7085…",
+      "at": "2026-05-24T02:57:56.345Z"
     },
     {
       "module": "Citas",
       "test": "PATCH confirmar cita",
       "status": "PASS",
       "note": "status=200",
-      "at": "2026-05-23T19:43:24.487Z"
+      "at": "2026-05-24T02:57:56.473Z"
     },
     {
       "module": "Informes",
       "test": "POST informe clínico visible PdP",
       "status": "PASS",
       "note": "ok",
-      "at": "2026-05-23T19:43:24.949Z"
+      "at": "2026-05-24T02:57:56.943Z"
     },
     {
       "module": "Facturación",
       "test": "POST crear factura",
       "status": "PASS",
       "note": "status=201",
-      "at": "2026-05-23T19:43:25.024Z"
+      "at": "2026-05-24T02:57:57.011Z"
     },
     {
       "module": "Pagos",
       "test": "POST registrar pago",
       "status": "PASS",
       "note": "status=201",
-      "at": "2026-05-23T19:43:25.151Z"
+      "at": "2026-05-24T02:57:57.131Z"
     },
     {
       "module": "Documentos",
       "test": "POST documento visible PdP",
       "status": "PASS",
       "note": "status=201",
-      "at": "2026-05-23T19:43:25.546Z"
+      "at": "2026-05-24T02:57:57.482Z"
     },
     {
       "module": "Mensajes",
       "test": "POST mensaje a paciente",
       "status": "PASS",
       "note": "status=201",
-      "at": "2026-05-23T19:43:25.877Z"
+      "at": "2026-05-24T02:57:57.778Z"
     },
     {
       "module": "Citas",
       "test": "PATCH cancelar cita QA",
       "status": "PASS",
       "note": "status=200",
-      "at": "2026-05-23T19:43:26.003Z"
+      "at": "2026-05-24T02:57:57.901Z"
     },
     {
       "module": "Facturación",
       "test": "Stripe checkout paciente ajeno bloqueado",
       "status": "PASS",
       "note": "status=422",
-      "at": "2026-05-23T19:43:26.011Z"
+      "at": "2026-05-24T02:57:57.903Z"
     },
     {
       "module": "Plataforma",
       "test": "Login super admin",
       "status": "PASS",
       "note": "admin@dentista.app",
-      "at": "2026-05-23T19:43:26.072Z"
+      "at": "2026-05-24T02:57:58.027Z"
     },
     {
       "module": "Plataforma",
       "test": "GET organizaciones",
       "status": "PASS",
       "note": "status=200",
-      "at": "2026-05-23T19:43:26.196Z"
+      "at": "2026-05-24T02:57:58.149Z"
     },
     {
       "module": "Plataforma",
       "test": "GET clínicas registradas",
       "status": "PASS",
       "note": "status=200",
-      "at": "2026-05-23T19:43:26.271Z"
+      "at": "2026-05-24T02:57:58.208Z"
     },
     {
       "module": "Plataforma",
       "test": "GET suscripciones",
       "status": "PASS",
       "note": "status=200",
-      "at": "2026-05-23T19:43:26.342Z"
+      "at": "2026-05-24T02:57:58.325Z"
     },
     {
       "module": "Plataforma",
       "test": "GET aislamiento",
       "status": "PASS",
       "note": "status=200",
-      "at": "2026-05-23T19:43:26.475Z"
+      "at": "2026-05-24T02:57:58.438Z"
     },
     {
       "module": "Plataforma",
       "test": "Clínicas Mediterráneo independientes",
       "status": "PASS",
       "note": "count=4",
-      "at": "2026-05-23T19:43:26.476Z"
+      "at": "2026-05-24T02:57:58.438Z"
     },
     {
       "module": "Portal Paciente",
       "test": "Login paciente",
       "status": "PASS",
       "note": "maria.gonzalez@clinicadentalnova.es",
-      "at": "2026-05-23T19:43:26.812Z"
+      "at": "2026-05-24T02:57:58.881Z"
     },
     {
       "module": "Portal Paciente",
       "test": "Sesión paciente con patientId",
       "status": "PASS",
       "note": "patient=5e2a1f16…",
-      "at": "2026-05-23T19:43:26.814Z"
+      "at": "2026-05-24T02:57:58.882Z"
     },
     {
       "module": "Portal Paciente",
       "test": "GET citas solo propias",
       "status": "PASS",
       "note": "count=2",
-      "at": "2026-05-23T19:43:26.879Z"
+      "at": "2026-05-24T02:57:58.941Z"
     },
     {
       "module": "Seguridad",
       "test": "Paciente no crea factura ajena",
       "status": "PASS",
       "note": "status=403",
-      "at": "2026-05-23T19:43:26.880Z"
+      "at": "2026-05-24T02:57:58.942Z"
     }
   ]
 }

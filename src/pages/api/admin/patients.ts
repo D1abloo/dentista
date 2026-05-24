@@ -10,7 +10,7 @@ export const prerender = false;
 
 export const POST: APIRoute = async (context) => {
   if (!hasSupabaseConfig()) return fail('Servicio no disponible.', 503);
-  const gate = requireStaffSession(context);
+  const gate = await requireStaffSession(context);
   if (gate.response) return gate.response;
   const clinicId = gate.user.clinicId;
   if (!clinicId) return fail('Sesión sin clínica.', 403);

@@ -11,7 +11,7 @@ import { hasSupabaseConfig } from '@/lib/supabaseServer';
 export const prerender = false;
 
 export const GET: APIRoute = async (context) => {
-  const gate = requireStaffSession(context);
+  const gate = await requireStaffSession(context);
   if (gate.response) return gate.response;
   if (!hasSupabaseConfig()) return fail('Base de datos no configurada.', 503);
   try {
@@ -30,7 +30,7 @@ export const GET: APIRoute = async (context) => {
 };
 
 export const POST: APIRoute = async (context) => {
-  const gate = requireStaffSession(context);
+  const gate = await requireStaffSession(context);
   if (gate.response) return gate.response;
   return fail(
     'Cada clínica es independiente. Registra una nueva clínica desde Plataforma → Organizaciones o el alta pública.',
@@ -39,7 +39,7 @@ export const POST: APIRoute = async (context) => {
 };
 
 export const PATCH: APIRoute = async (context) => {
-  const gate = requireStaffSession(context);
+  const gate = await requireStaffSession(context);
   if (gate.response) return gate.response;
   if (!hasSupabaseConfig()) return fail('Base de datos no configurada.', 503);
   try {

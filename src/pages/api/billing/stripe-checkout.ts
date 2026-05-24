@@ -30,7 +30,7 @@ export const POST: APIRoute = async (context) => {
       const ownErr = assertOwnPatient(gate.user, parsed.data.patientId);
       if (ownErr) return ownErr;
     } else {
-      const staffGate = requireStaffSession(context);
+      const staffGate = await requireStaffSession(context);
       if (staffGate.response) return staffGate.response;
     }
 

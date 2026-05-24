@@ -52,7 +52,7 @@ function bodyToDentist(
 
 export const GET: APIRoute = async (context) => {
   if (!hasSupabaseConfig()) return fail('Servicio no disponible.', 503);
-  const gate = requireStaffSession(context);
+  const gate = await requireStaffSession(context);
   if (gate.response) return gate.response;
   const clinicId = context.url.searchParams.get('clinicId') ?? gate.user.clinicId;
   if (!clinicId) return fail('Clínica requerida.', 422);
@@ -73,7 +73,7 @@ export const GET: APIRoute = async (context) => {
 export const POST: APIRoute = async (context) => {
   if (!hasSupabaseConfig()) return fail('Servicio no disponible.', 503);
   if (isDemoMode()) return fail('En modo demo guarda desde el panel.', 400);
-  const gate = requireStaffSession(context);
+  const gate = await requireStaffSession(context);
   if (gate.response) return gate.response;
 
   try {
@@ -96,7 +96,7 @@ export const POST: APIRoute = async (context) => {
 export const PATCH: APIRoute = async (context) => {
   if (!hasSupabaseConfig()) return fail('Servicio no disponible.', 503);
   if (isDemoMode()) return fail('En modo demo guarda desde el panel.', 400);
-  const gate = requireStaffSession(context);
+  const gate = await requireStaffSession(context);
   if (gate.response) return gate.response;
 
   try {

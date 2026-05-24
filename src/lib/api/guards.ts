@@ -1,5 +1,6 @@
 import type { APIContext } from 'astro';
 import { getEffectiveSessionUser, getSessionUser, type SessionUser } from '@/lib/auth';
+import { enrichDualRoleClinicSession } from '@/lib/auth/dualRoleClinic';
 import { fail } from '@/lib/http';
 import { listAssignedClinicIdsForSession } from '@/lib/services/staffContext';
 
@@ -11,12 +12,20 @@ export function requireSession(context: APIContext) {
   return { user, response: null as null };
 }
 
-export function requireStaffSession(context: APIContext) {
-  const user = getEffectiveSessionUser(context.cookies);
+export async function requireStaffSession(context: APIContext) {
+  let user = getEffectiveSessionUser(context.cookies);
   if (!user) return { user: null as null, response: fail('No autenticado.', 401) };
+
+  if (user.role === 'super_admin' && !user.platformInspect) {
+    user = await enrichDualRoleClinicSession(user);
+  }
+
   const role = user.staffRole ?? user.role;
   if (user.platformInspect && user.inspectMode === 'clinic_admin') {
     if (!user.clinicId) return { user: null as null, response: fail('Inspección sin clínica.', 403) };
+    return { user, response: null as null };
+  }
+  if (user.role === 'super_admin' && user.clinicId) {
     return { user, response: null as null };
   }
   if (!STAFF_ROLES.has(role) && user.role !== 'admin') {
@@ -82,7 +91,7 @@ export function resolveStaffClinicId(user: SessionUser, requestedClinicId?: stri
 }
 
 export async function requireClinicSessionAsync(context: APIContext, clinicId: string) {
-  const gate = requireStaffSession(context);
+  const gate = await requireStaffSession(context);
   if (gate.response) return gate;
   const scope = await assertClinicScopeAsync(gate.user, clinicId);
   if (scope) return { user: null as null, response: scope };
@@ -90,8 +99,8 @@ export async function requireClinicSessionAsync(context: APIContext, clinicId: s
 }
 
 /** @deprecated Usa requireClinicSessionAsync (clínicas siempre independientes). */
-export function requireClinicSession(context: APIContext, clinicId: string) {
-  const gate = requireStaffSession(context);
+export async function requireClinicSession(context: APIContext, clinicId: string) {
+  const gate = await requireStaffSession(context);
   if (gate.response) return gate;
   const scope = assertClinicScope(gate.user, clinicId);
   if (scope) return { user: null as null, response: scope };

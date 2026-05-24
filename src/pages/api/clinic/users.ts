@@ -16,7 +16,7 @@ function canManageUsers(role: string) {
 
 export const GET: APIRoute = async (context) => {
   if (!hasSupabaseConfig()) return fail('Servicio no disponible.', 503);
-  const gate = requireStaffSession(context);
+  const gate = await requireStaffSession(context);
   if (gate.response) return gate.response;
   const clinicId = gate.user.clinicId;
   if (!clinicId) return fail('Sesión sin clínica.', 403);
@@ -32,7 +32,7 @@ export const GET: APIRoute = async (context) => {
 
 export const POST: APIRoute = async (context) => {
   if (!hasSupabaseConfig()) return fail('Servicio no disponible.', 503);
-  const gate = requireStaffSession(context);
+  const gate = await requireStaffSession(context);
   if (gate.response) return gate.response;
   const clinicId = gate.user.clinicId;
   if (!clinicId) return fail('Sesión sin clínica.', 403);
