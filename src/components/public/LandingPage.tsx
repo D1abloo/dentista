@@ -63,8 +63,7 @@ export function LandingPage() {
     if (q === 'pro_multi' || q === 'pro_clinica') setPlan(q);
   }, []);
 
-  const mainDevice = landingHeroDevices[1];
-  const sideDevices = landingHeroDevices.filter((_, i) => i !== 1);
+  const heroMockup = landingHeroDevices[1];
 
   return (
     <>
@@ -101,31 +100,26 @@ export function LandingPage() {
                   Demo para clínicas
                 </button>
               </div>
-              <div className="ps-hero__stats">
-                {publicHeroStats.map((s) => (
-                  <div key={s.label} className="ps-stat">
-                    <strong>{s.value}</strong>
-                    <span>{s.label}</span>
-                    {s.hint ? <small>{s.hint}</small> : null}
-                  </div>
-                ))}
-              </div>
             </div>
 
-            <div className="ps-hero__visual" aria-label="Vistas del producto Dentista+">
-              <div className="ps-hero__orbit" aria-hidden />
-              <div className="ps-hero__devices">
-                <figure className="ps-device ps-device--main">
-                  <img src={mainDevice.src} alt={mainDevice.alt} loading="eager" decoding="async" />
-                  <figcaption>{mainDevice.label}</figcaption>
-                </figure>
-                {sideDevices.map((d) => (
-                  <figure key={d.label} className="ps-device ps-device--side">
-                    <img src={d.src} alt={d.alt} loading="lazy" decoding="async" />
-                    <figcaption>{d.label}</figcaption>
-                  </figure>
-                ))}
+            <figure className="ps-hero__visual" aria-label="Vista del panel clínica Dentista+">
+              <div className="ps-hero__glow" aria-hidden />
+              <div className="ps-hero__card">
+                <img src={heroMockup.src} alt={heroMockup.alt} loading="eager" decoding="async" width={1280} height={800} />
               </div>
+              <figcaption className="ps-hero__caption">{heroMockup.label}</figcaption>
+            </figure>
+          </div>
+
+          <div className="ps-shell ps-hero__stats-wrap">
+            <div className="ps-hero__stats">
+              {publicHeroStats.map((s) => (
+                <div key={s.label} className="ps-stat">
+                  <strong>{s.value}</strong>
+                  <span>{s.label}</span>
+                  {s.hint ? <small>{s.hint}</small> : null}
+                </div>
+              ))}
             </div>
           </div>
         </section>
