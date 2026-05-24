@@ -96,7 +96,8 @@ export async function getStaffContextForSession(user: SessionUser): Promise<Staf
   const profileRole = String(profile.role);
   const dentistId = (dentist?.id as string | undefined) ?? null;
   const isDentist = profileRole === 'dentist';
-  const canManageBlocks = BLOCK_MANAGER_ROLES.has(profileRole) || user.role === 'admin';
+  const sessionRole = String(user.staffRole ?? user.role);
+  const canManageBlocks = BLOCK_MANAGER_ROLES.has(profileRole) || sessionRole === 'admin';
 
   return {
     profileId: profile.id as string,
