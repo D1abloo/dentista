@@ -3,6 +3,7 @@ import {
   generateTemporaryPassword,
   newUserPasswordFields
 } from '@/lib/auth/passwordPolicy';
+import { adminPanelEntryPath } from '@/lib/auth/adminEntryUrl';
 import { sendNewUserCredentialsEmail } from '@/lib/email/accountEmails';
 import { allocateNextNhc } from '@/lib/services/nhc';
 import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
@@ -181,7 +182,7 @@ export async function createClinicUser(input: CreateClinicUserInput) {
     await upsertRolePermissions(input.clinicId, 'patient', 'read');
   }
 
-  const loginPath = input.accessType === 'patient' ? '/login/paciente' : '/login/admin';
+  const loginPath = input.accessType === 'patient' ? '/login/paciente' : adminPanelEntryPath();
   const accessLabel =
     input.accessType === 'patient' ? 'Portal del paciente' : 'Panel administrativo de clínica';
 

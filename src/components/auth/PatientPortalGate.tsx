@@ -18,7 +18,7 @@ export function PatientPortalGate({ children }: { children: ReactNode }) {
         const pdpJson = (await pdpRes.json()) as { data?: { active?: boolean } };
         if (!cancelled && pdpRes.ok && pdpJson.data?.active) {
           setStaffView(true);
-          setCurrent('admin');
+          setCurrent('paciente');
           setReady(true);
           return;
         }
@@ -39,32 +39,27 @@ export function PatientPortalGate({ children }: { children: ReactNode }) {
           }
           return;
         }
-        if (meJson.data?.role === 'super_admin') {
+        if (meJson.data?.role === 'super_admin' || meJson.data?.role === 'admin') {
           if (!cancelled) {
             setStaffView(true);
+            setInspectBanner(false);
             setCurrent('paciente');
             setReady(true);
           }
           return;
         }
-      } catch {
-        /* ignore */
-      }
-      try {
-        const meRes = await fetch('/api/auth/me', { credentials: 'include' });
-        const meJson = (await meRes.json()) as { data?: { role?: string } };
         const role = meJson.data?.role;
         if (!cancelled) {
           setStaffView(false);
           setInspectBanner(false);
           if (role === 'patient') setCurrent('paciente');
-          else if (role === 'admin') setCurrent('admin');
           else setCurrent(null);
           setReady(true);
         }
       } catch {
         if (!cancelled) {
           setStaffView(false);
+          setInspectBanner(false);
           setCurrent(null);
           setReady(true);
         }

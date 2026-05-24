@@ -62,13 +62,34 @@ export function PublicBookingPage() {
   const [auth, setAuth] = useState<'loading' | 'guest' | 'patient'>('loading');
 
   useEffect(() => {
-    void fetch('/api/auth/me', { credentials: 'include' })
-      .then(async (res) => {
-        const json = (await res.json()) as { data?: { role?: string } };
-        if (res.ok && json.data?.role === 'patient') setAuth('patient');
-        else setAuth('guest');
-      })
-      .catch(() => setAuth('guest'));
+    const check = async () => {
+      try {
+        const pdpRes = await fetch('/api/portal-access/me', { credentials: 'include' });
+        const pdpJson = (await pdpRes.json()) as { data?: { active?: boolean } };
+        if (pdpRes.ok && pdpJson.data?.active) {
+          setAuth('patient');
+          return;
+        }
+        const res = await fetch('/api/auth/me', { credentials: 'include' });
+        const json = (await res.json()) as {
+          data?: { role?: string; platformInspect?: boolean; inspectMode?: string };
+        };
+        const role = json.data?.role;
+        const inspectPdP =
+          json.data?.platformInspect && json.data.inspectMode === 'patient_portal';
+        if (
+          res.ok &&
+          (role === 'patient' || role === 'admin' || role === 'super_admin' || inspectPdP)
+        ) {
+          setAuth('patient');
+          return;
+        }
+        setAuth('guest');
+      } catch {
+        setAuth('guest');
+      }
+    };
+    void check();
   }, []);
 
   return (
@@ -83,7 +104,7 @@ export function PublicBookingPage() {
           <h1>Reserva tu cita dental</h1>
           <p>
             {auth === 'patient'
-              ? 'Elige clínica, tratamiento, profesional y horario. Tu cita quedará registrada en tu portal.'
+              ? 'Elige clínica, tratamiento, profesional y horario. Tu cita quedará registrada en el portal del paciente.'
               : 'Regístrate como paciente, activa tu cuenta por correo e inicia sesión para reservar.'}
           </p>
         </section>

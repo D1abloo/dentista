@@ -10,8 +10,7 @@ export function PatientLoginPage() {
       lead="Consulta citas, documentos y facturas de forma segura."
       footer={
         <div className="login-portal__foot-grid login-portal__foot-grid--compact">
-          <a href="/login">← Elegir portal</a>
-          <a href="/login/admin">Panel clínica</a>
+          <a href="/login">← Acceso unificado</a>
           <a href="/">Inicio</a>
         </div>
       }

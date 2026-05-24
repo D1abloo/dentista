@@ -47,7 +47,7 @@ export function FeatureShowcaseGrid() {
           </div>
           <h3>{m.title}</h3>
           <p>{m.text}</p>
-          <a href="/login/admin" className="pro-feature-card__link">
+          <a href="/registro-clinica" className="pro-feature-card__link">
             Ver módulo en el panel
             <ArrowRight className="h-4 w-4" aria-hidden />
           </a>

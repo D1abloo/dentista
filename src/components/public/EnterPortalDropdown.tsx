@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Building2, ChevronDown, LogIn, ShieldCheck, UserRound } from 'lucide-react';
+import { ChevronDown, LogIn, ShieldCheck, UserRound } from 'lucide-react';
 
 const OPTIONS = [
   {
@@ -9,16 +9,10 @@ const OPTIONS = [
     text: 'Accede a tu portal privado'
   },
   {
-    href: '/login/admin',
-    icon: Building2,
-    title: 'Panel clínica',
-    text: 'Accede a tu clínica'
-  },
-  {
     href: '/platform/login',
     icon: ShieldCheck,
     title: 'Plataforma',
-    text: 'Administración global'
+    text: 'Administración global (PdP)'
   }
 ] as const;
 

@@ -1,6 +1,7 @@
 import type { DemoRole } from '@/types/demo';
 import type { PortalChoiceId, PortalChoiceOption } from '@/lib/auth/portalChoices';
 import { isClientDemoMode } from '@/lib/appMode';
+import { isPatientPortalPath, isSafeInternalPath } from '@/lib/loginIntent';
 import { STORAGE_ACTIVE_CLINIC_ID, STORAGE_PATIENT_ID, STORAGE_STATE, STORAGE_TENANT_ID } from '@/lib/storage/keys';
 import { clearDemoSession, getStoredRole } from '@/lib/demoStore';
 
@@ -68,7 +69,12 @@ export async function resolvePortalRole(): Promise<DemoRole | null> {
 function redirectAfterLogin(user: SessionUser): string {
   if (typeof window !== 'undefined') {
     const next = new URLSearchParams(window.location.search).get('next');
-    if (next && next.startsWith('/') && !next.startsWith('//')) return next;
+    if (next && isSafeInternalPath(next)) {
+      if (isPatientPortalPath(next)) return next;
+      if (user.role === 'super_admin' && next.startsWith('/platform')) return next;
+      if (user.role === 'admin' && next.startsWith('/admin')) return next;
+      if (user.role === 'patient') return next;
+    }
   }
   if (user.role === 'super_admin') return '/platform';
   if (user.role === 'patient') return '/paciente';

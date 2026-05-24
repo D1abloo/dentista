@@ -1,4 +1,4 @@
-import { Building2, ChevronRight, ClipboardPlus, Lock, ShieldCheck, Sparkles, UserRound } from 'lucide-react';
+import { ChevronRight, ClipboardPlus, Lock, ShieldCheck, Sparkles, UserRound } from 'lucide-react';
 import { PortalLoginShell } from './PortalLoginShell';
 
 const TRUST_ITEMS = [
@@ -35,24 +35,6 @@ export function LoginHubPage() {
 
       <ul className="login-portal__options login-portal__options--hub">
         <li className="login-portal__option-wrap" style={{ animationDelay: '0.05s' }}>
-          <a href="/login/admin" className="login-portal__option login-portal__option--admin login-portal__link">
-            <span className="login-portal__option-icon" aria-hidden>
-              <Building2 className="h-5 w-5" />
-            </span>
-            <span className="login-portal__option-text">
-              <span className="login-portal__option-row">
-                <span className="login-portal__option-title">Panel clínica</span>
-                <span className="login-portal__option-badge login-portal__option-badge--blue">Staff</span>
-              </span>
-              <span className="login-portal__option-meta">Agenda, pacientes, facturación y equipo</span>
-            </span>
-            <span className="login-portal__option-cta">
-              Administración
-              <ChevronRight className="h-4 w-4" />
-            </span>
-          </a>
-        </li>
-        <li className="login-portal__option-wrap" style={{ animationDelay: '0.12s' }}>
           <a
             href="/login/paciente"
             className="login-portal__option login-portal__option--patient login-portal__option--highlight login-portal__link"
@@ -76,8 +58,9 @@ export function LoginHubPage() {
       </ul>
 
       <p className="login-portal__hint">
-        ¿Primera vez? Solicita el alta de tu centro en{' '}
-        <a href="/registro-clinica">registro de clínica</a>. Tras la aprobación recibirás acceso solo a tu panel.
+        ¿Personal de clínica? Usa el enlace de acceso privado que te envió tu administrador (no está en la web
+        pública). ¿Primera vez? Solicita el alta en{' '}
+        <a href="/registro-clinica">registro de clínica</a>.
       </p>
 
       <div className="login-portal__secondary">

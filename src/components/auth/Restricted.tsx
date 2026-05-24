@@ -26,8 +26,8 @@ export function Restricted({
           <h1 className="mt-2 font-display text-2xl text-dental-950">Acceso solo para clínica</h1>
           <p className="mt-3 text-sm text-slate-600">
             {current === 'paciente'
-              ? 'Tienes sesión de paciente. Ciérrala y entra como administrador.'
-              : 'Inicia sesión con email y contraseña de administrador.'}
+              ? 'Tienes sesión de paciente. Ciérrala y usa el enlace de entrada que te envió tu clínica.'
+              : 'El panel no es público. Abre primero el enlace de acceso de tu clínica; después podrás iniciar sesión.'}
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
             <Button type="button" onClick={() => goToLogin(loginHref)}>
@@ -49,7 +49,7 @@ export function Restricted({
         <h1 className="mt-2 font-display text-2xl text-dental-950">Acceso solo para pacientes</h1>
         <p className="mt-3 text-sm text-slate-600">
           {current === 'admin'
-            ? 'Tienes sesión de administrador. Usa un token de acceso autorizado o cierra sesión e inicia como paciente.'
+            ? 'Como personal de clínica puedes usar el portal del paciente desde Gestión clínica o con un token autorizado.'
             : 'Inicia sesión con email y contraseña de paciente, o solicita un token en administración.'}
         </p>
         <div className="mt-6 flex flex-wrap gap-2">

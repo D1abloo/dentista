@@ -1,0 +1,7 @@
+---
+import AppLayout from '@/layouts/AppLayout.astro';
+import { PatientApp } from '@/components/patient/PatientApp';
+---
+<AppLayout title="Gestión clínica · Portal paciente">
+  <PatientApp view="gestion-clinica" client:load />
+</AppLayout>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { PortalChoiceId, PortalChoiceOption } from '@/lib/auth/portalChoices';
+import { getLoginNextParam, isPatientPortalPath } from '@/lib/loginIntent';
 import { loginUnified, loginWithPortalChoice } from '@/lib/session';
 
 export function useLoginWithPortalChoice(forcedRole?: 'admin' | 'patient') {
@@ -24,9 +25,21 @@ export function useLoginWithPortalChoice(forcedRole?: 'admin' | 'patient') {
       return;
     }
     if ('choosePortal' in result && result.choosePortal) {
+      const next = getLoginNextParam();
+      let options = result.options;
+      if (next && isPatientPortalPath(next)) {
+        options = options.filter((o) => o.id === 'patient');
+        if (options.length === 1) {
+          setPortalLoading('patient');
+          const picked = await loginWithPortalChoice(nextEmail, nextPassword, 'patient', forcedRole);
+          setPortalLoading(null);
+          if (!picked.ok) setError(picked.message);
+          return;
+        }
+      }
       setEmail(nextEmail);
       setPassword(nextPassword);
-      setPortalChoice({ email: result.email, options: result.options });
+      setPortalChoice({ email: result.email, options });
       return;
     }
   }

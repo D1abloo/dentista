@@ -434,3 +434,57 @@
     justify-content: center;
   }
 }
+
+/* Gestión clínica (staff en PdP) */
+.patient-staff-hub__card {
+  display: flex;
+  gap: 0.875rem;
+  align-items: flex-start;
+  padding: 1rem 1.125rem;
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  text-align: left;
+  color: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+a.patient-staff-hub__card:hover {
+  border-color: #0e7c86;
+  box-shadow: 0 8px 24px rgba(14, 124, 134, 0.12);
+}
+
+.patient-staff-hub__card--muted {
+  background: #f8fafc;
+}
+
+.patient-staff-hub__card--action {
+  width: 100%;
+  cursor: pointer;
+  font: inherit;
+}
+
+.patient-staff-hub__card strong {
+  display: block;
+  font-size: 0.9375rem;
+  color: #0f172a;
+}
+
+.patient-staff-hub__card small {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.patient-staff-hub__icon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  background: #ecfeff;
+  color: #0e7c86;
+  flex-shrink: 0;
+}

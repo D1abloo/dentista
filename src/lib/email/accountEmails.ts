@@ -1,3 +1,4 @@
+import { adminPanelEntryPath } from '@/lib/auth/adminEntryUrl';
 import { sendMail } from '@/lib/email/send';
 
 function appUrl(path: string) {
@@ -23,14 +24,15 @@ export async function sendOrganizationApprovedEmail(input: {
   email: string;
   password: string;
 }) {
-  const loginUrl = appUrl('/login/admin');
+  const entryPath = adminPanelEntryPath();
+  const loginUrl = appUrl(entryPath);
   const text = [
     `Hola ${input.ownerName},`,
     '',
     `Tu organización «${input.clinicName}» ha sido aprobada en Dentista+.`,
     'Ya puedes acceder al panel administrativo con estas credenciales:',
     '',
-    credentialsBlock(input.email, input.password, '/login/admin'),
+    credentialsBlock(input.email, input.password, entryPath),
     '',
     'Un saludo,',
     'Equipo Dentista+'

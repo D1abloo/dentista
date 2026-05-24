@@ -12,8 +12,10 @@ import {
   Home,
   MessageSquare,
   Receipt,
+  Stethoscope,
   User
 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { DemoStoreProvider } from '@/hooks/useDemoStore';
 import { NoticeProvider } from '@/hooks/useNotice';
 import { PasswordChangeGate } from '@/components/auth/PasswordChangeGate';
@@ -38,6 +40,7 @@ import {
   PatientReports
 } from './views';
 import { PatientConsents } from './PatientConsents';
+import { PatientStaffHub } from './PatientStaffHub';
 
 export type PatientView =
   | 'dashboard'
@@ -53,7 +56,8 @@ export type PatientView =
   | 'pagos'
   | 'mensajes'
   | 'ayuda'
-  | 'consentimientos';
+  | 'consentimientos'
+  | 'gestion-clinica';
 
 const titles: Record<PatientView, string> = {
   dashboard: 'Inicio',
@@ -69,7 +73,8 @@ const titles: Record<PatientView, string> = {
   pagos: 'Mis pagos',
   mensajes: 'Mensajes',
   ayuda: 'Ayuda',
-  consentimientos: 'Consentimientos'
+  consentimientos: 'Consentimientos',
+  'gestion-clinica': 'Gestión clínica'
 };
 
 const nav = [
@@ -117,15 +122,41 @@ function Body({ view }: { view: PatientView }) {
       return <PatientMessages />;
     case 'ayuda':
       return <PatientHelp />;
+    case 'gestion-clinica':
+      return <PatientStaffHub />;
     default:
       return <PatientDashboard />;
   }
 }
 
+const staffNavItem = {
+  href: '/paciente/gestion-clinica',
+  label: 'Gestión clínica',
+  icon: Stethoscope
+} as const;
+
 function PatientInner({ view }: { view: PatientView }) {
   const { notice, clear } = useNotice();
+  const [clinicStaff, setClinicStaff] = useState(false);
+
+  useEffect(() => {
+    void fetch('/api/auth/me', { credentials: 'include' })
+      .then(async (res) => {
+        const json = (await res.json()) as { data?: { role?: string } };
+        if (res.ok && (json.data?.role === 'admin' || json.data?.role === 'super_admin')) {
+          setClinicStaff(true);
+        }
+      })
+      .catch(() => undefined);
+  }, []);
+
+  const shellNav = useMemo(
+    () => (clinicStaff ? [staffNavItem, ...nav] : nav),
+    [clinicStaff]
+  );
+
   return (
-    <PatientShell title={titles[view]} nav={nav}>
+    <PatientShell title={titles[view]} nav={shellNav} clinicStaff={clinicStaff}>
       <Toast notice={notice} onClose={clear} />
       <PatientPortalStatus>
         <Body view={view} />

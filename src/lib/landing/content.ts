@@ -59,8 +59,8 @@ export const landingWhoCards = [
     tone: 'sky',
     title: 'Soy clínica',
     text: 'Gestiona agenda, pacientes, informes, documentos, facturación, pagos y comunicación con pacientes.',
-    cta: 'Ver panel clínica',
-    href: '/login/admin'
+    cta: 'Registrar clínica',
+    href: '/registro-clinica'
   },
   {
     id: 'platform',

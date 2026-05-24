@@ -72,7 +72,17 @@ function Rail({
   );
 }
 
-export function PatientShell({ title, nav, children }: { title: string; nav: NavItem[]; children: ReactNode }) {
+export function PatientShell({
+  title,
+  nav,
+  children,
+  clinicStaff = false
+}: {
+  title: string;
+  nav: NavItem[];
+  children: ReactNode;
+  clinicStaff?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const path = typeof window !== 'undefined' ? window.location.pathname : '';
   const logout = useLogout();
@@ -119,8 +129,23 @@ export function PatientShell({ title, nav, children }: { title: string; nav: Nav
               <p className="m-0">
                 Acceso clínico autorizado — {portalAccess.patientName ?? 'paciente'}.
               </p>
-              <a href="/admin" className="btn btn--outline btn--sm shrink-0 no-underline">
-                Volver al panel
+              <div className="flex flex-wrap gap-2">
+                <a href="/paciente/gestion-clinica" className="btn btn--outline btn--sm shrink-0 no-underline">
+                  Gestión clínica
+                </a>
+                <a href="/admin" className="btn btn--outline btn--sm shrink-0 no-underline">
+                  Panel clínica
+                </a>
+              </div>
+            </div>
+          ) : clinicStaff ? (
+            <div
+              className="banner-alert mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800"
+              role="status"
+            >
+              <p className="m-0">Vista clínica en el portal del paciente (sesión de administrador).</p>
+              <a href="/paciente/gestion-clinica" className="btn btn--outline btn--sm shrink-0 no-underline">
+                Gestión clínica
               </a>
             </div>
           ) : null}

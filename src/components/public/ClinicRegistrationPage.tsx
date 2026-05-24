@@ -284,7 +284,7 @@ export function ClinicRegistrationPage() {
                       Referencia: <code>{requestId}</code>
                     </p>
                   ) : null}
-                  <a href="/login/admin" className="btn btn--outline btn--sm mt-4">
+                  <a href="/login" className="btn btn--outline btn--sm mt-4">
                     Ir a login clínica
                   </a>
                 </div>
@@ -439,7 +439,7 @@ export function ClinicRegistrationPage() {
                 <li>Suscripción plan Essential inicial</li>
               </ul>
               <p className="cr-aside__muted">
-                ¿Ya tienes cuenta? <a href="/login/admin">Accede al panel clínica</a>.
+                ¿Ya tienes cuenta? Usa el enlace de acceso privado que te envió tu clínica.
               </p>
               <p className="cr-aside__muted">
                 ¿Eres equipo de plataforma? <a href="/platform/login">Super Admin</a>.

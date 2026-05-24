@@ -1,13 +1,6 @@
-import { Building2, ChevronRight, Home, LayoutDashboard, UserRound, X } from 'lucide-react';
+import { ChevronRight, Home, LayoutDashboard, UserRound, X } from 'lucide-react';
 
 const PORTALS = [
-  {
-    href: '/login/admin',
-    label: 'Panel clínica',
-    desc: 'Agenda, pacientes, facturación y equipo',
-    icon: Building2,
-    accent: 'admin'
-  },
   {
     href: '/login/paciente',
     label: 'Portal paciente',
