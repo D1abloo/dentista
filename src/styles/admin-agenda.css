@@ -2103,3 +2103,348 @@
     min-width: max(100%, calc(3.25rem + var(--agd-cal-cols, 1) * 8.5rem));
   }
 }
+
+/* Profesionales — pestañas, perfil y avatares */
+.agd-doctors {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.agd-doctors__tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
+}
+
+.agd-doctors__tab {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 11rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.agd-doctors__tab strong {
+  display: block;
+  font-size: 0.78rem;
+  color: #0f172a;
+}
+
+.agd-doctors__tab small {
+  display: block;
+  font-size: 0.65rem;
+  color: #64748b;
+}
+
+.agd-doctors__tab--active {
+  border-color: var(--agd-doc-color, #14b8a6);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--agd-doc-color, #14b8a6) 18%, transparent);
+}
+
+.agd-doctors__tab-icon {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.agd-doctors__tab-icon--all {
+  background: #ecfeff;
+  color: #0d9488;
+}
+
+.agd-doctors__subnav {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.agd-doctors__sub {
+  padding: 0.4rem 0.85rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.agd-doctors__sub--active {
+  border-color: #14b8a6;
+  background: #ecfeff;
+  color: #0f766e;
+}
+
+.agd-doc-avatar {
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--agd-doc-color, #14b8a6) 16%, #fff);
+  color: var(--agd-doc-color, #0d9488);
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.agd-doc-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.agd-doc-avatar--sm {
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.62rem;
+}
+
+.agd-doc-avatar--md {
+  width: 2.35rem;
+  height: 2.35rem;
+  font-size: 0.68rem;
+}
+
+.agd-doc-avatar--lg {
+  width: 3rem;
+  height: 3rem;
+  font-size: 0.78rem;
+}
+
+.agd-doc-avatar--xl {
+  width: 4.5rem;
+  height: 4.5rem;
+  font-size: 1rem;
+}
+
+.agd-cal__col-prof {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.agd-cal__col-prof strong {
+  display: block;
+  font-size: 0.72rem;
+}
+
+.agd-cal__col-prof small {
+  display: block;
+  font-size: 0.62rem;
+  color: #64748b;
+}
+
+.agd-doc-profile {
+  animation: agd-rise 0.35s ease both;
+}
+
+.agd-doc-profile__hero {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  border-radius: var(--agd-radius);
+  border: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #fff 0%, color-mix(in srgb, var(--agd-doc-color, #14b8a6) 8%, #fff) 100%);
+}
+
+.agd-doc-profile__photo-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.agd-doc-profile__photo {
+  display: grid;
+  place-items: center;
+  width: 7.5rem;
+  height: 7.5rem;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 3px solid var(--agd-doc-color, #14b8a6);
+  background: #f8fafc;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--agd-doc-color, #0d9488);
+}
+
+.agd-doc-profile__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.agd-doc-profile__photo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.agd-doc-profile__intro h2 {
+  margin: 0.15rem 0 0;
+  font-size: 1.45rem;
+  color: #0f2742;
+}
+
+.agd-doc-profile__eyebrow {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.agd-doc-profile__title {
+  margin: 0.25rem 0 0.65rem;
+  color: #475569;
+  font-size: 0.88rem;
+}
+
+.agd-doc-profile__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.agd-doc-profile__badge {
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.agd-doc-profile__badge--ok {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.agd-doc-profile__badge--warn {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.agd-doc-profile__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.agd-doc-profile__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin-top: 0.85rem;
+}
+
+.agd-doc-profile__card {
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.agd-doc-profile__card--wide {
+  grid-column: 1 / -1;
+}
+
+.agd-doc-profile__card h3 {
+  margin: 0 0 0.65rem;
+  font-size: 0.85rem;
+  color: #0f2742;
+}
+
+.agd-doc-profile__card ul,
+.agd-doc-profile__card dl {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.agd-doc-profile__card li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  color: #334155;
+  margin-bottom: 0.35rem;
+}
+
+.agd-doc-profile__card dl div {
+  margin-bottom: 0.45rem;
+}
+
+.agd-doc-profile__card dt {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.agd-doc-profile__card dd {
+  margin: 0.1rem 0 0;
+  font-size: 0.8rem;
+  color: #334155;
+}
+
+.agd-doc-profile__pct {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--agd-doc-color, #14b8a6);
+}
+
+.agd-doc-profile__checklist {
+  margin-top: 0.5rem;
+}
+
+.agd-doc-profile__checklist li {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.agd-doc-profile__checklist li.is-done {
+  color: #166534;
+}
+
+.agd-doc-profile__checklist li.is-warn {
+  color: #b45309;
+}
+
+.agd-doc-profile__hint {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.75rem 0 0;
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+@media (max-width: 900px) {
+  .agd-doc-profile__grid {
+    grid-template-columns: 1fr;
+  }
+}

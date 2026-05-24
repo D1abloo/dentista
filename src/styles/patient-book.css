@@ -229,6 +229,32 @@
   color: #64748b;
 }
 
+.pb-select-card__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  text-align: left;
+}
+
+.pb-select-card__avatar {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  background: #ecfeff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.pb-select-card__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .pb-badge {
   display: inline-block;
   margin-top: 0.45rem;

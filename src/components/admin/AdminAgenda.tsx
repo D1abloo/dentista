@@ -14,6 +14,8 @@ import {
   Users
 } from 'lucide-react';
 import { dentistsForClinic, getPrimaryClinic } from '@/lib/clinic';
+import { toAgendaDentistColumns } from '@/lib/clinical/dentistDisplay';
+import { isClinicProfileManager } from '@/lib/services/clinicalProfessionals';
 import { isClientDemoMode, isClientLiveMode } from '@/lib/appMode';
 import { appointmentsInRange, monthPrefix, weekRange } from '@/lib/appointments';
 import {
@@ -47,11 +49,13 @@ import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { useStaffContext } from '@/hooks/useStaffContext';
 import { useTenant } from '@/hooks/useTenant';
-import { useLogout } from '@/components/auth/RoleGate';
 import type { Appointment, AppointmentStatus, BlockedSlot } from '@/types/demo';
 import { blockCoversHour, blocksForDay } from '@/lib/agenda/availability';
 import { Button, Field, Input } from '@/components/ui';
 import { AGENDA_HOURS, AgendaDayCalendar, AgendaWeekMonthCalendar } from './AgendaCalendarViews';
+import { AgendaDoctorSwitcher, type AgendaDoctorPanel } from './agenda/AgendaDoctorSwitcher';
+import { AgendaDoctorProfileView } from './agenda/AgendaDoctorProfileView';
+import { AdminTopbarUser } from './AdminTopbarUser';
 import {
   AgendaApptDetailDrawer,
   AgendaBlockDetailDrawer,
@@ -118,7 +122,6 @@ export function AdminAgenda() {
   const scope = useTenant();
   const { setNotice } = useNotice();
   const { staff, loading: staffLoading } = useStaffContext();
-  const logout = useLogout();
   const loading = dataSource === 'loading';
 
   const [mode, setMode] = useState<'dia' | 'semana' | 'mes'>('dia');
@@ -137,6 +140,7 @@ export function AdminAgenda() {
     primaryClinic.id
   );
   const [dentistId, setDentistId] = useState('');
+  const [doctorPanel, setDoctorPanel] = useState<AgendaDoctorPanel>('calendar');
   const ownAgenda = staff?.agendaScope === 'own' && Boolean(staff.dentistId);
   const [timelineView, setTimelineView] = useState<'hora' | 'dentista'>('hora');
   const [bookOpen, setBookOpen] = useState(false);
@@ -150,8 +154,6 @@ export function AdminAgenda() {
   const [blockPrefillTime, setBlockPrefillTime] = useState('13:00');
   const [detailBlock, setDetailBlock] = useState<BlockedSlot | null>(null);
   const [clinicOpen, setClinicOpen] = useState(false);
-  const [dentistOpen, setDentistOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
   const [userLabel, setUserLabel] = useState('Usuario conectado');
   const [detailAppt, setDetailAppt] = useState<Appointment | null>(null);
   const [rescheduleTarget, setRescheduleTarget] = useState<Appointment | null>(null);
@@ -161,8 +163,6 @@ export function AdminAgenda() {
   const [submitting, setSubmitting] = useState(false);
 
   const clinicRef = useRef<HTMLDivElement>(null);
-  const dentistRef = useRef<HTMLDivElement>(null);
-  const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!staffLoading && ownAgenda && staff?.dentistId) setDentistId(staff.dentistId);
@@ -170,9 +170,36 @@ export function AdminAgenda() {
 
   useEffect(() => {
     if (typeof window === 'undefined' || ownAgenda) return;
-    const id = new URLSearchParams(window.location.search).get('dentist');
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('dentist');
+    const view = params.get('view');
     if (id) setDentistId(id);
+    if (view === 'profile' || view === 'calendar') setDoctorPanel(view);
   }, [ownAgenda]);
+
+  function syncDoctorUrl(nextId: string, panel: AgendaDoctorPanel) {
+    if (typeof window === 'undefined' || ownAgenda) return;
+    const params = new URLSearchParams(window.location.search);
+    if (nextId) params.set('dentist', nextId);
+    else params.delete('dentist');
+    if (nextId && panel === 'profile') params.set('view', 'profile');
+    else if (nextId && panel === 'calendar') params.set('view', 'calendar');
+    else params.delete('view');
+    const q = params.toString();
+    window.history.replaceState({}, '', q ? `${window.location.pathname}?${q}` : window.location.pathname);
+  }
+
+  function selectDoctor(nextId: string) {
+    setDentistId(nextId);
+    const panel: AgendaDoctorPanel = nextId ? 'profile' : 'calendar';
+    setDoctorPanel(panel);
+    syncDoctorUrl(nextId, panel);
+  }
+
+  function changeDoctorPanel(panel: AgendaDoctorPanel) {
+    setDoctorPanel(panel);
+    if (dentistId) syncDoctorUrl(dentistId, panel);
+  }
 
   useEffect(() => {
     const pre = consumeBookingPatientPrefill();
@@ -196,14 +223,23 @@ export function AdminAgenda() {
     function onDoc(e: MouseEvent) {
       const t = e.target as Node;
       if (!clinicRef.current?.contains(t)) setClinicOpen(false);
-      if (!dentistRef.current?.contains(t)) setDentistOpen(false);
-      if (!profileRef.current?.contains(t)) setProfileOpen(false);
     }
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
   }, []);
 
   const clinicDentists = dentistsForClinic(state, clinicId);
+  const agendaDentists = useMemo(() => toAgendaDentistColumns(clinicDentists), [clinicDentists]);
+  const selectedDentist = useMemo(
+    () => clinicDentists.find((d) => d.id === dentistId) ?? null,
+    [clinicDentists, dentistId]
+  );
+  const canEditDoctorProfile = Boolean(
+    selectedDentist &&
+      (isClinicProfileManager(sessionRole) ||
+        sessionRole === 'admin' ||
+        staff?.dentistId === selectedDentist.id)
+  );
   const clinicPatients = useMemo(() => patientsForClinic(state, clinicId), [state, clinicId]);
 
   const dayAppts = useMemo(() => {
@@ -276,13 +312,6 @@ export function AdminAgenda() {
         )`;
     return { confirmadas, pendientes, canceladas, bloqueos, cPct, pPct, xPct, bPct, gradient, rest };
   }, [dayAppts, blockedForDay, scope.appointments, clinicId, date]);
-
-  const initials = userLabel
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
 
   function openBookDrawer(hour?: string) {
     if (hour) setBookPrefillTime(hour.length <= 5 ? hour : `${hour.slice(0, 2)}:00`);
@@ -754,43 +783,6 @@ export function AdminAgenda() {
           </div>
         ) : null}
 
-        <div className={`agd-dropdown${dentistOpen ? ' is-open' : ''}`} ref={dentistRef}>
-          <button
-            type="button"
-            className="agd-chip"
-            aria-expanded={dentistOpen}
-            disabled={ownAgenda}
-            onClick={() => setDentistOpen((v) => !v)}
-          >
-            {dentistId ? clinicDentists.find((d) => d.id === dentistId)?.fullName ?? 'Dentista' : 'Todos los dentistas'}
-            <ChevronDown className="h-4 w-4 agd-chip__chev" aria-hidden />
-          </button>
-          {dentistOpen && !ownAgenda ? (
-            <ul className="agd-dropdown__menu" role="listbox">
-              <li>
-                <button type="button" role="option" aria-selected={!dentistId} onClick={() => { setDentistId(''); setDentistOpen(false); }}>
-                  Todos los dentistas
-                </button>
-              </li>
-              {clinicDentists.map((d) => (
-                <li key={d.id}>
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={d.id === dentistId}
-                    onClick={() => {
-                      setDentistId(d.id);
-                      setDentistOpen(false);
-                    }}
-                  >
-                    {d.fullName}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </div>
-
         <span className="agd-toolbar__spacer" />
 
         <button type="button" className="agd-btn-primary" onClick={() => openBookDrawer()}>
@@ -812,36 +804,29 @@ export function AdminAgenda() {
           <AdminNotificationBell />
         </div>
 
-        <div className={`agd-dropdown${profileOpen ? ' is-open' : ''}`} ref={profileRef}>
-          <button type="button" className="agd-avatar" aria-expanded={profileOpen} onClick={() => setProfileOpen((v) => !v)}>
-            <span>{initials || 'EM'}</span>
-            <ChevronDown className="h-3.5 w-3.5 text-slate-500" aria-hidden />
-          </button>
-          {profileOpen ? (
-            <ul className="agd-dropdown__menu agd-dropdown__menu--right" role="menu">
-              <li>
-                <span className="block px-2 py-1 text-xs font-bold text-slate-500">{userLabel}</span>
-              </li>
-              <li>
-                <a href="/admin/configuracion" role="menuitem">
-                  Mi perfil
-                </a>
-              </li>
-              <li>
-                <a href="/ayuda#panel-admin" role="menuitem">
-                  Guía de uso
-                </a>
-              </li>
-              <li>
-                <button type="button" role="menuitem" onClick={logout}>
-                  Cerrar sesión
-                </button>
-              </li>
-            </ul>
-          ) : null}
-        </div>
+        <AdminTopbarUser fallbackName={userLabel} />
+
       </header>
 
+      <AgendaDoctorSwitcher
+        dentists={agendaDentists}
+        activeId={dentistId}
+        panel={doctorPanel}
+        ownAgenda={ownAgenda}
+        onSelect={selectDoctor}
+        onPanelChange={changeDoctorPanel}
+      />
+
+
+      {dentistId && doctorPanel === 'profile' && selectedDentist ? (
+        <AgendaDoctorProfileView
+          dentist={selectedDentist}
+          clinicId={clinicId}
+          canEdit={canEditDoctorProfile}
+          onOpenAgenda={() => changeDoctorPanel('calendar')}
+        />
+      ) : (
+        <>
       <div className="agd-kpis">
         <AgdKpi label="Citas del día" value={kpi.citas} icon={Calendar} tone="teal" delay={0} />
         <AgdKpi label="Pendientes" value={kpi.pendientes} icon={Clock} tone="amber" delay={40} />
@@ -887,11 +872,7 @@ export function AdminAgenda() {
                 appointments={dayAppts}
                 blocks={allBlocksForDay}
                 dentistId={dentistId}
-                dentists={clinicDentists.map((d) => ({
-                  id: d.id,
-                  fullName: d.fullName,
-                  visibleTitle: d.visibleTitle
-                }))}
+                dentists={agendaDentists}
                 treatments={scope.treatments.map((t) => ({ id: t.id, name: t.name }))}
                 multiDentist={timelineView === 'dentista'}
                 onPickSlot={pickSlot}
@@ -987,7 +968,10 @@ export function AdminAgenda() {
         </aside>
       </div>
 
-      <AgendaBookDrawer
+        </>
+      )}
+
+            <AgendaBookDrawer
         open={bookOpen}
         state={state}
         clinicId={clinicId}

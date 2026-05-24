@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Calendar, Check, Eye, MoreHorizontal, X } from 'lucide-react';
 import { blockCoversHour, hourInClinicRange } from '@/lib/agenda/availability';
+import type { AgendaDentistColumn } from '@/lib/clinical/dentistDisplay';
+import { AgendaDoctorAvatar } from './agenda/AgendaDoctorAvatar';
 import { statusLabel } from '@/lib/format';
 import { patientName } from '@/lib/selectors';
 import type { Appointment, AppointmentStatus, BlockedSlot } from '@/types/demo';
@@ -45,7 +47,7 @@ type DayViewProps = {
   appointments: Appointment[];
   blocks: BlockedSlot[];
   dentistId: string;
-  dentists: { id: string; fullName: string }[];
+  dentists: AgendaDentistColumn[];
   treatments: { id: string; name: string }[];
   multiDentist: boolean;
   onPickSlot: (hour: string) => void;
@@ -218,19 +220,41 @@ export function AgendaDayCalendar({
   onOpenAppointment,
   onOpenBlock
 }: DayViewProps) {
-  const cols = multiDentist
+  const cols: AgendaDentistColumn[] = multiDentist
     ? dentists.length
       ? dentists
-      : [{ id: '_', fullName: 'Sin profesional' }]
-    : [{ id: dentistId || '_all', fullName: dentistId ? dentists.find((d) => d.id === dentistId)?.fullName ?? 'Agenda' : 'Todas las citas' }];
+      : [{ id: '_', fullName: 'Sin profesional', initials: '—' }]
+    : [
+        dentistId
+          ? (dentists.find((d) => d.id === dentistId) ?? {
+              id: dentistId,
+              fullName: dentists.find((d) => d.id === dentistId)?.fullName ?? 'Agenda',
+              initials: 'DR'
+            })
+          : { id: '_all', fullName: 'Todas las citas', initials: 'ALL' }
+      ];
 
   return (
     <div className="agd-cal" style={{ ['--agd-cal-cols' as string]: String(cols.length) }}>
       <div className="agd-cal__header">
         <span className="agd-cal__corner" aria-hidden />
         {cols.map((col) => (
-          <span key={col.id} className="agd-cal__col-title">
-            {col.fullName}
+          <span
+            key={col.id}
+            className="agd-cal__col-title"
+            style={col.agendaColor ? { ['--agd-doc-color' as string]: col.agendaColor } : undefined}
+          >
+            {'photoUrl' in col ? (
+              <span className="agd-cal__col-prof">
+                <AgendaDoctorAvatar dentist={col} size="sm" />
+                <span>
+                  <strong>{col.fullName}</strong>
+                  {col.visibleTitle ? <small>{col.visibleTitle}</small> : null}
+                </span>
+              </span>
+            ) : (
+              col.fullName
+            )}
           </span>
         ))}
       </div>

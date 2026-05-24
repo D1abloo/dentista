@@ -12,6 +12,7 @@ import {
   Stethoscope,
   User
 } from 'lucide-react';
+import { resolveDentistPhotoUrl, dentistInitials } from '@/lib/clinical/dentistDisplay';
 import { dentistsForClinic, getPrimaryClinic, treatmentsForClinic, clinicTenantId } from '@/lib/clinic';
 import { fmtDate, todayIso } from '@/lib/format';
 import { daySlotMap } from '@/lib/slots';
@@ -472,18 +473,30 @@ export function PatientBook() {
                   <p>El sistema buscará el primer hueco libre.</p>
                   {nextHint ? <p className="text-teal-700 font-bold text-xs mt-1">Próximo hueco: {nextHint}</p> : null}
                 </button>
-                {dentists.map((d) => (
+                {dentists.map((d) => {
+                  const photo = resolveDentistPhotoUrl(d);
+                  return (
                   <button
                     key={d.id}
                     type="button"
                     className={`pb-select-card${dentistId === d.id ? ' pb-select-card--active' : ''}`}
                     onClick={() => pickDentist(d.id)}
                   >
-                    <h4>{d.fullName}</h4>
-                    <p>{d.specialty}</p>
-                    <p>{professionalAvailabilityHint(state, clinicId, d, treatmentId, activeCabinet)}</p>
+                    <span className="pb-select-card__row">
+                      <span
+                        className="pb-select-card__avatar"
+                        style={{ background: d.agendaColor ? `${d.agendaColor}22` : undefined, color: d.agendaColor ?? '#0d9488' }}
+                      >
+                        {photo ? <img src={photo} alt="" /> : dentistInitials(d.fullName)}
+                      </span>
+                      <span>
+                        <h4>{d.fullName}</h4>
+                        <p>{d.specialty}</p>
+                        <p>{professionalAvailabilityHint(state, clinicId, d, treatmentId, activeCabinet)}</p>
+                      </span>
+                    </span>
                   </button>
-                ))}
+                );})}
               </div>
             </>
           ) : null}
