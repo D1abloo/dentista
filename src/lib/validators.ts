@@ -27,6 +27,10 @@ export const loginSchema = z.object({
   remember: z.boolean().optional()
 });
 
+export const selectPortalSchema = z.object({
+  portal: z.enum(['patient', 'admin', 'platform'])
+});
+
 export const switchClinicSchema = z.object({
   clinicId: z.string().uuid('Centro clínico no válido.')
 });

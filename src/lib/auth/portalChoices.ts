@@ -1,6 +1,7 @@
+import type { SessionUser } from '@/lib/auth';
 import type { ClinicProfileRow } from '@/lib/auth/profilePick';
 import { isPatientActivated } from '@/lib/services/patientRegistration';
-import { getSupabaseAdmin } from '@/lib/supabaseServer';
+import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
 import { signInWithEmailPassword } from '@/lib/supabaseAuth';
 
 const STAFF_ROLES = new Set(['admin', 'owner', 'clinic_admin', 'dentist', 'receptionist']);
@@ -102,4 +103,63 @@ export async function listPortalChoices(identity: AuthenticatedIdentity): Promis
 
 export function filterChoicesForClinicLogin(options: PortalChoiceOption[]) {
   return options.filter((o) => o.id === 'admin' || o.id === 'patient');
+}
+
+const PROFILE_SELECT =
+  'id, clinic_id, tenant_id, role, full_name, email, must_change_password, password_expires_at, activated_at';
+
+/** Perfiles Supabase vinculados a la sesión actual (sin volver a pedir contraseña). */
+export async function getIdentityFromSession(user: SessionUser): Promise<AuthenticatedIdentity | null> {
+  if (!hasSupabaseConfig()) return null;
+
+  const admin = getSupabaseAdmin();
+  const email = user.email.trim().toLowerCase();
+  let authUserId: string | null = null;
+
+  if (user.profileId) {
+    const { data } = await admin.from('profiles').select('auth_user_id').eq('id', user.profileId).maybeSingle();
+    authUserId = (data?.auth_user_id as string | undefined) ?? null;
+  }
+
+  if (!authUserId) {
+    const { data: platformRow } = await admin
+      .from('platform_admins')
+      .select('auth_user_id')
+      .eq('email', email)
+      .eq('active', true)
+      .maybeSingle();
+    authUserId = (platformRow?.auth_user_id as string | undefined) ?? null;
+  }
+
+  if (!authUserId) {
+    const { data: byEmail } = await admin
+      .from('profiles')
+      .select('auth_user_id')
+      .ilike('email', email)
+      .limit(1)
+      .maybeSingle();
+    authUserId = (byEmail?.auth_user_id as string | undefined) ?? null;
+  }
+
+  if (!authUserId) return null;
+
+  const { data: profiles, error } = await admin
+    .from('profiles')
+    .select(PROFILE_SELECT)
+    .eq('auth_user_id', authUserId);
+
+  if (error) return null;
+
+  return {
+    authUserId,
+    email: user.email,
+    profiles: (profiles ?? []) as ClinicProfileRow[]
+  };
+}
+
+/** Portales disponibles para el botón «Entrar» con sesión ya iniciada. */
+export async function listEnterPortalChoices(user: SessionUser): Promise<PortalChoiceOption[]> {
+  const identity = await getIdentityFromSession(user);
+  if (!identity) return [];
+  return listPortalChoices(identity);
 }

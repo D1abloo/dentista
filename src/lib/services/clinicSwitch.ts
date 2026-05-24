@@ -1,6 +1,7 @@
 import type { SessionUser } from '@/lib/auth';
 import { evaluatePasswordStatus } from '@/lib/auth/passwordPolicy';
 import type { ClinicProfileRow } from '@/lib/auth/profilePick';
+import { listEnterPortalChoices } from '@/lib/auth/portalChoices';
 import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
 import { listAssignedClinicIdsForSession } from '@/lib/services/staffContext';
 
@@ -32,7 +33,7 @@ function toPortalSession(profile: ClinicProfileRow): Omit<SessionUser, 'expiresA
   };
 }
 
-async function authUserIdForSession(user: SessionUser): Promise<string | null> {
+async function authUserIdForSession(user: Omit<SessionUser, 'expiresAt'>): Promise<string | null> {
   if (!user.profileId) return null;
   const db = getSupabaseAdmin();
   const { data } = await db.from('profiles').select('auth_user_id').eq('id', user.profileId).maybeSingle();
@@ -40,7 +41,7 @@ async function authUserIdForSession(user: SessionUser): Promise<string | null> {
 }
 
 /** Centros clínicos independientes donde el usuario tiene perfil staff. */
-export async function listAssignedCenters(user: SessionUser): Promise<AssignedCenter[]> {
+export async function listAssignedCenters(user: Omit<SessionUser, 'expiresAt'>): Promise<AssignedCenter[]> {
   if (!hasSupabaseConfig()) return [];
   if (user.role !== 'admin' && user.role !== 'super_admin') return [];
 
@@ -147,6 +148,12 @@ export async function resolveEnterDestination(user: SessionUser | null): Promise
   if (user.mustChangePassword || user.passwordExpired) {
     return user.passwordExpired ? '/login/cambiar-password?expired=1' : '/login/cambiar-password';
   }
+
+  if (hasSupabaseConfig() && !user.platformInspect) {
+    const portalChoices = await listEnterPortalChoices(user);
+    if (portalChoices.length > 1) return '/entrada/elegir-portal';
+  }
+
   if (user.role === 'patient') return '/paciente';
   if (user.role === 'super_admin' && !user.platformInspect) return '/platform';
   if (user.role === 'admin' || (user.role === 'super_admin' && user.platformInspect)) {
@@ -157,7 +164,19 @@ export async function resolveEnterDestination(user: SessionUser | null): Promise
   return '/login';
 }
 
-export async function resolvePostLoginAdminDestination(user: SessionUser): Promise<string> {
+export async function resolvePortalSwitchDestination(user: Omit<SessionUser, 'expiresAt'>): Promise<string> {
+  if (user.mustChangePassword || user.passwordExpired) {
+    return user.passwordExpired ? '/login/cambiar-password?expired=1' : '/login/cambiar-password';
+  }
+  if (user.role === 'patient') return '/paciente';
+  if (user.role === 'super_admin' && !user.platformInspect) return '/platform';
+  if (user.role === 'admin' || (user.role === 'super_admin' && user.platformInspect)) {
+    return resolvePostLoginAdminDestination(user);
+  }
+  return '/login';
+}
+
+export async function resolvePostLoginAdminDestination(user: Omit<SessionUser, 'expiresAt'>): Promise<string> {
   if (user.mustChangePassword || user.passwordExpired) {
     return user.passwordExpired ? '/login/cambiar-password?expired=1' : '/login/cambiar-password';
   }

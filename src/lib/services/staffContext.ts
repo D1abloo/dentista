@@ -22,7 +22,7 @@ export type StaffContext = {
 };
 
 /** Clínicas donde el usuario tiene perfil staff (cada una con su propio tenant). */
-export async function listAssignedClinicIdsForSession(user: SessionUser): Promise<string[]> {
+export async function listAssignedClinicIdsForSession(user: Omit<SessionUser, 'expiresAt'>): Promise<string[]> {
   if (!user.profileId) return user.clinicId ? [user.clinicId] : [];
   const db = getSupabaseAdmin();
   const { data: anchor } = await db

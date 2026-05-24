@@ -12,9 +12,11 @@ type ClinicUser = {
 };
 
 const STAFF_ROLES = [
-  { value: 'clinic_admin', label: 'Administrador de clínica' },
-  { value: 'dentist', label: 'Dentista' },
-  { value: 'receptionist', label: 'Recepción' }
+  { value: 'clinic_admin', label: 'Administrador de clínica', hint: 'Acceso completo: usuarios, ajustes y facturación.' },
+  { value: 'admin', label: 'Administrador', hint: 'Gestión operativa del panel clínica.' },
+  { value: 'owner', label: 'Propietario', hint: 'Control total del tenant y sedes.' },
+  { value: 'dentist', label: 'Dentista', hint: 'Agenda propia, pacientes e informes clínicos.' },
+  { value: 'receptionist', label: 'Recepción', hint: 'Citas, pacientes y cobros básicos.' }
 ] as const;
 
 const ROLE_LABELS: Record<string, string> = {
@@ -60,13 +62,14 @@ export function AdminClinicUsers() {
   }, []);
 
   const filtered = useMemo(() => {
+    const staffOnly = users.filter((u) => u.role !== 'patient');
     const q = filter.trim().toLowerCase();
-    if (!q) return users;
-    return users.filter(
+    if (!q) return staffOnly;
+    return staffOnly.filter(
       (u) =>
         u.full_name.toLowerCase().includes(q) ||
         u.email.toLowerCase().includes(q) ||
-        u.role.toLowerCase().includes(q)
+        (ROLE_LABELS[u.role] ?? u.role).toLowerCase().includes(q)
     );
   }, [users, filter]);
 
@@ -120,8 +123,8 @@ export function AdminClinicUsers() {
     <div className="grid gap-4">
       <Card>
         <PageHeader
-          title="Usuarios de la clínica"
-          subtitle="Asocia profesionales a la clínica. Los dentistas reciben ficha vinculada para agenda propia y acceso PdP."
+          title="Usuarios del panel"
+          subtitle="Crea cuentas de personal con roles diferenciados. Solo administradores de clínica pueden dar de alta usuarios."
         />
         <div className="grid gap-3 md:grid-cols-2">
           <Field label="Nombre completo">
@@ -138,7 +141,19 @@ export function AdminClinicUsers() {
                 </option>
               ))}
             </Select>
+            <p className="mt-1 text-xs text-slate-500">
+              {STAFF_ROLES.find((r) => r.value === form.role)?.hint}
+            </p>
           </Field>
+          {(form.role === 'clinic_admin' || form.role === 'admin' || form.role === 'owner') ? (
+            <Field label="Nivel de permisos">
+              <Select value={form.permission} onChange={(e) => setForm({ ...form, permission: e.target.value })}>
+                <option value="execute">Completo (administración)</option>
+                <option value="write">Operativo (lectura y escritura)</option>
+                <option value="read">Solo lectura</option>
+              </Select>
+            </Field>
+          ) : null}
           {form.role === 'dentist' ? (
             <>
               <Field label="Especialidad">
@@ -164,7 +179,7 @@ export function AdminClinicUsers() {
         </p>
       </Card>
 
-      <Card title={loading ? 'Cargando…' : `${filtered.length} usuarios`}>
+      <Card title={loading ? 'Cargando…' : `${filtered.length} usuarios del panel`}>
         <Field label="Buscar">
           <Input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Nombre, email o rol" />
         </Field>

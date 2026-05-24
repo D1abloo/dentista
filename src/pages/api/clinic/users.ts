@@ -22,7 +22,9 @@ export const GET: APIRoute = async (context) => {
   if (!clinicId) return fail('Sesión sin clínica.', 403);
 
   try {
-    const users = await listClinicUsersForScope(clinicId, gate.user.tenantId);
+    const users = (await listClinicUsersForScope(clinicId, gate.user.tenantId)).filter((u) =>
+      ['clinic_admin', 'admin', 'owner', 'dentist', 'receptionist'].includes(u.role)
+    );
     return ok({ users });
   } catch (error) {
     logError('clinic.users.get', error);
