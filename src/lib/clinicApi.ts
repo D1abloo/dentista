@@ -1,3 +1,4 @@
+import { API_JSON_HEADERS, apiErrorMessage, readApiJson } from '@/lib/apiFetch';
 import type { AppointmentStatus, DemoState } from '@/types/demo';
 
 const STATUS_TO_ACTION: Partial<
@@ -172,13 +173,16 @@ export async function deleteScheduleBlockLive(input: {
   else if (input.blockId) q.set('id', input.blockId);
   const res = await fetch(`/api/schedule/blocks?${q.toString()}`, {
     method: 'DELETE',
-    credentials: 'include'
+    credentials: 'include',
+    headers: API_JSON_HEADERS,
+    body: '{}'
   });
-  const json = (await res.json()) as {
-    data?: { removed?: number };
-    error?: { message?: string };
-  };
-  if (!res.ok) return { ok: false as const, message: json.error?.message ?? 'No se pudo quitar el bloqueo.' };
+  const parsed = await readApiJson<{ data?: { removed?: number }; error?: { message?: string } }>(res);
+  if (!parsed.parseOk) return { ok: false as const, message: parsed.message };
+  const json = parsed.json;
+  if (!res.ok) {
+    return { ok: false as const, message: apiErrorMessage(json, 'No se pudo quitar el bloqueo.') };
+  }
   const removed = Number(json.data?.removed ?? 0);
   if (removed < 1) {
     return {

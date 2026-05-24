@@ -48,7 +48,12 @@ export function usePortalAccess() {
   }, [refresh]);
 
   const closeAccess = useCallback(async () => {
-    await fetch('/api/portal-access/me', { method: 'DELETE', credentials: 'include' });
+    await fetch('/api/portal-access/me', {
+      method: 'DELETE',
+      credentials: 'include',
+      headers: { 'content-type': 'application/json', accept: 'application/json' },
+      body: '{}'
+    });
     await refresh();
   }, [refresh]);
 

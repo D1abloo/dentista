@@ -82,7 +82,12 @@ export function RoleGate({ role, children }: { role: DemoRole; children: ReactNo
 
 export function useLogout() {
   return () => {
-    void fetch('/api/platform/inspect', { method: 'DELETE', credentials: 'include' }).finally(() =>
+    void fetch('/api/platform/inspect', {
+      method: 'DELETE',
+      credentials: 'include',
+      headers: { 'content-type': 'application/json', accept: 'application/json' },
+      body: '{}'
+    }).finally(() =>
       logoutSession().finally(() => {
         if (typeof window !== 'undefined' && 'caches' in window) {
           void caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))));
