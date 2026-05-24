@@ -46,7 +46,9 @@ export function LandingPage() {
     if (q === 'pro_multi' || q === 'pro_clinica') setPlan(q);
   }, []);
 
-  const heroMockup = landingHeroDevices[1];
+  const heroMain = landingHeroDevices[0];
+  const heroFloatA = landingHeroDevices[1];
+  const heroFloatB = landingHeroDevices[2];
 
   return (
     <>
@@ -61,56 +63,80 @@ export function LandingPage() {
         ) : null}
 
         <section className="ps-hero" aria-labelledby="ps-hero-title">
-          <div className={`ps-shell ps-hero__grid ${revealClass(heroR.visible)}`} ref={heroR.ref}>
-            <div className="ps-hero__copy">
-              <span className="ps-hero__eyebrow">
-                <Sparkles className="h-3.5 w-3.5" aria-hidden />
-                Software dental para clínicas
-              </span>
-              <h1 id="ps-hero-title">Gestiona tu clínica dental con precisión</h1>
-              <p className="ps-hero__lead">
-                Portal del paciente, panel clínico e historial digital en una plataforma segura diseñada para
-                consultas dentales modernas.
-              </p>
-              <div className="ps-hero__ctas">
-                <button type="button" className="ps-btn ps-btn--primary ps-btn--lg" onClick={() => openDemo()}>
-                  Demo para clínicas
-                  <ArrowRight className="h-4 w-4" aria-hidden />
-                </button>
-                <a href="/portal-paciente" className="ps-btn ps-btn--outline ps-btn--lg">
-                  Portal del paciente
-                </a>
-              </div>
-            </div>
-
-            <figure className="ps-hero__visual" aria-label="Panel de agenda clínica Dentista+">
-              <div className="ps-hero__card">
-                <img src={heroMockup.src} alt={heroMockup.alt} loading="eager" decoding="async" width={1280} height={800} />
-              </div>
-              <figcaption className="ps-hero__caption">{heroMockup.label}</figcaption>
-            </figure>
-          </div>
-
-          <div className="ps-shell ps-hero__stats-wrap">
-            <div className="ps-hero__stats">
-              {publicHeroStats.map((s) => (
-                <div key={s.label} className="ps-stat">
-                  <strong>{s.value}</strong>
-                  <span>{s.label}</span>
-                  {s.hint ? <small>{s.hint}</small> : null}
+          <div className="ps-hero__glow" aria-hidden />
+          <div className="ps-shell">
+            <div className={`ps-hero__frame ${revealClass(heroR.visible)}`} ref={heroR.ref}>
+              <div className="ps-hero__grid">
+                <div className="ps-hero__copy">
+                  <span className="ps-hero__eyebrow ps-hero__anim ps-hero__anim--1">
+                    <Sparkles className="h-3.5 w-3.5" aria-hidden />
+                    Software dental para clínicas
+                  </span>
+                  <h1 id="ps-hero-title" className="ps-hero__anim ps-hero__anim--2">
+                    Gestiona tu clínica dental con precisión
+                  </h1>
+                  <p className="ps-hero__lead ps-hero__anim ps-hero__anim--3">
+                    Portal del paciente, panel clínico e historial digital en una plataforma segura diseñada para
+                    consultas dentales modernas.
+                  </p>
+                  <div className="ps-hero__ctas ps-hero__anim ps-hero__anim--4">
+                    <button type="button" className="ps-btn ps-btn--primary ps-btn--lg" onClick={() => openDemo()}>
+                      Demo para clínicas
+                      <ArrowRight className="h-4 w-4" aria-hidden />
+                    </button>
+                    <a href="/portal-paciente" className="ps-btn ps-btn--outline ps-btn--lg">
+                      Portal del paciente
+                    </a>
+                  </div>
                 </div>
-              ))}
+
+                <div className="ps-hero__stage" aria-label="Vistas del panel Dentista+">
+                  <div className="ps-hero__mockup">
+                    <figure className="ps-hero__device ps-hero__device--main ps-hero__anim ps-hero__anim--3">
+                      <img
+                        src={heroMain.src}
+                        alt={heroMain.alt}
+                        loading="eager"
+                        decoding="async"
+                        width={1280}
+                        height={800}
+                      />
+                      <figcaption>{heroMain.label}</figcaption>
+                    </figure>
+                    <figure className="ps-hero__device ps-hero__device--float ps-hero__device--tl ps-hero__anim ps-hero__anim--4">
+                      <img src={heroFloatA.src} alt={heroFloatA.alt} loading="eager" decoding="async" width={640} height={480} />
+                      <figcaption>{heroFloatA.label}</figcaption>
+                    </figure>
+                    <figure className="ps-hero__device ps-hero__device--float ps-hero__device--br ps-hero__anim ps-hero__anim--5">
+                      <img src={heroFloatB.src} alt={heroFloatB.alt} loading="eager" decoding="async" width={640} height={480} />
+                      <figcaption>{heroFloatB.label}</figcaption>
+                    </figure>
+                  </div>
+                </div>
+              </div>
+
+              <div className="ps-hero__stats ps-hero__anim ps-hero__anim--5">
+                {publicHeroStats.map((s) => (
+                  <div key={s.label} className="ps-stat">
+                    <strong>{s.value}</strong>
+                    <span>{s.label}</span>
+                    {s.hint ? <small>{s.hint}</small> : null}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
 
-        <section id="perfiles" className="ps-section ps-shell">
-          <header className="ps-section__head">
-            <span className="ps-kicker">Acceso rápido</span>
-            <h2>Accede al portal o gestiona tu clínica</h2>
-            <p>Dos accesos directos según tu perfil: paciente o equipo clínico.</p>
-          </header>
-          <div className={`ps-paths ${revealClass(pathsR.visible)}`} ref={pathsR.ref}>
+        <section id="perfiles" className="ps-section">
+          <div className="ps-shell">
+            <div className="ps-section__panel">
+              <header className="ps-section__head">
+                <span className="ps-kicker">Acceso rápido</span>
+                <h2>Accede al portal o gestiona tu clínica</h2>
+                <p>Dos accesos directos según tu perfil: paciente o equipo clínico.</p>
+              </header>
+              <div className={`ps-paths ${revealClass(pathsR.visible)}`} ref={pathsR.ref}>
             {publicExplorePaths.map((card) => {
               const Icon = card.icon;
               const inner = (
@@ -145,12 +171,15 @@ export function LandingPage() {
                 </a>
               );
             })}
+              </div>
+            </div>
           </div>
         </section>
 
         <section id="producto" className="ps-section ps-section--alt">
           <div className="ps-shell">
-            <header className="ps-section__head">
+            <div className="ps-section__panel">
+              <header className="ps-section__head">
               <span className="ps-kicker">Plataforma</span>
               <h2>Agenda, portal paciente y facturación</h2>
               <p>Interfaz clara para el día a día en recepción, gabinete y administración.</p>
@@ -164,11 +193,14 @@ export function LandingPage() {
                 </article>
               ))}
             </div>
+            </div>
           </div>
         </section>
 
-        <section id="funcionalidades" className="ps-section ps-shell">
-          <header className="ps-section__head">
+        <section id="funcionalidades" className="ps-section">
+          <div className="ps-shell">
+            <div className="ps-section__panel">
+              <header className="ps-section__head">
             <span className="ps-kicker">Funcionalidades</span>
             <h2>Todo lo que necesita una clínica dental</h2>
           </header>
@@ -185,12 +217,15 @@ export function LandingPage() {
                 </article>
               );
             })}
+            </div>
+            </div>
           </div>
         </section>
 
         <section id="precios" className="ps-section ps-section--alt">
           <div className="ps-shell">
-            <header className="ps-section__head">
+            <div className="ps-section__panel">
+              <header className="ps-section__head">
               <span className="ps-kicker">Planes</span>
               <h2>Tarifas claras para tu clínica</h2>
               <p>Empieza gratis o activa el plan profesional con prueba de 14 días.</p>
@@ -252,6 +287,7 @@ export function LandingPage() {
                   })}
                 </ul>
               </aside>
+            </div>
             </div>
           </div>
         </section>

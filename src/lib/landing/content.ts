@@ -195,24 +195,30 @@ export const landingTrustLogos = [
   { name: 'Dental Plus', short: 'DENTAL PLUS' }
 ] as const;
 
-/** Laptop centro (agenda), tablet atrás-izq (plataforma), móvil delante-dcha (paciente) */
+/** Composición hero — imágenes reales del proyecto (/img) */
 export const landingHeroDevices = [
-  {
-    label: 'Plataforma',
-    variant: 'tablet',
-    src: '/images/guides/mobile/admin-dashboard.png',
-    alt: 'Panel de plataforma con estadísticas en tablet'
-  },
   {
     label: 'Panel clínica',
     variant: 'laptop',
-    src: '/images/guides/landing/admin-dashboard-hero.png',
-    alt: 'Agenda del panel clínica en portátil'
+    src: '/img/inicio.webp',
+    alt: 'Panel de inicio de la clínica dental en portátil'
   },
   {
-    label: 'Portal paciente',
+    label: 'Agenda',
+    variant: 'tablet',
+    src: '/img/citas.webp',
+    alt: 'Vista de citas y agenda clínica'
+  },
+  {
+    label: 'Informes',
     variant: 'phone',
-    src: '/images/guides/mobile/pdp-inicio.png',
-    alt: 'Portal del paciente en móvil'
+    src: '/img/informes.webp',
+    alt: 'Informes clínicos en el portal'
+  },
+  {
+    label: 'Mensajes',
+    variant: 'phone',
+    src: '/img/mensajes.webp',
+    alt: 'Mensajería clínica-paciente'
   }
 ] as const;
