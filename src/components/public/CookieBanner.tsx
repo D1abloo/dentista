@@ -21,32 +21,30 @@ export function CookieBanner() {
   if (pref) return null;
 
   return (
-    <div className="lp-cookie" role="dialog" aria-label="Preferencias de cookies" aria-modal="false">
-      <div className="shell lp-cookie__inner">
-        <div className="lp-cookie__main">
-          <p className="lp-cookie__title">Tu privacidad en Dentista+</p>
-          <p className="lp-cookie__text">
+    <div className="ps-cookie" role="dialog" aria-label="Preferencias de cookies" aria-modal="false">
+      <div className="ps-shell ps-cookie__inner">
+        <div>
+          <p className="ps-cookie__title">Tu privacidad en Dentista+</p>
+          <p className="ps-cookie__text">
             Usamos cookies y almacenamiento local estrictamente necesarios para la sesión, la seguridad y recordar esta
             elección. Las cookies analíticas o de marketing no se activan sin tu consentimiento. Consulta la{' '}
             <a href="/cookies">política de cookies</a> y la <a href="/privacidad">política de privacidad</a>.
           </p>
           {configOpen ? (
-            <div className="lp-cookie__detail">
+            <div className="lp-cookie__detail" style={{ marginTop: '0.65rem', fontSize: '0.75rem', opacity: 0.85 }}>
               <p>
-                <strong>Aceptar:</strong> cookies esenciales y, cuando existan, cookies de mejora/analítica autorizadas.
+                <strong>Aceptar:</strong> cookies esenciales y, cuando existan, cookies de mejora autorizadas.
               </p>
               <p>
-                <strong>Solo esenciales:</strong> únicamente sesión (df_session), preferencia de cookies y funciones
-                imprescindibles del sitio.
+                <strong>Solo esenciales:</strong> sesión, preferencia de cookies y funciones imprescindibles.
               </p>
               <p>
-                <strong>Rechazar opcionales:</strong> equivalente a solo esenciales; no usamos cookies publicitarias por
-                defecto.
+                <strong>Rechazar opcionales:</strong> equivalente a solo esenciales; sin cookies publicitarias.
               </p>
             </div>
           ) : null}
         </div>
-        <div className="lp-cookie__actions">
+        <div className="ps-cookie__actions">
           <button type="button" className="btn btn--ghost btn--sm" onClick={() => setConfigOpen((v) => !v)}>
             {configOpen ? 'Ocultar' : 'Personalizar'}
           </button>

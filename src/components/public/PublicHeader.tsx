@@ -4,35 +4,26 @@ import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
 import { EnterPortalDropdown } from './EnterPortalDropdown';
 import { handleLandingHashLink } from '@/lib/publicScroll';
 
-const premiumLinks = [
+const NAV_LINKS = [
   { href: '/', label: 'Inicio' },
+  { href: '/#producto', label: 'Producto' },
   { href: '/#funcionalidades', label: 'Funciones' },
   { href: '/#precios', label: 'Planes' },
   { href: '/ayuda', label: 'Ayuda' },
   { href: '/contacto', label: 'Contacto' }
 ];
 
-const defaultLinks = [
-  { href: '/', label: 'Inicio' },
-  { href: '/#funcionalidades', label: 'Funciones' },
-  { href: '/ayuda', label: 'Ayuda' },
-  { href: '/contacto', label: 'Contacto' }
-];
-
 type Props = {
   activeHref?: string;
-  variant?: 'default' | 'pro' | 'premium';
   onWantDemo?: () => void;
 };
 
-export function PublicHeader({ activeHref, variant = 'default', onWantDemo }: Props) {
+export function PublicHeader({ activeHref, onWantDemo }: Props) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const isPremium = variant === 'premium';
-  const links = isPremium ? premiumLinks : defaultLinks;
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10);
+    const onScroll = () => setScrolled(window.scrollY > 12);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -53,19 +44,18 @@ export function PublicHeader({ activeHref, variant = 'default', onWantDemo }: Pr
   }
 
   return (
-    <header
-      className={`pub-header pub-header--corp${isPremium ? ' pub-header--pro pub-header--premium' : ''}${scrolled ? ' pub-header--scrolled' : ''}`}
-    >
-      <div className="shell pub-header__inner">
-        <a href="/" className="pub-header__brand">
+    <header className={`ps-header${scrolled ? ' ps-header--scrolled' : ''}`}>
+      <div className="ps-shell ps-header__inner">
+        <a href="/" className="ps-header__brand">
           <DentistaWebpLockup placement="header" />
         </a>
-        <nav className="pub-nav" aria-label="Principal">
-          {links.map((l) => (
+
+        <nav className="ps-nav" aria-label="Principal">
+          {NAV_LINKS.map((l) => (
             <a
               key={l.href + l.label}
               href={l.href}
-              className={activeHref && l.href === activeHref ? 'pub-nav__link--active' : undefined}
+              className={activeHref && l.href === activeHref ? 'ps-nav__link--active' : undefined}
               aria-current={activeHref === l.href ? 'page' : undefined}
               onClick={(e) => onNavClick(e, l.href)}
             >
@@ -73,33 +63,18 @@ export function PublicHeader({ activeHref, variant = 'default', onWantDemo }: Pr
             </a>
           ))}
         </nav>
-        <div className="pub-actions">
-          {isPremium ? (
-            <>
-              <button
-                type="button"
-                className="df-lp-btn df-lp-btn--outline df-lp-btn--sm df-lp-header-demo"
-                onClick={wantDemoClick}
-              >
-                Solicitar demo
-              </button>
-              <div className="df-lp-header-enter">
-                <EnterPortalDropdown onNavigate={() => setOpen(false)} />
-              </div>
-            </>
-          ) : (
-            <>
-              <a href="/login/paciente" className="btn btn--outline-teal btn--sm hidden md:inline-flex">
-                Entrar como paciente
-              </a>
-              <a href="/reserva" className="btn btn--teal btn--sm">
-                Reservar cita
-              </a>
-            </>
-          )}
+
+        <div className="ps-header__actions">
+          <a href="/reserva" className="ps-btn ps-btn--ghost ps-btn--sm hidden md:inline-flex">
+            Reservar
+          </a>
+          <button type="button" className="ps-btn ps-btn--outline ps-btn--sm ps-header__demo" onClick={wantDemoClick}>
+            Demo clínica
+          </button>
+          <EnterPortalDropdown onNavigate={() => setOpen(false)} />
           <button
             type="button"
-            className="pub-menu-btn lg:hidden"
+            className="ps-menu-btn lg:hidden"
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
             aria-label="Menú"
@@ -108,39 +83,24 @@ export function PublicHeader({ activeHref, variant = 'default', onWantDemo }: Pr
           </button>
         </div>
       </div>
+
       {open ? (
-        <nav className="pub-drawer pub-drawer--corp lg:hidden" aria-label="Menú móvil">
-          {links.map((l) => (
+        <nav className="ps-drawer lg:hidden" aria-label="Menú móvil">
+          {NAV_LINKS.map((l) => (
             <a key={l.href + l.label} href={l.href} onClick={(e) => onNavClick(e, l.href)}>
               {l.label}
             </a>
           ))}
-          <div className="pub-drawer__cta">
-            {isPremium ? (
-              <>
-                <button type="button" className="df-lp-btn df-lp-btn--primary df-lp-btn--block" onClick={wantDemoClick}>
-                  Solicitar demo
-                </button>
-                <a href="/login/paciente" className="df-lp-btn df-lp-btn--secondary df-lp-btn--block">
-                  Portal paciente
-                </a>
-                <a href="/login/admin" className="df-lp-btn df-lp-btn--secondary df-lp-btn--block">
-                  Panel clínica
-                </a>
-                <a href="/platform/login" className="df-lp-btn df-lp-btn--secondary df-lp-btn--block">
-                  Plataforma
-                </a>
-              </>
-            ) : (
-              <>
-                <a href="/reserva" className="btn btn--teal btn--block">
-                  Reservar cita
-                </a>
-                <a href="/login/paciente" className="btn btn--outline-teal btn--block">
-                  Entrar como paciente
-                </a>
-              </>
-            )}
+          <div className="ps-drawer__cta">
+            <a href="/reserva" className="ps-btn ps-btn--coral ps-btn--block">
+              Reservar cita
+            </a>
+            <button type="button" className="ps-btn ps-btn--primary ps-btn--block" onClick={wantDemoClick}>
+              Solicitar demo
+            </button>
+            <a href="/login/paciente" className="ps-btn ps-btn--outline ps-btn--block">
+              Portal paciente
+            </a>
           </div>
         </nav>
       ) : null}

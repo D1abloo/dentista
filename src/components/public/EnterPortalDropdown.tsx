@@ -18,7 +18,7 @@ const OPTIONS = [
     href: '/platform/login',
     icon: ShieldCheck,
     title: 'Plataforma',
-    text: 'Acceso de administradores'
+    text: 'Administración global'
   }
 ] as const;
 
@@ -47,20 +47,20 @@ export function EnterPortalDropdown({ className = '', onNavigate }: Props) {
   }, []);
 
   return (
-    <div className={`df-lp-enter-dd${className ? ` ${className}` : ''}`} ref={rootRef}>
+    <div className={`ps-enter-dd${className ? ` ${className}` : ''}`} ref={rootRef}>
       <button
         type="button"
-        className="df-lp-btn df-lp-btn--primary df-lp-btn--sm df-lp-enter-dd__trigger"
+        className="ps-btn ps-btn--ink ps-btn--sm ps-enter-dd__trigger"
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen((v) => !v)}
       >
         <LogIn className="h-3.5 w-3.5" aria-hidden />
         Entrar
-        <ChevronDown className={`h-3.5 w-3.5 df-lp-enter-dd__chev${open ? ' df-lp-enter-dd__chev--open' : ''}`} aria-hidden />
+        <ChevronDown className={`h-3.5 w-3.5 ps-enter-dd__chev${open ? ' ps-enter-dd__chev--open' : ''}`} aria-hidden />
       </button>
       {open ? (
-        <div className="df-lp-enter-dd__menu" role="menu">
+        <div className="ps-enter-dd__menu" role="menu">
           {OPTIONS.map((opt) => {
             const Icon = opt.icon;
             return (
@@ -68,13 +68,13 @@ export function EnterPortalDropdown({ className = '', onNavigate }: Props) {
                 key={opt.href}
                 href={opt.href}
                 role="menuitem"
-                className="df-lp-enter-dd__item"
+                className="ps-enter-dd__item"
                 onClick={() => {
                   setOpen(false);
                   onNavigate?.();
                 }}
               >
-                <span className="df-lp-enter-dd__icon" aria-hidden>
+                <span className="ps-enter-dd__icon" aria-hidden>
                   <Icon className="h-4 w-4" />
                 </span>
                 <span>

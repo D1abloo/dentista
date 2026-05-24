@@ -86,7 +86,7 @@ export function ContactPage() {
   return (
     <>
       <PublicHeader activeHref="/contacto" />
-      <main className="cp cp--form-only">
+      <main className="ps-page--contact cp cp--form-only">
         <section id="formulario" className="cp-section shell">
           <div className="cp-form-panel">
             <div className="cp-form-panel__form">

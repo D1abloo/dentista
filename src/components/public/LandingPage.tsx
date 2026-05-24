@@ -1,20 +1,39 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowRight, Check, X } from 'lucide-react';
+import { ArrowRight, Check, Sparkles, X } from 'lucide-react';
 import { scrollToSection } from '@/lib/publicScroll';
 import { useReveal } from '@/hooks/useReveal';
 import {
   landingFeatures,
-  landingHeroBadges,
   landingHeroDevices,
   landingPlans,
   landingSecurityCards,
-  landingTrustLogos,
-  landingWhoCards
+  landingTrustLogos
 } from '@/lib/landing/content';
+import {
+  publicExplorePaths,
+  publicHeroStats,
+  publicShowcaseTiles,
+  publicSteps,
+  publicValuePillars
+} from '@/lib/landing/publicSiteContent';
 import { PublicFooter } from './PublicFooter';
 import { PublicHeader } from './PublicHeader';
 import { CookieBanner } from './CookieBanner';
 import { ProAccessForm, type ProPlan } from './ProAccessForm';
+
+const MARQUEE_ITEMS = [
+  'Agenda inteligente',
+  'Portal paciente',
+  'Informes clínicos',
+  'Facturación PDF',
+  'Consentimientos digitales',
+  'Multi-clínica segura',
+  'Mensajería clínica-paciente'
+];
+
+function revealClass(visible: boolean) {
+  return `ps-reveal${visible ? ' ps-reveal--in' : ''}`;
+}
 
 export function LandingPage() {
   const [loggedOut, setLoggedOut] = useState(false);
@@ -22,10 +41,11 @@ export function LandingPage() {
   const [demoOpen, setDemoOpen] = useState(false);
 
   const heroR = useReveal();
-  const whoR = useReveal();
+  const pathsR = useReveal();
+  const showR = useReveal();
+  const stepsR = useReveal();
   const featR = useReveal();
   const priceR = useReveal();
-  const trustR = useReveal();
 
   const openDemo = useCallback((nextPlan: ProPlan = 'pro_clinica') => {
     setPlan(nextPlan);
@@ -43,101 +63,201 @@ export function LandingPage() {
     if (q === 'pro_multi' || q === 'pro_clinica') setPlan(q);
   }, []);
 
+  const mainDevice = landingHeroDevices[1];
+  const sideDevices = landingHeroDevices.filter((_, i) => i !== 1);
+
   return (
     <>
-      <PublicHeader variant="premium" onWantDemo={() => openDemo('pro_clinica')} />
-      <main className="df-lp">
+      <PublicHeader onWantDemo={() => openDemo('pro_clinica')} />
+      <main className="ps-landing">
         {loggedOut ? (
-          <div className="shell df-lp__alert">
+          <div className="ps-shell ps-alert">
             <p>
               Sesión cerrada correctamente. Puedes volver a entrar desde el menú <strong>Entrar</strong>.
             </p>
           </div>
         ) : null}
 
-        <section className="df-lp-hero" aria-labelledby="df-lp-hero-title">
-          <div className="df-lp-hero__bg" aria-hidden />
-          <div className={`shell df-lp-hero__grid ${heroR.className}`} ref={heroR.ref}>
-            <div className="df-lp-hero__copy">
-              <h1 id="df-lp-hero-title">
-                La plataforma dental para digitalizar citas, pacientes y facturación
+        <section className="ps-hero" aria-labelledby="ps-hero-title">
+          <div className={`ps-shell ps-hero__grid ${revealClass(heroR.visible)}`} ref={heroR.ref}>
+            <div className="ps-hero__copy">
+              <span className="ps-hero__eyebrow">
+                <Sparkles className="h-3.5 w-3.5" aria-hidden />
+                Plataforma dental premium
+              </span>
+              <h1 id="ps-hero-title">
+                Donde la clínica <em>respira</em> y el paciente se siente en casa
               </h1>
-              <p className="df-lp-hero__lead">
-                Agenda, portal paciente, informes, documentos, facturas, pagos, consentimientos y soporte en una
-                sola plataforma segura.
+              <p className="ps-hero__lead">
+                Explora Dentista+: citas, informes, documentos y facturación en un ecosistema diseñado para odontología
+                moderna — sin fricción, con la calidez que merece tu consulta.
               </p>
-              <div className="df-lp-hero__ctas">
-                <button type="button" className="df-lp-btn df-lp-btn--primary df-lp-btn--lg" onClick={() => openDemo()}>
-                  Solicitar demo para clínica
+              <div className="ps-hero__ctas">
+                <a href="/reserva" className="ps-btn ps-btn--coral ps-btn--lg">
+                  Reservar cita
                   <ArrowRight className="h-4 w-4" aria-hidden />
-                </button>
-                <a href="/login/paciente" className="df-lp-btn df-lp-btn--outline df-lp-btn--lg">
-                  Entrar como paciente
                 </a>
+                <button type="button" className="ps-btn ps-btn--ghost ps-btn--lg" onClick={() => openDemo()}>
+                  Demo para clínicas
+                </button>
+              </div>
+              <div className="ps-hero__stats">
+                {publicHeroStats.map((s) => (
+                  <div key={s.label} className="ps-stat">
+                    <strong>{s.value}</strong>
+                    <span>{s.label}</span>
+                    {s.hint ? <small>{s.hint}</small> : null}
+                  </div>
+                ))}
               </div>
             </div>
-            <div className="df-lp-hero__devices" aria-label="Vistas del producto Dentista+">
-              {landingHeroDevices.map((d, i) => (
-                <figure
-                  key={d.label}
-                  className={`df-lp-device df-lp-device--${d.variant}`}
-                  style={{ animationDelay: `${0.1 * i}s` }}
-                >
-                  <img src={d.src} alt={d.alt} loading={i === 1 ? 'eager' : 'lazy'} decoding="async" />
+
+            <div className="ps-hero__visual" aria-label="Vistas del producto Dentista+">
+              <div className="ps-hero__orbit" aria-hidden />
+              <div className="ps-hero__devices">
+                <figure className="ps-device ps-device--main">
+                  <img src={mainDevice.src} alt={mainDevice.alt} loading="eager" decoding="async" />
+                  <figcaption>{mainDevice.label}</figcaption>
                 </figure>
-              ))}
+                {sideDevices.map((d) => (
+                  <figure key={d.label} className="ps-device ps-device--side">
+                    <img src={d.src} alt={d.alt} loading="lazy" decoding="async" />
+                    <figcaption>{d.label}</figcaption>
+                  </figure>
+                ))}
+              </div>
             </div>
-          </div>
-          <div className="shell df-lp-hero__badges-wrap">
-            <ul className="df-lp-hero__badges">
-              {landingHeroBadges.map(({ icon: Icon, label }, i) => (
-                <li key={label} style={{ animationDelay: `${i * 60}ms` }}>
-                  <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                  {label}
-                </li>
-              ))}
-            </ul>
           </div>
         </section>
 
-        <section id="perfiles" className="df-lp-section shell">
-          <header className="df-lp-section__head">
-            <h2>¿Quién eres?</h2>
+        <div className="ps-marquee" aria-hidden>
+          <div className="ps-marquee__track">
+            {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
+              <span key={`${item}-${i}`}>
+                <span className="ps-marquee__dot" />
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <section id="perfiles" className="ps-section ps-shell">
+          <header className="ps-section__head">
+            <span className="ps-kicker">Empieza aquí</span>
+            <h2>¿Qué buscas en Dentista+?</h2>
+            <p>Tres caminos claros para explorar la plataforma según tu perfil — sin perderte en menús.</p>
           </header>
-          <div className={`df-lp-who ${whoR.className}`} ref={whoR.ref}>
-            {landingWhoCards.map((card, i) => {
+          <div className={`ps-paths ${revealClass(pathsR.visible)}`} ref={pathsR.ref}>
+            {publicExplorePaths.map((card) => {
               const Icon = card.icon;
-              return (
-                <article
-                  key={card.id}
-                  className={`df-lp-who-card df-lp-who-card--${card.tone}`}
-                  style={{ transitionDelay: `${i * 70}ms` }}
-                >
-                  <span className="df-lp-who-card__icon" aria-hidden>
-                    <Icon className="h-6 w-6" />
+              const inner = (
+                <>
+                  <span className="ps-path__eyebrow">{card.eyebrow}</span>
+                  <span className="ps-path__icon" aria-hidden>
+                    <Icon className="h-5 w-5" />
                   </span>
                   <h3>{card.title}</h3>
                   <p>{card.text}</p>
-                  <a href={card.href} className="df-lp-who-card__btn">
-                    {card.cta}
+                  <span className="ps-path__cta">
+                    {'demo' in card && card.demo ? 'Solicitar demo' : card.cta}
                     <ArrowRight className="h-4 w-4" aria-hidden />
-                  </a>
+                  </span>
+                </>
+              );
+              if ('demo' in card && card.demo) {
+                return (
+                  <button
+                    key={card.id}
+                    type="button"
+                    className={`ps-path ps-path--${card.tone}`}
+                    onClick={() => openDemo()}
+                  >
+                    {inner}
+                  </button>
+                );
+              }
+              return (
+                <a key={card.id} href={card.href} className={`ps-path ps-path--${card.tone}`}>
+                  {inner}
+                </a>
+              );
+            })}
+          </div>
+        </section>
+
+        <section id="producto" className="ps-section ps-section--alt">
+          <div className="ps-shell">
+            <header className="ps-section__head">
+              <span className="ps-kicker">Producto</span>
+              <h2>Un vistazo al interior de la plataforma</h2>
+              <p>Pantallas reales de agenda, portal paciente y facturación — la experiencia que encontrarás al registrarte.</p>
+            </header>
+            <div className={`ps-bento ${revealClass(showR.visible)}`} ref={showR.ref}>
+              {publicShowcaseTiles.map((tile) => (
+                <article key={tile.id} className={`ps-tile ps-tile--${tile.span}`}>
+                  <h3>{tile.title}</h3>
+                  <p>{tile.text}</p>
+                  <img className="ps-tile__img" src={tile.image} alt={tile.alt} loading="lazy" />
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="ps-section ps-shell">
+          <header className="ps-section__head">
+            <span className="ps-kicker">Cómo funciona</span>
+            <h2>De la curiosidad a la gestión en tres pasos</h2>
+          </header>
+          <div className={`ps-steps ${revealClass(stepsR.visible)}`} ref={stepsR.ref}>
+            {publicSteps.map((step) => {
+              const Icon = step.icon;
+              return (
+                <article key={step.step} className="ps-step">
+                  <div className="ps-step__num">{step.step}</div>
+                  <span className="ps-step__icon" aria-hidden>
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <h3>{step.title}</h3>
+                  <p>{step.text}</p>
                 </article>
               );
             })}
           </div>
         </section>
 
-        <section id="funcionalidades" className="df-lp-section df-lp-section--alt shell">
-          <header className="df-lp-section__head">
+        <section className="ps-section ps-section--alt ps-shell">
+          <header className="ps-section__head">
+            <span className="ps-kicker">Valor</span>
+            <h2>Por qué las clínicas eligen Dentista+</h2>
+          </header>
+          <div className="ps-pillars">
+            {publicValuePillars.map((p) => {
+              const Icon = p.icon;
+              return (
+                <article key={p.title} className="ps-pillar">
+                  <span className="ps-pillar__icon" aria-hidden>
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <h3>{p.title}</h3>
+                  <p>{p.text}</p>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        <section id="funcionalidades" className="ps-section ps-shell">
+          <header className="ps-section__head">
+            <span className="ps-kicker">Funcionalidades</span>
             <h2>Todo lo que necesita una clínica dental moderna</h2>
           </header>
-          <div className={`df-lp-features ${featR.className}`} ref={featR.ref}>
-            {landingFeatures.map((f, i) => {
+          <div className={`ps-features ${revealClass(featR.visible)}`} ref={featR.ref}>
+            {landingFeatures.map((f) => {
               const Icon = f.icon;
               return (
-                <article key={f.title} className="df-lp-feature" style={{ transitionDelay: `${i * 40}ms` }}>
-                  <span className="df-lp-feature__icon" aria-hidden>
+                <article key={f.title} className="ps-feature">
+                  <span className="ps-feature__icon" aria-hidden>
                     <Icon className="h-4 w-4" />
                   </span>
                   <h3>{f.title}</h3>
@@ -148,76 +268,80 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section id="precios" className="df-lp-section df-lp-section--plans shell">
-          <header className="df-lp-section__head">
-            <h2>Planes para clínicas dentales</h2>
-          </header>
-          <div className={`df-lp-plans-block ${priceR.className}`} ref={priceR.ref}>
-            <div className="df-lp-pricing">
-              {landingPlans.map((p) => (
-                <article key={p.id} className={`df-lp-price${p.featured ? ' df-lp-price--featured' : ''}`}>
-                  {p.badge ? <span className="df-lp-price__badge">{p.badge}</span> : null}
-                  <h3>{p.name}</h3>
-                  <p className="df-lp-price__amount">
-                    {p.price}
-                    {p.period ? <small>{p.period}</small> : null}
-                  </p>
-                  {p.blurb ? <p className="df-lp-price__blurb">{p.blurb}</p> : null}
-                  <ul>
-                    {p.features.map((f) => (
-                      <li key={f}>
-                        <Check className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                        {f}
+        <section id="precios" className="ps-section ps-section--alt">
+          <div className="ps-shell">
+            <header className="ps-section__head">
+              <span className="ps-kicker">Planes</span>
+              <h2>Transparente desde el primer día</h2>
+              <p>Empieza gratis o prueba el plan profesional. Sin letra pequeña en la experiencia.</p>
+            </header>
+            <div className={`ps-pricing-wrap ${revealClass(priceR.visible)}`} ref={priceR.ref}>
+              <div className="ps-pricing">
+                {landingPlans.map((p) => (
+                  <article key={p.id} className={`ps-price${p.featured ? ' ps-price--featured' : ''}`}>
+                    {p.badge ? <span className="ps-price__badge">{p.badge}</span> : null}
+                    <h3>{p.name}</h3>
+                    <p className="ps-price__amount">
+                      {p.price}
+                      {p.period ? <small>{p.period}</small> : null}
+                    </p>
+                    {p.blurb ? <p className="ps-price__blurb">{p.blurb}</p> : null}
+                    <ul>
+                      {p.features.map((f) => (
+                        <li key={f}>
+                          <Check className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                    {p.demoPlan ? (
+                      <button
+                        type="button"
+                        className={`ps-btn ${p.featured ? 'ps-btn--primary' : 'ps-btn--outline'} ps-btn--block`}
+                        onClick={() => openDemo(p.demoPlan!)}
+                      >
+                        {p.cta}
+                      </button>
+                    ) : (
+                      <a
+                        href={p.href}
+                        className={`ps-btn ${p.featured ? 'ps-btn--primary' : 'ps-btn--outline'} ps-btn--block`}
+                      >
+                        {p.cta}
+                      </a>
+                    )}
+                  </article>
+                ))}
+              </div>
+              <aside className="ps-security" aria-labelledby="ps-security-title">
+                <h2 id="ps-security-title">Seguridad y privacidad desde el diseño</h2>
+                <ul>
+                  {landingSecurityCards.map((c) => {
+                    const Icon = c.icon;
+                    return (
+                      <li key={c.title}>
+                        <span className="ps-security__icon" aria-hidden>
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        <div>
+                          <strong>{c.title}</strong>
+                          <p>{c.text}</p>
+                        </div>
                       </li>
-                    ))}
-                  </ul>
-                  {p.demoPlan ? (
-                    <button
-                      type="button"
-                      className={`df-lp-btn ${p.featured ? 'df-lp-btn--primary' : 'df-lp-btn--outline'} df-lp-btn--block`}
-                      onClick={() => openDemo(p.demoPlan!)}
-                    >
-                      {p.cta}
-                    </button>
-                  ) : (
-                    <a
-                      href={p.href}
-                      className={`df-lp-btn ${p.featured ? 'df-lp-btn--primary' : 'df-lp-btn--outline'} df-lp-btn--block`}
-                    >
-                      {p.cta}
-                    </a>
-                  )}
-                </article>
-              ))}
+                    );
+                  })}
+                </ul>
+              </aside>
             </div>
-            <aside className="df-lp-security-panel" aria-labelledby="seguridad-title">
-              <h2 id="seguridad-title">Seguridad y privacidad desde el diseño</h2>
-              <ul>
-                {landingSecurityCards.map((c) => {
-                  const Icon = c.icon;
-                  return (
-                    <li key={c.title}>
-                      <span className="df-lp-security-panel__icon" aria-hidden>
-                        <Icon className="h-4 w-4" />
-                      </span>
-                      <div>
-                        <strong>{c.title}</strong>
-                        <p>{c.text}</p>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            </aside>
           </div>
         </section>
 
-        <section className={`df-lp-trust shell ${trustR.className}`} ref={trustR.ref} aria-label="Clínicas que confían">
-          <p className="df-lp-trust__title">Clínicas que ya confían en Dentista+</p>
-          <ul className="df-lp-trust__logos">
+        <section className="ps-trust ps-shell" aria-label="Clínicas que confían">
+          <p className="ps-trust__label">Clínicas que ya confían en Dentista+</p>
+          <ul className="ps-trust__logos">
             {landingTrustLogos.map((logo) => (
               <li key={logo.name}>
-                <span className="df-lp-trust__mark" aria-hidden>
+                <span className="ps-trust__mark" aria-hidden>
                   {logo.short.slice(0, 1)}
                 </span>
                 <span>{logo.name}</span>
@@ -226,24 +350,28 @@ export function LandingPage() {
           </ul>
         </section>
 
-        <section className="df-lp-final-cta" aria-labelledby="df-lp-cta-title">
-          <div className="shell df-lp-final-cta__grid">
-            <div className="df-lp-final-cta__copy">
-              <h2 id="df-lp-cta-title">Digitaliza tu clínica dental con Dentista+</h2>
+        <section className="ps-cta ps-shell" aria-labelledby="ps-cta-title">
+          <div className="ps-cta__panel">
+            <div className="ps-cta__copy">
+              <h2 id="ps-cta-title">Tu consulta merece una experiencia digital a la altura</h2>
               <p>
-                Gestiona citas, pacientes, informes, facturas y ofrece portal paciente desde una única plataforma.
+                Reserva como paciente, explora el portal o solicita una demo personalizada para tu clínica. Estamos listos
+                cuando tú lo estés.
               </p>
-              <div className="df-lp-final-cta__actions">
-                <button type="button" className="df-lp-btn df-lp-btn--primary" onClick={() => openDemo()}>
+              <div className="ps-cta__actions">
+                <a href="/reserva" className="ps-btn ps-btn--primary">
+                  Reservar cita
+                </a>
+                <button type="button" className="ps-btn ps-btn--ghost" onClick={() => openDemo()}>
                   Solicitar demo
                 </button>
-                <a href="/login/paciente" className="df-lp-btn df-lp-btn--outline-light">
-                  Entrar al portal
+                <a href="/login/paciente" className="ps-btn ps-btn--outline ps-cta__portal-link">
+                  Portal paciente
                   <ArrowRight className="h-4 w-4" aria-hidden />
                 </a>
               </div>
             </div>
-            <div className="df-lp-final-cta__visual">
+            <div className="ps-cta__visual">
               <img
                 src="/images/login-dentista-paciente.jpg"
                 alt="Profesionales sanitarios usando Dentista+ en tablet"
@@ -253,17 +381,17 @@ export function LandingPage() {
           </div>
         </section>
 
-        <div id="contacto-pro" className="df-lp-demo-anchor" tabIndex={-1} aria-hidden={!demoOpen} />
+        <div id="contacto-pro" className="ps-demo-anchor" tabIndex={-1} aria-hidden={!demoOpen} />
       </main>
 
       {demoOpen ? (
-        <div className="df-lp-demo-modal" role="dialog" aria-modal aria-labelledby="demo-modal-title">
-          <button type="button" className="df-lp-demo-modal__backdrop" aria-label="Cerrar" onClick={() => setDemoOpen(false)} />
-          <div className="df-lp-demo-modal__panel">
-            <button type="button" className="df-lp-demo-modal__close" onClick={() => setDemoOpen(false)} aria-label="Cerrar">
+        <div className="ps-demo-modal" role="dialog" aria-modal aria-labelledby="ps-demo-title">
+          <button type="button" className="ps-demo-modal__backdrop" aria-label="Cerrar" onClick={() => setDemoOpen(false)} />
+          <div className="ps-demo-modal__panel">
+            <button type="button" className="ps-demo-modal__close" onClick={() => setDemoOpen(false)} aria-label="Cerrar">
               <X className="h-5 w-5" />
             </button>
-            <h2 id="demo-modal-title" className="df-lp-demo-modal__title">
+            <h2 id="ps-demo-title" className="ps-demo-modal__title">
               Solicitar demo para tu clínica
             </h2>
             <ProAccessForm plan={plan} onPlanChange={setPlan} compact />
@@ -271,7 +399,7 @@ export function LandingPage() {
         </div>
       ) : null}
 
-      <PublicFooter variant="premium" />
+      <PublicFooter />
       <CookieBanner />
     </>
   );
