@@ -898,6 +898,10 @@ html.pmsg-viewer-open body {
   color: #334155;
 }
 
+.pmsg-clinic-filter select {
+  background: #fff;
+}
+
 .pmsg-compose {
   margin-bottom: 1.25rem;
   padding: 1rem 1.1rem;

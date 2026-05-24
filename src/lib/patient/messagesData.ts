@@ -1,4 +1,5 @@
-import type { DemoState, Message } from '@/types/demo';
+import { clinicIdForMessage, messageBelongsToClinic } from '@/lib/patient/patientClinics';
+import type { DemoState, Message, Patient } from '@/types/demo';
 import { fmtDate } from '@/lib/format';
 import { downloadDemoFileRef } from '@/lib/demoFiles';
 import { displayInvoiceId } from '@/lib/invoiceAdmin';
@@ -53,8 +54,12 @@ export function formatMessageDate(iso: string): string {
   return fmtDate(iso.slice(0, 10));
 }
 
-function clinicName(state: DemoState, tenantId: string) {
-  return state.clinics.find((c) => c.tenantId === tenantId)?.name ?? 'Clínica';
+function clinicName(state: DemoState, message: Message, patient?: Pick<Patient, 'preferredClinicId'>) {
+  const cid = clinicIdForMessage(state, message, patient);
+  if (cid) {
+    return state.clinics.find((c) => c.id === cid)?.name ?? 'Clínica';
+  }
+  return state.clinics.find((c) => c.tenantId === message.tenantId)?.name ?? 'Clínica';
 }
 
 function resolveDisplayType(msg: Message): MessageDisplayType {
@@ -95,7 +100,11 @@ export function visibleMessagesForPatient(state: DemoState, patientId: string): 
   return state.messages.filter((m) => m.patientId === patientId && !m.archived);
 }
 
-export function enrichPatientMessages(state: DemoState, messages: Message[]): PatientMessageView[] {
+export function enrichPatientMessages(
+  state: DemoState,
+  messages: Message[],
+  patient?: Pick<Patient, 'id' | 'preferredClinicId'>
+): PatientMessageView[] {
   return messages.map((message) => {
     const displayType = resolveDisplayType(message);
     const related = relatedResource(state, message);
@@ -107,7 +116,7 @@ export function enrichPatientMessages(state: DemoState, messages: Message[]): Pa
       Boolean(inv?.fileRef) || Boolean(doc?.fileRef && doc.fileName?.toLowerCase().endsWith('.pdf'));
     return {
       message,
-      clinicName: clinicName(state, message.tenantId),
+      clinicName: clinicName(state, message, patient),
       dateLabel: formatMessageDate(message.sentAt),
       typeLabel: TYPE_LABELS[displayType],
       displayType,
@@ -158,9 +167,13 @@ function isRecent(iso: string, days: number) {
 
 export function filterAndSortMessages(
   views: PatientMessageView[],
-  opts: { q: string; chip: MessageChip; sort: PatientMessageSort }
+  opts: { q: string; chip: MessageChip; sort: PatientMessageSort; clinicId?: string },
+  state?: DemoState
 ): PatientMessageView[] {
   let list = [...views];
+  if (opts.clinicId && state) {
+    list = list.filter((v) => messageBelongsToClinic(state, v.message, opts.clinicId!));
+  }
   const s = opts.q.trim().toLowerCase();
   if (s) {
     list = list.filter(

@@ -18,14 +18,14 @@ export type SendClinicMessageResult =
 export async function sendPatientMessageToClinic(opts: {
   state: DemoState;
   patient: Pick<Patient, 'id' | 'preferredClinicId'>;
+  clinicId: string;
   input: SendClinicMessageInput;
 }): Promise<SendClinicMessageResult> {
   const body = opts.input.body.trim();
   if (!body) return { ok: false, error: 'Escribe un mensaje antes de enviar.' };
 
-  const clinic =
-    opts.state.clinics.find((c) => c.id === opts.patient.preferredClinicId) ?? opts.state.clinics[0];
-  if (!clinic) return { ok: false, error: 'No se encontró la clínica asociada a tu cuenta.' };
+  const clinic = opts.state.clinics.find((c) => c.id === opts.clinicId && c.active);
+  if (!clinic) return { ok: false, error: 'Selecciona una clínica válida para enviar el mensaje.' };
 
   const subject =
     opts.input.subject.trim() ||

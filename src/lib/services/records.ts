@@ -1,4 +1,5 @@
 import { mapClinicalReportRow, type ClinicalReportRow } from '@/lib/records/clinicalReportMapper';
+import { assertPatientCanMessageClinic } from '@/lib/services/patientClinics';
 import { logInfo } from '@/lib/logger';
 import { getSupabaseAdmin, hasSupabaseConfig, isDemoMode } from '@/lib/supabaseServer';
 
@@ -341,6 +342,9 @@ export async function createPatientMessageRecord(input: MessageInput) {
   const patientProfileId = await resolvePatientProfileId(input.patientId);
   await assertReportPayloadScope(input.clinicId, tenantId, patientProfileId);
   const fromPatient = Boolean(input.fromPatient);
+  if (fromPatient) {
+    await assertPatientCanMessageClinic(patientProfileId, input.clinicId);
+  }
   const { data, error } = await db
     .from('messages')
     .insert({

@@ -5,3 +5,4 @@ export const STORAGE_ACTIVE_CLINIC_ID = 'dentista_active_clinic_id';
 export const STORAGE_STATE = 'dentista_demo_v4';
 export const STORAGE_COOKIES = 'dentista_cookies';
 export const STORAGE_EPHEMERAL = 'dentista_ephemeral';
+export const STORAGE_PATIENT_MESSAGE_CLINIC = 'dentista_patient_message_clinic';

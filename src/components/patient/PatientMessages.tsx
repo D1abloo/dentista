@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Building2,
   Calendar,
   Check,
   Download,
@@ -14,6 +15,7 @@ import {
   Shield,
   Sparkles
 } from 'lucide-react';
+import { isClientDemoMode } from '@/lib/appMode';
 import { useCountUp } from '@/hooks/useCountUp';
 import { resolveFocusId, usePatientUrlParams } from '@/hooks/usePatientUrlParams';
 import { PatientMessageViewer } from './PatientMessageViewer';
@@ -23,7 +25,14 @@ import { usePatient } from '@/hooks/usePatient';
 import { logPortalAudit, usePortalAccess } from '@/hooks/usePortalAccess';
 import { saveDemoFile } from '@/lib/demoFiles';
 import { saveMessage } from '@/lib/demoStore';
+import {
+  clinicIdForMessage,
+  clinicLabel,
+  clinicsLinkedToPatient,
+  type PatientClinicOption
+} from '@/lib/patient/patientClinics';
 import { sendPatientMessageToClinic } from '@/lib/patient/sendClinicMessage';
+import { STORAGE_PATIENT_MESSAGE_CLINIC } from '@/lib/storage/keys';
 import {
   ALLOWED_ATTACHMENT_TYPES,
   MAX_ATTACHMENT_BYTES,
@@ -103,8 +112,68 @@ export function PatientMessages() {
   const [sending, setSending] = useState(false);
   const [sendOk, setSendOk] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [linkedClinics, setLinkedClinics] = useState<PatientClinicOption[]>(() =>
+    clinicsLinkedToPatient(state, patient)
+  );
+  const [selectedClinicId, setSelectedClinicId] = useState('');
+  const [inboxClinicFilter, setInboxClinicFilter] = useState('');
 
   const urlParams = usePatientUrlParams();
+
+  useEffect(() => {
+    const local = clinicsLinkedToPatient(state, patient);
+    if (isClientDemoMode()) {
+      setLinkedClinics(local);
+      return;
+    }
+    void (async () => {
+      try {
+        const res = await fetch('/api/patient/linked-clinics', { credentials: 'include' });
+        const json = (await res.json()) as { data?: { clinics?: PatientClinicOption[] } };
+        if (res.ok && json.data?.clinics?.length) {
+          setLinkedClinics(json.data.clinics);
+          return;
+        }
+      } catch {
+        /* fallback */
+      }
+      setLinkedClinics(local);
+    })();
+  }, [state, patient.id, patient.preferredClinicId]);
+
+  const replyClinicLockedId = useMemo(() => {
+    if (!viewerId) return null;
+    const v = state.messages.find((m) => m.id === viewerId);
+    if (!v) return null;
+    return clinicIdForMessage(state, v, patient) ?? null;
+  }, [viewerId, state.messages, state, patient]);
+
+  const composeClinicId = replyClinicLockedId ?? selectedClinicId;
+
+  useEffect(() => {
+    if (!linkedClinics.length) return;
+    if (replyClinicLockedId) {
+      setSelectedClinicId(replyClinicLockedId);
+      return;
+    }
+    const stored =
+      typeof window !== 'undefined' ? localStorage.getItem(STORAGE_PATIENT_MESSAGE_CLINIC) : null;
+    const validStored = stored && linkedClinics.some((c) => c.id === stored) ? stored : null;
+    const primary = linkedClinics.find((c) => c.isPrimary)?.id;
+    const next = validStored ?? primary ?? linkedClinics[0].id;
+    setSelectedClinicId((prev) =>
+      prev && linkedClinics.some((c) => c.id === prev) ? prev : next
+    );
+  }, [linkedClinics, replyClinicLockedId]);
+
+  useEffect(() => {
+    if (composeClinicId && typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_PATIENT_MESSAGE_CLINIC, composeClinicId);
+    }
+  }, [composeClinicId]);
+
+  const multipleClinics = linkedClinics.length > 1;
+  const selectedClinic = linkedClinics.find((c) => c.id === composeClinicId);
 
   useEffect(() => {
     const asunto = urlParams.get('asunto');
@@ -130,11 +199,22 @@ export function PatientMessages() {
 
   const baseMessages = useMemo(() => visibleMessagesForPatient(state, patient.id), [state, patient.id]);
 
-  const views = useMemo(() => enrichPatientMessages(state, baseMessages), [state, baseMessages]);
+  const views = useMemo(
+    () => enrichPatientMessages(state, baseMessages, patient),
+    [state, baseMessages, patient]
+  );
 
   const kpis = useMemo(() => buildMessageKpis(baseMessages), [baseMessages]);
 
-  const filtered = useMemo(() => filterAndSortMessages(views, { q, chip, sort }), [views, q, chip, sort]);
+  const filtered = useMemo(
+    () =>
+      filterAndSortMessages(
+        views,
+        { q, chip, sort, clinicId: multipleClinics && inboxClinicFilter ? inboxClinicFilter : undefined },
+        state
+      ),
+    [views, q, chip, sort, multipleClinics, inboxClinicFilter, state]
+  );
 
   const focusId = resolveFocusId(urlParams, ['focus', 'mensaje', 'message']);
 
@@ -255,12 +335,17 @@ export function PatientMessages() {
   }
 
   async function sendReply() {
+    if (!composeClinicId) {
+      setNotice({ type: 'error', message: 'Selecciona la clínica a la que quieres escribir.' });
+      return;
+    }
     setSending(true);
     setSendOk(false);
     try {
       const result = await sendPatientMessageToClinic({
         state,
         patient,
+        clinicId: composeClinicId,
         input: {
           subject: viewerMessage ? `Re: ${viewerMessage.message.subject}` : composeSubject,
           body: reply,
@@ -305,6 +390,43 @@ export function PatientMessages() {
           Escribe tu consulta y el equipo te responderá en esta misma bandeja. Recibirán una notificación en el panel.
         </p>
       </div>
+      {linkedClinics.length ? (
+        <label className="block text-xs font-bold text-slate-600 mt-3">
+          {multipleClinics ? 'Clínica destinataria' : 'Tu clínica'}
+          {multipleClinics ? (
+            <select
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-800"
+              value={composeClinicId}
+              onChange={(e) => setSelectedClinicId(e.target.value)}
+              disabled={Boolean(replyClinicLockedId)}
+              aria-label="Seleccionar clínica destinataria"
+              required
+            >
+              <option value="">Selecciona una clínica…</option>
+              {linkedClinics.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {clinicLabel(c)}
+                  {c.isPrimary ? ' (principal)' : ''}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <p className="mt-1 flex items-center gap-2 rounded-lg border border-teal-100 bg-white px-3 py-2 text-sm font-semibold text-teal-950 m-0">
+              <Building2 className="h-4 w-4 text-teal-700 shrink-0" aria-hidden />
+              {selectedClinic ? clinicLabel(selectedClinic) : 'Clínica asociada'}
+            </p>
+          )}
+          {replyClinicLockedId ? (
+            <span className="block mt-1 text-[0.7rem] font-normal text-slate-500">
+              Respondiendo en el hilo de esta clínica.
+            </span>
+          ) : null}
+        </label>
+      ) : (
+        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mt-3 m-0">
+          No hay ninguna clínica asociada a tu cuenta. Contacta con recepción para vincular tu perfil.
+        </p>
+      )}
       <label className="block text-xs font-bold text-slate-600 mt-3">
         Asunto
         <input
@@ -341,7 +463,7 @@ export function PatientMessages() {
         <button
           type="button"
           className={`pmsg-btn pmsg-btn--primary${sendOk ? ' pmsg-btn--success' : ''}`}
-          disabled={sending}
+          disabled={sending || !composeClinicId || !linkedClinics.length}
           onClick={() => void sendReply()}
         >
           {sendOk ? <Check className="h-4 w-4" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
@@ -406,6 +528,27 @@ export function PatientMessages() {
           <KpiStat label="Recordatorios" value={kpis.recordatorios} delay={100} numeric />
           <KpiStat label="Confirmaciones" value={kpis.confirmaciones} delay={150} numeric />
           <KpiStat label="Mensajes de clínica" value={kpis.clinica} delay={200} numeric />
+        </div>
+      ) : null}
+
+      {multipleClinics && !showEmpty ? (
+        <div className="pmsg-clinic-filter mb-3 flex flex-wrap items-end gap-3">
+          <label className="text-xs font-bold text-slate-600 min-w-[12rem] flex-1">
+            Filtrar bandeja por clínica
+            <select
+              className="mt-1 w-full max-w-md rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              value={inboxClinicFilter}
+              onChange={(e) => setInboxClinicFilter(e.target.value)}
+              aria-label="Filtrar mensajes por clínica"
+            >
+              <option value="">Todas mis clínicas</option>
+              {linkedClinics.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {clinicLabel(c)}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       ) : null}
 
