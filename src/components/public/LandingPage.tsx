@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowRight, Check, Sparkles, X } from 'lucide-react';
+import { ArrowRight, CalendarCheck, Check, X } from 'lucide-react';
 import { scrollToSection } from '@/lib/publicScroll';
 import { useReveal } from '@/hooks/useReveal';
 import {
@@ -9,27 +9,11 @@ import {
   landingSecurityCards,
   landingTrustLogos
 } from '@/lib/landing/content';
-import {
-  publicExplorePaths,
-  publicHeroStats,
-  publicShowcaseTiles,
-  publicSteps,
-  publicValuePillars
-} from '@/lib/landing/publicSiteContent';
+import { publicExplorePaths, publicHeroStats, publicShowcaseTiles } from '@/lib/landing/publicSiteContent';
 import { PublicFooter } from './PublicFooter';
 import { PublicHeader } from './PublicHeader';
 import { CookieBanner } from './CookieBanner';
 import { ProAccessForm, type ProPlan } from './ProAccessForm';
-
-const MARQUEE_ITEMS = [
-  'Agenda inteligente',
-  'Portal paciente',
-  'Informes clínicos',
-  'Facturación PDF',
-  'Consentimientos digitales',
-  'Multi-clínica segura',
-  'Mensajería clínica-paciente'
-];
 
 function revealClass(visible: boolean) {
   return `ps-reveal${visible ? ' ps-reveal--in' : ''}`;
@@ -43,7 +27,6 @@ export function LandingPage() {
   const heroR = useReveal();
   const pathsR = useReveal();
   const showR = useReveal();
-  const stepsR = useReveal();
   const featR = useReveal();
   const priceR = useReveal();
 
@@ -81,29 +64,26 @@ export function LandingPage() {
           <div className={`ps-shell ps-hero__grid ${revealClass(heroR.visible)}`} ref={heroR.ref}>
             <div className="ps-hero__copy">
               <span className="ps-hero__eyebrow">
-                <Sparkles className="h-3.5 w-3.5" aria-hidden />
-                Plataforma dental premium
+                <CalendarCheck className="h-3.5 w-3.5" aria-hidden />
+                Citas odontológicas online
               </span>
-              <h1 id="ps-hero-title">
-                Donde la clínica <em>respira</em> y el paciente se siente en casa
-              </h1>
+              <h1 id="ps-hero-title">Gestiona citas dentales con precisión clínica</h1>
               <p className="ps-hero__lead">
-                Explora Dentista+: citas, informes, documentos y facturación en un ecosistema diseñado para odontología
-                moderna — sin fricción, con la calidez que merece tu consulta.
+                Reserva, agenda, portal del paciente e historial clínico en una plataforma segura diseñada para
+                consultas dentales modernas.
               </p>
               <div className="ps-hero__ctas">
-                <a href="/reserva" className="ps-btn ps-btn--coral ps-btn--lg">
-                  Reservar cita
+                <a href="/reserva" className="ps-btn ps-btn--primary ps-btn--lg">
+                  Reservar cita dental
                   <ArrowRight className="h-4 w-4" aria-hidden />
                 </a>
-                <button type="button" className="ps-btn ps-btn--ghost ps-btn--lg" onClick={() => openDemo()}>
+                <button type="button" className="ps-btn ps-btn--outline ps-btn--lg" onClick={() => openDemo()}>
                   Demo para clínicas
                 </button>
               </div>
             </div>
 
-            <figure className="ps-hero__visual" aria-label="Vista del panel clínica Dentista+">
-              <div className="ps-hero__glow" aria-hidden />
+            <figure className="ps-hero__visual" aria-label="Panel de agenda clínica Dentista+">
               <div className="ps-hero__card">
                 <img src={heroMockup.src} alt={heroMockup.alt} loading="eager" decoding="async" width={1280} height={800} />
               </div>
@@ -124,22 +104,11 @@ export function LandingPage() {
           </div>
         </section>
 
-        <div className="ps-marquee" aria-hidden>
-          <div className="ps-marquee__track">
-            {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
-              <span key={`${item}-${i}`}>
-                <span className="ps-marquee__dot" />
-                {item}
-              </span>
-            ))}
-          </div>
-        </div>
-
         <section id="perfiles" className="ps-section ps-shell">
           <header className="ps-section__head">
-            <span className="ps-kicker">Empieza aquí</span>
-            <h2>¿Qué buscas en Dentista+?</h2>
-            <p>Tres caminos claros para explorar la plataforma según tu perfil — sin perderte en menús.</p>
+            <span className="ps-kicker">Acceso rápido</span>
+            <h2>Reserva, consulta o gestiona tu clínica</h2>
+            <p>Tres accesos directos según tu perfil: paciente, reserva o equipo clínico.</p>
           </header>
           <div className={`ps-paths ${revealClass(pathsR.visible)}`} ref={pathsR.ref}>
             {publicExplorePaths.map((card) => {
@@ -182,9 +151,9 @@ export function LandingPage() {
         <section id="producto" className="ps-section ps-section--alt">
           <div className="ps-shell">
             <header className="ps-section__head">
-              <span className="ps-kicker">Producto</span>
-              <h2>Un vistazo al interior de la plataforma</h2>
-              <p>Pantallas reales de agenda, portal paciente y facturación — la experiencia que encontrarás al registrarte.</p>
+              <span className="ps-kicker">Plataforma</span>
+              <h2>Agenda, portal paciente y facturación</h2>
+              <p>Interfaz clara para el día a día en recepción, gabinete y administración.</p>
             </header>
             <div className={`ps-bento ${revealClass(showR.visible)}`} ref={showR.ref}>
               {publicShowcaseTiles.map((tile) => (
@@ -198,53 +167,10 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section className="ps-section ps-shell">
-          <header className="ps-section__head">
-            <span className="ps-kicker">Cómo funciona</span>
-            <h2>De la curiosidad a la gestión en tres pasos</h2>
-          </header>
-          <div className={`ps-steps ${revealClass(stepsR.visible)}`} ref={stepsR.ref}>
-            {publicSteps.map((step) => {
-              const Icon = step.icon;
-              return (
-                <article key={step.step} className="ps-step">
-                  <div className="ps-step__num">{step.step}</div>
-                  <span className="ps-step__icon" aria-hidden>
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <h3>{step.title}</h3>
-                  <p>{step.text}</p>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="ps-section ps-section--alt ps-shell">
-          <header className="ps-section__head">
-            <span className="ps-kicker">Valor</span>
-            <h2>Por qué las clínicas eligen Dentista+</h2>
-          </header>
-          <div className="ps-pillars">
-            {publicValuePillars.map((p) => {
-              const Icon = p.icon;
-              return (
-                <article key={p.title} className="ps-pillar">
-                  <span className="ps-pillar__icon" aria-hidden>
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <h3>{p.title}</h3>
-                  <p>{p.text}</p>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-
         <section id="funcionalidades" className="ps-section ps-shell">
           <header className="ps-section__head">
             <span className="ps-kicker">Funcionalidades</span>
-            <h2>Todo lo que necesita una clínica dental moderna</h2>
+            <h2>Todo lo que necesita una clínica dental</h2>
           </header>
           <div className={`ps-features ${revealClass(featR.visible)}`} ref={featR.ref}>
             {landingFeatures.map((f) => {
@@ -266,8 +192,8 @@ export function LandingPage() {
           <div className="ps-shell">
             <header className="ps-section__head">
               <span className="ps-kicker">Planes</span>
-              <h2>Transparente desde el primer día</h2>
-              <p>Empieza gratis o prueba el plan profesional. Sin letra pequeña en la experiencia.</p>
+              <h2>Tarifas claras para tu clínica</h2>
+              <p>Empieza gratis o activa el plan profesional con prueba de 14 días.</p>
             </header>
             <div className={`ps-pricing-wrap ${revealClass(priceR.visible)}`} ref={priceR.ref}>
               <div className="ps-pricing">
@@ -308,7 +234,7 @@ export function LandingPage() {
                 ))}
               </div>
               <aside className="ps-security" aria-labelledby="ps-security-title">
-                <h2 id="ps-security-title">Seguridad y privacidad desde el diseño</h2>
+                <h2 id="ps-security-title">Seguridad y privacidad clínica</h2>
                 <ul>
                   {landingSecurityCards.map((c) => {
                     const Icon = c.icon;
@@ -331,7 +257,7 @@ export function LandingPage() {
         </section>
 
         <section className="ps-trust ps-shell" aria-label="Clínicas que confían">
-          <p className="ps-trust__label">Clínicas que ya confían en Dentista+</p>
+          <p className="ps-trust__label">Clínicas que confían en Dentista+</p>
           <ul className="ps-trust__logos">
             {landingTrustLogos.map((logo) => (
               <li key={logo.name}>
@@ -347,10 +273,9 @@ export function LandingPage() {
         <section className="ps-cta ps-shell" aria-labelledby="ps-cta-title">
           <div className="ps-cta__panel">
             <div className="ps-cta__copy">
-              <h2 id="ps-cta-title">Tu consulta merece una experiencia digital a la altura</h2>
+              <h2 id="ps-cta-title">Empieza a digitalizar las citas de tu clínica</h2>
               <p>
-                Reserva como paciente, explora el portal o solicita una demo personalizada para tu clínica. Estamos listos
-                cuando tú lo estés.
+                Reserva online para pacientes, agenda para recepción y panel clínico en un solo entorno seguro.
               </p>
               <div className="ps-cta__actions">
                 <a href="/reserva" className="ps-btn ps-btn--primary">
@@ -361,16 +286,8 @@ export function LandingPage() {
                 </button>
                 <a href="/login/paciente" className="ps-btn ps-btn--outline ps-cta__portal-link">
                   Portal paciente
-                  <ArrowRight className="h-4 w-4" aria-hidden />
                 </a>
               </div>
-            </div>
-            <div className="ps-cta__visual">
-              <img
-                src="/images/login-dentista-paciente.jpg"
-                alt="Profesionales sanitarios usando Dentista+ en tablet"
-                loading="lazy"
-              />
             </div>
           </div>
         </section>

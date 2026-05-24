@@ -92,7 +92,7 @@ export function PublicHeader({ activeHref, onWantDemo }: Props) {
             </a>
           ))}
           <div className="ps-drawer__cta">
-            <a href="/reserva" className="ps-btn ps-btn--coral ps-btn--block">
+            <a href="/reserva" className="ps-btn ps-btn--primary ps-btn--block">
               Reservar cita
             </a>
             <button type="button" className="ps-btn ps-btn--primary ps-btn--block" onClick={wantDemoClick}>

@@ -50,7 +50,7 @@ export function EnterPortalDropdown({ className = '', onNavigate }: Props) {
     <div className={`ps-enter-dd${className ? ` ${className}` : ''}`} ref={rootRef}>
       <button
         type="button"
-        className="ps-btn ps-btn--coral ps-btn--sm ps-enter-dd__trigger"
+        className="ps-btn ps-btn--primary ps-btn--sm ps-enter-dd__trigger"
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen((v) => !v)}

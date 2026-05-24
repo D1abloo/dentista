@@ -18,7 +18,7 @@ export type PublicShowcaseTile = {
   image: string;
   alt: string;
   span: 'hero' | 'wide' | 'tall' | 'square';
-  tone: 'mint' | 'sand' | 'ink' | 'coral';
+  tone: 'mint' | 'sand' | 'ink' | 'teal';
 };
 
 export type PublicStat = { value: string; label: string; hint?: string };
@@ -50,7 +50,7 @@ export const publicExplorePaths = [
     cta: 'Reservar cita',
     href: '/reserva',
     icon: CalendarCheck,
-    tone: 'coral'
+    tone: 'teal'
   },
   {
     id: 'clinic',
@@ -91,7 +91,7 @@ export const publicShowcaseTiles: PublicShowcaseTile[] = [
     image: '/images/guides/mobile/pdp-facturas.png',
     alt: 'Facturas en el portal del paciente',
     span: 'square',
-    tone: 'coral'
+    tone: 'teal'
   },
   {
     id: 'informes',
