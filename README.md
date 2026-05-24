@@ -44,49 +44,61 @@ npm run dev
 
 Abre:
 
-- `http://localhost:4321/` landing pública Dentista+ con directorio de 58 clínicas demo, imágenes reales y buscador por clínica, ciudad, dirección, contacto y especialidad.
-- `http://localhost:4321/login` acceso demo con selector de rol.
-- `http://localhost:4321/activar?token=...` activación demo de cuenta de paciente.
-- `http://localhost:4321/paciente` panel del paciente.
-- `http://localhost:4321/paciente/reservar` reserva completa de cita.
-- `http://localhost:4321/paciente/citas` gestión de citas del paciente.
-- `http://localhost:4321/admin` panel administrativo.
-- `http://localhost:4321/admin/agenda` agenda global.
-- `http://localhost:4321/admin/citas` gestión administrativa de citas.
+- `http://localhost:4321/` — landing pública Dentista+ (header/footer con logo circular transparente).
+- `http://localhost:4321/login/admin` — acceso panel clínica (LIVE con Supabase).
+- `http://localhost:4321/platform/login` — Super Admin plataforma.
+- `http://localhost:4321/login/paciente` — portal del paciente.
+- `http://localhost:4321/login` — selector de portales (demo o hub).
+- `http://localhost:4321/paciente` — panel paciente.
+- `http://localhost:4321/admin` — panel administrativo.
+- `http://localhost:4321/admin/agenda` — agenda.
 
-## Login (LIVE por defecto en Vercel)
+## Login y portales
 
-`PUBLIC_DEMO_MODE=false` en producción: sesión por **cookie** (`/api/auth/login`), sin auto-login en `localStorage`.
+### Modo LIVE (recomendado — `PUBLIC_DEMO_MODE=false`)
 
-| Rol | Email por defecto | Contraseña |
-|-----|-------------------|------------|
+Sesión por **cookie HTTP-only** (`df_session`) vía `POST /api/auth/login`. Los paneles cargan datos con `GET /api/clinic/bootstrap`. No hay auto-login en `localStorage`.
+
+| Portal | URL | Rol |
+|--------|-----|-----|
+| Clínica | `/login/admin` | `clinic_admin`, recepción, dentista… |
+| Paciente | `/login/paciente` | `patient` |
+| Plataforma | `/platform/login` | `super_admin` |
+
+**Usuario QA principal** (tras `npm run seed:clinic`):
+
+| Email | Contraseña | Accesos |
+|-------|------------|---------|
+| `admin@dentista.app` | `SUPER_ADMIN_PASSWORD` en `.env` | Plataforma, panel clínica Nova y portal paciente (misma cuenta Auth) |
+| `maria.gonzalez@clinicadentalnova.es` | `CLINIC_DEFAULT_PASSWORD` | Solo paciente Nova |
+
+Documentación completa: [`docs/QA_USUARIOS_PRUEBA.md`](docs/QA_USUARIOS_PRUEBA.md).
+
+**Cuenta dual `admin@dentista.app`:** si entras primero en `/platform/login` y luego vas a `/admin`, el sistema resuelve automáticamente el perfil staff de clínica (`src/lib/auth/dualRoleClinic.ts`). También puedes confirmar acceso en `/login/admin` (aviso si hay sesión de plataforma activa).
+
+### Modo demo (`PUBLIC_DEMO_MODE=true`, solo desarrollo local)
+
+| Rol | Email | Contraseña |
+|-----|-------|------------|
 | Admin | `admin@clinic.local` | `admin12345` |
 | Paciente | `maria@example.com` | `paciente123` |
 
-Configura `ADMIN_DEMO_*`, `PATIENT_DEMO_*` y `AUTH_SESSION_SECRET` en Vercel. Con `PUBLIC_DEMO_MODE=true` (solo desarrollo demo) vuelve el login por botones y `localStorage`.
+Configura `ADMIN_DEMO_*`, `PATIENT_DEMO_*` en `.env`. La sesión demo usa `localStorage` — ver `docs/LOCALSTORAGE_DEMO.md`.
 
-Paciente y clínica tienen **portales separados**. Enlaces:
+`RoleGate` bloquea `/admin` y `/paciente` sin sesión válida. En LIVE consulta `/api/auth/me`; en demo usa `localStorage`.
 
-| URL | Destino |
-|-----|---------|
-| `/login/paciente` | Login solo paciente (PAT-0001) |
-| `/login/admin` | Login solo administración clínica |
-| `/login/admin?tenant=TEN-0002` | Admin Clínica Norte |
-| `/login` | Selector de portal |
-| `/admin` o `/paciente` sin sesión | Pantalla de acceso requerido |
+## Documentación
 
-- **Paciente:** `PAT-0001` (María González, multi-clínica en demo)
-- **Admin:** Centro (`TEN-0001`), Norte (`TEN-0002`) o Sur (`TEN-0003`) — cada panel solo ve su `tenantId`
-
-La sesión se guarda en `localStorage` (`dentista_role`, `dentista_patient_id`, `dentista_tenant_id`). Ver `docs/ROLES.md`, `docs/MULTI_TENANT.md` y `docs/LOCALSTORAGE_DEMO.md`.
-
-`RoleGate` muestra qué usuario hace falta si entras en `/admin` o `/paciente` sin sesión o con el rol equivocado (no re-inicia sesión solo). Los endpoints de auth demo siguen disponibles con credenciales ficticias para pruebas API.
-
-## Documentación frontend
-
-- `docs/FRONTEND.md` — sitio público, portal paciente y panel admin
-- `docs/MULTI_TENANT.md` — aislamiento por clínica y portal paciente unificado
-- `docs/PRIVACIDAD.md` — cookies, demo y RLS en producción
+| Documento | Contenido |
+|-----------|-----------|
+| [`docs/QA_USUARIOS_PRUEBA.md`](docs/QA_USUARIOS_PRUEBA.md) | Credenciales y URLs de prueba |
+| [`docs/SUPABASE_APPLY.md`](docs/SUPABASE_APPLY.md) | Orden de migraciones SQL (incl. `0031`) |
+| [`docs/SECURITY.md`](docs/SECURITY.md) | RLS, sesiones y auditoría BBDD |
+| [`docs/QA_E2E_MATRIX.md`](docs/QA_E2E_MATRIX.md) | Matriz QA y comandos `qa:live` |
+| [`docs/FRONTEND.md`](docs/FRONTEND.md) | Sitio público, portales y marca |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Capas, auth y multi-tenant |
+| [`docs/MULTI_TENANT.md`](docs/MULTI_TENANT.md) | Aislamiento por clínica |
+| [`docs/PRODUCTION.md`](docs/PRODUCTION.md) | Despliegue y variables |
 
 ## Subir cada cambio a GitHub (obligatorio)
 
@@ -142,10 +154,13 @@ En producción, las tablas equivalentes están en `supabase/migrations/0005_pati
 Para conectar Supabase real:
 
 1. Crea proyecto en Supabase.
-2. Ejecuta las migraciones de `supabase/migrations`.
-3. Configura `.env` con URL, anon key y service role.
-4. Deja `REDIS_URL` vacío si no tienes Redis en desarrollo; el fallback en memoria seguirá funcionando.
-5. Cambia `PUBLIC_DEMO_MODE=false` cuando quieras usar datos reales.
+2. Ejecuta las migraciones de `supabase/migrations` (hasta `0031_security_rls_hardening.sql`). Guía: `docs/SUPABASE_APPLY.md`.
+3. Configura `.env` con URL, anon key, service role y `AUTH_SESSION_SECRET`.
+4. Semilla QA: `npm run seed:clinic` (Nova + `admin@dentista.app`).
+5. Verifica seguridad: `npm run qa:db-security` (debe devolver `issueCount: 0`).
+6. E2E API: `npm run qa:live` (con `npm run dev` en marcha).
+7. Deja `REDIS_URL` vacío en dev si no tienes Redis; el fallback en memoria funciona.
+8. Usa `PUBLIC_DEMO_MODE=false` en producción.
 
 ### WhatsApp y correo
 
@@ -184,7 +199,11 @@ npm run build            # build SSR
 npm run preview          # preview del build
 npm run smoke            # validación rápida de estructura
 npm run check            # astro check + lint ligero
-npm run seed:sql         # imprime orden recomendado de seed
+npm run qa:live          # E2E API en vivo (requiere dev + Supabase)
+npm run qa:db-security   # auditoría RLS en PostgreSQL
+npm run seed:clinic      # semilla Clínica Nova + admin@dentista.app
+npm run seed:qa-mediterraneo  # clínicas Mediterráneo (QA aislamiento)
+npm run seed:sql         # imprime orden recomendado de seed SQL
 npm run codex:bootstrap  # bootstrap pensado para Codex
 npm run git:save -- "msg" # commit + push a GitHub
 ```
@@ -262,11 +281,13 @@ Para pruebas manuales, levanta `npm run dev` y visita `/`, `/login`, `/paciente`
 
 ## Seguridad
 
-- Supabase RLS en migraciones.
-- Validación server-side con Zod.
-- Cache con fallback de memoria para desarrollo.
-- Arquitectura multi-clínica con `clinic_id`.
-- No hay secretos en el repositorio.
+- **RLS** en todas las tablas públicas; migraciones `0028` (registros clínicos) y `0031` (cierre de huecos: `tenants`, `audit_logs`, `rooms`, etc.).
+- Auditoría repetible: `npm run qa:db-security` (`scripts/audit-db-security.mjs`).
+- APIs con **service role** solo en servidor; cliente nunca recibe la service key.
+- Validación server-side con **Zod**; guards por `clinic_id` en `src/lib/api/guards.ts`.
+- Cookie `df_session` firmada con `AUTH_SESSION_SECRET` (obligatoria en producción).
+- Arquitectura multi-clínica: cada clínica aislada por `clinic_id` / tenant propio.
+- Detalle: `docs/SECURITY.md` · matriz QA: `docs/QA_E2E_MATRIX.md`.
 
 ## Trabajo sugerido en Codex
 

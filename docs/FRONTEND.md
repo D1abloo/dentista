@@ -4,6 +4,12 @@
 
 Dentista+ es una aplicación SaaS premium para gestión de citas dentales. El frontend usa **Astro** (páginas y layout), **React** (portales interactivos), **TypeScript** estricto y el design system en `src/styles/dental-saas.css`.
 
+Notas recientes:
+
+- Marca unificada con logo circular transparente en header/footer (`DentistaWebpLockup`).
+- Flujo LIVE priorizado (`/login/admin`, `/login/paciente`, `/platform/login`) con cookie `df_session`.
+- Usuario dual `admin@dentista.app`: puede alternar plataforma y panel clínica sin perder contexto.
+
 ## Sitio público
 
 - **Ruta:** `/`

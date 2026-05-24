@@ -1,7 +1,7 @@
 # Matriz QA E2E — Dentista+
 
 Última revisión: 2026-05-23.  
-Scripts: `npm run qa:audit` (estructura) · `npm run qa:live` (E2E API en vivo) · `npm run test:unit`
+Scripts: `npm run qa:audit` (estructura) · `npm run qa:live` (E2E API en vivo) · `npm run qa:db-security` (auditoría RLS DB) · `npm run test:unit`
 
 ## Leyenda de estado
 
@@ -17,7 +17,7 @@ Scripts: `npm run qa:audit` (estructura) · `npm run qa:live` (E2E API en vivo) 
 | Área | Resultado |
 |------|-----------|
 | Aislamiento API (clinic/tenant/patient) | **FIX** — guards en pacientes, citas, métricas, facturación, notificaciones |
-| RLS Supabase | **FIX** — migración `0028_rls_records_gaps.sql` |
+| RLS Supabase | **FIX** — migraciones `0028_rls_records_gaps.sql` + `0031_security_rls_hardening.sql` |
 | Bloqueos agenda | **FIX** — inserción robusta + fin de tramo válido |
 | Multi-sede UI | **PASS-C** — `useActiveClinic` + `ClinicBranchSwitcher` |
 | E2E API live (cita, informe, factura, pago, mensaje) | **PASS-L** — `npm run qa:live` |

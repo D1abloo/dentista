@@ -67,7 +67,7 @@ Entidades principales:
 - campaigns
 - reviews
 - availability_rules
-- audit_logs (event_type, module, severity, result, user_email, tenant_id, IP, user_agent — migración 0030)
+- audit_logs (event_type, module, severity, result, user_email, tenant_id, IP, user_agent — migraciones 0030/0031)
 - login_events (historial de sesiones e intentos de login)
 - Panel `/platform/monitorizacion` (Super Admin): KPIs, alertas, gráficas y actividad en tiempo real
 - system_logs
@@ -90,7 +90,11 @@ Nunca cachear datos clínicos sensibles sin estrategia explícita de seguridad.
 
 Toda entidad operativa contiene `clinic_id`. Las políticas RLS deben impedir acceso cruzado entre clínicas.
 
-Migración `0028_rls_records_gaps.sql` cierra huecos en consentimientos, documentos, mensajes, pagos y lectura de facturas por paciente. Las APIs usan `assertClinicScopeAsync` y `assertOwnPatient` en `src/lib/api/guards.ts`. Matriz QA: `docs/QA_E2E_MATRIX.md` · script `npm run qa:audit`.
+Migraciones `0028_rls_records_gaps.sql` y `0031_security_rls_hardening.sql` cierran huecos de RLS (records, auditoría, tablas base como `tenants`, `rooms`, `reminders`). Las APIs usan `assertClinicScopeAsync` y `assertOwnPatient` en `src/lib/api/guards.ts`. Matriz QA: `docs/QA_E2E_MATRIX.md`; auditoría DB: `npm run qa:db-security`.
+
+### Cuenta dual plataforma + clínica
+
+`admin@dentista.app` puede operar como `super_admin` y `clinic_admin` con una sola cuenta Auth. Si hay sesión de plataforma y el usuario abre `/admin`, se resuelve automáticamente el perfil staff de clínica (`src/lib/auth/dualRoleClinic.ts`) para evitar estado vacío del panel.
 
 ## Roles
 

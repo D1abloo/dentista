@@ -19,13 +19,15 @@ Si en Supabase **no has ejecutado ninguna migración**, sigue este orden en el *
 | 11 | `0011_phase4_ops.sql` | **Sí** | FK a `profiles`, columnas factura/pago, webhook Stripe |
 | … | `0012`–`0017` | Según despliegue | Sucursales, PdP, logo, política contraseña, registro paciente |
 | 18 | `0018_profiles_staff_patient_email.sql` | **Sí en PRO** | Mismo email staff + paciente en una clínica |
+| 19 | `0019`–`0030` | **Sí** | NHC, bloques agenda, RLS records, auditoría/monitorización |
+| 20 | `0031_security_rls_hardening.sql` | **Sí** | Hardening RLS + backfill idempotente de `0030` |
 
 ### Resumen rápido — modo PRO (`PUBLIC_DEMO_MODE=false`)
 
-Ejecuta **7 archivos** (sin semillas demo):
+Ejecuta como mínimo:
 
 ```
-0001 → 0003 → 0006 → 0008 → 0009 → 0010 → 0011
+0001 → 0003 → 0006 → 0008 → 0009 → 0010 → 0011 → … → 0031
 ```
 
 Opcional: `0007_demo_app_state.sql` (solo demo remoto).
@@ -84,6 +86,13 @@ En Supabase → **Table Editor**, deberías ver tablas como:
 3. Alta de clínica: `/registro-clinica` → aprobar en `/platform/registros`
 4. Login clínica: `/login` (usuario creado al aprobar + `CLINIC_DEFAULT_PASSWORD`)
 5. Comprueba que el panel carga datos: `/admin` y `/paciente`
+6. Ejecuta auditoría de seguridad:
+
+```bash
+npm run qa:db-security
+```
+
+Debe devolver `issueCount: 0`.
 
 ## CLI de usuarios (`npm run users`)
 

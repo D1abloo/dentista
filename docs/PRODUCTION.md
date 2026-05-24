@@ -70,6 +70,11 @@ Aplica también la migración `0009_auth_bootstrap.sql` (índices y `profiles.te
 3. El cliente llama `GET /api/clinic/bootstrap` para hidratar el estado del panel.
 4. Las APIs de citas exigen sesión y acotan por `clinic_id` (`src/lib/api/guards.ts`).
 
+### Cuenta dual (`admin@dentista.app`)
+
+En entornos QA es habitual que el mismo usuario tenga acceso a `/platform` y `/admin`.  
+El backend resuelve automáticamente el contexto de clínica cuando existe sesión `super_admin` sin `clinicId` y el usuario también tiene perfil staff (`src/lib/auth/dualRoleClinic.ts`).
+
 ## Fase 3 aplicada
 
 - Endpoints nuevos de persistencia:

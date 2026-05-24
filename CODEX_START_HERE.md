@@ -48,6 +48,7 @@ npm run dev
 - Sin Kubernetes.
 - Redis es opcional en desarrollo; si `REDIS_URL` está vacío, usa cache en memoria.
 - Mantener modo demo activo hasta que Supabase esté configurado.
+- Para QA real usar modo LIVE (`PUBLIC_DEMO_MODE=false`) con `npm run seed:clinic`.
 - El login demo en `/login` permite elegir rol `paciente` o `admin` y guarda el rol en `localStorage`.
 - Los paneles usan datos demo persistidos en `localStorage`; no dependen de credenciales Supabase para funcionar en desarrollo.
 - La app incluye PWA básica con `public/manifest.webmanifest`, `public/sw.js` e iconos SVG.
@@ -58,6 +59,14 @@ npm run dev
 - `/admin` requiere rol demo `admin`; `/paciente` requiere rol demo `paciente`.
 - `/` renderiza la landing pública Dentista+; la reserva completa vive en `/paciente/reservar`.
 - Los endpoints de auth demo conservan credenciales ficticias: `admin@clinic.local / admin12345` y `maria@example.com / paciente123`.
+
+## Verificación recomendada en LIVE
+
+```bash
+npm run check
+npm run qa:db-security
+npm run qa:live
+```
 
 ## GitHub
 
