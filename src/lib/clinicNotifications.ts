@@ -12,6 +12,12 @@ import { displayPaymentId } from '@/lib/paymentAdmin';
 import { patientName } from '@/lib/selectors';
 import { getStoredTenantId } from '@/lib/demoStore';
 import { todayIso } from '@/lib/format';
+import {
+  dismissNotificationKey,
+  filterUndismissedNotifications,
+  isNotificationDismissed,
+  notificationDismissKey
+} from '@/lib/notificationDismissals';
 
 export const defaultNotificationPrefs = (): NotificationPrefs => ({
   categories: {
@@ -91,7 +97,7 @@ export function pushClinicNotification(
       n.title === note.title &&
       !n.archived
   );
-  if (exists) return state;
+  if (exists || isNotificationDismissed(tenantId, note)) return state;
   return {
     ...state,
     clinicNotifications: [note, ...state.clinicNotifications].slice(0, 500)
@@ -99,32 +105,38 @@ export function pushClinicNotification(
 }
 
 export function markNotificationRead(state: DemoState, id: string): DemoState {
+  const target = state.clinicNotifications.find((n) => n.id === id);
+  if (target) dismissNotificationKey(target.tenantId, notificationDismissKey(target));
   return {
     ...state,
-    clinicNotifications: state.clinicNotifications.map((n) => (n.id === id ? { ...n, read: true } : n))
+    clinicNotifications: state.clinicNotifications.filter((n) => n.id !== id)
   };
 }
 
 export function markAllNotificationsRead(state: DemoState, tenantId = getStoredTenantId()): DemoState {
+  for (const n of state.clinicNotifications) {
+    if (n.tenantId === tenantId) dismissNotificationKey(tenantId, notificationDismissKey(n));
+  }
   return {
     ...state,
-    clinicNotifications: state.clinicNotifications.map((n) =>
-      n.tenantId === tenantId ? { ...n, read: true } : n
-    )
+    clinicNotifications: state.clinicNotifications.filter((n) => n.tenantId !== tenantId)
   };
 }
 
 export function archiveNotification(state: DemoState, id: string): DemoState {
+  const target = state.clinicNotifications.find((n) => n.id === id);
+  if (target) dismissNotificationKey(target.tenantId, notificationDismissKey(target));
   return {
     ...state,
-    clinicNotifications: state.clinicNotifications.map((n) =>
-      n.id === id ? { ...n, archived: true, read: true } : n
-    )
+    clinicNotifications: state.clinicNotifications.filter((n) => n.id !== id)
   };
 }
 
 export function unreadCount(state: DemoState, tenantId = getStoredTenantId()): number {
-  return state.clinicNotifications.filter((n) => n.tenantId === tenantId && !n.read && !n.archived).length;
+  return filterUndismissedNotifications(
+    state.clinicNotifications.filter((n) => n.tenantId === tenantId && !n.read && !n.archived),
+    tenantId
+  ).length;
 }
 
 function push(
@@ -318,9 +330,17 @@ export function buildClinicNotificationsFromState(state: DemoState, tenantId = g
 }
 
 export function ensureClinicNotifications(state: DemoState, tenantId = getStoredTenantId()): DemoState {
-  const existing = state.clinicNotifications.filter((n) => n.tenantId === tenantId);
-  if (existing.length >= 8) return state;
-  const built = buildClinicNotificationsFromState(state, tenantId);
+  const existing = filterUndismissedNotifications(
+    state.clinicNotifications.filter((n) => n.tenantId === tenantId),
+    tenantId
+  );
+  if (existing.length >= 8) {
+    if (existing.length === state.clinicNotifications.length) return state;
+    return { ...state, clinicNotifications: [...state.clinicNotifications.filter((n) => n.tenantId !== tenantId), ...existing] };
+  }
+  const built = buildClinicNotificationsFromState(state, tenantId).filter(
+    (n) => !isNotificationDismissed(tenantId, n)
+  );
   const merged = [...existing];
   for (const n of built) {
     if (merged.length >= 80) break;

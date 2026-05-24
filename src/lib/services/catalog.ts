@@ -1,11 +1,63 @@
 import { addMinutes, formatISO, parseISO } from 'date-fns';
 import { adminModules, availabilitySlots, clinicLocations, dentists, integrations, patients, rolePermissions, rooms, systemLogs, treatments } from '../data';
-import { getCached } from '../cache';
+import { getCached, invalidateCache } from '../cache';
 import { getSupabaseAdmin, hasSupabaseConfig, isDemoMode } from '../supabaseServer';
 import type { AdminModule, AvailabilitySlot, ClinicLocation, Dentist, Integration, Patient, RolePermission, Room, SystemLog, Treatment } from '../types';
 import type { AvailabilityQuery, PatientQuery } from '../validators';
 
 const ttl = () => Number(import.meta.env.CACHE_TTL_SECONDS ?? 60);
+
+export async function createTreatmentRecord(input: {
+  clinicId: string;
+  name: string;
+  description?: string;
+  durationMinutes: number;
+  priceCents: number;
+  active?: boolean;
+}): Promise<Treatment> {
+  if (isDemoMode() || !hasSupabaseConfig()) {
+    const row: Treatment = {
+      id: `t-${Date.now()}`,
+      clinicId: input.clinicId,
+      name: input.name,
+      durationMinutes: input.durationMinutes,
+      priceCents: input.priceCents,
+      category: 'general',
+      color: 'sky',
+      description: input.description ?? ''
+    };
+    treatments.push(row);
+    return row;
+  }
+
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from('treatments')
+    .insert({
+      clinic_id: input.clinicId,
+      name: input.name.trim(),
+      description: input.description?.trim() || null,
+      duration_minutes: input.durationMinutes,
+      price_cents: input.priceCents,
+      active: input.active ?? true
+    })
+    .select('id, clinic_id, name, duration_minutes, price_cents, category, description')
+    .single();
+
+  if (error) throw error;
+  await invalidateCache(`clinic:${input.clinicId}:`);
+
+  return {
+    id: data.id,
+    clinicId: data.clinic_id,
+    name: data.name,
+    durationMinutes: data.duration_minutes,
+    priceCents: data.price_cents,
+    category: data.category,
+    color: 'sky',
+    description: data.description ?? ''
+  };
+}
 
 export async function listTreatments(clinicId: string): Promise<Treatment[]> {
   return getCached(`clinic:${clinicId}:treatments`, ttl(), async () => {

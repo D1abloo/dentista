@@ -351,7 +351,7 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
       whatsapp: mainClinic.phone ?? '',
       address: mainClinic.address ?? '',
       city: mainClinic.city ?? 'Madrid',
-      imageUrl: '/brand/dentista-logo.svg',
+      imageUrl: '/images/logo.webp',
       generalHours: 'Lun–Vie 09:00–20:00',
       defaultDuration: 45,
       slotIntervalMinutes: 15,
@@ -371,7 +371,7 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
       vatRate: 21,
       invoiceSeries: 'FAC',
       defaultInvoiceConcept: 'Servicios odontológicos',
-      logoUrl: (mainClinic.logo_url as string | null) || '/brand/dentista-logo.svg'
+      logoUrl: (mainClinic.logo_url as string | null) || '/images/logo.webp'
     }
   };
 

@@ -133,6 +133,25 @@ export async function createScheduleBlockLive(input: {
   return { ok: true as const };
 }
 
+export async function createTreatmentLive(input: {
+  clinicId: string;
+  name: string;
+  description?: string;
+  durationMinutes: number;
+  price: number;
+  active?: boolean;
+}) {
+  const res = await fetch('/api/treatments', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input)
+  });
+  const json = (await res.json()) as { error?: { message?: string } };
+  if (!res.ok) return { ok: false as const, message: json.error?.message ?? 'No se pudo guardar el tratamiento.' };
+  return { ok: true as const };
+}
+
 export async function deleteScheduleBlockLive(input: {
   clinicId: string;
   blockId?: string;

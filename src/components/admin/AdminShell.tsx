@@ -17,6 +17,7 @@ import { ClinicBranchSwitcher } from './ClinicBranchSwitcher';
 import { AdminQuickAccess } from './AdminQuickAccess';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { AdminTopbarUser } from './AdminTopbarUser';
+import { useAdminLiveRefresh } from '@/hooks/useAdminLiveRefresh';
 
 function logInspectNav(href: string, label: string) {
   void fetch('/api/platform/inspect', {
@@ -151,7 +152,8 @@ export function AdminShell({
   const { staff } = useStaffContext();
   const staffRole = staff?.role ?? sessionStaffRole;
   const orgName = organizationDisplayName(state, tenantId);
-  const clinicLogoUrl = settingsFor(state, tenantId).logoUrl ?? '/brand/clinic-shield.svg';
+  const clinicLogoUrl = settingsFor(state, tenantId).logoUrl ?? '/images/logo.webp';
+  useAdminLiveRefresh(live);
   const tenant = {
     id: tenantId,
     name: orgName,

@@ -4,7 +4,24 @@ import { getSupabaseAdmin, hasSupabaseConfig, isDemoMode } from '../supabaseServ
 
 const BLOCK_SELECT_FULL =
   'id, clinic_id, tenant_id, dentist_id, dentist_ids, starts_at, ends_at, reason, block_group_id, applies_to_all_professionals, notes';
+/** Sin dentist_ids (columna opcional); mantiene block_group_id para desbloqueo por grupo. */
+const BLOCK_SELECT_GROUP =
+  'id, clinic_id, tenant_id, dentist_id, starts_at, ends_at, reason, block_group_id, applies_to_all_professionals, notes';
 const BLOCK_SELECT_CORE = 'id, clinic_id, tenant_id, dentist_id, starts_at, ends_at, reason';
+
+type BlockQueryResult = { data: Record<string, unknown>[] | null; error: { code?: string; message?: string } | null };
+
+async function runBlockSelect(
+  run: (select: string) => Promise<BlockQueryResult>
+): Promise<BlockQueryResult> {
+  const full = await run(BLOCK_SELECT_FULL);
+  if (!full.error) return full;
+  if (!isMissingColumnError(full.error)) return full;
+  const grouped = await run(BLOCK_SELECT_GROUP);
+  if (!grouped.error) return grouped;
+  if (!isMissingColumnError(grouped.error)) return grouped;
+  return run(BLOCK_SELECT_CORE);
+}
 
 function isMissingColumnError(error: { code?: string; message?: string } | null) {
   if (!error) return false;
@@ -57,24 +74,20 @@ export async function listScheduleBlocks(clinicId: string, date?: string): Promi
     q = q.gte('starts_at', start).lte('starts_at', end);
   }
 
-  const full = await q;
-  let rows: Record<string, unknown>[] = (full.data as Record<string, unknown>[] | null) ?? [];
-  let error = full.error;
-  if (isMissingColumnError(error)) {
-    let qCore = supabase.from('schedule_blocks').select(BLOCK_SELECT_CORE).eq('clinic_id', clinicId).order('starts_at', {
+  const result = await runBlockSelect(async (select) => {
+    let query = supabase.from('schedule_blocks').select(select).eq('clinic_id', clinicId).order('starts_at', {
       ascending: true
     });
     if (date) {
       const start = `${date}T00:00:00+00:00`;
       const end = `${date}T23:59:59+00:00`;
-      qCore = qCore.gte('starts_at', start).lte('starts_at', end);
+      query = query.gte('starts_at', start).lte('starts_at', end);
     }
-    const core = await qCore;
-    rows = (core.data as Record<string, unknown>[] | null) ?? [];
-    error = core.error;
-  }
-  if (error) throw error;
-
+    const res = await query;
+    return { data: (res.data as Record<string, unknown>[] | null) ?? null, error: res.error };
+  });
+  if (result.error) throw result.error;
+  const rows = result.data ?? [];
   return rows.map((row) => mapScheduleBlockRow(row));
 }
 
@@ -106,31 +119,20 @@ export async function listScheduleBlocksForClinics(
     return memoryBlocks.filter((b) => clinicIds.includes(b.clinicId) && (!date || b.date === date));
   }
   const supabase = getSupabaseAdmin();
-  let q = supabase.from('schedule_blocks').select(BLOCK_SELECT_FULL).in('clinic_id', clinicIds).order('starts_at', {
-    ascending: true
-  });
-  if (date) {
-    const start = `${date}T00:00:00+00:00`;
-    const end = `${date}T23:59:59+00:00`;
-    q = q.gte('starts_at', start).lte('starts_at', end);
-  }
-  const full = await q;
-  let rows: Record<string, unknown>[] = (full.data as Record<string, unknown>[] | null) ?? [];
-  let error = full.error;
-  if (isMissingColumnError(error)) {
-    let qCore = supabase.from('schedule_blocks').select(BLOCK_SELECT_CORE).in('clinic_id', clinicIds).order('starts_at', {
+  const result = await runBlockSelect(async (select) => {
+    let query = supabase.from('schedule_blocks').select(select).in('clinic_id', clinicIds).order('starts_at', {
       ascending: true
     });
     if (date) {
       const start = `${date}T00:00:00+00:00`;
       const end = `${date}T23:59:59+00:00`;
-      qCore = qCore.gte('starts_at', start).lte('starts_at', end);
+      query = query.gte('starts_at', start).lte('starts_at', end);
     }
-    const core = await qCore;
-    rows = (core.data as Record<string, unknown>[] | null) ?? [];
-    error = core.error;
-  }
-  if (error) throw error;
+    const res = await query;
+    return { data: (res.data as Record<string, unknown>[] | null) ?? null, error: res.error };
+  });
+  if (result.error) throw result.error;
+  const rows = result.data ?? [];
   return rows.map((row) => mapScheduleBlockRow(row));
 }
 
@@ -181,13 +183,18 @@ export async function createScheduleBlock(input: {
   };
 
   async function insertCore(dentistId: string) {
-    const { data, error } = await supabase
-      .from('schedule_blocks')
-      .insert({ ...baseRow, dentist_id: dentistId })
-      .select(BLOCK_SELECT_CORE)
-      .single();
-    if (error) throw new Error(error.message || 'No se pudo guardar el bloqueo.');
-    return data;
+    const row: Record<string, unknown> = { ...baseRow, dentist_id: dentistId };
+    if (input.blockGroupId) row.block_group_id = input.blockGroupId;
+    if (input.notes) row.notes = input.notes;
+    let res = await supabase.from('schedule_blocks').insert(row).select(BLOCK_SELECT_GROUP).single();
+    if (isMissingColumnError(res.error) && input.blockGroupId) {
+      const coreOnly = { ...baseRow, dentist_id: dentistId };
+      res = await supabase.from('schedule_blocks').insert(coreOnly).select(BLOCK_SELECT_CORE).single();
+    } else if (isMissingColumnError(res.error)) {
+      res = await supabase.from('schedule_blocks').insert({ ...baseRow, dentist_id: dentistId }).select(BLOCK_SELECT_CORE).single();
+    }
+    if (res.error) throw new Error(res.error.message || 'No se pudo guardar el bloqueo.');
+    return res.data as Record<string, unknown>;
   }
 
   let lastRow: Record<string, unknown> | null = null;

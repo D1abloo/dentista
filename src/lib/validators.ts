@@ -688,6 +688,16 @@ export const scheduleBlockCreateSchema = z.object({
   notes: z.string().max(500).optional()
 });
 
+export const treatmentCreateSchema = z.object({
+  clinicId: z.string().uuid().optional(),
+  name: z.string().min(2).max(120),
+  description: z.string().max(500).optional().default(''),
+  durationMinutes: z.coerce.number().int().min(15).max(480).default(45),
+  /** Precio en euros (se guarda como céntimos en BD). */
+  price: z.coerce.number().min(0).max(999_999),
+  active: z.boolean().default(true)
+});
+
 export const scheduleBlockDeleteSchema = z
   .object({
     clinicId: z.string().min(1).optional(),

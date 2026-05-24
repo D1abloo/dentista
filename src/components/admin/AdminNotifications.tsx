@@ -19,6 +19,7 @@ import {
   markNotificationRead,
   unreadCount
 } from '@/lib/clinicNotifications';
+import { filterUndismissedNotifications } from '@/lib/notificationDismissals';
 import {
   actionRoute,
   categoryLabel,
@@ -88,7 +89,11 @@ export function AdminNotifications() {
   }, []);
 
   const tenantNotes = useMemo(
-    () => state.clinicNotifications.filter((n) => n.tenantId === tenantId),
+    () =>
+      filterUndismissedNotifications(
+        state.clinicNotifications.filter((n) => n.tenantId === tenantId && !n.read),
+        tenantId
+      ),
     [state.clinicNotifications, tenantId]
   );
 

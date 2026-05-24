@@ -105,7 +105,14 @@ export const DELETE: APIRoute = async (context) => {
       : [];
 
     if (idList.length) {
-      const removed = await deleteScheduleBlocksByIds(clinicId, idList);
+      let removed = await deleteScheduleBlocksByIds(clinicId, idList);
+      if (!removed && parsed.data.blockGroupId) {
+        removed = await deleteScheduleBlockGroup(clinicId, parsed.data.blockGroupId);
+      }
+      if (!removed && parsed.data.id) {
+        await deleteScheduleBlock(clinicId, parsed.data.id);
+        removed = 1;
+      }
       if (!removed) return fail('No se encontraron bloqueos para eliminar.', 404);
       return ok({ removed }, { message: removed > 1 ? 'Bloqueos eliminados.' : 'Bloqueo eliminado.' });
     }

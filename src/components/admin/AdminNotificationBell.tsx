@@ -52,11 +52,8 @@ export function AdminNotificationBell() {
 
   const items = useMemo(() => {
     const list = state.clinicNotifications
-      .filter((n) => n.tenantId === tenantId && !n.archived)
-      .sort((a, b) => {
-        if (a.read !== b.read) return a.read ? 1 : -1;
-        return b.createdAt.localeCompare(a.createdAt);
-      });
+      .filter((n) => n.tenantId === tenantId && !n.archived && !n.read)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     return list.slice(0, DROPDOWN_LIMIT);
   }, [state.clinicNotifications, tenantId]);
 

@@ -299,22 +299,117 @@ export function AdminDentists() {
 }
 
 export function AdminTreatments() {
-  const { state, commit } = useDemoStore();
+  const { state, commit, refresh } = useDemoStore();
   const scope = useTenant();
-  const [form, setForm] = useState<Treatment>({ ...state.treatments[0], id: uid('t'), tenantId: getStoredTenantId(), active: true });
+  const { setNotice } = useNotice();
+  const live = isClientLiveMode();
+  const clinicId = getActiveClinicId(state, scope.tenantId) ?? scope.clinics[0]?.id ?? '';
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState<Treatment>({
+    id: uid('t'),
+    tenantId: getStoredTenantId(),
+    clinicId,
+    name: '',
+    description: '',
+    durationMinutes: 45,
+    price: 0,
+    active: true
+  });
+
+  async function saveTreatmentForm() {
+    if (!form.name.trim()) {
+      setNotice({ type: 'error', message: 'Indica el nombre del tratamiento.' });
+      return;
+    }
+    if (!clinicId) {
+      setNotice({ type: 'error', message: 'Selecciona una sede activa.' });
+      return;
+    }
+    setSaving(true);
+    try {
+      if (live) {
+        const { createTreatmentLive } = await import('@/lib/clinicApi');
+        const res = await createTreatmentLive({
+          clinicId,
+          name: form.name.trim(),
+          description: form.description,
+          durationMinutes: form.durationMinutes,
+          price: form.price,
+          active: true
+        });
+        if (!res.ok) {
+          setNotice({ type: 'error', message: res.message });
+          return;
+        }
+        await refresh();
+        setForm({
+          id: uid('t'),
+          tenantId: getStoredTenantId(),
+          clinicId,
+          name: '',
+          description: '',
+          durationMinutes: 45,
+          price: 0,
+          active: true
+        });
+        setNotice({ type: 'ok', message: 'Tratamiento guardado. Ya aparece en citas y reservas.' });
+      } else {
+        commit(
+          createTreatment(state, {
+            ...form,
+            clinicId,
+            tenantId: getStoredTenantId(),
+            description: form.description || ''
+          })
+        );
+        setForm({
+          id: uid('t'),
+          tenantId: getStoredTenantId(),
+          clinicId,
+          name: '',
+          description: '',
+          durationMinutes: 45,
+          price: 0,
+          active: true
+        });
+        setNotice({ type: 'ok', message: 'Tratamiento guardado.' });
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <Card title="Tratamientos">
-      <ul className="mb-4 space-y-2">{scope.treatments.map((t) => (
-        <li key={t.id} className="flex justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
-          <span>{t.name}</span>
-          <span className="font-bold">{money(t.price)}</span>
-        </li>
-      ))}</ul>
+      <ul className="mb-4 space-y-2">
+        {scope.treatments.map((t) => (
+          <li key={t.id} className="flex justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
+            <span>
+              {t.name}
+              <span className="ml-2 text-xs text-slate-500">{t.durationMinutes} min</span>
+            </span>
+            <span className="font-bold">{money(t.price)}</span>
+          </li>
+        ))}
+      </ul>
       <div className="grid gap-3 md:grid-cols-2">
-        <Field label="Nombre"><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
-        <Field label="Precio"><Input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} /></Field>
-        <Field label="Duración (min)"><Input type="number" value={form.durationMinutes} onChange={(e) => setForm({ ...form, durationMinutes: Number(e.target.value) })} /></Field>
-        <Button onClick={() => commit(saveTreatment(state, { ...form, description: form.description || '' }))}>Guardar</Button>
+        <Field label="Nombre">
+          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+        </Field>
+        <Field label="Precio (€)">
+          <Input type="number" min={0} step={1} value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} />
+        </Field>
+        <Field label="Duración (min)">
+          <Input
+            type="number"
+            min={15}
+            value={form.durationMinutes}
+            onChange={(e) => setForm({ ...form, durationMinutes: Number(e.target.value) })}
+          />
+        </Field>
+        <Button disabled={saving} onClick={() => void saveTreatmentForm()}>
+          {saving ? 'Guardando…' : 'Guardar tratamiento'}
+        </Button>
       </div>
     </Card>
   );
