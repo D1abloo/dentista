@@ -37,6 +37,7 @@ type MessageInput = {
   body: string;
   channel: 'app' | 'email' | 'whatsapp' | 'sms';
   type: 'recordatorio' | 'confirmacion' | 'clinica' | 'general' | 'factura' | 'documento';
+  fromPatient?: boolean;
 };
 
 type ConsentInput = {
@@ -339,6 +340,7 @@ export async function createPatientMessageRecord(input: MessageInput) {
   const tenantId = await resolveTenantId(input.clinicId);
   const patientProfileId = await resolvePatientProfileId(input.patientId);
   await assertReportPayloadScope(input.clinicId, tenantId, patientProfileId);
+  const fromPatient = Boolean(input.fromPatient);
   const { data, error } = await db
     .from('messages')
     .insert({
@@ -348,7 +350,8 @@ export async function createPatientMessageRecord(input: MessageInput) {
       body: input.body,
       channel: input.channel,
       type: input.type,
-      read: false
+      read: false,
+      from_patient: fromPatient
     })
     .select('*')
     .single();

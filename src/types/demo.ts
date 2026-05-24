@@ -223,7 +223,8 @@ export type ClinicNotificationEntity =
   | 'report'
   | 'invoice'
   | 'payment'
-  | 'portal';
+  | 'portal'
+  | 'message';
 
 export interface ClinicNotification {
   id: string;

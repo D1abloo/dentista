@@ -115,7 +115,13 @@ export function enrichPatientMessages(state: DemoState, messages: Message[]): Pa
       relatedLabel: related.label,
       relatedHref: related.href,
       canDownloadPdf: hasPdf,
-      statusReadLabel: message.read ? 'Leído' : 'No leído'
+      statusReadLabel: message.fromPatient
+        ? message.read
+          ? 'Enviado'
+          : 'Entregado'
+        : message.read
+          ? 'Leído'
+          : 'No leído'
     };
   });
 }
@@ -166,7 +172,7 @@ export function filterAndSortMessages(
         v.typeLabel.toLowerCase().includes(s)
     );
   }
-  if (opts.chip === 'unread') list = list.filter((v) => !v.message.read);
+  if (opts.chip === 'unread') list = list.filter((v) => !v.message.read && !v.message.fromPatient);
   if (opts.chip === 'recordatorio') list = list.filter((v) => v.displayType === 'recordatorio');
   if (opts.chip === 'confirmacion') list = list.filter((v) => v.displayType === 'confirmacion');
   if (opts.chip === 'clinica') {

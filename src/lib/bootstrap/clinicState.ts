@@ -299,6 +299,7 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
       channel: m.channel ?? 'app',
       type: m.type ?? 'clinica',
       read: Boolean(m.read),
+      fromPatient: Boolean(m.from_patient),
       sentAt: String(m.created_at ?? '').slice(0, 10)
     }));
 

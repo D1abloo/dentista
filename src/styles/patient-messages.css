@@ -898,6 +898,38 @@ html.pmsg-viewer-open body {
   color: #334155;
 }
 
+.pmsg-compose {
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.1rem;
+  border-radius: 1rem;
+  border: 1px solid #ccfbf1;
+  background: linear-gradient(165deg, #f0fdfa 0%, #fff 55%);
+  box-shadow: 0 8px 24px rgba(15, 118, 110, 0.06);
+}
+
+.pmsg-compose__head h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--corp-navy);
+}
+
+.pmsg-compose__input {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.82rem;
+  resize: vertical;
+  min-height: 5rem;
+}
+
+.pmsg-compose__input:focus {
+  outline: none;
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
+}
+
 .pmsg-reply {
   margin-top: 1rem;
   padding-top: 0.85rem;

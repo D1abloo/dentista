@@ -613,7 +613,8 @@ export const messageCreateSchema = z.object({
   channel: z.enum(['app', 'email', 'whatsapp', 'sms']).default('app'),
   type: z
     .enum(['recordatorio', 'confirmacion', 'clinica', 'general', 'factura', 'documento'])
-    .default('clinica')
+    .default('clinica'),
+  fromPatient: z.boolean().optional()
 });
 
 export const consentCreateSchema = z.object({

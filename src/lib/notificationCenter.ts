@@ -107,6 +107,10 @@ export function priorityLabel(p: ClinicNotification['priority']) {
 }
 
 export function actionRoute(n: ClinicNotification): string {
+  if (n.entityType === 'message' && n.patientId) {
+    const q = n.entityId ? `&focus=${encodeURIComponent(n.entityId)}` : '';
+    return `/admin/pacientes/${n.patientId}?tab=mensajes${q}`;
+  }
   if (n.entityType === 'appointment') return '/admin/citas';
   if (n.entityType === 'patient') return n.patientId ? `/admin/pacientes/${n.patientId}` : '/admin/pacientes';
   if (n.entityType === 'document') return '/admin/documentos';

@@ -22,8 +22,8 @@ import { useNotice } from '@/hooks/useNotice';
 import { usePatient } from '@/hooks/usePatient';
 import { logPortalAudit, usePortalAccess } from '@/hooks/usePortalAccess';
 import { saveDemoFile } from '@/lib/demoFiles';
-import { addMessage, saveMessage } from '@/lib/demoStore';
-import { isClientDemoMode } from '@/lib/appMode';
+import { saveMessage } from '@/lib/demoStore';
+import { sendPatientMessageToClinic } from '@/lib/patient/sendClinicMessage';
 import {
   ALLOWED_ATTACHMENT_TYPES,
   MAX_ATTACHMENT_BYTES,
@@ -81,8 +81,10 @@ function KpiStat({
   );
 }
 
+const DEFAULT_COMPOSE_SUBJECT = 'Consulta al equipo clínico';
+
 export function PatientMessages() {
-  const { state, commit } = useDemoStore();
+  const { state, commit, refresh } = useDemoStore();
   const patient = usePatient();
   const { setNotice } = useNotice();
   const portalAccess = usePortalAccess();
@@ -93,8 +95,9 @@ export function PatientMessages() {
   const [chip, setChip] = useState<MessageChip>('all');
   const [sort, setSort] = useState<PatientMessageSort>('recent');
   const [viewerId, setViewerId] = useState<string | null>(null);
+  const [composeSubject, setComposeSubject] = useState(DEFAULT_COMPOSE_SUBJECT);
   const [reply, setReply] = useState('');
-  const [replyOpen, setReplyOpen] = useState(false);
+  const [replyOpen, setReplyOpen] = useState(true);
   const [attachName, setAttachName] = useState<string | null>(null);
   const [attachRef, setAttachRef] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
@@ -225,10 +228,10 @@ export function PatientMessages() {
   }
 
   function contactClinic() {
-    setReplyOpen(true);
-    replyRef.current?.focus();
     setViewerId(null);
     setReplyOpen(true);
+    setComposeSubject(DEFAULT_COMPOSE_SUBJECT);
+    window.setTimeout(() => replyRef.current?.focus(), 60);
   }
 
   async function onAttach(file: File | null) {
@@ -252,73 +255,101 @@ export function PatientMessages() {
   }
 
   async function sendReply() {
-    const body = reply.trim();
-    if (!body) {
-      setNotice({ type: 'error', message: 'Escribe un mensaje antes de enviar.' });
-      return;
-    }
-    const tenantId =
-      viewerMessage?.message.tenantId ?? state.clinics.find((c) => c.id === patient.preferredClinicId)?.tenantId;
-    if (!tenantId) {
-      setNotice({ type: 'error', message: 'No se pudo enviar el mensaje.' });
-      return;
-    }
     setSending(true);
     setSendOk(false);
     try {
-      if (!isClientDemoMode()) {
-        const clinic = state.clinics.find((c) => c.tenantId === tenantId);
-        if (!clinic) throw new Error('clinic');
-        const res = await fetch('/api/records/message', {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            clinicId: clinic.id,
-            patientId: patient.id,
-            subject: viewerMessage ? `Re: ${viewerMessage.message.subject}` : 'Mensaje del paciente',
-            body,
-            channel: 'app',
-            type: 'clinica'
-          })
-        });
-        if (!res.ok) throw new Error('api');
-      } else {
-        commit(
-          addMessage(state, {
-            tenantId,
-            patientId: patient.id,
-            subject: viewerMessage ? `Re: ${viewerMessage.message.subject}` : 'Mensaje del paciente',
-            body,
-            channel: 'app',
-            type: 'clinica',
-            read: true,
-            fromPatient: true,
-            sentAt: new Date().toISOString(),
-            attachmentRef: attachRef ?? undefined,
-            attachmentName: attachName ?? undefined
-          })
-        );
+      const result = await sendPatientMessageToClinic({
+        state,
+        patient,
+        input: {
+          subject: viewerMessage ? `Re: ${viewerMessage.message.subject}` : composeSubject,
+          body: reply,
+          attachmentRef: attachRef ?? undefined,
+          attachmentName: attachName ?? undefined,
+          replyTo: viewerMessage?.message
+        }
+      });
+      if (!result.ok) {
+        setNotice({ type: 'error', message: result.error });
+        return;
       }
+      if (result.demoState) commit(result.demoState);
+      else await refresh();
       setReply('');
+      setComposeSubject(DEFAULT_COMPOSE_SUBJECT);
       setAttachName(null);
       setAttachRef(null);
       setSendOk(true);
       setTimeout(() => setSendOk(false), 2000);
-      setNotice({ type: 'ok', message: 'Mensaje enviado correctamente.' });
+      setNotice({
+        type: 'ok',
+        message: 'Mensaje enviado. La clínica lo recibirá y podrá responderte aquí.'
+      });
       if (portalAccess.active) {
         void logPortalAudit({
           eventType: 'other',
           pagePath: '/paciente/mensajes',
-          resourceLabel: 'Respuesta enviada a clínica'
+          resourceLabel: 'Mensaje enviado a la clínica'
         });
       }
-    } catch {
-      setNotice({ type: 'error', message: 'No se pudo enviar el mensaje.' });
     } finally {
       setSending(false);
     }
   }
+
+  const composeBlock = (
+    <section className={`pmsg-compose${replyOpen ? ' pmsg-compose--open' : ''}`} id="contactar-clinica">
+      <div className="pmsg-compose__head">
+        <h3>Contactar con la clínica</h3>
+        <p className="m-0 text-sm text-slate-600">
+          Escribe tu consulta y el equipo te responderá en esta misma bandeja. Recibirán una notificación en el panel.
+        </p>
+      </div>
+      <label className="block text-xs font-bold text-slate-600 mt-3">
+        Asunto
+        <input
+          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+          value={viewerMessage ? `Re: ${viewerMessage.message.subject}` : composeSubject}
+          onChange={(e) => setComposeSubject(e.target.value)}
+          disabled={Boolean(viewerMessage)}
+          aria-label="Asunto del mensaje"
+        />
+      </label>
+      <textarea
+        ref={replyRef}
+        className="pmsg-compose__input mt-2"
+        value={reply}
+        onChange={(e) => setReply(e.target.value)}
+        onFocus={() => setReplyOpen(true)}
+        placeholder="Escribe tu mensaje para la clínica…"
+        rows={4}
+        aria-label="Mensaje para la clínica"
+      />
+      <div className="pmsg-templates">
+        {REPLY_TEMPLATES.map((t) => (
+          <button key={t} type="button" className="pmsg-template" onClick={() => setReply(t)}>
+            {t}
+          </button>
+        ))}
+      </div>
+      <div className="pmsg-reply__foot">
+        <button type="button" className="pmsg-btn pmsg-btn--outline" onClick={() => fileInputRef.current?.click()}>
+          <Paperclip className="h-3.5 w-3.5" aria-hidden />
+          Adjuntar archivo
+        </button>
+        {attachName ? <span className="pmsg-attach-name">{attachName}</span> : null}
+        <button
+          type="button"
+          className={`pmsg-btn pmsg-btn--primary${sendOk ? ' pmsg-btn--success' : ''}`}
+          disabled={sending}
+          onClick={() => void sendReply()}
+        >
+          {sendOk ? <Check className="h-4 w-4" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
+          {sending ? 'Enviando…' : 'Enviar a la clínica'}
+        </button>
+      </div>
+    </section>
+  );
 
   const showEmpty = views.length === 0;
   const showNoResults = !showEmpty && filtered.length === 0;
@@ -365,6 +396,8 @@ export function PatientMessages() {
           </span>
         </div>
       </header>
+
+      {composeBlock}
 
       {!showEmpty ? (
         <div className="pmsg-kpis">
@@ -430,47 +463,6 @@ export function PatientMessages() {
               Reservar cita
             </a>
           </div>
-          <div className={`pmsg-reply pmsg-reply--empty${replyOpen ? ' pmsg-reply--open' : ''}`}>
-            <h4>Responder a la clínica</h4>
-            <textarea
-              ref={replyRef}
-              value={reply}
-              onChange={(e) => setReply(e.target.value)}
-              onFocus={() => setReplyOpen(true)}
-              placeholder="Escribe tu respuesta…"
-              rows={3}
-            />
-            <div className="pmsg-templates">
-              {REPLY_TEMPLATES.map((t) => (
-                <button key={t} type="button" className="pmsg-template" onClick={() => setReply(t)}>
-                  {t}
-                </button>
-              ))}
-            </div>
-            <div className="pmsg-reply__foot">
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="sr-only"
-                accept=".pdf,image/*,.txt"
-                onChange={(e) => void onAttach(e.target.files?.[0] ?? null)}
-              />
-              <button type="button" className="pmsg-btn pmsg-btn--outline" onClick={() => fileInputRef.current?.click()}>
-                <Paperclip className="h-3.5 w-3.5" aria-hidden />
-                Adjuntar archivo
-              </button>
-              {attachName ? <span className="pmsg-attach-name">{attachName}</span> : null}
-              <button
-                type="button"
-                className={`pmsg-btn pmsg-btn--primary${sendOk ? ' pmsg-btn--success' : ''}`}
-                disabled={sending}
-                onClick={() => void sendReply()}
-              >
-                {sendOk ? <Check className="h-4 w-4" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
-                {sending ? 'Enviando…' : 'Enviar mensaje'}
-              </button>
-            </div>
-          </div>
         </section>
       ) : (
         <div className="pmsg-list-wrap">
@@ -497,7 +489,10 @@ export function PatientMessages() {
                   <p className="pmsg-card__meta">
                     {v.clinicName} · {v.dateLabel}
                   </p>
-                  <p className="pmsg-card__preview">{v.preview}</p>
+                  <p className="pmsg-card__preview">
+                    {v.message.fromPatient ? <span className="font-semibold text-teal-800">Tú: </span> : null}
+                    {v.preview}
+                  </p>
                   {v.relatedLabel !== '—' ? (
                     <p className="pmsg-card__related">
                       <span>{v.relatedLabel}</span>

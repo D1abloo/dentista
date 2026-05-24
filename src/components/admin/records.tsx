@@ -1,9 +1,9 @@
-import { useMemo, useState, type ReactNode } from 'react';
-import { addAdminNote, addMessage } from '@/lib/demoStore';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { addAdminNote } from '@/lib/demoStore';
 import { isActiveStatus } from '@/lib/appointments';
 import { fmtDate, fmtDateTime, money, statusLabel, todayIso } from '@/lib/format';
 import { recordsForPatient } from '@/lib/selectors';
-import { isClientDemoMode, modeCopy } from '@/lib/appMode';
+import { modeCopy } from '@/lib/appMode';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { IdBadge } from '@/components/ui/IdBadge';
@@ -18,6 +18,7 @@ import {
   StatCard,
   Textarea
 } from '@/components/ui';
+import { PatientMessageThread } from './PatientMessageThread';
 
 export function AppointmentOptions({ state, patientId }: { state: ReturnType<typeof useDemoStore>['state']; patientId: string }) {
   const appts = state.appointments.filter((a) => a.patientId === patientId);
@@ -48,8 +49,16 @@ export function AdminPatientDetail({ patientId }: { patientId: string }) {
   const patient = state.patients.find((p) => p.id === patientId);
   const rec = patient ? recordsForPatient(state, patientId) : null;
   const [note, setNote] = useState('');
-  const [msgSubject, setMsgSubject] = useState('');
-  const [msgBody, setMsgBody] = useState('');
+  const [focusMessageId, setFocusMessageId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tab') === 'mensajes') {
+      document.getElementById('mensajes')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    setFocusMessageId(params.get('focus'));
+  }, [patientId]);
 
   const timeline = useMemo(() => {
     if (!rec) return [];
@@ -183,63 +192,7 @@ export function AdminPatientDetail({ patientId }: { patientId: string }) {
         ))}
       </RecordSection>
 
-      <Card title={modeCopy('Mensajes al paciente (demo)', 'Mensajes al paciente')}>
-        <div className="grid gap-3">
-          <Field label="Asunto"><Input value={msgSubject} onChange={(e) => setMsgSubject(e.target.value)} placeholder="Recordatorio de cita…" /></Field>
-          <Field label="Mensaje"><Textarea value={msgBody} onChange={(e) => setMsgBody(e.target.value)} /></Field>
-          <Button
-            onClick={async () => {
-              if (!msgSubject.trim() || !msgBody.trim()) {
-                setNotice({ type: 'error', message: 'Completa asunto y mensaje.' });
-                return;
-              }
-              if (!isClientDemoMode()) {
-                await fetch('/api/records/message', {
-                  method: 'POST',
-                  credentials: 'include',
-                  headers: { 'content-type': 'application/json' },
-                  body: JSON.stringify({
-                    clinicId: patient.preferredClinicId,
-                    patientId,
-                    subject: msgSubject,
-                    body: msgBody,
-                    type: 'clinica',
-                    channel: 'app'
-                  })
-                });
-              }
-              commit(
-                addMessage(state, {
-                  patientId,
-                  subject: msgSubject,
-                  body: msgBody,
-                  type: 'clinica',
-                  channel: 'app',
-                  read: false,
-                  sentAt: todayIso()
-                })
-              );
-              if (!isClientDemoMode()) await refresh();
-              setMsgSubject('');
-              setMsgBody('');
-              setNotice({
-                type: 'ok',
-                message: modeCopy('Mensaje demo enviado al portal del paciente.', 'Mensaje enviado al portal del paciente.')
-              });
-            }}
-          >
-            {modeCopy('Enviar mensaje demo', 'Enviar mensaje')}
-          </Button>
-        </div>
-        <ul className="mt-4 space-y-2 text-sm">
-          {rec.messages.map((m) => (
-            <li key={m.id} className="rounded-xl bg-slate-50 px-3 py-2">
-              <strong>{m.subject}</strong>
-              <p className="text-slate-600">{m.body}</p>
-            </li>
-          ))}
-        </ul>
-      </Card>
+      <PatientMessageThread patient={patient} focusMessageId={focusMessageId} />
 
       <RecordSection title="Facturas y pagos" empty="Sin movimientos">
         {rec.invoices.map((i) => (

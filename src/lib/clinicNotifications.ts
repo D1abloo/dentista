@@ -45,6 +45,31 @@ function nid() {
   return `NTF-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
+/** Aviso cuando un paciente escribe desde el portal. */
+export function notifyPatientMessageToClinic(
+  state: DemoState,
+  input: {
+    tenantId: string;
+    patientId: string;
+    messageId: string;
+    subject: string;
+    body: string;
+  }
+): DemoState {
+  const name = patientName(state, input.patientId);
+  const preview = input.body.trim().slice(0, 140) || input.subject;
+  return pushClinicNotification(state, {
+    tenantId: input.tenantId,
+    category: 'portal',
+    title: 'Mensaje del paciente',
+    description: `${name}: ${preview}`,
+    patientId: input.patientId,
+    entityType: 'message',
+    entityId: input.messageId,
+    priority: 'importante'
+  });
+}
+
 /** Aviso en panel cuando entra una cita pendiente (p. ej. reserva del paciente). */
 export function notifyNewAppointmentRequest(
   state: DemoState,
@@ -311,6 +336,19 @@ export function buildClinicNotificationsFromState(state: DemoState, tenantId = g
           priority: 'importante'
         });
       }
+    });
+
+  state.messages
+    .filter((m) => m.tenantId === tenantId && m.fromPatient && !m.read)
+    .slice(0, 20)
+    .forEach((m) => {
+      const name = patientName(state, m.patientId);
+      push(out, tenantId, 'portal', 'Mensaje del paciente', `${name}: ${m.subject}`, {
+        patientId: m.patientId,
+        entityType: 'message',
+        entityId: m.id,
+        priority: 'importante'
+      });
     });
 
   state.patients.slice(0, 3).forEach((p) => {
