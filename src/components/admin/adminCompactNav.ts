@@ -7,6 +7,7 @@ import {
   FileStack,
   FileText,
   FolderOpen,
+  Layers3,
   LayoutDashboard,
   Receipt,
   Settings,
@@ -25,6 +26,7 @@ export type AdminCompactNavItem = {
 /** Navegación compacta del panel (iconos + etiqueta corta). */
 export const adminCompactNav: AdminCompactNavItem[] = [
   { href: '/admin', label: 'Inicio', icon: LayoutDashboard, view: 'dashboard' },
+  { href: '/admin/operaciones', label: 'Operaciones', icon: Layers3, view: 'operaciones' },
   { href: '/admin/agenda', label: 'Agenda', icon: CalendarDays, view: 'agenda' },
   { href: '/admin/pacientes', label: 'Pacientes', icon: Users, view: 'pacientes' },
   { href: '/admin/documentos', label: 'Documentos', icon: FolderOpen, view: 'documentos' },

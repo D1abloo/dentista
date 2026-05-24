@@ -20,6 +20,7 @@ import {
   AdminTreatments
 } from './views';
 import { AdminDashboard } from './AdminDashboard';
+import { AdminClinicalOpsHub } from './AdminClinicalOpsHub';
 import { AdminPatients } from './AdminPatients';
 import { AdminConsents } from './consents';
 import { AdminClinicUsers } from './clinicUsers';
@@ -54,6 +55,8 @@ function Body({ view, patientId }: { view: AdminView; patientId?: string }) {
     return <AdminPatientDetail patientId={patientId} />;
   }
   switch (view) {
+    case 'operaciones':
+      return <AdminClinicalOpsHub />;
     case 'agenda':
       return (
         <LazyPanel>
@@ -138,6 +141,7 @@ function AdminInner({ view, patientId }: { view: AdminView; patientId?: string }
   const isPayments = view === 'pagos' && !patientId;
   const isNotifications = view === 'notificaciones' && !patientId;
   const isSettings = view === 'configuracion' && !patientId;
+  const isClinicalOps = view === 'operaciones' && !patientId;
   const title = patientId && view === 'pacientes' ? `Ficha ${patientId}` : isDashboard ? 'Resumen general' : adminTitles[view];
   const subtitle = patientId && view === 'pacientes' ? undefined : adminSubtitles[view];
   return (
@@ -153,6 +157,7 @@ function AdminInner({ view, patientId }: { view: AdminView; patientId?: string }
       reportsModule={isReports}
       notificationsModule={isNotifications}
       settingsModule={isSettings}
+      clinicalOpsModule={isClinicalOps}
       dashboardToolbar={isDashboard ? <AdminDashboardToolbar /> : undefined}
     >
       <Toast notice={notice} onClose={clear} />

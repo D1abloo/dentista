@@ -13,6 +13,7 @@ import {
   Activity,
   ClipboardCheck,
   KeyRound,
+  Layers3,
   LayoutDashboard,
   Receipt,
   Scale,
@@ -43,10 +44,12 @@ export type AdminView =
   | 'auditoria-pdp'
   | 'usuarios'
   | 'consentimientos'
-  | 'monitorizacion';
+  | 'monitorizacion'
+  | 'operaciones';
 
 export const adminNav: { href: string; label: string; icon: LucideIcon; view: AdminView }[] = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, view: 'dashboard' },
+  { href: '/admin/operaciones', label: 'Operaciones clínicas', icon: Layers3, view: 'operaciones' },
   { href: '/admin/agenda', label: 'Agenda', icon: CalendarDays, view: 'agenda' },
   { href: '/admin/citas', label: 'Citas', icon: Calendar, view: 'citas' },
   { href: '/admin/pacientes', label: 'Pacientes', icon: Users, view: 'pacientes' },
@@ -71,6 +74,7 @@ export const adminNav: { href: string; label: string; icon: LucideIcon; view: Ad
 
 export const adminTitles: Record<AdminView, string> = {
   dashboard: 'Resumen general',
+  operaciones: 'Operaciones clínicas',
   agenda: 'Agenda',
   citas: 'Gestión de citas',
   pacientes: 'Pacientes',
@@ -96,6 +100,8 @@ export const adminTitles: Record<AdminView, string> = {
 export const adminSubtitles: Record<AdminView, string> = {
   dashboard:
     'Resumen de actividad de tu organización. Consulta la guía de uso para el panel y el portal del paciente.',
+  operaciones:
+    'Centro unificado: citas, facturación, informes clínicos y documentación del paciente.',
   agenda: 'Vista día, semana o mes',
   citas: 'CIT-XXXX vinculadas a paciente',
   pacientes:

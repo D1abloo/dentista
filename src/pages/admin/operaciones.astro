@@ -1,0 +1,7 @@
+---
+import AppLayout from '@/layouts/AppLayout.astro';
+import { AdminApp } from '@/components/DentistaApp';
+---
+<AppLayout title="Operaciones clínicas · Dentista+">
+  <AdminApp view="operaciones" client:load />
+</AppLayout>
