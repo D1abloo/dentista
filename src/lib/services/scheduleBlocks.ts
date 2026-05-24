@@ -251,8 +251,10 @@ export async function deleteScheduleBlock(clinicId: string, blockId: string): Pr
   if (error) throw error;
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 export async function deleteScheduleBlocksByIds(clinicId: string, blockIds: string[]): Promise<number> {
-  const ids = [...new Set(blockIds.filter(Boolean))];
+  const ids = [...new Set(blockIds.filter((id) => id && UUID_RE.test(id)))];
   if (!ids.length) return 0;
 
   if (isDemoMode() || !hasSupabaseConfig()) {

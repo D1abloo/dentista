@@ -14,6 +14,12 @@ import { scheduleBlockCreateSchema, scheduleBlockDeleteSchema } from '@/lib/vali
 
 export const prerender = false;
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function filterBlockUuids(ids: string[]) {
+  return [...new Set(ids.filter((id) => UUID_RE.test(id)))];
+}
+
 function clinicIdFromRequest(context: { url: URL }, bodyClinicId?: string) {
   return bodyClinicId ?? context.url.searchParams.get('clinicId') ?? undefined;
 }
@@ -97,39 +103,32 @@ export const DELETE: APIRoute = async (context) => {
   if (scopeGate.response) return scopeGate.response;
 
   try {
-    const idList = parsed.data.ids
-      ? parsed.data.ids
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean)
-      : [];
+    const idList = filterBlockUuids(
+      parsed.data.ids
+        ? parsed.data.ids
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : []
+    );
 
-    if (idList.length) {
-      let removed = await deleteScheduleBlocksByIds(clinicId, idList);
-      if (!removed && parsed.data.blockGroupId) {
-        removed = await deleteScheduleBlockGroup(clinicId, parsed.data.blockGroupId);
-      }
-      if (!removed && parsed.data.id) {
-        await deleteScheduleBlock(clinicId, parsed.data.id);
-        removed = 1;
-      }
-      if (!removed) return fail('No se encontraron bloqueos para eliminar.', 404);
-      return ok({ removed }, { message: removed > 1 ? 'Bloqueos eliminados.' : 'Bloqueo eliminado.' });
-    }
+    let removed = 0;
 
     if (parsed.data.blockGroupId) {
-      let removed = await deleteScheduleBlockGroup(clinicId, parsed.data.blockGroupId);
-      if (!removed && parsed.data.id) {
-        await deleteScheduleBlock(clinicId, parsed.data.id);
-        removed = 1;
-      }
-      if (!removed) return fail('No se encontraron bloqueos del grupo.', 404);
-      return ok({ removed }, { message: removed > 1 ? 'Bloqueos eliminados.' : 'Bloqueo eliminado.' });
+      removed += await deleteScheduleBlockGroup(clinicId, parsed.data.blockGroupId);
     }
 
-    if (!parsed.data.id) return fail('Falta el id del bloqueo.', 422);
-    await deleteScheduleBlock(clinicId, parsed.data.id);
-    return ok({ removed: 1 }, { message: 'Bloqueo eliminado.' });
+    if (idList.length) {
+      removed += await deleteScheduleBlocksByIds(clinicId, idList);
+    }
+
+    if (!removed && parsed.data.id) {
+      await deleteScheduleBlock(clinicId, parsed.data.id);
+      removed = 1;
+    }
+
+    if (!removed) return fail('No se encontraron bloqueos para eliminar.', 404);
+    return ok({ removed }, { message: removed > 1 ? 'Bloqueos eliminados.' : 'Bloqueo eliminado.' });
   } catch (error) {
     logError('schedule.blocks.delete', error);
     return fail('No se pudo quitar el bloqueo.', 500);

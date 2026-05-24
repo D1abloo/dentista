@@ -10,7 +10,7 @@ import {
   X
 } from 'lucide-react';
 import { availableSlotsForDentist, blockRangeLabel, blockTargetLabel, validateAppointmentSlot } from '@/lib/agenda/availability';
-import { formatUnblockTime, listUnblockEntries } from '@/lib/agenda/unblockEntries';
+import { formatUnblockTime, listUnblockEntries, type UnblockEntry } from '@/lib/agenda/unblockEntries';
 import {
   datesForMonthGrid,
   datesInRangeInclusive,
@@ -611,7 +611,7 @@ type UnblockDrawerProps = {
   canDelete: (block: BlockedSlot) => boolean;
   unblockingKey?: string | null;
   onClose: () => void;
-  onUnblock: (block: BlockedSlot) => void | Promise<void>;
+  onUnblock: (entry: UnblockEntry) => void | Promise<void>;
 };
 
 export function AgendaUnblockDrawer({
@@ -719,7 +719,7 @@ export function AgendaUnblockDrawer({
                 className="agd-unblock-item__btn"
                 disabled={!allowed || Boolean(unblockingKey)}
                 title={allowed ? 'Quitar bloqueo' : 'Sin permiso para desbloquear'}
-                onClick={() => void onUnblock(block)}
+                onClick={() => void onUnblock(entry)}
               >
                 <Unlock className="h-4 w-4" aria-hidden />
                 {busy ? 'Desbloqueando…' : 'Desbloquear'}

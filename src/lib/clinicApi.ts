@@ -152,6 +152,12 @@ export async function createTreatmentLive(input: {
   return { ok: true as const };
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function scheduleBlockUuid(id: string) {
+  return UUID_RE.test(id) ? id : '';
+}
+
 export async function deleteScheduleBlockLive(input: {
   clinicId: string;
   blockId?: string;
@@ -159,14 +165,11 @@ export async function deleteScheduleBlockLive(input: {
   blockIds?: string[];
 }) {
   const q = new URLSearchParams({ clinicId: input.clinicId });
-  if (input.blockIds?.length) {
-    q.set('ids', input.blockIds.join(','));
-  } else if (input.blockGroupId) {
-    q.set('blockGroupId', input.blockGroupId);
-    if (input.blockId) q.set('id', input.blockId);
-  } else if (input.blockId) {
-    q.set('id', input.blockId);
-  }
+  if (input.blockGroupId) q.set('blockGroupId', input.blockGroupId);
+  const uuidIds = (input.blockIds ?? []).map(scheduleBlockUuid).filter(Boolean);
+  if (uuidIds.length) q.set('ids', uuidIds.join(','));
+  else if (input.blockId && scheduleBlockUuid(input.blockId)) q.set('id', input.blockId);
+  else if (input.blockId) q.set('id', input.blockId);
   const res = await fetch(`/api/schedule/blocks?${q.toString()}`, {
     method: 'DELETE',
     credentials: 'include'

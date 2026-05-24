@@ -27,6 +27,7 @@ import {
 import { blockTargetLabel } from '@/lib/agenda/availability';
 import { canDeleteScheduleBlock } from '@/lib/agenda/blockPermissions';
 import { expandScheduleBlocks, type ScheduleBlockInput } from '@/lib/agenda/scheduleBlockExpand';
+import type { UnblockEntry } from '@/lib/agenda/unblockEntries';
 import { useActiveClinic } from '@/hooks/useActiveClinic';
 import { createAdminAppointment, updateAdminAppointmentStatus } from '@/lib/adminAppointments';
 import { AdminNotificationBell } from './AdminNotificationBell';
@@ -108,7 +109,7 @@ function AgdKpi({
 }
 
 export function AdminAgenda() {
-  const { state, commit, refresh, dataSource } = useDemoStore();
+  const { state, commit, refresh, dataSource, setState } = useDemoStore();
   const scope = useTenant();
   const { setNotice } = useNotice();
   const { staff, loading: staffLoading } = useStaffContext();
@@ -465,28 +466,27 @@ export function AdminAgenda() {
     });
   }
 
-  function blockIdsToRemove(block: BlockedSlot): string[] {
+  function blockIdsToRemove(block: BlockedSlot, groupBlocks?: BlockedSlot[]): string[] {
     const activeClinicId = block.clinicId || clinicId;
-    if (block.blockGroupId) {
-      return state.blockedSlots
-        .filter((b) => b.blockGroupId === block.blockGroupId && b.clinicId === activeClinicId)
-        .map((b) => b.id);
-    }
-    return [block.id];
+    const fromEntry = groupBlocks?.map((b) => b.id) ?? [];
+    const fromState =
+      block.blockGroupId != null
+        ? state.blockedSlots
+            .filter((b) => b.blockGroupId === block.blockGroupId && b.clinicId === activeClinicId)
+            .map((b) => b.id)
+        : [block.id];
+    return [...new Set([...fromEntry, ...fromState])];
   }
 
-  function applyLocalUnblock(block: BlockedSlot) {
-    const ids = blockIdsToRemove(block);
-    if (block.blockGroupId) {
-      commit(removeScheduleBlockGroup(state, block.blockGroupId));
-    } else if (ids.length > 1) {
-      commit(removeScheduleBlocksByIds(state, ids));
-    } else {
-      commit(removeBlockedSlot(state, block.id));
-    }
+  function applyLocalUnblock(block: BlockedSlot, ids: string[]) {
+    setState((prev) => {
+      if (block.blockGroupId) return removeScheduleBlockGroup(prev, block.blockGroupId);
+      if (ids.length > 1) return removeScheduleBlocksByIds(prev, ids);
+      return removeBlockedSlot(prev, block.id);
+    });
   }
 
-  async function removeBlock(block: BlockedSlot) {
+  async function removeBlock(block: BlockedSlot, groupBlocks?: BlockedSlot[]) {
     if (!canDeleteBlock(block)) {
       setNotice({ type: 'error', message: 'No tienes permiso para eliminar este bloqueo en esta sede.' });
       return;
@@ -496,7 +496,7 @@ export function AdminAgenda() {
     setUnblockingKey(entryKey);
 
     const activeClinicId = block.clinicId || clinicId;
-    const ids = blockIdsToRemove(block);
+    const ids = blockIdsToRemove(block, groupBlocks);
 
     try {
       if (!isClientDemoMode()) {
@@ -510,10 +510,10 @@ export function AdminAgenda() {
           setNotice({ type: 'error', message: live.message });
           return;
         }
-        applyLocalUnblock(block);
+        applyLocalUnblock(block, ids);
         await refresh();
       } else {
-        applyLocalUnblock(block);
+        applyLocalUnblock(block, ids);
       }
 
       setDetailBlock(null);
@@ -525,6 +525,10 @@ export function AdminAgenda() {
     } finally {
       setUnblockingKey(null);
     }
+  }
+
+  function removeBlockEntry(entry: UnblockEntry) {
+    return removeBlock(entry.representative, entry.blocks);
   }
 
   function canDeleteBlock(block: BlockedSlot) {
@@ -877,7 +881,7 @@ export function AdminAgenda() {
         canDelete={canDeleteBlock}
         unblockingKey={unblockingKey}
         onClose={() => setUnblockOpen(false)}
-        onUnblock={(block) => removeBlock(block)}
+        onUnblock={(entry) => void removeBlockEntry(entry)}
       />
 
       <AgendaBlockDrawer
@@ -957,7 +961,12 @@ export function AdminAgenda() {
         onClose={() => setDetailBlock(null)}
         onRemove={() => {
           if (!detailBlock) return;
-          void removeBlock(detailBlock);
+          void removeBlock(
+            detailBlock,
+            detailBlock.blockGroupId
+              ? state.blockedSlots.filter((b) => b.blockGroupId === detailBlock.blockGroupId)
+              : undefined
+          );
         }}
       />
 
