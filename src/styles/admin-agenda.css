@@ -1738,6 +1738,19 @@
   color: #94a3b8;
 }
 
+.agd-unblock-item--denied {
+  border-color: #fecaca;
+  background: #fff7f7;
+}
+
+.agd-unblock-item__denial {
+  margin: 0.45rem 0 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #b91c1c;
+}
+
 .agd-unblock-item__btn {
   flex-shrink: 0;
   white-space: nowrap;

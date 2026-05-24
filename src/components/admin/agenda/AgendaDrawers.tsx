@@ -609,6 +609,8 @@ type UnblockDrawerProps = {
   dentistFilter: string;
   ownAgenda: boolean;
   canDelete: (block: BlockedSlot) => boolean;
+  deleteDenialReason?: (block: BlockedSlot) => string | null;
+  onDeleteDenied?: (message: string) => void;
   unblockingKey?: string | null;
   onClose: () => void;
   onUnblock: (entry: UnblockEntry) => void | Promise<void>;
@@ -623,6 +625,8 @@ export function AgendaUnblockDrawer({
   dentistFilter,
   ownAgenda,
   canDelete,
+  deleteDenialReason,
+  onDeleteDenied,
   unblockingKey = null,
   onClose,
   onUnblock
@@ -702,27 +706,39 @@ export function AgendaUnblockDrawer({
             entry.dayCount > 1
               ? `${fmtDate(entry.dateFrom)} → ${fmtDate(entry.dateTo)} (${entry.dayCount} días)`
               : fmtDate(entry.dateFrom);
-          const allowed = canDelete(block);
+          const denial = deleteDenialReason?.(block) ?? (canDelete(block) ? null : 'No tienes permiso para desbloquear este horario.');
+          const allowed = !denial;
           const busy = unblockingKey === entry.key;
 
+          function tryUnblock() {
+            if (busy) return;
+            if (denial) {
+              onDeleteDenied?.(denial);
+              return;
+            }
+            void onUnblock(entry);
+          }
+
           return (
-            <li key={entry.key} className="agd-unblock-item">
+            <li key={entry.key} className={`agd-unblock-item${!allowed ? ' agd-unblock-item--denied' : ''}`}>
               <div className="agd-unblock-item__main">
                 <p className="agd-unblock-item__date">{period}</p>
                 <p className="agd-unblock-item__time">{formatUnblockTime(block)}</p>
                 <p className="agd-unblock-item__pro">{target}</p>
                 <p className="agd-unblock-item__reason">{block.reason}</p>
+                {!allowed ? <p className="agd-unblock-item__denial">{denial}</p> : null}
               </div>
               <Button
                 type="button"
-                tone="secondary"
+                tone={allowed ? 'secondary' : 'ghost'}
                 className="agd-unblock-item__btn"
-                disabled={!allowed || Boolean(unblockingKey)}
-                title={allowed ? 'Quitar bloqueo' : 'Sin permiso para desbloquear'}
-                onClick={() => void onUnblock(entry)}
+                disabled={busy}
+                title={allowed ? 'Quitar bloqueo' : denial ?? 'Sin permiso'}
+                aria-disabled={!allowed}
+                onClick={tryUnblock}
               >
                 <Unlock className="h-4 w-4" aria-hidden />
-                {busy ? 'Desbloqueando…' : 'Desbloquear'}
+                {busy ? 'Desbloqueando…' : allowed ? 'Desbloquear' : 'Sin permiso'}
               </Button>
             </li>
           );
@@ -743,13 +759,17 @@ export function AgendaBlockDetailDrawer({
   onClose,
   onRemove,
   groupDayCount,
-  canRemove = true
+  canRemove = true,
+  removeDenialReason = null,
+  onRemoveDenied
 }: {
   open: boolean;
   block: BlockedSlot | null;
   targetLabel: string;
   groupDayCount?: number;
   canRemove?: boolean;
+  removeDenialReason?: string | null;
+  onRemoveDenied?: (message: string) => void;
   onClose: () => void;
   onRemove: () => void;
 }) {
@@ -761,11 +781,23 @@ export function AgendaBlockDetailDrawer({
       <Button tone="ghost" type="button" onClick={onClose}>
         Cerrar
       </Button>
-      {canRemove ? (
-        <Button type="button" className="agd-drawer__primary agd-drawer__primary--danger" onClick={onRemove}>
-          Eliminar bloqueo
-        </Button>
-      ) : null}
+      <Button
+        type="button"
+        className="agd-drawer__primary agd-drawer__primary--danger"
+        onClick={() => {
+          if (removeDenialReason) {
+            onRemoveDenied?.(removeDenialReason);
+            return;
+          }
+          if (!canRemove) {
+            onRemoveDenied?.('No tienes permiso para eliminar este bloqueo.');
+            return;
+          }
+          onRemove();
+        }}
+      >
+        {canRemove ? 'Eliminar bloqueo' : 'Sin permiso para desbloquear'}
+      </Button>
     </>
   );
 
@@ -802,6 +834,11 @@ export function AgendaBlockDetailDrawer({
           </div>
         ) : null}
       </dl>
+      {removeDenialReason ? (
+        <p className="agd-unblock-item__denial mt-3" role="alert">
+          {removeDenialReason}
+        </p>
+      ) : null}
     </AgendaDrawerShell>
   );
 }

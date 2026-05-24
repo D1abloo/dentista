@@ -25,7 +25,7 @@ import {
   saveScheduleBlocks
 } from '@/lib/demoStore';
 import { blockTargetLabel } from '@/lib/agenda/availability';
-import { canDeleteScheduleBlock } from '@/lib/agenda/blockPermissions';
+import { canDeleteScheduleBlock, scheduleBlockDeleteDenialReason } from '@/lib/agenda/blockPermissions';
 import { expandScheduleBlocks, type ScheduleBlockInput } from '@/lib/agenda/scheduleBlockExpand';
 import type { UnblockEntry } from '@/lib/agenda/unblockEntries';
 import { useActiveClinic } from '@/hooks/useActiveClinic';
@@ -486,9 +486,28 @@ export function AdminAgenda() {
     });
   }
 
+  const blockDeleteOptions = useMemo(
+    () => ({
+      ownAgenda,
+      dentistId: staff?.dentistId ?? dentistId,
+      assignedClinicIds: staff?.assignedClinicIds,
+      staffLoading
+    }),
+    [ownAgenda, staff?.dentistId, staff?.assignedClinicIds, dentistId, staffLoading]
+  );
+
+  function denialReasonForBlock(block: BlockedSlot) {
+    return scheduleBlockDeleteDenialReason(staff, block, blockDeleteOptions);
+  }
+
+  function notifyUnblockDenied(message: string) {
+    setNotice({ type: 'error', message });
+  }
+
   async function removeBlock(block: BlockedSlot, groupBlocks?: BlockedSlot[]) {
-    if (!canDeleteBlock(block)) {
-      setNotice({ type: 'error', message: 'No tienes permiso para eliminar este bloqueo en esta sede.' });
+    const denial = denialReasonForBlock(block);
+    if (denial) {
+      notifyUnblockDenied(denial);
       return;
     }
 
@@ -497,6 +516,12 @@ export function AdminAgenda() {
 
     const activeClinicId = block.clinicId || clinicId;
     const ids = blockIdsToRemove(block, groupBlocks);
+
+    if (!isClientDemoMode() && !ids.length) {
+      notifyUnblockDenied('No se pudo identificar el bloqueo. Recarga la agenda e inténtalo de nuevo.');
+      setUnblockingKey(null);
+      return;
+    }
 
     try {
       if (!isClientDemoMode()) {
@@ -507,7 +532,11 @@ export function AdminAgenda() {
           blockId: block.id
         });
         if (!live.ok) {
-          setNotice({ type: 'error', message: live.message });
+          const msg =
+            live.message?.includes('No se encontraron') || live.message?.includes('404')
+              ? 'No se pudo quitar el bloqueo en el servidor. Recarga la página (F5) y vuelve a intentarlo.'
+              : live.message || 'No se pudo desbloquear el horario.';
+          notifyUnblockDenied(msg);
           return;
         }
         applyLocalUnblock(block, ids);
@@ -532,14 +561,11 @@ export function AdminAgenda() {
   }
 
   function canDeleteBlock(block: BlockedSlot) {
-    return canDeleteScheduleBlock(staff, block, {
-      ownAgenda,
-      dentistId: staff?.dentistId ?? dentistId,
-      assignedClinicIds: staff?.assignedClinicIds
-    });
+    return canDeleteScheduleBlock(staff, block, blockDeleteOptions);
   }
 
   const canRemoveDetailBlock = detailBlock ? canDeleteBlock(detailBlock) : false;
+  const detailBlockDenial = detailBlock ? denialReasonForBlock(detailBlock) : null;
 
   function selectClinic(nextId: string) {
     setClinicId(nextId);
@@ -879,6 +905,8 @@ export function AdminAgenda() {
         dentistFilter={dentistId}
         ownAgenda={ownAgenda}
         canDelete={canDeleteBlock}
+        deleteDenialReason={denialReasonForBlock}
+        onDeleteDenied={notifyUnblockDenied}
         unblockingKey={unblockingKey}
         onClose={() => setUnblockOpen(false)}
         onUnblock={(entry) => void removeBlockEntry(entry)}
@@ -958,6 +986,8 @@ export function AdminAgenda() {
             : ''
         }
         canRemove={canRemoveDetailBlock}
+        removeDenialReason={detailBlockDenial}
+        onRemoveDenied={notifyUnblockDenied}
         onClose={() => setDetailBlock(null)}
         onRemove={() => {
           if (!detailBlock) return;
