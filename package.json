@@ -8,6 +8,8 @@
     "dev": "astro dev",
     "build": "astro check && astro build",
     "vercel-build": "astro build && node scripts/verify-vercel-output.mjs && node scripts/sync-dist-for-vercel.mjs",
+    "build:vps": "astro build --config deploy/vps/astro.config.mjs",
+    "start:vps": "node dist/server/entry.mjs",
     "preview": "astro preview --host 0.0.0.0",
     "check": "astro check && npm run lint:light",
     "lint:light": "node scripts/lint-light.mjs",
@@ -49,6 +51,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",
+    "@astrojs/node": "^9.5.5",
     "@types/node": "^22.10.7",
     "@types/nodemailer": "^8.0.0",
     "@types/react": "^19.0.7",

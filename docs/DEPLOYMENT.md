@@ -1,5 +1,11 @@
 # Ejecución y publicación
 
+## VPS Linux + dominio propio
+
+Guía completa (nginx, HTTPS, systemd, Supabase): **[DEPLOY_VPS_LINUX.md](./DEPLOY_VPS_LINUX.md)**.
+
+Resumen: `npm install @astrojs/node` → configurar `.env` → `npm run build:vps` → `npm run start:vps` detrás de nginx.
+
 ## Desarrollo local
 
 ```bash

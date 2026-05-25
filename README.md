@@ -124,6 +124,8 @@ git push origin main
 
 **Producción (Vercel):** `PUBLIC_DEMO_MODE=false` — modo **LIVE** (login con email/contraseña, cookie de sesión, sin auto-login paciente).
 
+**Producción (VPS Linux + dominio):** guía paso a paso en [`docs/DEPLOY_VPS_LINUX.md`](docs/DEPLOY_VPS_LINUX.md) (`npm run build:vps`, nginx, HTTPS).
+
 **Desarrollo demo:** `PUBLIC_DEMO_MODE=true` — botones de acceso rápido y `localStorage` (`dentista_role`, etc.). Los paneles y API siguen usando datos de muestra; con Supabase configurado también se puede persistir en `demo_app_state`.
 
 ### Vinculación admin ↔ paciente (modo demo)
