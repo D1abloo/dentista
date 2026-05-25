@@ -74,8 +74,10 @@ function safeEquals(left: string, right: string) {
   return leftBytes.length === rightBytes.length && timingSafeEqual(leftBytes, rightBytes);
 }
 
-export function createSessionToken(user: Omit<SessionUser, 'expiresAt'>) {
-  const payload = toBase64Url(JSON.stringify({ ...user, expiresAt: Date.now() + 1000 * 60 * 60 * 8 }));
+export function createSessionToken(user: Omit<SessionUser, 'expiresAt'>, maxAgeSec = 60 * 60 * 8) {
+  const payload = toBase64Url(
+    JSON.stringify({ ...user, expiresAt: Date.now() + Math.max(60, maxAgeSec) * 1000 })
+  );
   return `${payload}.${sign(payload)}`;
 }
 

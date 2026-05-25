@@ -1,7 +1,12 @@
+export { okWithCookies } from '@/lib/auth/cookieResponse';
+
 export function ok<T>(data: T, meta: Record<string, unknown> = {}) {
   return new Response(JSON.stringify({ data, error: null, meta }), {
     status: 200,
-    headers: { 'content-type': 'application/json; charset=utf-8' }
+    headers: {
+      'content-type': 'application/json; charset=utf-8',
+      'cache-control': 'private, no-store, no-cache, must-revalidate'
+    }
   });
 }
 

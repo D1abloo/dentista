@@ -14,6 +14,7 @@ export type SessionUser = {
   clinicId?: string;
   tenantId?: string;
   patientId?: string;
+  staffRole?: string;
   mustChangePassword?: boolean;
   passwordExpired?: boolean;
   platformInspect?: boolean;
@@ -73,7 +74,11 @@ function redirectAfterLogin(user: SessionUser): string {
     if (next && isSafeInternalPath(next)) {
       if (isPatientPortalPath(next)) return next;
       if (user.role === 'super_admin' && next.startsWith('/platform')) return next;
-      if (next.startsWith('/admin') && (user.role === 'admin' || user.role === 'super_admin')) return next;
+      if (next.startsWith('/admin')) {
+        if (user.role === 'admin' || user.role === 'super_admin') return next;
+        const staffRole = user.staffRole ?? user.role;
+        if (['owner', 'clinic_admin', 'dentist', 'receptionist'].includes(staffRole)) return next;
+      }
       if (user.role === 'patient') return next;
     }
   }

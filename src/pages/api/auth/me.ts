@@ -8,5 +8,5 @@ export const GET: APIRoute = async ({ cookies }) => {
   const user = getSessionUser(cookies);
   if (!user) return fail('No autenticado.', 401);
   const effective = getEffectiveSessionUser(cookies) ?? user;
-  return ok(effective);
+  return ok(effective, { authenticated: true });
 };

@@ -2,7 +2,8 @@ import type { APIRoute } from 'astro';
 import { createSessionToken, sessionCookieName } from '@/lib/auth';
 import { applyAdminPanelGateCookie } from '@/lib/auth/adminPanelGate';
 import { requireStaffSession } from '@/lib/api/guards';
-import { fail, ok } from '@/lib/http';
+import { isCookieSecure, okWithCookies } from '@/lib/auth/cookieResponse';
+import { fail } from '@/lib/http';
 import { logError } from '@/lib/logger';
 import { switchSessionToClinic } from '@/lib/services/clinicSwitch';
 import { switchClinicSchema } from '@/lib/validators';
@@ -24,16 +25,17 @@ export const POST: APIRoute = async (context) => {
     if (!nextUser) return fail('No tienes acceso a ese centro clínico.', 403);
 
     const maxAge = 60 * 60 * SESSION_HOURS;
-    context.cookies.set(sessionCookieName, createSessionToken(nextUser), {
+    context.cookies.set(sessionCookieName, createSessionToken(nextUser, maxAge), {
       httpOnly: true,
       sameSite: 'lax',
-      secure: import.meta.env.PROD,
+      secure: isCookieSecure(),
       path: '/',
       maxAge
     });
     applyAdminPanelGateCookie(context.cookies, maxAge);
 
-    return ok(
+    return okWithCookies(
+      context.cookies,
       {
         ...nextUser,
         clinicId: nextUser.clinicId,

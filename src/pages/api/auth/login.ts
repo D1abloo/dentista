@@ -12,7 +12,8 @@ import {
   loginSuperAdminOnly
 } from '@/lib/auth/platformLoginFlow';
 import { AccountNotActivatedError } from '@/lib/auth/accountErrors';
-import { fail, ok } from '@/lib/http';
+import { isCookieSecure, okWithCookies } from '@/lib/auth/cookieResponse';
+import { fail } from '@/lib/http';
 import { logError } from '@/lib/logger';
 import { auditAuthFailure, auditAuthSuccess } from '@/lib/audit/authAudit';
 import { loginSchema } from '@/lib/validators';
@@ -28,10 +29,10 @@ function setSessionCookie(
   maxAge: number,
   grantAdminGate = false
 ) {
-  cookies.set(sessionCookieName, createSessionToken(user), {
+  cookies.set(sessionCookieName, createSessionToken(user, maxAge), {
     httpOnly: true,
     sameSite: 'lax',
-    secure: import.meta.env.PROD,
+    secure: isCookieSecure(),
     path: '/',
     maxAge
   });
@@ -92,7 +93,7 @@ export const POST: APIRoute = async (context) => {
 
       setSessionCookie(cookies, user, maxAge);
 
-      return ok(user, { message: 'Sesión iniciada correctamente.' });
+      return okWithCookies(cookies, user, { message: 'Sesión iniciada correctamente.' });
     }
 
     if (parsed.data.role === 'admin') {
@@ -156,9 +157,10 @@ export const POST: APIRoute = async (context) => {
             route: '/login/admin'
           });
           setSessionCookie(cookies, completed, maxAge, true);
-          return ok(completed, { message: 'Sesión iniciada correctamente.' });
+          return okWithCookies(cookies, completed, { message: 'Sesión iniciada correctamente.' });
         }
-        return ok(
+        return okWithCookies(
+          cookies,
           {
             choosePortal: true,
             email: user.email,
@@ -185,7 +187,7 @@ export const POST: APIRoute = async (context) => {
 
       setSessionCookie(cookies, user, maxAge, true);
 
-      return ok(user, { message: 'Sesión iniciada correctamente.' });
+      return okWithCookies(cookies, user, { message: 'Sesión iniciada correctamente.' });
     }
 
     let user;
@@ -216,7 +218,8 @@ export const POST: APIRoute = async (context) => {
     }
 
     if (isPortalChoiceLogin(user)) {
-      return ok(
+      return okWithCookies(
+        cookies,
         {
           choosePortal: true,
           email: user.email,
@@ -240,7 +243,7 @@ export const POST: APIRoute = async (context) => {
 
     setSessionCookie(cookies, user, maxAge, isClinicPanelUser(user));
 
-    return ok(user, { message: 'Sesión iniciada correctamente.' });
+    return okWithCookies(cookies, user, { message: 'Sesión iniciada correctamente.' });
   } catch (error) {
     logError('auth.login', error);
     return fail('No se pudo iniciar sesión. Inténtalo de nuevo.', 500, error instanceof Error ? error.message : error);

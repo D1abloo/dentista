@@ -58,12 +58,34 @@ export function AdminLoginPage() {
   }, []);
 
   useEffect(() => {
-    void fetch('/api/auth/me', { credentials: 'include' })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j: { data?: { role?: string; clinicId?: string } } | null) => {
-        if (j?.data?.role === 'super_admin' && !j.data.clinicId) setPlatformSession(true);
-      })
-      .catch(() => undefined);
+    void (async () => {
+      try {
+        const r = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
+        if (!r.ok) return;
+        const j = (await r.json()) as { data?: { role?: string; clinicId?: string; staffRole?: string } };
+        const data = j.data;
+        if (!data?.role) return;
+        if (data.role === 'super_admin' && !data.clinicId) {
+          setPlatformSession(true);
+          return;
+        }
+        const staffRole = data.staffRole ?? data.role;
+        const isClinicStaff =
+          data.role === 'admin' ||
+          (data.role === 'super_admin' && Boolean(data.clinicId)) ||
+          ['owner', 'clinic_admin', 'dentist', 'receptionist'].includes(staffRole);
+        if (!isClinicStaff) return;
+
+        const params = new URLSearchParams(window.location.search);
+        const next = params.get('next');
+        const dest =
+          next && next.startsWith('/admin') ? next : '/admin/elegir-centro?auto=1';
+        await ensureAdminAccessBeforeRedirect(dest);
+        window.location.replace(dest);
+      } catch {
+        /* sin sesión previa */
+      }
+    })();
   }, []);
 
   useEffect(() => {
@@ -103,13 +125,25 @@ export function AdminLoginPage() {
     }
   }
 
-  function redirectAfterSuccess(dest: string) {
+  async function redirectAfterSuccess(dest: string) {
     setSuccess(true);
-    window.setTimeout(() => {
-      void ensureAdminAccessBeforeRedirect(dest).finally(() => {
-        window.location.href = dest;
-      });
-    }, 480);
+    setError('');
+    await ensureAdminAccessBeforeRedirect(dest);
+    try {
+      const me = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
+      if (!me.ok) {
+        setSuccess(false);
+        setError(
+          'La sesión no se guardó en el navegador. Comprueba que las cookies estén permitidas e inténtalo de nuevo.'
+        );
+        return;
+      }
+    } catch {
+      setSuccess(false);
+      setError('No se pudo verificar la sesión. Comprueba tu conexión e inténtalo de nuevo.');
+      return;
+    }
+    window.location.replace(dest);
   }
 
   async function submit(e: React.FormEvent) {

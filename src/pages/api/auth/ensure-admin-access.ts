@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { applyAdminPanelGateCookie, hasClinicPanelSession } from '@/lib/auth/adminPanelGate';
-import { fail, ok } from '@/lib/http';
+import { okWithCookies } from '@/lib/auth/cookieResponse';
+import { fail } from '@/lib/http';
 
 export const prerender = false;
 
@@ -13,5 +14,5 @@ export const POST: APIRoute = async ({ cookies }) => {
   }
   const maxAge = 60 * 60 * SESSION_HOURS;
   applyAdminPanelGateCookie(cookies, maxAge);
-  return ok({ granted: true });
+  return okWithCookies(cookies, { granted: true });
 };

@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { getEffectiveSessionUser, type SessionUser } from '@/lib/auth';
+import { isCookieSecure } from '@/lib/auth/cookieResponse';
 import { enrichDualRoleClinicSession } from '@/lib/auth/dualRoleClinic';
 
 const STAFF_ROLES = new Set(['clinic_admin', 'admin', 'owner', 'dentist', 'receptionist']);
@@ -117,7 +118,7 @@ export function applyAdminPanelGateCookie(cookies: CookieWriter, maxAge = GATE_M
   cookies.set(adminPanelGateCookieName, createAdminPanelGateCookie(), {
     httpOnly: true,
     sameSite: 'lax',
-    secure: import.meta.env.PROD,
+    secure: isCookieSecure(),
     path: '/',
     maxAge
   });

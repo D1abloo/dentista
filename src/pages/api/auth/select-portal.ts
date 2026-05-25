@@ -4,7 +4,8 @@ import { applyAdminPanelGateCookie, isClinicPanelUser } from '@/lib/auth/adminPa
 import { AccountNotActivatedError } from '@/lib/auth/accountErrors';
 import { completePortalLogin } from '@/lib/auth/loginComplete';
 import { getIdentityFromSession } from '@/lib/auth/portalChoices';
-import { fail, ok } from '@/lib/http';
+import { isCookieSecure, okWithCookies } from '@/lib/auth/cookieResponse';
+import { fail } from '@/lib/http';
 import { logError } from '@/lib/logger';
 import { resolvePortalSwitchDestination } from '@/lib/services/clinicSwitch';
 import { hasSupabaseConfig } from '@/lib/supabaseServer';
@@ -39,10 +40,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     if (!sessionUser) return fail('No tienes acceso a ese portal.', 403);
 
     const maxAge = 60 * 60 * SESSION_HOURS;
-    cookies.set(sessionCookieName, createSessionToken(sessionUser), {
+    cookies.set(sessionCookieName, createSessionToken(sessionUser, maxAge), {
       httpOnly: true,
       sameSite: 'lax',
-      secure: import.meta.env.PROD,
+      secure: isCookieSecure(),
       path: '/',
       maxAge
     });
@@ -52,7 +53,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     const redirect = await resolvePortalSwitchDestination(sessionUser);
-    return ok({ redirect }, { message: 'Portal seleccionado.' });
+    return okWithCookies(cookies, { redirect }, { message: 'Portal seleccionado.' });
   } catch (error) {
     logError('auth.select-portal', error);
     return fail('No se pudo cambiar de portal.', 500);
