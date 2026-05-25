@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { scrollToSection } from '@/lib/publicScroll';
-import { landingTrustLogos } from '@/lib/landing/content';
 import { PublicFooter } from './PublicFooter';
 import { PublicHeader } from './PublicHeader';
 import { CookieBanner } from './CookieBanner';
 import { LandingAccessPlatformSection } from './LandingAccessPlatformSection';
 import { LandingHeroSection } from './LandingHeroSection';
 import { LandingMobileShowcase } from './LandingMobileShowcase';
+import { LandingClosingSection } from './landingClosing/LandingClosingSection';
 import { LandingPricingExperienceSection } from './landingProduct/LandingPricingExperienceSection';
 import { LandingProductExperienceSection } from './landingProduct/LandingProductExperienceSection';
 import { ProAccessForm, type ProPlan } from './ProAccessForm';
@@ -52,39 +52,7 @@ export function LandingPage() {
         <LandingProductExperienceSection />
         <LandingPricingExperienceSection onRequestDemo={openDemo} />
 
-        <section className="ps-trust ps-shell" aria-label="Clínicas que confían">
-          <p className="ps-trust__label">Clínicas que confían en Dentista+</p>
-          <ul className="ps-trust__logos">
-            {landingTrustLogos.map((logo) => (
-              <li key={logo.name}>
-                <span className="ps-trust__mark" aria-hidden>
-                  {logo.short.slice(0, 1)}
-                </span>
-                <span>{logo.name}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section className="ps-cta ps-shell" aria-labelledby="ps-cta-title">
-          <div className="ps-cta__panel">
-            <div className="ps-cta__copy">
-              <h2 id="ps-cta-title">Digitaliza la gestión de tu clínica</h2>
-              <p>
-                Portal privado para pacientes, panel clínico para tu equipo y operaciones conectadas en un entorno
-                seguro.
-              </p>
-              <div className="ps-cta__actions">
-                <button type="button" className="ps-btn ps-btn--primary" onClick={() => openDemo()}>
-                  Solicitar demo
-                </button>
-                <a href="/portal-paciente" className="ps-btn ps-btn--outline ps-cta__portal-link">
-                  Portal del paciente
-                </a>
-              </div>
-            </div>
-          </div>
-        </section>
+        <LandingClosingSection onRequestDemo={() => openDemo('pro_clinica')} />
 
         <div id="contacto-pro" className="ps-demo-anchor" tabIndex={-1} aria-hidden={!demoOpen} />
       </main>
