@@ -665,7 +665,7 @@ export function PlatformClinics() {
         {toast ? <div className={`cln-toast cln-toast--${toast.type === 'ok' ? 'ok' : 'err'}`}>{toast.text}</div> : null}
 
         <footer className="cln-footer">
-          <span>Dentista+ Super Admin v2.0.0</span>
+          <span>AgendaClinic Super Admin v2.0.0</span>
         </footer>
       </div>
     </PlatformShell>

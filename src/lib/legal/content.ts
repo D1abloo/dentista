@@ -1,5 +1,5 @@
 export const LEGAL_ENTITY = {
-  appName: 'Dentista+',
+  appName: 'AgendaClinic',
   operator: 'Estructura Web',
   email: 'info@estructuraweb.es',
   web: 'https://dentista.app',
@@ -28,7 +28,7 @@ export const privacySections: LegalSection[] = [
     title: '2. Ámbito de aplicación',
     paragraphs: [
       'Esta política aplica a visitantes del sitio web, pacientes que usan el portal del paciente, personal de clínicas que accede al panel de administración, solicitantes de alta de clínica y usuarios del panel de plataforma (super administración).',
-      'Cada clínica adherida actúa como responsable independiente respecto a los datos clínicos de sus pacientes. Dentista+ facilita la infraestructura tecnológica con aislamiento por clínica (multi-tenant).'
+      'Cada clínica adherida actúa como responsable independiente respecto a los datos clínicos de sus pacientes. AgendaClinic facilita la infraestructura tecnológica con aislamiento por clínica (multi-tenant).'
     ]
   },
   {
@@ -136,7 +136,7 @@ export const termsSections: LegalSection[] = [
     id: 'definiciones',
     title: '2. Definiciones',
     list: [
-      'Plataforma: el software Dentista+, APIs y paneles web asociados.',
+      'Plataforma: el software AgendaClinic, APIs y paneles web asociados.',
       'Clínica o Tenant: organización dental con panel aislado y datos propios.',
       'Usuario staff: personal autorizado de la clínica (administración, recepción, odontólogos).',
       'Paciente: usuario del portal del paciente vinculado a una clínica.',
@@ -179,7 +179,7 @@ export const termsSections: LegalSection[] = [
     title: '6. Contenido y datos clínicos',
     paragraphs: [
       'La clínica conserva la titularidad de los datos que introduce. Otorgas a Estructura Web una licencia limitada para alojar, procesar y mostrar dichos datos únicamente para prestar el servicio.',
-      'Dentista+ no sustituye el juicio clínico profesional ni la urgencia presencial. Los recordatorios y mensajes automatizados son auxiliares.'
+      'AgendaClinic no sustituye el juicio clínico profesional ni la urgencia presencial. Los recordatorios y mensajes automatizados son auxiliares.'
     ]
   },
   {
@@ -202,7 +202,7 @@ export const termsSections: LegalSection[] = [
     id: 'propiedad',
     title: '9. Propiedad intelectual',
     paragraphs: [
-      'El software, diseño, marca Dentista+ y documentación son propiedad de Estructura Web o sus licenciantes. No se concede ningún derecho más allá del uso contratado.',
+      'El software, diseño, marca AgendaClinic y documentación son propiedad de Estructura Web o sus licenciantes. No se concede ningún derecho más allá del uso contratado.',
       'No está permitido copiar, modificar o redistribuir el código salvo acuerdo escrito.'
     ]
   },
@@ -259,7 +259,7 @@ export const cookiesSections: LegalSection[] = [
     title: '1. ¿Qué son las cookies?',
     paragraphs: [
       'Las cookies son pequeños archivos que el sitio o la aplicación almacenan en tu dispositivo. También usamos tecnologías similares (localStorage) para recordar preferencias y mantener la sesión.',
-      'En Dentista+ priorizamos cookies técnicas necesarias para el funcionamiento. Las cookies analíticas o de marketing solo se activarán si las aceptas expresamente cuando estén disponibles.'
+      'En AgendaClinic priorizamos cookies técnicas necesarias para el funcionamiento. Las cookies analíticas o de marketing solo se activarán si las aceptas expresamente cuando estén disponibles.'
     ]
   },
   {
@@ -277,8 +277,8 @@ export const cookiesSections: LegalSection[] = [
     id: 'tabla',
     title: '3. Detalle de cookies y almacenamiento',
     list: [
-      'df_session — Cookie — Duración: sesión (8 h máx.) — Finalidad: autenticación staff/paciente/super admin — Proveedor: Dentista+',
-      'dentista_cookies — localStorage — Duración: persistente hasta borrado — Finalidad: preferencia aceptar/rechazar cookies — Proveedor: Dentista+',
+      'df_session — Cookie — Duración: sesión (8 h máx.) — Finalidad: autenticación staff/paciente/super admin — Proveedor: AgendaClinic',
+      'dentista_cookies — localStorage — Duración: persistente hasta borrado — Finalidad: preferencia aceptar/rechazar cookies — Proveedor: AgendaClinic',
       'dentista_tenant_id / dentista_role — localStorage — Solo modo demostración local — Finalidad: simular acceso multi-tenant en desarrollo',
       'Cookies de Supabase Auth — Cookie — Finalidad: tokens de autenticación cuando inicias sesión con proveedor — Proveedor: Supabase'
     ],

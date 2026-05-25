@@ -72,7 +72,7 @@ export function HelpDocsPage() {
   return (
     <div className="help-docs">
       <header className="help-docs__intro shell">
-        <h1>Guía detallada Dentista+</h1>
+        <h1>Guía detallada AgendaClinic</h1>
         <p>
           Documentación del portal del paciente y del panel de clínica: capturas, pasos, requisitos y
           advertencias para el día a día.

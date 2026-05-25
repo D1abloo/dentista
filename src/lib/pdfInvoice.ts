@@ -42,7 +42,7 @@ export async function generateInvoicePdfFile(
     '',
     `Estado: ${invoice.status}`,
     '',
-    'Documento generado por Dentista+ · Valido como factura simplificada demo.'
+    'Documento generado por AgendaClinic · Valido como factura simplificada demo.'
   ].filter(Boolean);
 
   const pdfBytes = buildMinimalPdf(lines);

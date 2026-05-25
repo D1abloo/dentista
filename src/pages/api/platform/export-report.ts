@@ -17,7 +17,7 @@ export const GET: APIRoute = async (context) => {
   const dash = buildPlatformDashboard(overview, { useDemo: !overview });
 
   const lines = [
-    'Informe plataforma Dentista+',
+    'Informe plataforma AgendaClinic',
     `Periodo: ultimos ${range} dias`,
     `Generado: ${new Date().toISOString()}`,
     '',

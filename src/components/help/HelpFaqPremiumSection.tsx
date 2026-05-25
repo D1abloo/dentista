@@ -114,7 +114,7 @@ export function HelpFaqPremiumSection({ onViewAll, showViewAll = true, seoLead =
         <h2 id="help-faq-section-title">Preguntas frecuentes</h2>
         {seoLead ? (
           <p className="help-faq-premium__seo">
-            Preguntas frecuentes Dentista+: ayuda del portal paciente dental, soporte para clínicas
+            Preguntas frecuentes AgendaClinic: ayuda del portal paciente dental, soporte para clínicas
             dentales, reservar cita dental online, informes odontológicos, facturación dental y
             consentimiento dental digital.
           </p>

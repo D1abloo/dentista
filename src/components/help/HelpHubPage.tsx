@@ -34,6 +34,7 @@ import {
 } from '@/lib/guide/hubCatalog';
 import { helpFaqHubPatient, searchHubFaqs } from '@/lib/guide/helpFaqPremium';
 import { helpAudiences, sectionThumb, type HelpAudience } from '@/lib/guide/catalog';
+import { brandImageAlts, brandImages } from '@/lib/brand/assets';
 import type { GuideSection } from '@/lib/guide/types';
 
 const AUDIENCE_ICONS = {
@@ -264,7 +265,7 @@ export function HelpHubPage() {
             <BookOpen className="h-4 w-4" aria-hidden />
             Centro de ayuda
           </p>
-          <h1 id="help-hero-title">Centro de ayuda Dentista+</h1>
+          <h1 id="help-hero-title">Centro de ayuda AgendaClinic</h1>
           <p className="help-hub-v2__hero-lead">
             Encuentra guías, respuestas y documentación para pacientes, clínicas y administradores. Ayuda sobre el
             portal paciente dental, reservar citas online, informes odontológicos, facturación dental y consentimiento
@@ -282,6 +283,16 @@ export function HelpHubPage() {
               Buscar
             </button>
           </label>
+          <figure className="help-hub-v2__hero-visual" aria-hidden>
+            <img
+              src={brandImages.doctor}
+              alt={brandImageAlts.doctor}
+              loading="lazy"
+              decoding="async"
+              width={420}
+              height={320}
+            />
+          </figure>
           {q ? (
             <div className="help-hub-v2__search-results">
               {guideHits.length === 0 && faqHits.length === 0 ? (

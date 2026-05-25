@@ -84,7 +84,7 @@ export function EnterPortalDropdown({ className = '', variant = 'desktop', onNav
         />
       </button>
       {open ? (
-        <div id={menuId} className="ps-enter-dd__menu" role="menu" aria-label="Accesos Dentista+">
+        <div id={menuId} className="ps-enter-dd__menu" role="menu" aria-label="Accesos AgendaClinic">
           {OPTIONS.map((opt) => {
             const Icon = opt.icon;
             return (

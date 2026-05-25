@@ -8,6 +8,6 @@ export function getStaticPaths() {
 
 const { id } = Astro.params;
 ---
-<AppLayout title={`Paciente ${id} · Dentista+`}>
+<AppLayout title={`Paciente ${id} · AgendaClinic`}>
   <AdminApp view="pacientes" patientId={id} client:load />
 </AppLayout>

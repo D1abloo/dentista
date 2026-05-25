@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import { ChevronRight, Eye, EyeOff, Lock, Mail, ShieldCheck } from 'lucide-react';
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
-const HERO_IMAGE = '/images/login-dentista-paciente.jpg';
+import { LogoMark } from '@/components/brand/Logo';
+import { brandImages } from '@/lib/brand/assets';
+import { BRAND_ACCESS_PLATFORM, BRAND_NAME, BRAND_TAGLINE_PLATFORM } from '@/lib/brand/identity';
+
+const HERO_IMAGE = brandImages.citas;
 const REMEMBER_KEY = 'df_platform_remember';
 const REMEMBER_EMAIL_KEY = 'df_platform_remember_email';
 
@@ -111,11 +115,13 @@ export function PlatformLoginPage() {
         <div className="plt-login__hero-overlay" aria-hidden />
         <div className="plt-login__hero-inner">
           <a href="/" className="plt-login__brand">
-            <DentistaWebpLockup placement="header" />
+            <DentistaWebpLockup placement="header" context="platform" />
           </a>
 
           <div className="plt-login__hero-copy">
-            <p className="plt-login__hero-label">Dentista+ · Plataforma</p>
+            <p className="plt-login__hero-label">
+              {BRAND_NAME} · {BRAND_TAGLINE_PLATFORM}
+            </p>
             <h1 className="plt-login__hero-title">
               Gestiona tu plataforma dental <span>desde un solo lugar</span>
             </h1>
@@ -139,11 +145,15 @@ export function PlatformLoginPage() {
         <div className="plt-login__panel-center">
           <div className={`plt-login__card plt-login__card--compact${formError ? ' plt-login__card--error' : ''}`}>
             <header className="plt-login__card-head plt-login__card-head--compact">
-              <span className="plt-login__super-badge">
-                <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
-                Super Admin
-              </span>
-              <h2 className="plt-login__card-title">Acceso plataforma</h2>
+              <LogoMark size={44} />
+              <div>
+                <span className="plt-login__super-badge">
+                  <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
+                  Super Admin
+                </span>
+                <h2 className="plt-login__card-title">{BRAND_ACCESS_PLATFORM}</h2>
+                <p className="plt-login__card-brand">{BRAND_NAME}</p>
+              </div>
             </header>
 
             <form onSubmit={submit} className="plt-login__form" noValidate>
@@ -223,7 +233,7 @@ export function PlatformLoginPage() {
           </div>
 
           <footer className="plt-login__legal plt-login__legal--compact">
-            <span>© {new Date().getFullYear()} Dentista+</span>
+            <span>© {new Date().getFullYear()} {BRAND_NAME}</span>
             <span className="plt-login__legal-links">
               <a href="/terminos">Términos</a>
               <a href="/privacidad">Privacidad</a>

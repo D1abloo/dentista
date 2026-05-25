@@ -1,21 +1,22 @@
 import type { RoleModule } from '@/lib/landing/productExperienceContent';
+import { brandImageAlts, brandImages } from '@/lib/brand/assets';
 
 const IMAGES: Record<RoleModule['illustration'], { src: string; alt: string }> = {
   agenda: {
-    src: '/images/guides/mobile/admin-agenda.png',
-    alt: 'Ilustración de agenda clínica en Dentista+'
+    src: brandImages.citas,
+    alt: brandImageAlts.citas
   },
   report: {
-    src: '/img/informes.webp',
-    alt: 'Ilustración de informes clínicos en Dentista+'
+    src: brandImages.informes,
+    alt: brandImageAlts.informes
   },
   billing: {
-    src: '/images/guides/mobile/admin-facturas.png',
-    alt: 'Ilustración de facturación en Dentista+'
+    src: brandImages.informes,
+    alt: 'Facturación dental en AgendaClinic'
   },
   portal: {
-    src: '/images/guides/mobile/pdp-inicio.png',
-    alt: 'Ilustración del portal del paciente en Dentista+'
+    src: brandImages.inicio,
+    alt: brandImageAlts.inicio
   }
 };
 

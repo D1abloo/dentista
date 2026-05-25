@@ -54,7 +54,7 @@ export function AdminSettings() {
   const [tab, setTab] = useState<SettingsTabId>('general');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showSavedBadge, setShowSavedBadge] = useState(false);
-  const [logoUrl, setLogoUrl] = useState(form.logoUrl ?? '/brand/dentista-logo.svg');
+  const [logoUrl, setLogoUrl] = useState(form.logoUrl ?? '/img/logo.webp');
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoPct, setLogoPct] = useState(0);
   const [allOpen, setAllOpen] = useState(false);
@@ -64,7 +64,7 @@ export function AdminSettings() {
   const primary = form.primaryColor ?? '#2d8b7d';
 
   useEffect(() => {
-    setLogoUrl(form.logoUrl ?? '/brand/dentista-logo.svg');
+    setLogoUrl(form.logoUrl ?? '/img/logo.webp');
   }, [form.logoUrl]);
 
   useEffect(() => {
@@ -146,7 +146,7 @@ export function AdminSettings() {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ clear: true })
       });
-      const fallback = '/brand/dentista-logo.svg';
+      const fallback = '/img/logo.webp';
       setLogoUrl(fallback);
       patch({ logoUrl: fallback });
       setNotice({ type: 'ok', message: 'Logo eliminado.' });
@@ -161,7 +161,7 @@ export function AdminSettings() {
     if (dirty && !window.confirm('¿Descartar los cambios sin guardar?')) return;
     const base = settingsToForm(saved);
     setForm(base);
-    setLogoUrl(base.logoUrl ?? '/brand/dentista-logo.svg');
+    setLogoUrl(base.logoUrl ?? '/img/logo.webp');
     setErrors({});
     setNotice({ type: 'ok', message: 'Cambios descartados.' });
   }

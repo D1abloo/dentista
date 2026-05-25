@@ -412,7 +412,7 @@ export function PatientDashboard() {
       <footer className="ph-footer-bar">
         <span>
           <Lock className="inline h-3.5 w-3.5 mr-1 text-teal-700" aria-hidden />
-          Dentista+ protege tu información y tu privacidad. Si necesitas ayuda, contacta con tu clínica.
+          AgendaClinic protege tu información y tu privacidad. Si necesitas ayuda, contacta con tu clínica.
         </span>
         <a href="/ayuda#portal-paciente" className="ph-help-fab" onClick={() => auditNav('/ayuda#portal-paciente', 'Centro de ayuda')}>
           <HelpCircle className="h-4 w-4" aria-hidden />

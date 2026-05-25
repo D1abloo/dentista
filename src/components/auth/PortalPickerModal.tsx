@@ -18,7 +18,7 @@ const PORTALS = [
   {
     href: '/',
     label: 'Sitio público',
-    desc: 'Volver al inicio de Dentista+',
+    desc: 'Volver al inicio de AgendaClinic',
     icon: Home,
     accent: 'public'
   }

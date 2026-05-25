@@ -5,7 +5,7 @@ const siteUrl = 'https://dentista.app';
 export const landingSoftwareApplicationLd = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
-  name: 'Dentista+',
+  name: 'AgendaClinic',
   applicationCategory: 'MedicalBusinessSoftware',
   operatingSystem: 'Web',
   description:
@@ -22,7 +22,7 @@ export const landingSoftwareApplicationLd = {
 export const landingOrganizationLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
-  name: 'Dentista+',
+  name: 'AgendaClinic',
   url: siteUrl,
   description: 'Plataforma SaaS para digitalización de clínicas dentales.'
 };
@@ -30,7 +30,7 @@ export const landingOrganizationLd = {
 export const landingWebSiteLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  name: 'Dentista+',
+  name: 'AgendaClinic',
   url: siteUrl,
   inLanguage: 'es',
   potentialAction: {

@@ -62,7 +62,7 @@ export async function generateAppointmentCertificatePdf(
     settings.clinicStampUrl ? '[Sello clínica adjunto en versión digital]' : '',
     '',
     `Documento emitido: ${fmtDateTime(new Date().toISOString().slice(0, 10), '12:00')}`,
-    'Documento generado por Dentista+.',
+    'Documento generado por AgendaClinic.',
     'No incluye diagnóstico ni motivo de la consulta.'
   ].filter(Boolean);
 

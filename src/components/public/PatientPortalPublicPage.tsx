@@ -7,7 +7,6 @@ import {
   Eye,
   FileStack,
   FileText,
-  Heart,
   KeyRound,
   Lock,
   MessageSquare,
@@ -18,6 +17,7 @@ import {
   UserCheck
 } from 'lucide-react';
 import { LiveLoginForm } from '@/components/auth/LiveLoginForm';
+import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
 import type { SessionUser } from '@/lib/session';
 import { PatientPortalPhoneMockup } from './PatientPortalPhoneMockup';
 import { PatientPortalRegisterForm } from './PatientPortalRegisterForm';
@@ -155,7 +155,7 @@ export function PatientPortalPublicPage() {
             <aside className="ppp-v2-auth ppp-v2-auth--enter" aria-label="Acceso al portal del paciente">
               <div className="ppp-v2-auth__card">
                 <span className="ppp-v2-auth__eyebrow">
-                  <Heart className="h-3.5 w-3.5" aria-hidden />
+                  <DentistaWebpLockup placement="header" context="patient" showWordmark={false} />
                   Portal del paciente
                 </span>
 

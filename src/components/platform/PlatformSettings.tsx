@@ -235,7 +235,7 @@ export function PlatformSettings() {
   return (
     <PlatformShell
       title="Configuración de plataforma"
-      subtitle="Define la marca global, reglas de registro, seguridad, notificaciones y parámetros operativos de Dentista+."
+      subtitle="Define la marca global, reglas de registro, seguridad, notificaciones y parámetros operativos de AgendaClinic."
       headerActions={
         <div className="cfg-top-actions">
           {showSavedBadge && !dirty ? (

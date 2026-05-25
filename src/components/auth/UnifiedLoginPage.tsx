@@ -5,7 +5,7 @@ export function UnifiedLoginPage() {
   return (
     <PortalLoginShell
       variant="hub"
-      eyebrow="Dentista+ · Acceso"
+      eyebrow="AgendaClinic · Acceso"
       title="Inicia sesión"
       lead="Un solo formulario para pacientes y personal de clínica. Detectamos tu cuenta y te llevamos al espacio correcto."
       footer={

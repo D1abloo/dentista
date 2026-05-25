@@ -57,7 +57,7 @@ export const POST: APIRoute = async (context) => {
 
     if (body?.accessType === 'patient' || body?.role === 'patient') {
       return fail(
-        'En Dentista+ PRO los pacientes no se crean desde el panel. Usa reserva online o el proceso de alta acordado.',
+        'En AgendaClinic PRO los pacientes no se crean desde el panel. Usa reserva online o el proceso de alta acordado.',
         403
       );
     }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Facebook, Instagram, Linkedin, MessageCircle, Youtube } from 'lucide-react';
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
+import { BRAND_COPYRIGHT, BRAND_FOOTER_DESC, BRAND_TAGLINE_PUBLIC } from '@/lib/brand/identity';
 import { Input } from '@/components/ui';
 import { email } from '@/lib/validation';
 import {
@@ -71,14 +72,11 @@ export function PublicFooter() {
       <div className="ps-shell ps-shell--wide">
         <div className="ps-footer__main">
           <div className="ps-footer__brand">
-            <a href="/" className="ps-footer__logo" aria-label="Dentista+ — Inicio">
-              <DentistaWebpLockup placement="footer" />
+            <a href="/" className="ps-footer__logo" aria-label="AgendaClinic — Inicio">
+              <DentistaWebpLockup placement="footer" context="footer" />
             </a>
-            <p className="ps-footer__tag">Tu clínica digital</p>
-            <p className="ps-footer__desc">
-              La plataforma dental para gestionar clínicas con portal paciente, agenda, informes, documentos y
-              facturación con la seguridad que merece tu consulta.
-            </p>
+            <p className="ps-footer__tag">{BRAND_TAGLINE_PUBLIC}</p>
+            <p className="ps-footer__desc">{BRAND_FOOTER_DESC}</p>
             {visibleSocial.length > 0 ? (
               <div className="ps-footer__social" aria-label="Redes sociales">
                 {visibleSocial.map(({ key, Icon, label }) => (
@@ -140,7 +138,7 @@ export function PublicFooter() {
         </div>
 
         <div className="ps-footer__bottom">
-          <span>© 2026 Dentista+. Todos los derechos reservados.</span>
+          <span>{BRAND_COPYRIGHT}</span>
           <nav className="ps-footer__bottom-nav" aria-label="Enlaces legales y utilidad">
             {publicFooterBottomLinks.map((l) => (
               <a key={l.href + l.label} href={l.href}>

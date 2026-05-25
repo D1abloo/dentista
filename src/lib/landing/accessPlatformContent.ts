@@ -91,7 +91,7 @@ export const landingProductShowcases: LandingProductShowcase[] = [
       'Bloqueos visibles para el paciente'
     ],
     image: '/images/guides/mobile/admin-agenda.png',
-    alt: 'Mockup de agenda clínica Dentista+',
+    alt: 'Mockup de agenda clínica AgendaClinic',
     href: '/#funcionalidades'
   },
   {
@@ -107,7 +107,7 @@ export const landingProductShowcases: LandingProductShowcase[] = [
       'Consentimientos digitales'
     ],
     image: '/images/guides/mobile/pdp-inicio.png',
-    alt: 'Mockup del portal del paciente Dentista+',
+    alt: 'Mockup del portal del paciente AgendaClinic',
     href: '/portal-paciente'
   },
   {
@@ -123,7 +123,7 @@ export const landingProductShowcases: LandingProductShowcase[] = [
       'Estado visible en el portal'
     ],
     image: '/images/guides/mobile/admin-facturas.png',
-    alt: 'Mockup de facturación Dentista+',
+    alt: 'Mockup de facturación AgendaClinic',
     href: '/#funcionalidades'
   }
 ];

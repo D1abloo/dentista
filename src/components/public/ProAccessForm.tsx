@@ -105,7 +105,7 @@ export function ProAccessForm({ plan, onPlanChange, compact = false }: Props) {
         <header className="pro-form-panel__head">
           <span className="pro-eyebrow">Demo clínica</span>
           <h2 id="contacto-pro-title">Solicitar demo para tu clínica</h2>
-          <p>Cuéntanos sobre tu clínica y te contactaremos para una demostración de Dentista+.</p>
+          <p>Cuéntanos sobre tu clínica y te contactaremos para una demostración de AgendaClinic.</p>
         </header>
       ) : null}
 

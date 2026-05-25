@@ -13,7 +13,7 @@ export function ClinicLogoUpload() {
   const scope = useTenant();
   const { setNotice } = useNotice();
   const settings = settingsFor(state, scope.tenantId);
-  const [preview, setPreview] = useState(settings.logoUrl ?? '/brand/dentista-logo.svg');
+  const [preview, setPreview] = useState(settings.logoUrl ?? '/img/logo.webp');
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -72,7 +72,7 @@ export function ClinicLogoUpload() {
         body: JSON.stringify({ clear: true })
       });
       if (!res.ok) throw new Error('No se pudo quitar el logo.');
-      const fallback = '/brand/dentista-logo.svg';
+      const fallback = '/img/logo.webp';
       setPreview(fallback);
       commit(saveSettings(state, scope.tenantId, { ...settings, logoUrl: fallback }));
       setNotice({ type: 'ok', message: 'Logo eliminado.' });

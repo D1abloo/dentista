@@ -11,7 +11,7 @@ export function LoginHubPage() {
   return (
     <PortalLoginShell
       variant="hub"
-      eyebrow="Dentista+ · Acceso seguro"
+      eyebrow="AgendaClinic · Acceso seguro"
       title="Elige tu portal"
       lead="Accede al panel de tu centro o al espacio personal del paciente. Sin cruces entre clínicas."
       footer={

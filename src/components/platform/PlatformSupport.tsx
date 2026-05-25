@@ -64,7 +64,7 @@ type Modal = 'create' | 'assign' | 'assign_bulk' | 'status' | 'priority' | 'clin
 
 const TEMPLATES: { id: string; label: string; text: string }[] = [
   { id: 'info', label: 'Solicitar más información', text: 'Hola,\n\nNecesitamos un poco más de información para poder ayudarte. ¿Podrías indicarnos…\n\nGracias.' },
-  { id: 'confirm', label: 'Confirmar recepción', text: 'Hola,\n\nConfirmamos la recepción de tu solicitud. La revisaremos en breve.\n\nUn saludo,\nEquipo Dentista+' },
+  { id: 'confirm', label: 'Confirmar recepción', text: 'Hola,\n\nConfirmamos la recepción de tu solicitud. La revisaremos en breve.\n\nUn saludo,\nEquipo AgendaClinic' },
   { id: 'clinic', label: 'Derivar a clínica', text: 'Hola,\n\nHemos derivado tu consulta a la clínica correspondiente para que puedan contactarte.\n\nUn saludo.' },
   { id: 'close', label: 'Cierre de incidencia', text: 'Hola,\n\nTu incidencia ha quedado resuelta. Si necesitas algo más, puedes responder a este ticket.\n\nUn saludo.' }
 ];

@@ -65,7 +65,7 @@ export async function listPortalChoices(identity: AuthenticatedIdentity): Promis
   if (platformRow) {
     options.push({
       id: 'platform',
-      label: 'Plataforma Dentista+',
+      label: 'Plataforma AgendaClinic',
       description: 'Super administración SaaS, clínicas y soporte',
       href: '/platform'
     });

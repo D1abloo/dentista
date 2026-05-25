@@ -86,7 +86,7 @@ export function AdminClinicMonitoring() {
         {tab === 'spec' ? (
           <div className="adm-spec prose prose-sm max-w-none text-slate-700">
             <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
-              Referencia funcional del sistema de logs y auditoría de Dentista+. Los eventos reales se registran en
+              Referencia funcional del sistema de logs y auditoría de AgendaClinic. Los eventos reales se registran en
               Supabase (<code>audit_logs</code>, <code>login_events</code>) y son consultables en Plataforma (Super Admin)
               y aquí (solo tu clínica).
             </p>

@@ -45,7 +45,7 @@ export const GET: APIRoute = async (context) => {
   if (!clinic) return fail('No hay métricas para el informe.', 404);
 
   const lines = [
-    'Informe Métricas de uso — Dentista+',
+    'Informe Métricas de uso — AgendaClinic',
     'Datos agregados sin información clínica sensible',
     '',
     `Clínica: ${clinic.clinic_name}`,

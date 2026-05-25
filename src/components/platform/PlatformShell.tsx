@@ -12,6 +12,7 @@ export type PlatformShellProps = {
 };
 import { ExternalLink, LogOut, Menu, Shield } from 'lucide-react';
 import { LogoMark } from '@/components/brand/Logo';
+import { BRAND_NAME, BRAND_TAGLINE_PLATFORM } from '@/lib/brand/identity';
 import { useLogout } from '@/components/auth/RoleGate';
 import { platformNavSections } from './nav';
 
@@ -30,8 +31,8 @@ export function PlatformShell({ title, subtitle, headerActions, children, hideHe
     >
       <a href="/platform" className="plt-brand no-underline">
         <LogoMark size={36} />
-        <span className="plt-brand__name">Dentista+</span>
-        <span className="plt-brand__sub">Plataforma</span>
+        <span className="plt-brand__name">{BRAND_NAME}</span>
+        <span className="plt-brand__sub">{BRAND_TAGLINE_PLATFORM}</span>
       </a>
       <div className="plt-admin-card">
         <div className="plt-admin-card__head">

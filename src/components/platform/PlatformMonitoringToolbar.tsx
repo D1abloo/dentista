@@ -97,7 +97,7 @@ export function PlatformMonitoringToolbar({ alerts, onOpenAlert }: Props) {
           </span>
           <div>
             <strong>{displayName}</strong>
-            <span>{user?.email ?? 'Plataforma Dentista+'}</span>
+            <span>{user?.email ?? 'Plataforma AgendaClinic'}</span>
           </div>
           <ChevronDown className="h-3.5 w-3.5 text-slate-400" aria-hidden />
         </div>

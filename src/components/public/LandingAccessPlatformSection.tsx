@@ -6,7 +6,10 @@ import {
   landingWorkflowSteps
 } from '@/lib/landing/accessPlatformContent';
 
-const LOGO_SRC = '/images/logo.webp';
+import { brandImages } from '@/lib/brand/assets';
+import { BRAND_NAME } from '@/lib/brand/identity';
+
+const LOGO_SRC = brandImages.logo;
 
 type Props = {
   onRequestDemo: () => void;
@@ -35,7 +38,7 @@ export function LandingAccessPlatformSection({ onRequestDemo }: Props) {
         >
           <header className="ps-acc-plat__head ps-acc-plat__anim ps-acc-plat__anim--1">
             <span className="ps-acc-plat__kicker">ACCESO RÁPIDO</span>
-            <h2 id="ps-acc-plat-access-title">Accede a Dentista+ según tu perfil</h2>
+            <h2 id="ps-acc-plat-access-title">Accede a AgendaClinic según tu perfil</h2>
             <p>
               Elige el acceso correcto para entrar como paciente, clínica o administrador de plataforma.
             </p>
@@ -161,12 +164,12 @@ export function LandingAccessPlatformSection({ onRequestDemo }: Props) {
         >
           <div className="ps-acc-plat__cta-copy">
             <span className="ps-acc-plat__cta-icon" aria-hidden>
-              <img src={LOGO_SRC} alt="" width={40} height={40} decoding="async" />
+              <img src={LOGO_SRC} alt="Logo de AgendaClinic" width={40} height={40} decoding="async" />
             </span>
             <div>
               <h3>¿Quieres verlo funcionando en tu clínica?</h3>
               <p>
-                Solicita una demo y te mostramos cómo Dentista+ conecta agenda, portal paciente, informes y
+                Solicita una demo y te mostramos cómo {BRAND_NAME} conecta agenda, portal paciente, informes y
                 facturación.
               </p>
             </div>

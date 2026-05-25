@@ -3,7 +3,7 @@ export function ClinicBrandLogo({ size = 44, className = '' }: { size?: number; 
     <span className={`clinic-brand-logo-shine ${className}`.trim()} style={{ width: size, height: size }}>
       <img
         src="/brand/clinic-shield.svg"
-        alt="Dentista+"
+        alt="AgendaClinic"
         width={size}
         height={size}
         className="clinic-brand-logo-shine__img"
@@ -19,7 +19,7 @@ export function ClinicBrandLockup({ size = 44, theme = 'light' }: { size?: numbe
     <span className="clinic-brand-lockup inline-flex items-center gap-3">
       <ClinicBrandLogo size={size} />
       <span className="min-w-0 leading-tight">
-        <span className={`block font-display text-lg tracking-tight ${main}`}>Dentista+</span>
+        <span className={`block font-display text-lg tracking-tight ${main}`}>AgendaClinic</span>
         <span className={`block text-[10px] font-bold uppercase tracking-[0.16em] ${sub}`}>Tu clínica digital</span>
       </span>
     </span>

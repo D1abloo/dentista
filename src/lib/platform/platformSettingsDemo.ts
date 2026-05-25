@@ -59,10 +59,10 @@ export type PlatformSettingsConfig = {
 
 export const DEFAULT_PLATFORM_SETTINGS: PlatformSettingsConfig = {
   branding: {
-    appName: 'Dentista+',
+    appName: 'AgendaClinic',
     supportEmail: 'soporte@dentista.app',
     publicUrl: 'https://dentista.app',
-    footerLegal: '© 2026 Dentista+. Todos los derechos reservados.',
+    footerLegal: '© 2026 AgendaClinic. Todos los derechos reservados.',
     primaryColor: '#0EA5A1',
     secondaryColor: '#6366F1',
     logoMain: null,
@@ -92,9 +92,9 @@ export const DEFAULT_PLATFORM_SETTINGS: PlatformSettingsConfig = {
   },
   emails: {
     fromEmail: 'soporte@dentista.app',
-    fromName: 'Dentista+',
+    fromName: 'AgendaClinic',
     templates: {
-      welcome: 'Bienvenida a Dentista+ — tu clínica ha sido aprobada.',
+      welcome: 'Bienvenida a AgendaClinic — tu clínica ha sido aprobada.',
       credentials: 'Credenciales de acceso al panel de administración.',
       rejection: 'Tu solicitud de alta no ha podido ser aprobada en este momento.',
       paymentReminder: 'Recordatorio de renovación de suscripción.'

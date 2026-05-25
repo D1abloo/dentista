@@ -6,9 +6,12 @@ import {
   landingDashQuickModules
 } from './landingDashboardData';
 import { LandingDashboardMockBody } from './LandingDashboardMockBody';
+import { brandImageAlts, brandImages, clinicDashboardFallback } from '@/lib/brand/assets';
+import { BRAND_NAME, BRAND_PANEL_CLINIC } from '@/lib/brand/identity';
 
 const CAPTURE_DESKTOP = '/images/guides/landing/admin-dashboard-hero.png';
 const CAPTURE_MOBILE = '/images/guides/mobile/admin-dashboard.png';
+const CAPTURE_WEBP = clinicDashboardFallback;
 
 /**
  * Vista previa del panel administrativo: barra lateral con scroll + captura real del demo.
@@ -28,6 +31,10 @@ export function LandingDashboardPreview() {
       setCaptureSrc(CAPTURE_MOBILE);
       return;
     }
+    if (captureSrc === CAPTURE_MOBILE) {
+      setCaptureSrc(CAPTURE_WEBP);
+      return;
+    }
     setUseFallback(true);
   }
 
@@ -35,13 +42,11 @@ export function LandingDashboardPreview() {
     <div className="pro-dash-frame">
       <div
         className="pro-dash"
-        aria-label="Vista previa del panel administrativo Dentista+ con agenda, pacientes, facturación e informes"
+        aria-label={`Vista previa del panel administrativo ${BRAND_NAME} con agenda, pacientes, facturación e informes`}
       >
         <aside className="pro-dash__sidebar">
-          <div className="pro-dash__logo">
-            Dentista<span>+</span>
-          </div>
-          <p className="pro-dash__sidebar-label">Panel clínica</p>
+          <div className="pro-dash__logo">{BRAND_NAME}</div>
+          <p className="pro-dash__sidebar-label">{BRAND_PANEL_CLINIC}</p>
           <nav className="pro-dash__nav" aria-label="Módulos del panel">
             <ul>
               {landingDashNav.map((item) => (
@@ -83,7 +88,7 @@ export function LandingDashboardPreview() {
               <figcaption className="pro-dash__capture-label">Vista real del panel · datos demo</figcaption>
               <img
                 src={captureSrc}
-                alt="Captura del dashboard administrativo Dentista+ con citas, ingresos y agenda"
+                alt={brandImageAlts.doctor}
                 className="pro-dash__capture"
                 width={920}
                 height={520}

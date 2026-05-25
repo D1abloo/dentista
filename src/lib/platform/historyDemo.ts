@@ -177,7 +177,7 @@ export function resendCredentialsDemo(id: string): ProcessedHistoryRow | null {
 
 export function historyReportLines(row: ProcessedHistoryRow): string[] {
   return [
-    'Informe de alta — Dentista+ Plataforma',
+    'Informe de alta — AgendaClinic Plataforma',
     `Clínica: ${row.clinic_name}`,
     `Responsable: ${row.owner_name}`,
     `Decisión: ${row.decision_label}`,

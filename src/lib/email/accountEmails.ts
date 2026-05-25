@@ -29,18 +29,18 @@ export async function sendOrganizationApprovedEmail(input: {
   const text = [
     `Hola ${input.ownerName},`,
     '',
-    `Tu organización «${input.clinicName}» ha sido aprobada en Dentista+.`,
+    `Tu organización «${input.clinicName}» ha sido aprobada en AgendaClinic.`,
     'Ya puedes acceder al panel administrativo con estas credenciales:',
     '',
     credentialsBlock(input.email, input.password, entryPath),
     '',
     'Un saludo,',
-    'Equipo Dentista+'
+    'Equipo AgendaClinic'
   ].join('\n');
 
   const html = `
     <p>Hola <strong>${input.ownerName}</strong>,</p>
-    <p>Tu organización <strong>${input.clinicName}</strong> ya está activa en Dentista+.</p>
+    <p>Tu organización <strong>${input.clinicName}</strong> ya está activa en AgendaClinic.</p>
     <table style="margin:16px 0;border-collapse:collapse;font-family:sans-serif;font-size:14px">
       <tr><td style="padding:6px 12px;background:#f1f5f9;font-weight:600">Email</td><td style="padding:6px 12px">${input.email}</td></tr>
       <tr><td style="padding:6px 12px;background:#f1f5f9;font-weight:600">Contraseña temporal</td><td style="padding:6px 12px;font-family:monospace">${input.password}</td></tr>
@@ -51,7 +51,7 @@ export async function sendOrganizationApprovedEmail(input: {
 
   return sendMail({
     to: input.email,
-    subject: `Alta aprobada — acceso a ${input.clinicName} · Dentista+`,
+    subject: `Alta aprobada — acceso a ${input.clinicName} · AgendaClinic`,
     text,
     html,
     requireDelivery: true
@@ -70,17 +70,17 @@ export async function sendNewUserCredentialsEmail(input: {
   const text = [
     `Hola ${input.fullName},`,
     '',
-    `Se ha creado tu acceso a Dentista+ (${input.accessLabel}).`,
+    `Se ha creado tu acceso a AgendaClinic (${input.accessLabel}).`,
     `Rol: ${input.roleLabel}`,
     '',
     credentialsBlock(input.email, input.password, input.loginPath),
     '',
-    'Equipo Dentista+'
+    'Equipo AgendaClinic'
   ].join('\n');
 
   const html = `
     <p>Hola <strong>${input.fullName}</strong>,</p>
-    <p>Tu cuenta en Dentista+ está lista (<em>${input.accessLabel}</em> · ${input.roleLabel}).</p>
+    <p>Tu cuenta en AgendaClinic está lista (<em>${input.accessLabel}</em> · ${input.roleLabel}).</p>
     <table style="margin:16px 0;border-collapse:collapse;font-family:sans-serif;font-size:14px">
       <tr><td style="padding:6px 12px;background:#f1f5f9;font-weight:600">Email</td><td style="padding:6px 12px">${input.email}</td></tr>
       <tr><td style="padding:6px 12px;background:#f1f5f9;font-weight:600">Contraseña temporal</td><td style="padding:6px 12px;font-family:monospace">${input.password}</td></tr>
@@ -90,7 +90,7 @@ export async function sendNewUserCredentialsEmail(input: {
 
   return sendMail({
     to: input.email,
-    subject: 'Tu acceso a Dentista+',
+    subject: 'Tu acceso a AgendaClinic',
     text,
     html,
     requireDelivery: true

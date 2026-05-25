@@ -16,7 +16,7 @@ export function isProduction() {
 }
 
 export function emailFromAddress() {
-  return env('SMTP_FROM') || env('EMAIL_FROM') || 'Dentista+ <no-reply@example.com>';
+  return env('SMTP_FROM') || env('EMAIL_FROM') || 'AgendaClinic <no-reply@example.com>';
 }
 
 export function notifyInbox() {

@@ -25,7 +25,7 @@ const DEFAULT_VARIANT: ContactPageVariant = {
   id: 'default',
   badge: 'Contacto',
   title: 'Hablemos con tu clínica',
-  lead: 'Resolvemos dudas sobre el portal del paciente, el panel de clínica y la plataforma Dentista+. Respuesta en menos de 24 horas laborables.',
+  lead: 'Resolvemos dudas sobre el portal del paciente, el panel de clínica y la plataforma AgendaClinic. Respuesta en menos de 24 horas laborables.',
   defaultType: 'soporte',
   messagePlaceholder:
     'Describe tu consulta con el máximo detalle (clínica, usuario afectado, pantalla o error que ves)…',
@@ -36,7 +36,7 @@ const VARIANTS: Record<string, ContactPageVariant> = {
   soporte: {
     id: 'soporte',
     badge: 'Soporte',
-    title: 'Centro de soporte Dentista+',
+    title: 'Centro de soporte AgendaClinic',
     lead: 'Ayuda para pacientes, equipos de clínica y administradores de la plataforma. Indica tu caso y te respondemos por email con la mayor brevedad posible.',
     defaultType: 'soporte',
     messagePlaceholder:
@@ -99,7 +99,7 @@ export function getPublicContactInfo(): PublicContactInfo {
   const whatsappUrl = (import.meta.env.PUBLIC_WHATSAPP_URL as string | undefined)?.trim() || '';
 
   return {
-    brandName: (import.meta.env.PUBLIC_APP_NAME as string | undefined)?.trim() || 'Dentista+',
+    brandName: (import.meta.env.PUBLIC_APP_NAME as string | undefined)?.trim() || 'AgendaClinic',
     supportEmail,
     phone: phoneRaw || null,
     phoneDisplay: phoneRaw || null,

@@ -26,7 +26,7 @@ export function LandingProductExperienceSection() {
         <div className={`ps-prod-exp__block ps-reveal${revealClass(sectionR.visible)}`} ref={sectionR.ref}>
           <header className="ps-prod-exp__head ps-prod-exp__anim ps-prod-exp__anim--1">
             <span className="ps-prod-exp__kicker">FUNCIONAMIENTO</span>
-            <h2 id="ps-prod-exp-workflow-title">Así trabaja una clínica con Dentista+</h2>
+            <h2 id="ps-prod-exp-workflow-title">Así trabaja una clínica con AgendaClinic</h2>
             <p>
               Desde la reserva de cita hasta el informe, la factura y el portal del paciente, todo queda conectado
               en una sola plataforma.
@@ -79,7 +79,7 @@ export function LandingProductExperienceSection() {
             <span className="ps-prod-exp__kicker">MÓDULOS</span>
             <h2 id="ps-prod-exp-modules-title">Cada equipo tiene su espacio</h2>
             <p>
-              Dentista+ está organizado para que recepción, doctores, administración y pacientes trabajen sin
+              AgendaClinic está organizado para que recepción, doctores, administración y pacientes trabajen sin
               mezclarse.
             </p>
           </header>

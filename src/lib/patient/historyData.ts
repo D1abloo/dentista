@@ -196,7 +196,7 @@ export function filterAndSortVisits(
 export function downloadVisitSummary(v: PatientVisitView): boolean {
   if (typeof window === 'undefined') return false;
   const lines = [
-    'RESUMEN DE VISITA — Dentista+',
+    'RESUMEN DE VISITA — AgendaClinic',
     '',
     `Fecha: ${v.dateLabel} (${v.dayLabel}) · ${v.timeLabel}`,
     `Clínica: ${v.clinicName}`,

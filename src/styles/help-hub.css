@@ -720,6 +720,19 @@
   line-height: 1.65;
 }
 
+.help-hub-v2__hero-visual {
+  margin: 1.25rem auto 0;
+  max-width: 22rem;
+}
+
+.help-hub-v2__hero-visual img {
+  width: 100%;
+  height: auto;
+  border-radius: 1rem;
+  box-shadow: 0 16px 40px rgba(15, 39, 68, 0.12);
+  object-fit: contain;
+}
+
 .help-hub-v2__hero {
   text-align: center;
   padding: 2.5rem 0 2rem;

@@ -51,7 +51,7 @@ function settings(name: string, address: string, phone: string, email: string): 
     slotIntervalMinutes: 15,
     minCancelHours: 24,
     remindersEnabled: true,
-    welcomeMessage: 'Bienvenido a tu portal Dentista+',
+    welcomeMessage: 'Bienvenido a tu portal AgendaClinic',
     appointmentConfirmMessage: 'Cita registrada correctamente.',
     primaryColor: '#0F2742',
     accentColor: '#14B8A6',
@@ -59,7 +59,7 @@ function settings(name: string, address: string, phone: string, email: string): 
     vatRate: 21,
     invoiceSeries: 'FAC',
     defaultInvoiceConcept: 'Servicios odontológicos',
-    logoUrl: '/brand/dentista-logo.svg',
+    logoUrl: '/img/logo.webp',
     clinicStampUrl: '/brand/clinic-shield.svg'
   };
 }

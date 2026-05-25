@@ -13,17 +13,19 @@ import {
   X
 } from 'lucide-react';
 
-const LOGO_SRC = '/images/logo.webp';
-const CLINIC_IMG = '/img/citas.webp';
+import { brandImageAlts, brandImages } from '@/lib/brand/assets';
+
+const LOGO_SRC = brandImages.logo;
+const CLINIC_IMG = brandImages.citas;
 
 function MobileBrandBar({ close = false }: { close?: boolean }) {
   return (
     <div className="ps-phone-ui__bar" aria-hidden>
       <div className="ps-phone-ui__brand">
-        <img src={LOGO_SRC} alt="" className="ps-phone-ui__logo" width={28} height={28} decoding="async" />
+        <img src={LOGO_SRC} alt="Logo de AgendaClinic" className="ps-phone-ui__logo" width={28} height={28} decoding="async" />
         <div>
-          <span className="ps-phone-ui__name">Dentista+</span>
-          <span className="ps-phone-ui__tag">TU CLÍNICA DIGITAL</span>
+          <span className="ps-phone-ui__name">AgendaClinic</span>
+          <span className="ps-phone-ui__tag">GESTIÓN INTELIGENTE DE CITAS</span>
         </div>
       </div>
       {close ? (
@@ -57,7 +59,7 @@ export function PhoneMockCompactNav() {
         </p>
         <span className="ps-phone-ui__cta-primary">Solicitar demo para clínica</span>
         <div className="ps-phone-ui__clinic-img">
-          <img src={CLINIC_IMG} alt="" loading="lazy" decoding="async" width={320} height={180} />
+          <img src={CLINIC_IMG} alt={brandImageAlts.citas} loading="lazy" decoding="async" width={320} height={180} />
         </div>
       </div>
     </>
@@ -125,10 +127,10 @@ export function PhoneMockProfileAccess() {
     <>
       <div className="ps-phone-ui__bar" aria-hidden>
         <div className="ps-phone-ui__brand">
-          <img src={LOGO_SRC} alt="" className="ps-phone-ui__logo" width={28} height={28} decoding="async" />
+          <img src={LOGO_SRC} alt="Logo de AgendaClinic" className="ps-phone-ui__logo" width={28} height={28} decoding="async" />
           <div>
-            <span className="ps-phone-ui__name">Dentista+</span>
-            <span className="ps-phone-ui__tag">TU CLÍNICA DIGITAL</span>
+            <span className="ps-phone-ui__name">AgendaClinic</span>
+            <span className="ps-phone-ui__tag">GESTIÓN INTELIGENTE DE CITAS</span>
           </div>
         </div>
         <div className="ps-phone-ui__bar-actions">

@@ -1,12 +1,12 @@
 {
-  "name": "Dentista+",
-  "short_name": "Dentista+",
-  "description": "Gestión rápida de citas dentales para pacientes y clínicas.",
+  "name": "AgendaClinic",
+  "short_name": "AgendaClinic",
+  "description": "Gestión inteligente de citas dentales para pacientes y clínicas.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#f6fbff",
-  "theme_color": "#0eaddd",
+  "theme_color": "#168a94",
   "orientation": "portrait-primary",
   "icons": [
     {

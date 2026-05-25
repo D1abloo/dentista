@@ -156,7 +156,7 @@ export function ClinicRegistrationPage() {
                 <Building2 className="h-3.5 w-3.5" aria-hidden />
                 Alta de clínica
               </span>
-              <h1>Registra tu centro en Dentista+</h1>
+              <h1>Registra tu centro en AgendaClinic</h1>
               <p className="cp-hero__lead">
                 Solicita acceso al SaaS dental para tu organización. Cada clínica aprobada obtiene su panel{' '}
                 <strong>/admin</strong> aislado: sin contacto ni datos compartidos con otras organizaciones.

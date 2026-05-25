@@ -152,7 +152,7 @@ export function defaultAppSettings(clinicName = 'Clínica'): AppSettings {
     whatsapp: '',
     address: '',
     city: '',
-    imageUrl: '/brand/dentista-logo.svg',
+    imageUrl: '/img/logo.webp',
     generalHours: 'Lun–Vie 09:00–20:00',
     defaultDuration: 45,
     slotIntervalMinutes: 15,
@@ -302,8 +302,8 @@ export function registerOrganization(
     vatRate: 21,
     invoiceSeries: 'FAC',
     defaultInvoiceConcept: 'Servicios odontológicos',
-    logoUrl: '/brand/dentista-logo.svg',
-    imageUrl: '/brand/dentista-logo.svg'
+    logoUrl: '/img/logo.webp',
+    imageUrl: '/img/logo.webp'
   };
   const normative: NormativeText[] = normativeFor(state, TENANT_CENTRO).length
     ? structuredClone(normativeFor(state, TENANT_CENTRO))

@@ -31,7 +31,7 @@ function Rail({
   return (
     <aside className={cls}>
       <a href="/paciente" className="corp-rail-brand no-underline">
-        <DentistaWebpLockup placement="header" />
+        <DentistaWebpLockup placement="header" context="patient" />
         <span className="sr-only">Portal paciente</span>
       </a>
       <div className="corp-rail-user corp-rail-user--patient">

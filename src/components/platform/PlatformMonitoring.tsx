@@ -325,11 +325,11 @@ export function PlatformMonitoring() {
         <div className="mon-head-row">
           <div className="mon-head">
             <div className="mon-head__brand">
-              <DentistaWebpLockup placement="header" showWordmark={false} />
+              <DentistaWebpLockup placement="header" context="platform" showWordmark={false} />
               <div>
                 <h1 className="mon-head__title">Monitorización y seguridad</h1>
                 <p className="mon-head__sub">
-                  Supervisa accesos, actividad, errores y eventos de seguridad de la plataforma Dentista+.
+                  Supervisa accesos, actividad, errores y eventos de seguridad de la plataforma AgendaClinic.
                 </p>
               </div>
             </div>

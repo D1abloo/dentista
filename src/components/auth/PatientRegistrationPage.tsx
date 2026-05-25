@@ -130,7 +130,7 @@ export function PatientRegistrationPage() {
         <header className="pr-register__head">
           <LogoMark size={44} />
           <div>
-            <p className="pr-register__eyebrow">Dentista+ · Paciente</p>
+            <p className="pr-register__eyebrow">AgendaClinic · Paciente</p>
             <h1>Registro</h1>
           </div>
         </header>

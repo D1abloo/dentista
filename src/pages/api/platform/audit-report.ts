@@ -46,7 +46,7 @@ export const GET: APIRoute = async (context) => {
   await logPlatformAudit({ action: 'audit.exported', entity: 'audit_log', metadata: { format: 'pdf' } });
 
   const lines = [
-    'Informe de auditoría — Dentista+',
+    'Informe de auditoría — AgendaClinic',
     'Sin datos clínicos sensibles entre tenants',
     `Eventos auditados: ${data.kpis.audited}`,
     `Eventos críticos: ${data.kpis.critical}`,

@@ -2,7 +2,9 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { LogoMark } from '@/components/brand/Logo';
 import { LoginAccessBar } from './LoginAccessChrome';
 
-const HERO_IMAGE = '/images/login-dentista-paciente.jpg';
+import { brandImages } from '@/lib/brand/assets';
+
+const HERO_IMAGE = brandImages.inicio;
 
 export type PortalLoginVariant = 'admin' | 'patient' | 'hub';
 

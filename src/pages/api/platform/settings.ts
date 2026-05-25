@@ -80,8 +80,8 @@ export const POST: APIRoute = async (context) => {
       const result = await sendMailBatch([
         {
           to,
-          subject: `[Dentista+] Email de prueba — ${cfg.emails.fromName}`,
-          text: `Hola,\n\nEste es un correo de prueba desde la configuración de plataforma Dentista+.\n\nRemitente configurado: ${cfg.emails.fromEmail}\n\nUn saludo,\nEquipo Dentista+`
+          subject: `[AgendaClinic] Email de prueba — ${cfg.emails.fromName}`,
+          text: `Hola,\n\nEste es un correo de prueba desde la configuración de plataforma AgendaClinic.\n\nRemitente configurado: ${cfg.emails.fromEmail}\n\nUn saludo,\nEquipo AgendaClinic`
         }
       ]);
       await logPlatformAudit({

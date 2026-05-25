@@ -4,7 +4,7 @@ import { PortalAccessEntry } from '@/components/patient/PortalAccessEntry';
 
 const token = Astro.url.searchParams.get('token') ?? undefined;
 ---
-<AppLayout title="Acceso autorizado · Dentista+">
+<AppLayout title="Acceso autorizado · AgendaClinic">
   <main class="mx-auto max-w-lg px-4 py-12">
     <PortalAccessEntry client:load initialToken={token} />
   </main>

@@ -21,21 +21,21 @@ const CARDS = [
     subtitle: 'Logo, acceso rápido y menú siempre visibles.',
     Icon: Smartphone,
     Phone: PhoneMockCompactNav,
-    alt: 'Vista móvil del header de Dentista+'
+    alt: 'Vista móvil del header de AgendaClinic'
   },
   {
     title: 'Menú completo',
     subtitle: 'Todas las secciones ordenadas para pantallas pequeñas.',
     Icon: Menu,
     Phone: PhoneMockFullMenu,
-    alt: 'Menú móvil abierto de Dentista+'
+    alt: 'Menú móvil abierto de AgendaClinic'
   },
   {
     title: 'Accesos por perfil',
     subtitle: 'Paciente, clínica y plataforma separados para evitar confusión.',
     Icon: UserRound,
     Phone: PhoneMockProfileAccess,
-    alt: 'Dropdown móvil de acceso por perfil en Dentista+'
+    alt: 'Dropdown móvil de acceso por perfil en AgendaClinic'
   }
 ] as const;
 
@@ -72,7 +72,7 @@ export function LandingMobileShowcase() {
       >
         <header className="ps-mob-ex__head ps-mob-ex__anim ps-mob-ex__anim--1">
           <h2 id="ps-mob-ex-title">
-            Dentista+ en móvil, <span className="ps-mob-ex__hl">rápido y claro</span>
+            AgendaClinic en móvil, <span className="ps-mob-ex__hl">rápido y claro</span>
           </h2>
           <p className="ps-mob-ex__lead">
             Pacientes, clínicas y administradores pueden acceder al portal correcto desde cualquier pantalla.

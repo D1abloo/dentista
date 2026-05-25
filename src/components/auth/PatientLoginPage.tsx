@@ -5,7 +5,7 @@ export function PatientLoginPage() {
   return (
     <PortalLoginShell
       variant="patient"
-      eyebrow="Portal del paciente · Dentista+"
+      eyebrow="AgendaClinic · Portal del paciente"
       title="Tu espacio de salud dental"
       lead="Consulta citas, documentos y facturas de forma segura."
       footer={

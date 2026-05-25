@@ -60,7 +60,7 @@ export const GET: APIRoute = async (context) => {
   }
 
   const lines = [
-    'Informe Seguridad y acceso — Dentista+',
+    'Informe Seguridad y acceso — AgendaClinic',
     `Estado: ${data.kpis.overall_status}`,
     `Sesiones activas: ${data.kpis.active_sessions}`,
     `Roles: ${data.kpis.roles_configured}`,

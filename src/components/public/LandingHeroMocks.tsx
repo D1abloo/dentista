@@ -1,4 +1,5 @@
 import { Calendar, FileText, Heart, LayoutDashboard, Receipt, Shield } from 'lucide-react';
+import { BRAND_NAME } from '@/lib/brand/identity';
 import { LandingDashboardPreview } from './LandingDashboardPreview';
 
 /** Mockup portal paciente (móvil). */
@@ -48,7 +49,7 @@ function PlatformTabletMock() {
       <div className="ps-mock-platform__shell">
         <header className="ps-mock-platform__head">
           <Shield className="h-4 w-4" aria-hidden />
-          <span>Plataforma Dentista+</span>
+          <span>Plataforma {BRAND_NAME}</span>
         </header>
         <div className="ps-mock-platform__kpis">
           <div>
@@ -84,7 +85,7 @@ export function LandingHeroMocks() {
   return (
     <div
       className="ps-hero-mocks"
-      aria-label="Vistas del panel clínica, portal paciente y plataforma Dentista+"
+      aria-label={`Vistas del panel clínica, portal paciente y plataforma ${BRAND_NAME}`}
     >
       <div className="ps-hero-mocks__laptop ps-hero-mocks__anim ps-hero-mocks__anim--3">
         <LandingDashboardPreview />

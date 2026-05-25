@@ -367,9 +367,9 @@ export const platformGuideSections: GuideSection[] = [
   {
     id: 'plataforma-panel',
     title: 'Panel de plataforma',
-    summary: 'Vista global de clínicas, suscripciones e incidencias del ecosistema Dentista+.',
+    summary: 'Vista global de clínicas, suscripciones e incidencias del ecosistema AgendaClinic.',
     goal: 'Supervisar el estado de las organizaciones y actuar ante alertas operativas.',
-    audience: 'Administradores globales Dentista+.',
+    audience: 'Administradores globales AgendaClinic.',
     screenshots: [{ src: mobile('admin-dashboard'), alt: 'Panel plataforma', caption: 'Resumen de clínicas y métricas.' }],
     steps: [
       { title: 'Accede a /plataforma', detail: 'Inicia sesión con cuenta de administrador global.' },
@@ -381,7 +381,7 @@ export const platformGuideSections: GuideSection[] = [
     title: 'Clínicas y usuarios',
     summary: 'Alta de centros, invitaciones y roles de personal.',
     goal: 'Gestionar el ciclo de vida de clínicas y cuentas vinculadas.',
-    audience: 'Administradores globales Dentista+.',
+    audience: 'Administradores globales AgendaClinic.',
     screenshots: [{ src: mobile('admin-pacientes'), alt: 'Gestión de clínicas', caption: 'Listado y detalle de organizaciones.' }],
     steps: [
       { title: 'Organizaciones', detail: 'Crea o edita clínicas desde el módulo de plataforma.' },
@@ -393,7 +393,7 @@ export const platformGuideSections: GuideSection[] = [
     title: 'Seguridad y auditoría',
     summary: 'Registro de accesos, políticas y revisión de incidencias.',
     goal: 'Garantizar trazabilidad y cumplimiento en todo el SaaS.',
-    audience: 'Administradores globales Dentista+.',
+    audience: 'Administradores globales AgendaClinic.',
     screenshots: [{ src: mobile('admin-acceso'), alt: 'Auditoría', caption: 'Historial de accesos y tokens.' }],
     steps: [
       { title: 'Historial', detail: 'Consulta accesos al portal paciente y cambios sensibles.' },
@@ -406,7 +406,7 @@ export const platformGuideSections: GuideSection[] = [
     title: 'Organizaciones multi-sede',
     summary: 'Crea y gestiona organizaciones con varias clínicas bajo un mismo contacto administrativo.',
     goal: 'Estructurar redes de clínicas sin mezclar datos entre centros.',
-    audience: 'Administradores globales Dentista+.',
+    audience: 'Administradores globales AgendaClinic.',
     screenshots: [{ src: mobile('admin-dashboard'), alt: 'Organizaciones', caption: 'Vista de organizaciones y sedes.' }],
     steps: [
       { title: 'Nueva organización', detail: 'Define nombre, contacto y sedes desde Plataforma → Organizaciones.' },
@@ -418,7 +418,7 @@ export const platformGuideSections: GuideSection[] = [
     title: 'Suscripciones',
     summary: 'Planes SaaS, facturación de la clínica y estado de la suscripción.',
     goal: 'Controlar el ciclo comercial de cada centro en la plataforma.',
-    audience: 'Administradores globales Dentista+.',
+    audience: 'Administradores globales AgendaClinic.',
     screenshots: [{ src: mobile('admin-dashboard'), alt: 'Suscripciones', caption: 'Estado de plan y renovaciones.' }],
     steps: [
       { title: 'Listado de suscripciones', detail: 'Filtra por plan, estado o clínica.' },
@@ -430,7 +430,7 @@ export const platformGuideSections: GuideSection[] = [
     title: 'Auditoría',
     summary: 'Historial de accesos, inspección de clínica y eventos sensibles.',
     goal: 'Revisar trazabilidad para cumplimiento y soporte.',
-    audience: 'Administradores globales Dentista+.',
+    audience: 'Administradores globales AgendaClinic.',
     screenshots: [{ src: mobile('admin-acceso'), alt: 'Auditoría', caption: 'Registro de acciones auditadas.' }],
     steps: [
       { title: 'Abre Auditoría', detail: 'Consulta eventos por clínica, usuario y tipo.' },
@@ -442,7 +442,7 @@ export const platformGuideSections: GuideSection[] = [
     title: 'Monitorización',
     summary: 'Estado de servicios, incidencias y métricas operativas del SaaS.',
     goal: 'Detectar problemas antes de que afecten a pacientes y clínicas.',
-    audience: 'Administradores globales Dentista+.',
+    audience: 'Administradores globales AgendaClinic.',
     screenshots: [{ src: mobile('admin-dashboard'), alt: 'Monitorización', caption: 'Panel de estado y alertas.' }],
     steps: [
       { title: 'Estado del servicio', detail: 'Revisa disponibilidad de APIs, correo y colas.' },

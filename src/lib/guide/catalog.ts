@@ -182,7 +182,7 @@ export const helpFaqs: HelpFaq[] = [
     id: 'platform-access',
     audience: 'platform',
     question: '¿Quién puede acceder al panel de plataforma?',
-    answer: 'Solo cuentas de administrador global autorizadas por Dentista+. No es visible para pacientes ni personal de clínica.'
+    answer: 'Solo cuentas de administrador global autorizadas por AgendaClinic. No es visible para pacientes ni personal de clínica.'
   },
   {
     id: 'org-multi',

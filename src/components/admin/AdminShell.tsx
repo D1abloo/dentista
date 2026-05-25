@@ -18,6 +18,8 @@ import { AdminQuickAccess } from './AdminQuickAccess';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { AdminTopbarUser } from './AdminTopbarUser';
 import { useAdminLiveRefresh } from '@/hooks/useAdminLiveRefresh';
+import { LogoMark } from '@/components/brand/Logo';
+import { BRAND_NAME, BRAND_PANEL_CLINIC } from '@/lib/brand/identity';
 
 function logInspectNav(href: string, label: string) {
   void fetch('/api/platform/inspect', {
@@ -32,7 +34,6 @@ function AdminRail({
   path,
   tenant,
   userLabel,
-  clinicLogoUrl,
   platformInspect,
   staffRole,
   onNav,
@@ -44,7 +45,6 @@ function AdminRail({
   path: string;
   tenant: { id: string; name: string; subtitle: string };
   userLabel: string;
-  clinicLogoUrl: string;
   platformInspect: boolean;
   staffRole?: string;
   onNav: () => void;
@@ -62,10 +62,11 @@ function AdminRail({
   return (
     <aside className={cls}>
       <a href="/admin" className={`admin-brand no-underline${compact ? ' admin-brand--compact' : ' mb-6 px-2'}`} onClick={onNav}>
-        <span className="clinic-brand-logo-shine admin-brand__clinic-logo-wrap">
-          <img src={clinicLogoUrl} alt="" className="admin-brand__clinic-logo clinic-brand-logo-shine__img" width={56} height={56} />
+        <LogoMark size={compact ? 40 : 48} />
+        <span className="admin-brand__text">
+          <span className="admin-brand__label">{BRAND_NAME}</span>
+          <span className="admin-brand__sub">{BRAND_PANEL_CLINIC}</span>
         </span>
-        <span className="admin-brand__label">Dentista+</span>
       </a>
       {!compact ? (
         <div className="admin-org-card mb-4">
@@ -154,7 +155,6 @@ export function AdminShell({
   const { staff } = useStaffContext();
   const staffRole = staff?.role ?? sessionStaffRole;
   const orgName = organizationDisplayName(state, tenantId);
-  const clinicLogoUrl = settingsFor(state, tenantId).logoUrl ?? '/images/logo.webp';
   useAdminLiveRefresh(live);
   const tenant = {
     id: tenantId,
@@ -219,7 +219,6 @@ export function AdminShell({
         path={path}
         tenant={tenant}
         userLabel={userLabel}
-        clinicLogoUrl={clinicLogoUrl}
         platformInspect={platformInspect}
         staffRole={staffRole}
         onNav={close}
@@ -240,7 +239,6 @@ export function AdminShell({
               path={path}
               tenant={tenant}
               userLabel={userLabel}
-              clinicLogoUrl={clinicLogoUrl}
               platformInspect={platformInspect}
               staffRole={staffRole}
               onNav={close}

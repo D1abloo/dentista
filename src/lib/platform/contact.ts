@@ -76,14 +76,14 @@ export async function submitContactForm(input: ContactFormInput) {
     {
       to: inbox,
       replyTo: input.email,
-      subject: `[Dentista+] ${subject}`,
+      subject: `[AgendaClinic] ${subject}`,
       text: body,
       html: `<p>${textToHtml(body)}</p>`
     },
     {
       to: input.email,
-      subject: 'Hemos recibido tu mensaje — Dentista+',
-      text: `Hola ${input.name},\n\nGracias por contactar con Dentista+. Hemos registrado tu consulta y te responderemos en menos de 24 horas laborables.\n\nUn saludo,\nEquipo Dentista+`
+      subject: 'Hemos recibido tu mensaje — AgendaClinic',
+      text: `Hola ${input.name},\n\nGracias por contactar con AgendaClinic. Hemos registrado tu consulta y te responderemos en menos de 24 horas laborables.\n\nUn saludo,\nEquipo AgendaClinic`
     }
   ]);
 
@@ -152,13 +152,13 @@ export async function notifyClinicRegistration(input: {
     {
       to: inbox,
       replyTo: input.email,
-      subject: `[Dentista+] Nueva alta: ${input.clinic_name}`,
+      subject: `[AgendaClinic] Nueva alta: ${input.clinic_name}`,
       text
     },
     {
       to: input.email,
-      subject: 'Solicitud de alta recibida — Dentista+',
-      text: `Hola ${input.owner_name},\n\nHemos recibido la solicitud de alta para «${input.clinic_name}». La revisaremos manualmente y te contactaremos en menos de 24 horas laborables con los siguientes pasos.\n\nReferencia: ${input.registrationId}\n\nUn saludo,\nEquipo Dentista+`
+      subject: 'Solicitud de alta recibida — AgendaClinic',
+      text: `Hola ${input.owner_name},\n\nHemos recibido la solicitud de alta para «${input.clinic_name}». La revisaremos manualmente y te contactaremos en menos de 24 horas laborables con los siguientes pasos.\n\nReferencia: ${input.registrationId}\n\nUn saludo,\nEquipo AgendaClinic`
     }
   ]);
 }

@@ -13,7 +13,7 @@ export function LoginAccessBar({
   return (
     <header className="login-access-bar">
       <a href="/" className="login-access-bar__brand">
-        <DentistaWebpLockup placement="header" />
+        <DentistaWebpLockup placement="header" context="public" />
       </a>
       {badge ? <span className="login-access-bar__badge">{badge}</span> : null}
       <a href={backHref} className="login-access-bar__back">

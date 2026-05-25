@@ -44,7 +44,7 @@ export const GET: APIRoute = async (context) => {
   if (!row) return fail('No hay suscripciones para el informe.', 404);
 
   const lines = [
-    'Informe Suscripciones SaaS — Dentista+',
+    'Informe Suscripciones SaaS — AgendaClinic',
     `Clínica: ${row.clinic_name}`,
     `Plan: ${row.plan_label} · ${row.status_label}`,
     `Tenant: ${row.tenant_slug}`,

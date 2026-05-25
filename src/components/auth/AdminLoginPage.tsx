@@ -8,7 +8,10 @@ import { ensureAdminAccessBeforeRedirect } from '@/lib/clinicCenters';
 import { loginUnified, loginWithPortalChoice } from '@/lib/session';
 import type { PortalChoiceId, PortalChoiceOption } from '@/lib/auth/portalChoices';
 
-const HERO_IMAGE = '/images/login-dentista-paciente.jpg';
+import { brandImages } from '@/lib/brand/assets';
+import { BRAND_ACCESS_CLINIC, BRAND_NAME } from '@/lib/brand/identity';
+
+const HERO_IMAGE = brandImages.doctor;
 const REMEMBER_KEY = 'df_clinic_remember';
 const REMEMBER_EMAIL_KEY = 'df_clinic_remember_email';
 
@@ -214,7 +217,7 @@ export function AdminLoginPage() {
 
       <header className="cln-login__topbar">
         <a href="/" className="cln-login__brand">
-          <DentistaWebpLockup placement="header" />
+          <DentistaWebpLockup placement="header" context="clinic" />
         </a>
         <span className="cln-login__top-badge">Panel clínica</span>
         <button type="button" className="cln-login__top-btn" onClick={() => setPickerOpen(true)}>
@@ -230,7 +233,7 @@ export function AdminLoginPage() {
           </h1>
           <p>
             Organiza citas, pacientes, documentos, informes, facturas y comunicaciones con tus pacientes desde
-            Dentista+.
+            AgendaClinic.
           </p>
           <ul className="cln-login__features">
             {FEATURES.map(({ icon: Icon, label }, i) => (
@@ -258,8 +261,10 @@ export function AdminLoginPage() {
             <header className="cln-login__card-head cln-login__card-head--compact">
               <LogoMark size={44} />
               <div>
-                <p className="cln-login__eyebrow">Dentista+ · Administración</p>
-                <h2>Acceso a tu clínica</h2>
+                <p className="cln-login__eyebrow">
+                  {BRAND_NAME} · {BRAND_ACCESS_CLINIC}
+                </p>
+                <h2>{BRAND_ACCESS_CLINIC}</h2>
               </div>
             </header>
 

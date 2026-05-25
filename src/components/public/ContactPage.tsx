@@ -99,7 +99,7 @@ export function ContactPage() {
   }
 
   const mailSubject = encodeURIComponent(
-    variant.id === 'soporte' ? 'Consulta de soporte — Dentista+' : 'Consulta — Dentista+'
+    variant.id === 'soporte' ? 'Consulta de soporte — AgendaClinic' : 'Consulta — AgendaClinic'
   );
 
   return (

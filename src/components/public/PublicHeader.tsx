@@ -99,8 +99,8 @@ export function PublicHeader({ activeHref = '/', onWantDemo }: Props) {
   return (
     <header className={`ps-header ps-header--fade${scrolled ? ' ps-header--scrolled' : ''}`}>
       <div className="ps-shell ps-shell--wide ps-header__inner">
-        <a href="/" className="ps-header__brand" aria-label="Dentista+ — Inicio">
-          <DentistaWebpLockup placement="header" />
+        <a href="/" className="ps-header__brand" aria-label="AgendaClinic — Inicio">
+          <DentistaWebpLockup placement="header" context="public" />
         </a>
 
         <nav className="ps-nav" aria-label="Principal">
@@ -152,7 +152,7 @@ export function PublicHeader({ activeHref = '/', onWantDemo }: Props) {
         >
           <div className="ps-drawer__head">
             <a href="/" className="ps-header__brand" onClick={() => setOpen(false)}>
-              <DentistaWebpLockup placement="header" />
+              <DentistaWebpLockup placement="header" context="public" />
             </a>
             <button
               type="button"

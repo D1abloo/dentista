@@ -352,7 +352,7 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
       whatsapp: mainClinic.phone ?? '',
       address: mainClinic.address ?? '',
       city: mainClinic.city ?? 'Madrid',
-      imageUrl: '/images/logo.webp',
+      imageUrl: '/img/logo.webp',
       generalHours: 'Lun–Vie 09:00–20:00',
       defaultDuration: 45,
       slotIntervalMinutes: 15,
@@ -372,7 +372,7 @@ export async function loadClinicDemoState(user: SessionUser): Promise<DemoState>
       vatRate: 21,
       invoiceSeries: 'FAC',
       defaultInvoiceConcept: 'Servicios odontológicos',
-      logoUrl: (mainClinic.logo_url as string | null) || '/images/logo.webp'
+      logoUrl: (mainClinic.logo_url as string | null) || '/img/logo.webp'
     }
   };
 

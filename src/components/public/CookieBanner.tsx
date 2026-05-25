@@ -24,7 +24,7 @@ export function CookieBanner() {
     <div className="ps-cookie" role="dialog" aria-label="Preferencias de cookies" aria-modal="false">
       <div className="ps-shell ps-cookie__inner">
         <div>
-          <p className="ps-cookie__title">Tu privacidad en Dentista+</p>
+          <p className="ps-cookie__title">Tu privacidad en AgendaClinic</p>
           <p className="ps-cookie__text">
             Usamos cookies y almacenamiento local estrictamente necesarios para la sesión, la seguridad y recordar esta
             elección. Las cookies analíticas o de marketing no se activan sin tu consentimiento. Consulta la{' '}

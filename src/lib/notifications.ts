@@ -54,7 +54,7 @@ function emailHtml(input: AppointmentNotificationInput, activationUrl: string) {
   return `
     <div style="font-family:Inter,Arial,sans-serif;max-width:640px;margin:0 auto;color:#07142f">
       <div style="background:#0f5f85;color:white;border-radius:24px;padding:28px;margin-bottom:20px">
-        <h1 style="margin:0;font-size:28px">Cita registrada en Dentista+</h1>
+        <h1 style="margin:0;font-size:28px">Cita registrada en AgendaClinic</h1>
         <p style="margin:10px 0 0;font-weight:700;color:#d9f9ff">Activa tu cuenta para ver tus citas y datos del panel.</p>
       </div>
       <div style="border:1px solid #e2e8f0;border-radius:22px;padding:22px">
@@ -116,7 +116,7 @@ async function sendEmail(input: AppointmentNotificationInput, activationUrl: str
   try {
     const result = await sendMail({
       to,
-      subject: 'Activa tu cuenta Dentista+ y consulta tu cita',
+      subject: 'Activa tu cuenta AgendaClinic y consulta tu cita',
       text: appointmentText(input, activationUrl),
       html: emailHtml(input, activationUrl),
       requireDelivery: false

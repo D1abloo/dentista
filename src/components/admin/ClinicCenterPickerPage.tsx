@@ -15,7 +15,7 @@ export function ClinicCenterPickerPage() {
       <main className="clinic-center-page">
         <div className="clinic-center-page__shell">
           <a href="/" className="clinic-center-page__brand">
-            <DentistaWebpLockup placement="header" />
+            <DentistaWebpLockup placement="header" context="clinic" />
           </a>
           <ClinicCenterPicker autoSingle={autoSingle} />
           <p className="clinic-center-page__foot">
