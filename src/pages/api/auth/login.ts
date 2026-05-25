@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createSessionToken, loginProductionUser, loginProductionUserWithPortal, sessionCookieName } from '@/lib/auth';
-import { applyAdminPanelGateCookie, isClinicPanelUser } from '@/lib/auth/adminPanelGate';
+import { applyAdminPanelGateCookie } from '@/lib/auth/adminPanelGate';
+import { shouldGrantAdminGateCookie } from '@/lib/auth/clinicPanelAccess';
 import { isPortalChoiceLogin } from '@/lib/auth/loginResolve';
 import {
   detectClinicLoginDenial,
@@ -163,7 +164,7 @@ export const POST: APIRoute = async (context) => {
             userId: completed.profileId,
             route: '/login/admin'
           });
-          setSessionCookie(cookies, completed, maxAge, true);
+          setSessionCookie(cookies, completed, maxAge, shouldGrantAdminGateCookie(completed));
           return okWithCookies(cookies, completed, { message: 'Sesión iniciada correctamente.' });
         }
         return okWithCookies(
@@ -195,7 +196,7 @@ export const POST: APIRoute = async (context) => {
         route: '/login/admin'
       });
 
-      setSessionCookie(cookies, user, maxAge, true);
+      setSessionCookie(cookies, user, maxAge, shouldGrantAdminGateCookie(user));
 
       return okWithCookies(cookies, user, { message: 'Sesión iniciada correctamente.' });
     }
@@ -251,7 +252,7 @@ export const POST: APIRoute = async (context) => {
       route: parsed.data.portal === 'patient' ? '/login/paciente' : '/login'
     });
 
-    setSessionCookie(cookies, user, maxAge, isClinicPanelUser(user));
+    setSessionCookie(cookies, user, maxAge, shouldGrantAdminGateCookie(user));
 
     return okWithCookies(cookies, user, { message: 'Sesión iniciada correctamente.' });
   } catch (error) {

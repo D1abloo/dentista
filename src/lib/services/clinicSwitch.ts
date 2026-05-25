@@ -249,6 +249,9 @@ export async function resolveEnterDestination(user: SessionUser | null): Promise
 
   if (user.role === 'patient') return '/paciente';
   if (user.role === 'super_admin' && !user.platformInspect) {
+    if (user.sessionPortal === 'clinic') {
+      return postLoginPathForUser(user, { preferAdmin: true });
+    }
     return postLoginPathForUser(user, { preferAdmin: false });
   }
   if (user.role === 'admin' || (user.role === 'super_admin' && user.platformInspect)) {
@@ -263,6 +266,9 @@ export async function resolvePortalSwitchDestination(user: Omit<SessionUser, 'ex
   }
   if (user.role === 'patient') return '/paciente';
   if (user.role === 'super_admin' && !user.platformInspect) {
+    if (user.sessionPortal === 'clinic') {
+      return postLoginPathForUser(user, { preferAdmin: true });
+    }
     return postLoginPathForUser(user, { preferAdmin: false });
   }
   if (user.role === 'admin' || (user.role === 'super_admin' && user.platformInspect)) {

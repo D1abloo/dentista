@@ -1,11 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { getEffectiveSessionUser, type SessionUser } from '@/lib/auth';
+import type { SessionUser } from '@/lib/auth';
 import { isCookieSecure } from '@/lib/auth/cookieResponse';
-import { isPlatformAppAdminEmail } from '@/lib/auth/platformClinicAccess';
-import { enrichDualRoleClinicSession } from '@/lib/auth/dualRoleClinic';
-import { canAccessClinicPanel, inferSessionPortal } from '@/lib/auth/sessionPortal';
-
-const STAFF_ROLES = new Set(['clinic_admin', 'admin', 'owner', 'dentist', 'receptionist']);
+import { canAccessClinicPanelFromRaw } from '@/lib/auth/clinicPanelAccess';
 
 export const adminPanelGateCookieName = 'df_admin_gate';
 
@@ -82,41 +78,16 @@ export function hasAdminPanelGate(cookies: CookieReader): boolean {
 
 /** Usuario con acceso al panel clínica (alineado con requireStaffSession). */
 export function isClinicPanelUser(
-  user: Pick<SessionUser, 'role' | 'platformInspect' | 'inspectMode' | 'staffRole' | 'clinicId' | 'profileId'>
+  user: Pick<
+    SessionUser,
+    'role' | 'platformInspect' | 'inspectMode' | 'staffRole' | 'clinicId' | 'profileId' | 'sessionPortal'
+  >
 ): boolean {
-  if (user.role === 'patient') return false;
-  if (user.platformInspect && user.inspectMode === 'clinic_admin') {
-    return Boolean(user.clinicId);
-  }
-  if (user.role === 'admin') return true;
-  if (user.role === 'super_admin') {
-    if (user.clinicId) return true;
-    const staffRole = user.staffRole;
-    if (staffRole && STAFF_ROLES.has(staffRole)) return true;
-    return false;
-  }
-  const staffRole = user.staffRole ?? user.role;
-  return STAFF_ROLES.has(staffRole);
+  return canAccessClinicPanelFromRaw(user);
 }
 
-/** Sesión válida de personal clínica (post-login), con enriquecimiento dual-role si aplica. */
-export async function hasClinicPanelSession(cookies: CookieReader): Promise<boolean> {
-  try {
-    let user = getEffectiveSessionUser(cookies);
-    if (!user) return false;
-    if (inferSessionPortal(user) === 'platform' && !user.platformInspect) return false;
-    if (canAccessClinicPanel(user)) return true;
-    if (user.role === 'super_admin' && !user.platformInspect) {
-      user = await enrichDualRoleClinicSession(user);
-      if (inferSessionPortal(user) === 'platform' && !user.platformInspect) return false;
-      return canAccessClinicPanel(user);
-    }
-    return false;
-  } catch {
-    const user = getEffectiveSessionUser(cookies);
-    return user ? canAccessClinicPanel(user) : false;
-  }
-}
+/** @deprecated Usar hasClinicPanelAccess desde clinicPanelAccess */
+export { hasClinicPanelAccess as hasClinicPanelSession } from '@/lib/auth/clinicPanelAccess';
 
 export function applyAdminPanelGateCookie(cookies: CookieWriter, maxAge = GATE_MAX_AGE_SEC) {
   cookies.set(adminPanelGateCookieName, createAdminPanelGateCookie(), {

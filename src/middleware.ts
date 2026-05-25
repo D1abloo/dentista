@@ -1,5 +1,5 @@
 import { defineMiddleware } from 'astro:middleware';
-import { getEffectiveSessionUser, getSessionUser } from '@/lib/auth';
+import { getSessionUser } from '@/lib/auth';
 import { clearPlatformInspectCookie } from '@/lib/auth/platformInspect';
 import {
   hasAdminPanelGate,
@@ -10,7 +10,7 @@ import {
   isPlatformProtectedPath,
   isPlatformPublicPath
 } from '@/lib/auth/adminPanelGate';
-import { inferSessionPortal } from '@/lib/auth/sessionPortal';
+import { hasClinicPanelAccess } from '@/lib/auth/clinicPanelAccess';
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname, search } = context.url;
@@ -20,8 +20,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   const session = getSessionUser(context.cookies);
-  const effective = getEffectiveSessionUser(context.cookies) ?? session;
-  const portal = session ? inferSessionPortal(session) : null;
 
   if (isPlatformPublicPath(pathname)) {
     return next();
@@ -40,17 +38,15 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return next();
   }
 
-  if (session?.role === 'super_admin' && portal === 'platform') {
+  if (session?.role === 'super_admin' && session.sessionPortal === 'platform') {
     return context.redirect('/platform');
   }
 
-  if (await hasClinicPanelSession(context.cookies)) {
+  if (await hasClinicPanelAccess(context.cookies)) {
     if (
-      effective &&
-      portal === 'clinic' &&
       session?.role === 'super_admin' &&
+      session.sessionPortal === 'clinic' &&
       !session.clinicId &&
-      !effective.platformInspect &&
       !isAdminCenterPickerPath(pathname)
     ) {
       return context.redirect('/admin/elegir-centro');
@@ -58,7 +54,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return next();
   }
 
-  if (hasAdminPanelGate(context.cookies)) {
+  if (hasAdminPanelGate(context.cookies) && pathname.startsWith('/login/admin')) {
+    return next();
+  }
+
+  if (hasAdminPanelGate(context.cookies) && session) {
     return next();
   }
 

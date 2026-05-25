@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createSessionToken, getEffectiveSessionUser, sessionCookieName } from '@/lib/auth';
-import { applyAdminPanelGateCookie, isClinicPanelUser } from '@/lib/auth/adminPanelGate';
+import { applyAdminPanelGateCookie } from '@/lib/auth/adminPanelGate';
+import { shouldGrantAdminGateCookie } from '@/lib/auth/clinicPanelAccess';
 import { AccountNotActivatedError } from '@/lib/auth/accountErrors';
 import { completePortalLogin } from '@/lib/auth/loginComplete';
 import { getIdentityFromSession } from '@/lib/auth/portalChoices';
@@ -48,7 +49,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       maxAge
     });
 
-    if (isClinicPanelUser(sessionUser)) {
+    if (shouldGrantAdminGateCookie(sessionUser)) {
       applyAdminPanelGateCookie(cookies, maxAge);
     }
 
