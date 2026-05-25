@@ -4,6 +4,7 @@ import { LogoMark } from '@/components/brand/Logo';
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
 import { PortalChoicePanel } from '@/components/auth/PortalChoicePanel';
 import { PortalPickerModal } from '@/components/auth/PortalPickerModal';
+import { ensureAdminAccessBeforeRedirect } from '@/lib/clinicCenters';
 import { loginUnified, loginWithPortalChoice } from '@/lib/session';
 import type { PortalChoiceId, PortalChoiceOption } from '@/lib/auth/portalChoices';
 
@@ -105,7 +106,9 @@ export function AdminLoginPage() {
   function redirectAfterSuccess(dest: string) {
     setSuccess(true);
     window.setTimeout(() => {
-      window.location.href = dest;
+      void ensureAdminAccessBeforeRedirect(dest).finally(() => {
+        window.location.href = dest;
+      });
     }, 480);
   }
 

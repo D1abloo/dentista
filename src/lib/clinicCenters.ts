@@ -28,7 +28,8 @@ export async function switchClinicCenter(clinicId: string): Promise<{ ok: true }
   return { ok: true };
 }
 
-async function ensureAdminAccessBeforeRedirect(dest: string) {
+/** Refresca df_admin_gate antes de navegar al panel (login, centro, portal). */
+export async function ensureAdminAccessBeforeRedirect(dest: string) {
   if (!dest.startsWith('/admin')) return;
   try {
     await fetch('/api/auth/ensure-admin-access', { method: 'POST', credentials: 'include' });

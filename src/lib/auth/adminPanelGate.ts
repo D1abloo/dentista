@@ -86,19 +86,31 @@ export function isClinicPanelUser(
     return Boolean(user.clinicId);
   }
   if (user.role === 'admin') return true;
-  if (user.role === 'super_admin' && user.clinicId) return true;
+  if (user.role === 'super_admin') {
+    if (user.clinicId) return true;
+    const staffRole = user.staffRole;
+    if (staffRole && STAFF_ROLES.has(staffRole)) return true;
+    return false;
+  }
   const staffRole = user.staffRole ?? user.role;
   return STAFF_ROLES.has(staffRole);
 }
 
 /** Sesión válida de personal clínica (post-login), con enriquecimiento dual-role si aplica. */
 export async function hasClinicPanelSession(cookies: CookieReader): Promise<boolean> {
-  let user = getEffectiveSessionUser(cookies);
-  if (!user) return false;
-  if (user.role === 'super_admin' && !user.platformInspect) {
-    user = await enrichDualRoleClinicSession(user);
+  try {
+    let user = getEffectiveSessionUser(cookies);
+    if (!user) return false;
+    if (isClinicPanelUser(user)) return true;
+    if (user.role === 'super_admin' && !user.platformInspect) {
+      user = await enrichDualRoleClinicSession(user);
+      return isClinicPanelUser(user);
+    }
+    return false;
+  } catch {
+    const user = getEffectiveSessionUser(cookies);
+    return user ? isClinicPanelUser(user) : false;
   }
-  return isClinicPanelUser(user);
 }
 
 export function applyAdminPanelGateCookie(cookies: CookieWriter, maxAge = GATE_MAX_AGE_SEC) {
@@ -115,11 +127,9 @@ export function isDemoGateBypass(): boolean {
   return import.meta.env.PUBLIC_DEMO_MODE === 'true';
 }
 
-/** Rutas HTML del panel clínica que requieren enlace de entrada previo. */
+/** Rutas HTML del panel clínica (el login /login/admin es público). */
 export function isAdminPanelProtectedPath(pathname: string): boolean {
-  if (pathname === '/admin' || pathname.startsWith('/admin/')) return true;
-  if (pathname === '/login/admin') return true;
-  return false;
+  return pathname === '/admin' || pathname.startsWith('/admin/');
 }
 
 /** Solo rutas del panel (no login). Tras autenticación basta la sesión clínica. */

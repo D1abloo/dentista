@@ -11,9 +11,13 @@ type MeUser = {
   inspectMode?: string;
 };
 
+const STAFF_ME_ROLES = new Set(['admin', 'owner', 'clinic_admin', 'dentist', 'receptionist']);
+
 function mapMeToPortalRole(data: MeUser): DemoRole | null {
   if (data.role === 'patient') return 'paciente';
   if (data.role === 'admin' || data.role === 'super_admin') return 'admin';
+  if (data.platformInspect && data.inspectMode === 'clinic_admin') return 'admin';
+  if (STAFF_ME_ROLES.has(data.role)) return 'admin';
   return null;
 }
 

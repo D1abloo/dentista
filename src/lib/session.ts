@@ -3,6 +3,7 @@ import type { PortalChoiceId, PortalChoiceOption } from '@/lib/auth/portalChoice
 import { isClientDemoMode } from '@/lib/appMode';
 import { isPatientPortalPath, isSafeInternalPath } from '@/lib/loginIntent';
 import { STORAGE_ACTIVE_CLINIC_ID, STORAGE_PATIENT_ID, STORAGE_STATE, STORAGE_TENANT_ID } from '@/lib/storage/keys';
+import { ensureAdminAccessBeforeRedirect } from '@/lib/clinicCenters';
 import { clearDemoSession, getStoredRole } from '@/lib/demoStore';
 
 export type SessionUser = {
@@ -72,7 +73,7 @@ function redirectAfterLogin(user: SessionUser): string {
     if (next && isSafeInternalPath(next)) {
       if (isPatientPortalPath(next)) return next;
       if (user.role === 'super_admin' && next.startsWith('/platform')) return next;
-      if (user.role === 'admin' && next.startsWith('/admin')) return next;
+      if (next.startsWith('/admin') && (user.role === 'admin' || user.role === 'super_admin')) return next;
       if (user.role === 'patient') return next;
     }
   }
@@ -119,15 +120,14 @@ async function finishSessionLogin(
 
   const dest = redirectAfterLogin(user);
   if (opts?.deferRedirect) {
+    if (dest.startsWith('/admin')) {
+      await ensureAdminAccessBeforeRedirect(dest);
+    }
     return { ok: true, redirectTo: dest, portalRole };
   }
 
   if (dest.startsWith('/admin')) {
-    try {
-      await fetch('/api/auth/ensure-admin-access', { method: 'POST', credentials: 'include' });
-    } catch {
-      /* middleware también acepta sesión clínica válida */
-    }
+    await ensureAdminAccessBeforeRedirect(dest);
   }
 
   window.location.href = dest;

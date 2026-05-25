@@ -28,7 +28,7 @@ export function EnterPortalChoicePage() {
         }
         const opts = json.data?.options ?? [];
         if (opts.length <= 1) {
-          window.location.href = json.data?.redirect ?? '/';
+          window.location.href = json.data?.redirect ?? '/login';
           return;
         }
         setOptions(opts);
