@@ -13,6 +13,7 @@ import {
 } from '@/lib/auth/platformLoginFlow';
 import { AccountNotActivatedError } from '@/lib/auth/accountErrors';
 import { isCookieSecure, okWithCookies } from '@/lib/auth/cookieResponse';
+import { clearPlatformInspectCookie } from '@/lib/auth/platformInspect';
 import { isPlatformAppAdminEmail } from '@/lib/auth/platformClinicAccess';
 import { fail } from '@/lib/http';
 import { logError } from '@/lib/logger';
@@ -92,9 +93,11 @@ export const POST: APIRoute = async (context) => {
         route: '/platform/login'
       });
 
-      setSessionCookie(cookies, user, maxAge);
+      clearPlatformInspectCookie(cookies);
+      const platformUser = { ...user, sessionPortal: 'platform' as const };
+      setSessionCookie(cookies, platformUser, maxAge);
 
-      return okWithCookies(cookies, user, { message: 'Sesión iniciada correctamente.' });
+      return okWithCookies(cookies, platformUser, { message: 'Sesión iniciada correctamente.' });
     }
 
     if (parsed.data.role === 'admin') {

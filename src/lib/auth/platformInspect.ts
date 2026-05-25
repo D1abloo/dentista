@@ -69,3 +69,18 @@ export function parsePlatformInspectCookie(token: string | undefined): PlatformI
 export function getPlatformInspectSession(cookies: { get(name: string): { value?: string } | undefined }) {
   return parsePlatformInspectCookie(cookies.get(platformInspectCookieName)?.value);
 }
+
+type CookieDeleter = {
+  delete: (name: string, options: { path: string }) => void;
+};
+
+/** Cierra inspección de clínica/PdP al volver al panel de plataforma. */
+export function clearPlatformInspectCookie(cookies: CookieDeleter) {
+  try {
+    if (typeof cookies.delete === 'function') {
+      cookies.delete(platformInspectCookieName, { path: '/' });
+    }
+  } catch {
+    /* ignore en entornos sin soporte delete */
+  }
+}

@@ -3,12 +3,7 @@ import { isClientDemoMode } from '@/lib/appMode';
 import { clearDemoRoleHints } from '@/lib/demoStore';
 import { logoutSession } from '@/lib/session';
 import { Restricted } from './Restricted';
-import {
-  canAccessPlatformPanelFromSession,
-  homePathForPortal,
-  inferSessionPortal,
-  type SessionPortal
-} from '@/lib/auth/sessionPortal';
+import { homePathForPortal, inferSessionPortal, type SessionPortal } from '@/lib/auth/sessionPortal';
 import type { DemoRole } from '@/types/demo';
 
 type MeUser = {
@@ -53,14 +48,13 @@ export function RoleGate({ role, children }: { role: DemoRole; children: ReactNo
         const data = json.data;
         if (!cancelled) {
           if (live && role === 'admin' && data) {
-            if (
-              canAccessPlatformPanelFromSession({
-                role: data.role,
-                baseRole: data.baseRole,
-                sessionPortal: data.sessionPortal,
-                platformInspect: data.platformInspect
-              })
-            ) {
+            const portal = inferSessionPortal({
+              role: data.baseRole ?? data.role,
+              clinicId: data.clinicId,
+              sessionPortal: data.sessionPortal,
+              platformInspect: false
+            });
+            if (portal === 'platform') {
               window.location.replace(homePathForPortal('platform'));
               return;
             }

@@ -48,27 +48,23 @@ export function canAccessClinicPanel(
   return ['clinic_admin', 'admin', 'owner', 'dentist', 'receptionist'].includes(staffRole);
 }
 
-export function canAccessPlatformPanel(
-  user: Pick<SessionUser, 'role' | 'sessionPortal' | 'platformInspect'>
-): boolean {
-  if (user.role !== 'super_admin') return false;
-  return inferSessionPortal(user) === 'platform' && !user.platformInspect;
+/** Super admin con sesión base válida (ignora rol efectivo de inspección de clínica). */
+export function canAccessPlatformPanel(user: {
+  role?: SessionUser['role'] | string;
+  baseRole?: SessionUser['role'] | string;
+}): boolean {
+  const baseRole = user.baseRole ?? user.role;
+  return baseRole === 'super_admin';
 }
 
-/** Acceso plataforma según cookie base (ignora sesión efectiva de inspección). */
+/** @deprecated Alias de canAccessPlatformPanel para llamadas con /api/auth/me */
 export function canAccessPlatformPanelFromSession(
   user: Pick<SessionUser, 'sessionPortal' | 'platformInspect'> & {
     role?: SessionUser['role'] | string;
     baseRole?: SessionUser['role'] | string;
   }
 ): boolean {
-  const baseRole = user.baseRole ?? user.role;
-  if (baseRole !== 'super_admin') return false;
-  return canAccessPlatformPanel({
-    role: 'super_admin',
-    sessionPortal: user.sessionPortal,
-    platformInspect: false
-  });
+  return canAccessPlatformPanel(user);
 }
 
 /** Destino tras login según el portal elegido en la sesión. */

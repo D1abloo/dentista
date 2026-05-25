@@ -1,5 +1,6 @@
 import { defineMiddleware } from 'astro:middleware';
 import { getEffectiveSessionUser, getSessionUser } from '@/lib/auth';
+import { clearPlatformInspectCookie } from '@/lib/auth/platformInspect';
 import {
   hasAdminPanelGate,
   hasClinicPanelSession,
@@ -9,11 +10,14 @@ import {
   isPlatformProtectedPath,
   isPlatformPublicPath
 } from '@/lib/auth/adminPanelGate';
-import {
-  canAccessPlatformPanel,
-  homePathForPortal,
-  inferSessionPortal
-} from '@/lib/auth/sessionPortal';
+import { homePathForPortal, inferSessionPortal } from '@/lib/auth/sessionPortal';
+
+function safePlatformNext(search: string): string | null {
+  const next = new URLSearchParams(search).get('next');
+  if (!next || !next.startsWith('/') || next.startsWith('//')) return null;
+  if (!next.startsWith('/platform')) return null;
+  return next;
+}
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname, search } = context.url;
@@ -26,22 +30,21 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const effective = getEffectiveSessionUser(context.cookies) ?? session;
   const portal = effective ? inferSessionPortal(effective) : null;
 
-  if (isPlatformProtectedPath(pathname) && !isPlatformPublicPath(pathname)) {
+  if (isPlatformPublicPath(pathname)) {
+    if (session?.role === 'super_admin') {
+      clearPlatformInspectCookie(context.cookies);
+      const dest = safePlatformNext(search) ?? '/platform';
+      return context.redirect(dest);
+    }
+    return next();
+  }
+
+  if (isPlatformProtectedPath(pathname)) {
     if (!session || session.role !== 'super_admin') {
       const nextTarget = encodeURIComponent(`${pathname}${search}`);
       return context.redirect(`/platform/login?next=${nextTarget}`);
     }
-    if (!canAccessPlatformPanel(session)) {
-      const sessionPortal = inferSessionPortal(session);
-      if (sessionPortal === 'clinic') {
-        return context.redirect(homePathForPortal('clinic', session.clinicId));
-      }
-      if (sessionPortal === 'patient') {
-        return context.redirect('/paciente');
-      }
-      const nextTarget = encodeURIComponent(`${pathname}${search}`);
-      return context.redirect(`/platform/login?next=${nextTarget}`);
-    }
+    clearPlatformInspectCookie(context.cookies);
     return next();
   }
 

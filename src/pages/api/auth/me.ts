@@ -11,7 +11,8 @@ export const GET: APIRoute = async ({ cookies }) => {
   const payload = {
     ...effective,
     baseRole: user.role,
-    sessionPortal: user.sessionPortal ?? effective.sessionPortal
+    sessionPortal: user.sessionPortal ?? effective.sessionPortal,
+    inspectActive: effective.platformInspect === true
   };
   return ok(payload, { authenticated: true });
 };

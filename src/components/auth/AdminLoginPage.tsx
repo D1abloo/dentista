@@ -10,7 +10,6 @@ import type { SessionUser } from '@/lib/auth';
 import type { PortalChoiceId, PortalChoiceOption } from '@/lib/auth/portalChoices';
 import {
   canAccessClinicPanel,
-  canAccessPlatformPanelFromSession,
   inferSessionPortal,
   postLoginPathForUser,
   type SessionPortal
@@ -83,25 +82,18 @@ export function AdminLoginPage() {
         const data = j.data;
         if (!data?.role) return;
 
-        if (
-          canAccessPlatformPanelFromSession({
-            role: data.role,
-            baseRole: data.baseRole as SessionUser['role'] | undefined,
-            sessionPortal: data.sessionPortal,
-            platformInspect: data.platformInspect
-          })
-        ) {
+        const portal = inferSessionPortal({
+          role: data.baseRole ?? data.role,
+          clinicId: data.clinicId,
+          platformInspect: false,
+          sessionPortal: data.sessionPortal
+        });
+
+        if (portal === 'platform') {
           setPlatformSession(true);
           window.location.replace('/platform');
           return;
         }
-
-        const portal = inferSessionPortal({
-          role: data.baseRole ?? data.role,
-          clinicId: data.clinicId,
-          platformInspect: data.platformInspect,
-          sessionPortal: data.sessionPortal
-        });
 
         if (portal === 'patient') {
           window.location.replace('/paciente');
@@ -109,10 +101,10 @@ export function AdminLoginPage() {
         }
 
         if (!canAccessClinicPanel({
-          role: data.role as SessionUser['role'],
+          role: (data.baseRole ?? data.role) as SessionUser['role'],
           clinicId: data.clinicId,
           staffRole: data.staffRole,
-          platformInspect: data.platformInspect,
+          platformInspect: false,
           sessionPortal: data.sessionPortal
         })) {
           return;

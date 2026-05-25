@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react';
 import { ChevronRight, Eye, EyeOff, Lock, Mail, ShieldCheck } from 'lucide-react';
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
 import {
-  canAccessPlatformPanelFromSession,
+  canAccessPlatformPanel,
   homePathForPortal,
-  inferSessionPortal,
-  postLoginPathForUser
+  inferSessionPortal
 } from '@/lib/auth/sessionPortal';
 import { isSafeInternalPath } from '@/lib/loginIntent';
 
@@ -56,28 +55,20 @@ export function PlatformLoginPage() {
         const data = j.data;
         if (!data) return;
 
-        if (
-          canAccessPlatformPanelFromSession({
-            role: data.role,
-            baseRole: data.baseRole as 'super_admin' | undefined,
+        if (canAccessPlatformPanel({ role: data.role, baseRole: data.baseRole })) {
+          const portal = inferSessionPortal({
+            role: data.baseRole ?? data.role ?? '',
             sessionPortal: data.sessionPortal,
-            platformInspect: data.platformInspect
-          })
-        ) {
+            platformInspect: false
+          });
+          if (portal === 'clinic') {
+            window.location.replace(homePathForPortal('clinic', data.clinicId));
+            return;
+          }
           const params = new URLSearchParams(window.location.search);
           const next = params.get('next');
           const dest =
-            next && isSafeInternalPath(next) && next.startsWith('/platform')
-              ? next
-              : postLoginPathForUser(
-                  {
-                    role: 'super_admin',
-                    clinicId: data.clinicId,
-                    sessionPortal: data.sessionPortal ?? 'platform',
-                    platformInspect: false
-                  },
-                  { preferAdmin: false }
-                );
+            next && isSafeInternalPath(next) && next.startsWith('/platform') ? next : '/platform';
           window.location.replace(dest);
           return;
         }
@@ -163,6 +154,13 @@ export function PlatformLoginPage() {
 
       const params = new URLSearchParams(window.location.search);
       const next = params.get('next');
+      await fetch('/api/platform/inspect', {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { accept: 'application/json' },
+        body: '{}'
+      }).catch(() => undefined);
+
       window.location.href =
         next && isSafeInternalPath(next) && next.startsWith('/platform') ? next : '/platform';
     } catch {
