@@ -10,14 +10,7 @@ import {
   isPlatformProtectedPath,
   isPlatformPublicPath
 } from '@/lib/auth/adminPanelGate';
-import { homePathForPortal, inferSessionPortal } from '@/lib/auth/sessionPortal';
-
-function safePlatformNext(search: string): string | null {
-  const next = new URLSearchParams(search).get('next');
-  if (!next || !next.startsWith('/') || next.startsWith('//')) return null;
-  if (!next.startsWith('/platform')) return null;
-  return next;
-}
+import { inferSessionPortal } from '@/lib/auth/sessionPortal';
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname, search } = context.url;
@@ -28,14 +21,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   const session = getSessionUser(context.cookies);
   const effective = getEffectiveSessionUser(context.cookies) ?? session;
-  const portal = effective ? inferSessionPortal(effective) : null;
+  const portal = session ? inferSessionPortal(session) : null;
 
   if (isPlatformPublicPath(pathname)) {
-    if (session?.role === 'super_admin') {
-      clearPlatformInspectCookie(context.cookies);
-      const dest = safePlatformNext(search) ?? '/platform';
-      return context.redirect(dest);
-    }
     return next();
   }
 
@@ -52,7 +40,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return next();
   }
 
-  if (effective && portal === 'platform' && !effective.platformInspect) {
+  if (session?.role === 'super_admin' && portal === 'platform') {
     return context.redirect('/platform');
   }
 
@@ -60,8 +48,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
     if (
       effective &&
       portal === 'clinic' &&
-      effective.role === 'super_admin' &&
-      !effective.clinicId &&
+      session?.role === 'super_admin' &&
+      !session.clinicId &&
       !effective.platformInspect &&
       !isAdminCenterPickerPath(pathname)
     ) {

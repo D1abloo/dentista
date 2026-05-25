@@ -1,12 +1,9 @@
 import { useEffect, useState } from 'react';
 import { ChevronRight, Eye, EyeOff, Lock, Mail, ShieldCheck } from 'lucide-react';
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
-import {
-  canAccessPlatformPanel,
-  homePathForPortal,
-  inferSessionPortal
-} from '@/lib/auth/sessionPortal';
 import { isSafeInternalPath } from '@/lib/loginIntent';
+
+const REDIRECT_GUARD = 'df_platform_login_redirect';
 
 const HERO_IMAGE = '/images/login-dentista-paciente.jpg';
 const REMEMBER_KEY = 'df_platform_remember';
@@ -39,54 +36,11 @@ export function PlatformLoginPage() {
   }, []);
 
   useEffect(() => {
-    void (async () => {
-      try {
-        const r = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
-        if (!r.ok) return;
-        const j = (await r.json()) as {
-          data?: {
-            role?: string;
-            baseRole?: string;
-            clinicId?: string;
-            sessionPortal?: 'platform' | 'clinic' | 'patient';
-            platformInspect?: boolean;
-          };
-        };
-        const data = j.data;
-        if (!data) return;
-
-        if (canAccessPlatformPanel({ role: data.role, baseRole: data.baseRole })) {
-          const portal = inferSessionPortal({
-            role: data.baseRole ?? data.role ?? '',
-            sessionPortal: data.sessionPortal,
-            platformInspect: false
-          });
-          if (portal === 'clinic') {
-            window.location.replace(homePathForPortal('clinic', data.clinicId));
-            return;
-          }
-          const params = new URLSearchParams(window.location.search);
-          const next = params.get('next');
-          const dest =
-            next && isSafeInternalPath(next) && next.startsWith('/platform') ? next : '/platform';
-          window.location.replace(dest);
-          return;
-        }
-
-        const portal = inferSessionPortal({
-          role: data.baseRole ?? data.role ?? '',
-          sessionPortal: data.sessionPortal,
-          platformInspect: false
-        });
-        if (portal === 'clinic') {
-          window.location.replace(homePathForPortal('clinic', data.clinicId));
-        } else if (portal === 'patient') {
-          window.location.replace('/paciente');
-        }
-      } catch {
-        /* sin sesión previa */
-      }
-    })();
+    try {
+      sessionStorage.removeItem(REDIRECT_GUARD);
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   useEffect(() => {
@@ -161,8 +115,25 @@ export function PlatformLoginPage() {
         body: '{}'
       }).catch(() => undefined);
 
-      window.location.href =
+      try {
+        sessionStorage.removeItem(REDIRECT_GUARD);
+      } catch {
+        /* ignore */
+      }
+
+      const check = await fetch('/api/auth/platform-check', {
+        credentials: 'include',
+        cache: 'no-store'
+      });
+      const checkJson = (await check.json()) as { data?: { allowed?: boolean } };
+      if (!checkJson.data?.allowed) {
+        setError('No se pudo validar la sesión de plataforma. Recarga la página e inténtalo de nuevo.');
+        return;
+      }
+
+      const dest =
         next && isSafeInternalPath(next) && next.startsWith('/platform') ? next : '/platform';
+      window.location.replace(dest);
     } catch {
       setError('No se pudo iniciar sesión. Inténtalo de nuevo.');
     } finally {

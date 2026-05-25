@@ -1,44 +1,55 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import type { SessionUser } from '@/lib/auth';
-import { canAccessPlatformPanel } from '@/lib/auth/sessionPortal';
+const REDIRECT_GUARD = 'df_platform_login_redirect';
 
-type MePayload = {
-  role?: string;
-  baseRole?: SessionUser['role'];
+type CheckPayload = {
+  allowed?: boolean;
+  email?: string;
 };
 
+function loginHref(): string {
+  const next = encodeURIComponent(`${window.location.pathname}${window.location.search}`);
+  return `/platform/login?next=${next}`;
+}
+
 export function PlatformGate({ children }: { children: ReactNode }) {
-  const [allowed, setAllowed] = useState(false);
+  const [state, setState] = useState<'loading' | 'ok' | 'login'>('loading');
 
   useEffect(() => {
     let cancelled = false;
 
     void (async () => {
       try {
-        const res = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
+        const res = await fetch('/api/auth/platform-check', {
+          credentials: 'include',
+          cache: 'no-store'
+        });
         if (cancelled) return;
 
-        if (!res.ok) {
-          const next = encodeURIComponent(
-            `${window.location.pathname}${window.location.search}`
-          );
-          window.location.replace(`/platform/login?next=${next}`);
+        const json = (await res.json()) as { data?: CheckPayload };
+        if (json.data?.allowed) {
+          try {
+            sessionStorage.removeItem(REDIRECT_GUARD);
+          } catch {
+            /* ignore */
+          }
+          setState('ok');
           return;
         }
 
-        const json = (await res.json()) as { data?: MePayload };
-        const data = json.data;
-
-        if (!canAccessPlatformPanel({ role: data?.role, baseRole: data?.baseRole })) {
-          window.location.replace('/platform/login');
+        const guard = sessionStorage.getItem(REDIRECT_GUARD);
+        if (!guard) {
+          try {
+            sessionStorage.setItem(REDIRECT_GUARD, '1');
+          } catch {
+            /* ignore */
+          }
+          window.location.replace(loginHref());
           return;
         }
 
-        if (!cancelled) setAllowed(true);
+        setState('login');
       } catch {
-        if (!cancelled) {
-          window.location.replace('/platform/login');
-        }
+        if (!cancelled) setState('login');
       }
     })();
 
@@ -47,10 +58,29 @@ export function PlatformGate({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  if (!allowed) {
+  if (state === 'loading') {
     return (
       <main className="grid min-h-screen place-items-center bg-slate-50 text-sm font-bold text-[var(--ink)]">
         Cargando panel de plataforma…
+      </main>
+    );
+  }
+
+  if (state === 'login') {
+    const href = loginHref();
+
+    return (
+      <main className="grid min-h-screen place-items-center bg-slate-50 p-6 text-center">
+        <div className="max-w-md rounded-2xl bg-white p-8 shadow-premium ring-1 ring-slate-100">
+          <h1 className="font-display text-xl text-dental-950">Sesión de plataforma requerida</h1>
+          <p className="mt-3 text-sm text-slate-600">
+            Inicia sesión como Super Admin para acceder al panel. Si acabas de entrar y ves este mensaje,
+            borra cookies del sitio o usa una ventana privada.
+          </p>
+          <a href={href} className="btn btn--primary btn--sm mt-6 inline-flex no-underline">
+            Ir al acceso de plataforma
+          </a>
+        </div>
       </main>
     );
   }

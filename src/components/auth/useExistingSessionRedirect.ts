@@ -29,7 +29,7 @@ function resolveDest(data: MeData, forced: 'admin' | 'patient' | undefined): str
     platformInspect: false
   });
 
-  if (portal === 'platform' && forced !== 'patient') return '/platform';
+  if (portal === 'platform' && forced !== 'patient' && forced !== 'admin') return '/platform';
   if (portal === 'patient' || baseRole === 'patient') return '/paciente';
 
   const next = getLoginNextParam();
