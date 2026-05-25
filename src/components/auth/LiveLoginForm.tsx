@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { Heart, Lock, Mail, ShieldCheck } from 'lucide-react';
 import { PortalChoicePanel } from './PortalChoicePanel';
-import { useExistingSessionRedirect } from './useExistingSessionRedirect';
 import { useLoginWithPortalChoice } from './useLoginWithPortalChoice';
 
 type LiveRole = 'admin' | 'patient';
@@ -26,8 +25,6 @@ export function LiveLoginForm({
     pickPortal,
     resetChoice
   } = useLoginWithPortalChoice(apiRole);
-
-  useExistingSessionRedirect(apiRole);
 
   useEffect(() => {
     const prefill = new URLSearchParams(window.location.search).get('email');

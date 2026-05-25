@@ -1,12 +1,10 @@
 ---
 export const prerender = false;
 
-import { getSessionUser } from '@/lib/auth';
 import {
   applyAdminPanelGateCookie,
   validateAdminEntrySlug
 } from '@/lib/auth/adminPanelGate';
-import { hasClinicPanelAccess } from '@/lib/auth/clinicPanelAccess';
 
 const { slug } = Astro.params;
 
@@ -15,12 +13,6 @@ if (!validateAdminEntrySlug(slug)) {
 }
 
 applyAdminPanelGateCookie(Astro.cookies);
-
-const session = getSessionUser(Astro.cookies);
-if (session && (await hasClinicPanelAccess(Astro.cookies))) {
-  const dest = session.clinicId ? '/admin' : '/admin/elegir-centro?auto=1';
-  return Astro.redirect(dest);
-}
 
 return Astro.redirect('/login/admin');
 ---

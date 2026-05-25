@@ -7,12 +7,10 @@ import { PortalPickerModal } from '@/components/auth/PortalPickerModal';
 import { ensureAdminAccessBeforeRedirect } from '@/lib/clinicCenters';
 import { loginUnified, loginWithPortalChoice } from '@/lib/session';
 import type { PortalChoiceId, PortalChoiceOption } from '@/lib/auth/portalChoices';
-import type { SessionPortal } from '@/lib/auth/sessionPortal';
 
 const HERO_IMAGE = '/images/login-dentista-paciente.jpg';
 const REMEMBER_KEY = 'df_clinic_remember';
 const REMEMBER_EMAIL_KEY = 'df_clinic_remember_email';
-const ADMIN_REDIRECT_GUARD = 'df_admin_login_redirect';
 
 const FEATURES = [
   { icon: CalendarDays, label: 'Agenda inteligente' },
@@ -60,29 +58,34 @@ export function AdminLoginPage() {
   }, []);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const next = params.get('next');
-    if (!next?.startsWith('/admin')) return;
-
     void (async () => {
       try {
-        if (sessionStorage.getItem(ADMIN_REDIRECT_GUARD) === '1') return;
-
-        const r = await fetch('/api/auth/clinic-check', { credentials: 'include', cache: 'no-store' });
+        const r = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
         if (!r.ok) return;
-        const j = (await r.json()) as { data?: { allowed?: boolean; sessionPortal?: SessionPortal } };
-        if (!j.data?.allowed) return;
-
-        if (j.data.sessionPortal === 'platform') {
-          window.location.replace('/platform');
-          return;
+        const j = (await r.json()) as {
+          data?: { role?: string; clinicId?: string; staffRole?: string; baseRole?: string };
+        };
+        const data = j.data;
+        if (!data?.role) return;
+        const staffRole = data.staffRole ?? data.role;
+        const isPlatformAdmin = (data.baseRole ?? data.role) === 'super_admin' && !data.clinicId;
+        if (isPlatformAdmin) {
+          setPlatformSession(true);
         }
+        const isClinicStaff =
+          data.role === 'admin' ||
+          (data.role === 'super_admin' && (Boolean(data.clinicId) || isPlatformAdmin)) ||
+          ['owner', 'clinic_admin', 'dentist', 'receptionist'].includes(staffRole);
+        if (!isClinicStaff) return;
 
-        sessionStorage.setItem(ADMIN_REDIRECT_GUARD, '1');
-        await ensureAdminAccessBeforeRedirect(next);
-        window.location.replace(next);
+        const params = new URLSearchParams(window.location.search);
+        const next = params.get('next');
+        const dest =
+          next && next.startsWith('/admin') ? next : '/admin/elegir-centro?auto=1';
+        await ensureAdminAccessBeforeRedirect(dest);
+        window.location.replace(dest);
       } catch {
-        /* sin sesión válida */
+        /* sin sesión previa */
       }
     })();
   }, []);
@@ -127,25 +130,14 @@ export function AdminLoginPage() {
   async function redirectAfterSuccess(dest: string) {
     setSuccess(true);
     setError('');
-    try {
-      sessionStorage.removeItem(ADMIN_REDIRECT_GUARD);
-    } catch {
-      /* ignore */
-    }
     await ensureAdminAccessBeforeRedirect(dest);
     try {
-      const check = await fetch('/api/auth/clinic-check', { credentials: 'include', cache: 'no-store' });
-      if (!check.ok) {
+      const me = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
+      if (!me.ok) {
         setSuccess(false);
         setError(
           'La sesión no se guardó en el navegador. Comprueba que las cookies estén permitidas e inténtalo de nuevo.'
         );
-        return;
-      }
-      const j = (await check.json()) as { data?: { allowed?: boolean } };
-      if (!j.data?.allowed) {
-        setSuccess(false);
-        setError('Tu cuenta no tiene acceso al panel clínica con esta sesión.');
         return;
       }
     } catch {

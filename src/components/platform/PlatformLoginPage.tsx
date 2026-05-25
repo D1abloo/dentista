@@ -1,10 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ChevronRight, Eye, EyeOff, Lock, Mail, ShieldCheck } from 'lucide-react';
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
-import { isSafeInternalPath } from '@/lib/loginIntent';
-
-const REDIRECT_GUARD = 'df_platform_login_redirect';
-
 const HERO_IMAGE = '/images/login-dentista-paciente.jpg';
 const REMEMBER_KEY = 'df_platform_remember';
 const REMEMBER_EMAIL_KEY = 'df_platform_remember_email';
@@ -33,14 +29,6 @@ export function PlatformLoginPage() {
   useEffect(() => {
     const t = window.setTimeout(() => setEntered(true), 40);
     return () => window.clearTimeout(t);
-  }, []);
-
-  useEffect(() => {
-    try {
-      sessionStorage.removeItem(REDIRECT_GUARD);
-    } catch {
-      /* ignore */
-    }
   }, []);
 
   useEffect(() => {
@@ -106,34 +94,7 @@ export function PlatformLoginPage() {
         /* ignore */
       }
 
-      const params = new URLSearchParams(window.location.search);
-      const next = params.get('next');
-      await fetch('/api/platform/inspect', {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: { accept: 'application/json' },
-        body: '{}'
-      }).catch(() => undefined);
-
-      try {
-        sessionStorage.removeItem(REDIRECT_GUARD);
-      } catch {
-        /* ignore */
-      }
-
-      const check = await fetch('/api/auth/platform-check', {
-        credentials: 'include',
-        cache: 'no-store'
-      });
-      const checkJson = (await check.json()) as { data?: { allowed?: boolean } };
-      if (!checkJson.data?.allowed) {
-        setError('No se pudo validar la sesión de plataforma. Recarga la página e inténtalo de nuevo.');
-        return;
-      }
-
-      const dest =
-        next && isSafeInternalPath(next) && next.startsWith('/platform') ? next : '/platform';
-      window.location.replace(dest);
+      window.location.href = '/platform';
     } catch {
       setError('No se pudo iniciar sesión. Inténtalo de nuevo.');
     } finally {
