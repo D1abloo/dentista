@@ -54,3 +54,17 @@ export function canAccessPlatformPanel(
   if (user.role !== 'super_admin') return false;
   return inferSessionPortal(user) === 'platform' && !user.platformInspect;
 }
+
+/** Destino tras login según el portal elegido en la sesión. */
+export function postLoginPathForUser(
+  user: Pick<SessionUser, 'role' | 'clinicId' | 'sessionPortal' | 'platformInspect' | 'patientId'>,
+  opts?: { preferAdmin?: boolean }
+): string {
+  const portal = inferSessionPortal(user);
+  if (portal === 'patient' || user.role === 'patient') return '/paciente';
+  if (portal === 'platform' && !user.platformInspect) {
+    return opts?.preferAdmin ? '/admin/elegir-centro?auto=1' : '/platform';
+  }
+  if (user.clinicId) return '/admin';
+  return '/admin/elegir-centro?auto=1';
+}

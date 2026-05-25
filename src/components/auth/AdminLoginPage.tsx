@@ -6,7 +6,14 @@ import { PortalChoicePanel } from '@/components/auth/PortalChoicePanel';
 import { PortalPickerModal } from '@/components/auth/PortalPickerModal';
 import { ensureAdminAccessBeforeRedirect } from '@/lib/clinicCenters';
 import { loginUnified, loginWithPortalChoice } from '@/lib/session';
+import type { SessionUser } from '@/lib/auth';
 import type { PortalChoiceId, PortalChoiceOption } from '@/lib/auth/portalChoices';
+import {
+  canAccessClinicPanel,
+  inferSessionPortal,
+  postLoginPathForUser,
+  type SessionPortal
+} from '@/lib/auth/sessionPortal';
 
 const HERO_IMAGE = '/images/login-dentista-paciente.jpg';
 const REMEMBER_KEY = 'df_clinic_remember';
@@ -62,24 +69,60 @@ export function AdminLoginPage() {
       try {
         const r = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
         if (!r.ok) return;
-        const j = (await r.json()) as { data?: { role?: string; clinicId?: string; staffRole?: string } };
+        const j = (await r.json()) as {
+          data?: {
+            role?: string;
+            clinicId?: string;
+            staffRole?: string;
+            sessionPortal?: SessionPortal;
+            platformInspect?: boolean;
+          };
+        };
         const data = j.data;
         if (!data?.role) return;
-        const staffRole = data.staffRole ?? data.role;
-        const isPlatformAdmin = data.role === 'super_admin' && !data.clinicId;
-        if (isPlatformAdmin) {
+
+        const portal = inferSessionPortal({
+          role: data.role,
+          clinicId: data.clinicId,
+          platformInspect: data.platformInspect,
+          sessionPortal: data.sessionPortal
+        });
+
+        if (portal === 'platform' && !data.platformInspect) {
           setPlatformSession(true);
+          window.location.replace('/platform');
+          return;
         }
-        const isClinicStaff =
-          data.role === 'admin' ||
-          (data.role === 'super_admin' && (Boolean(data.clinicId) || isPlatformAdmin)) ||
-          ['owner', 'clinic_admin', 'dentist', 'receptionist'].includes(staffRole);
-        if (!isClinicStaff) return;
+
+        if (portal === 'patient') {
+          window.location.replace('/paciente');
+          return;
+        }
+
+        if (!canAccessClinicPanel({
+          role: data.role as SessionUser['role'],
+          clinicId: data.clinicId,
+          staffRole: data.staffRole,
+          platformInspect: data.platformInspect,
+          sessionPortal: data.sessionPortal
+        })) {
+          return;
+        }
 
         const params = new URLSearchParams(window.location.search);
         const next = params.get('next');
         const dest =
-          next && next.startsWith('/admin') ? next : '/admin/elegir-centro?auto=1';
+          next && next.startsWith('/admin')
+            ? next
+            : postLoginPathForUser(
+                {
+                  role: data.role as 'admin' | 'super_admin' | 'patient',
+                  clinicId: data.clinicId,
+                  sessionPortal: data.sessionPortal,
+                  platformInspect: data.platformInspect
+                },
+                { preferAdmin: true }
+              );
         await ensureAdminAccessBeforeRedirect(dest);
         window.location.replace(dest);
       } catch {

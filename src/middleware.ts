@@ -9,11 +9,7 @@ import {
   isPlatformProtectedPath,
   isPlatformPublicPath
 } from '@/lib/auth/adminPanelGate';
-import {
-  homePathForPortal,
-  inferSessionPortal,
-  settingsPathForPortal
-} from '@/lib/auth/sessionPortal';
+import { homePathForPortal, inferSessionPortal } from '@/lib/auth/sessionPortal';
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname, search } = context.url;
@@ -36,32 +32,18 @@ export const onRequest = defineMiddleware(async (context, next) => {
     if (portal === 'patient') {
       return context.redirect('/paciente');
     }
-    if (pathname === '/platform/configuracion' || pathname.startsWith('/platform/configuracion/')) {
-      return next();
-    }
     return next();
-  }
-
-  if (pathname === '/admin/configuracion' || pathname.startsWith('/admin/configuracion/')) {
-    if (user && portal === 'platform' && !user.platformInspect) {
-      return context.redirect('/platform/configuracion');
-    }
-  }
-
-  if (pathname === '/platform/configuracion' || pathname.startsWith('/platform/configuracion/')) {
-    if (user && portal === 'clinic' && !user.platformInspect) {
-      return context.redirect('/admin/configuracion');
-    }
   }
 
   if (!isAdminPanelProtectedPath(pathname)) {
     return next();
   }
 
+  if (user && portal === 'platform' && !user.platformInspect) {
+    return context.redirect('/platform');
+  }
+
   if (await hasClinicPanelSession(context.cookies)) {
-    if (user && portal === 'platform' && !user.platformInspect) {
-      return context.redirect(settingsPathForPortal('platform'));
-    }
     if (
       user &&
       portal === 'clinic' &&

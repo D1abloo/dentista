@@ -4,6 +4,7 @@ import { isClientDemoMode } from '@/lib/appMode';
 import { isPatientPortalPath, isSafeInternalPath } from '@/lib/loginIntent';
 import { STORAGE_ACTIVE_CLINIC_ID, STORAGE_PATIENT_ID, STORAGE_STATE, STORAGE_TENANT_ID } from '@/lib/storage/keys';
 import { ensureAdminAccessBeforeRedirect } from '@/lib/clinicCenters';
+import { postLoginPathForUser } from '@/lib/auth/sessionPortal';
 import { clearDemoSession, getStoredRole } from '@/lib/demoStore';
 
 export type SessionUser = {
@@ -20,6 +21,7 @@ export type SessionUser = {
   platformInspect?: boolean;
   inspectMode?: 'clinic_admin' | 'patient_portal';
   inspectAccessRole?: string;
+  sessionPortal?: 'platform' | 'clinic' | 'patient';
 };
 
 type LoginApiData = SessionUser & {
@@ -82,12 +84,7 @@ function redirectAfterLogin(user: SessionUser, forcedRole?: 'admin' | 'patient')
       if (user.role === 'patient') return next;
     }
   }
-  if (user.role === 'super_admin') {
-    return forcedRole === 'admin' ? '/admin/elegir-centro?auto=1' : '/platform';
-  }
-  if (user.role === 'patient') return '/paciente';
-  if (user.role === 'admin') return '/admin/elegir-centro?auto=1';
-  return '/admin';
+  return postLoginPathForUser(user, { preferAdmin: forcedRole === 'admin' });
 }
 
 async function finishSessionLogin(

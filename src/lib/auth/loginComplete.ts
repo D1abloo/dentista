@@ -35,7 +35,8 @@ export async function completePortalLogin(
   const admin = getSupabaseAdmin();
 
   if (portal === 'platform') {
-    return loginPlatformAdmin(admin, identity.authUserId, identity.email);
+    const platformUser = await loginPlatformAdmin(admin, identity.authUserId, identity.email);
+    return platformUser ? { ...platformUser, sessionPortal: 'platform' as const } : null;
   }
 
   const intent = portal === 'patient' ? 'patient' : 'admin';

@@ -7,6 +7,7 @@ import {
   isPlatformAppAdminSession,
   switchPlatformAdminToClinic
 } from '@/lib/auth/platformClinicAccess';
+import { postLoginPathForUser } from '@/lib/auth/sessionPortal';
 import { listAssignedClinicIdsForSession } from '@/lib/services/staffContext';
 
 const STAFF_ROLES = new Set(['admin', 'owner', 'clinic_admin', 'dentist', 'receptionist']);
@@ -39,10 +40,27 @@ function toPortalSession(profile: ClinicProfileRow): Omit<SessionUser, 'expiresA
 }
 
 async function authUserIdForSession(user: Omit<SessionUser, 'expiresAt'>): Promise<string | null> {
-  if (!user.profileId) return null;
   const db = getSupabaseAdmin();
-  const { data } = await db.from('profiles').select('auth_user_id').eq('id', user.profileId).maybeSingle();
-  return (data?.auth_user_id as string | undefined) ?? null;
+  if (user.profileId) {
+    const { data } = await db.from('profiles').select('auth_user_id').eq('id', user.profileId).maybeSingle();
+    if (data?.auth_user_id) return data.auth_user_id as string;
+  }
+  if (user.role === 'super_admin' || (await isPlatformAppAdminSession(user))) {
+    const { data } = await db
+      .from('platform_admins')
+      .select('auth_user_id')
+      .eq('email', user.email.trim().toLowerCase())
+      .eq('active', true)
+      .maybeSingle();
+    if (data?.auth_user_id) return data.auth_user_id as string;
+  }
+  const { data: byEmail } = await db
+    .from('profiles')
+    .select('auth_user_id')
+    .ilike('email', user.email.trim())
+    .limit(1)
+    .maybeSingle();
+  return (byEmail?.auth_user_id as string | undefined) ?? null;
 }
 
 /** Centros clínicos independientes donde el usuario tiene perfil staff. */
@@ -231,18 +249,10 @@ export async function resolveEnterDestination(user: SessionUser | null): Promise
 
   if (user.role === 'patient') return '/paciente';
   if (user.role === 'super_admin' && !user.platformInspect) {
-    if (user.sessionPortal === 'clinic' || (await isPlatformAppAdminSession(user) && user.clinicId)) {
-      return resolvePostLoginAdminDestination(user);
-    }
-    if (user.sessionPortal === 'platform' || (await isPlatformAppAdminSession(user))) {
-      return '/platform';
-    }
-    return '/platform';
+    return postLoginPathForUser(user, { preferAdmin: false });
   }
   if (user.role === 'admin' || (user.role === 'super_admin' && user.platformInspect)) {
-    const centers = await listAssignedCenters(user);
-    if (centers.length <= 1) return '/admin';
-    return '/admin/elegir-centro';
+    return postLoginPathForUser(user, { preferAdmin: true });
   }
   return '/login';
 }
@@ -253,13 +263,10 @@ export async function resolvePortalSwitchDestination(user: Omit<SessionUser, 'ex
   }
   if (user.role === 'patient') return '/paciente';
   if (user.role === 'super_admin' && !user.platformInspect) {
-    if (user.sessionPortal === 'clinic') {
-      return resolvePostLoginAdminDestination(user);
-    }
-    return '/platform';
+    return postLoginPathForUser(user, { preferAdmin: false });
   }
   if (user.role === 'admin' || (user.role === 'super_admin' && user.platformInspect)) {
-    return resolvePostLoginAdminDestination(user);
+    return postLoginPathForUser(user, { preferAdmin: true });
   }
   return '/login';
 }
