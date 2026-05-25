@@ -48,7 +48,7 @@ export const contactFormSchema = z.object({
   name: z.string().min(2).max(120),
   email: z.string().email(),
   clinic: z.string().max(120).optional(),
-  type: z.enum(['paciente', 'clinica', 'facturacion', 'tecnico', 'otro']),
+  type: z.enum(['soporte', 'paciente', 'clinica', 'facturacion', 'tecnico', 'portal', 'otro']),
   message: z.string().min(10).max(4000),
   accept_terms: z.literal(true, {
     errorMap: () => ({ message: 'Debes aceptar la política de privacidad.' })

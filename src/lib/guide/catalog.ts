@@ -103,7 +103,7 @@ export const helpFaqs: HelpFaq[] = [
     id: 'support',
     audience: 'all',
     question: '¿Dónde contacto con soporte?',
-    answer: 'Usa el formulario en /contacto indicando si eres paciente o clínica.'
+    answer: 'Usa /contacto?tipo=soporte o el email de soporte publicado en esa página.'
   },
   {
     id: 'docs-patient',

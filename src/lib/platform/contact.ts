@@ -6,10 +6,12 @@ import { addPublicContactTicketDemo } from '@/lib/platform/supportDemo';
 import type { EmailProvider } from '@/lib/email/config';
 
 const CATEGORY_MAP = {
+  soporte: 'general',
   paciente: 'patient',
   clinica: 'clinic',
   facturacion: 'billing',
   tecnico: 'technical',
+  portal: 'technical',
   otro: 'general'
 } as const;
 

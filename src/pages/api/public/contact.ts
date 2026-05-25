@@ -3,6 +3,7 @@ import { submitContactForm } from '@/lib/platform/contact';
 import { getEmailStatus } from '@/lib/email/send';
 import { fail, ok } from '@/lib/http';
 import { logError } from '@/lib/logger';
+import { getContactNotifyEmail } from '@/lib/public/contactContent';
 import { contactFormSchema } from '@/lib/validators';
 
 export const prerender = false;
@@ -26,6 +27,6 @@ export const POST: APIRoute = async ({ request }) => {
     return ok(result, { message: 'Mensaje enviado correctamente.' });
   } catch (error) {
     logError('public.contact', error);
-    return fail('No se pudo enviar el mensaje. Inténtalo más tarde o escribe a info@estructuraweb.es.', 500);
+    return fail(`No se pudo enviar el mensaje. Inténtalo más tarde o escribe a ${getContactNotifyEmail()}.`, 500);
   }
 };

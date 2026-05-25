@@ -2608,6 +2608,114 @@
   border-radius: 0.5rem;
 }
 
+.ps-page--contact .cp-hero__visual--channels {
+  align-self: stretch;
+}
+
+.ps-page--contact .cp-hero__visual--channels .cp-channels {
+  height: 100%;
+}
+
+.ps-page--contact .cp-form-panel__aside.cp-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.ps-page--contact .cp-aside__lead {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.ps-page--contact .cp-info-list a {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ps-page--contact .cp-info-list a:hover {
+  color: var(--ps-mint);
+}
+
+.ps-page--contact .cp-aside__links-title {
+  margin: 0.5rem 0 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.ps-page--contact .cp-aside__links ul {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.ps-page--contact .cp-aside__links a {
+  display: block;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.65rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.ps-page--contact .cp-aside__links a:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(124, 209, 190, 0.35);
+}
+
+.ps-page--contact .cp-aside__links a span {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.ps-page--contact .cp-aside__links a small {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.ps-page--contact .cp-form-intro {
+  margin: 0 0 1.25rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--ps-muted, #64748b);
+}
+
+.ps-page--contact .cp-form-success__hint {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--muted, #64748b);
+}
+
+.ps-page--contact .cp-form-success__hint a {
+  color: var(--ps-teal-deep, #0d9488);
+  font-weight: 600;
+}
+
+.ps-page--contact .cp-section__title {
+  font-family: var(--ps-display, var(--display, inherit));
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  font-weight: 700;
+  color: var(--ps-ink);
+  margin-bottom: 1.25rem;
+  text-align: center;
+}
+
+.ps-page--contact .cp-form-panel__aside h2 {
+  color: #fff;
+}
+
 /* Help hub when public header present */
 body:has(.ps-header) .help-hub {
   background: linear-gradient(180deg, var(--ps-paper) 0%, var(--ps-paper-alt) 100%);
