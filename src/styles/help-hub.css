@@ -684,11 +684,44 @@
 }
 
 .help-hub-v2__hero--bleed {
+  position: relative;
+  overflow: hidden;
   background:
-    radial-gradient(ellipse 80% 60% at 90% 0%, rgba(13, 148, 136, 0.1), transparent 55%),
+    radial-gradient(ellipse 80% 60% at 90% 0%, rgba(13, 148, 136, 0.12), transparent 55%),
     radial-gradient(ellipse 50% 45% at 0% 100%, rgba(37, 99, 235, 0.06), transparent 50%),
-    linear-gradient(180deg, #f0f9ff 0%, #f8fafc 100%);
+    linear-gradient(180deg, #f0f9ff 0%, #fff 100%);
   border-bottom: 1px solid #e2e8f0;
+}
+
+.help-hub-v2__hero-deco {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 1px 1px, rgba(13, 148, 136, 0.1) 1px, transparent 0);
+  background-size: 26px 26px;
+  opacity: 0.45;
+}
+
+.help-hub-v2__hero-deco::before {
+  content: '';
+  position: absolute;
+  top: 12%;
+  right: 8%;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(13, 148, 136, 0.2), transparent 68%);
+}
+
+.help-hub-v2__hero-deco::after {
+  content: '';
+  position: absolute;
+  bottom: 18%;
+  left: 6%;
+  width: 80px;
+  height: 80px;
+  border: 2px dashed rgba(13, 148, 136, 0.18);
+  border-radius: 50%;
 }
 
 .help-hub-v2__hero-inner {
@@ -969,11 +1002,20 @@
   gap: 1.5rem;
   align-items: start;
   padding: 2rem 0 2.5rem;
+  width: 100%;
+  max-width: none;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1280px) {
   .help-hub-v2__layout {
-    grid-template-columns: 15.5rem minmax(0, 1fr) 17.5rem;
+    grid-template-columns: minmax(200px, 18%) minmax(0, 58%) minmax(220px, 24%);
+    gap: 1.75rem 2.25rem;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .help-hub-v2__layout {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 28%);
     gap: 1.75rem 2rem;
   }
 }
@@ -2039,4 +2081,353 @@ body:has(.ps-header) .help-hub--public {
   .help-faq-premium__trigger-text {
     font-size: 0.82rem;
   }
+}
+
+/* —— Header dedicado centro de ayuda —— */
+.help-center-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid transparent;
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.help-center-header--scrolled {
+  border-color: #e2e8f0;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.help-center-header__inner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 3.75rem;
+  padding: 0.5rem 0;
+}
+
+.help-center-header__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+  min-width: 0;
+}
+
+.help-center-header__title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--navy, #0f2744);
+  white-space: nowrap;
+}
+
+.help-center-header__nav {
+  display: none;
+  align-items: center;
+  gap: 0.35rem 1rem;
+  margin-left: auto;
+}
+
+.help-center-header__nav a {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #64748b;
+  text-decoration: none;
+}
+
+.help-center-header__nav a:hover {
+  color: var(--teal, #0d9488);
+}
+
+.help-center-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+@media (min-width: 900px) {
+  .help-center-header__nav {
+    display: flex;
+  }
+
+  .help-center-header__actions {
+    margin-left: 0;
+  }
+}
+
+.help-center-header__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.65rem;
+  background: var(--teal, #0d9488);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.help-center-header__cta--block {
+  width: 100%;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+.help-center-header__menu-btn {
+  display: inline-flex;
+  padding: 0.45rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  background: #fff;
+  color: var(--navy);
+  cursor: pointer;
+}
+
+@media (min-width: 900px) {
+  .help-center-header__menu-btn {
+    display: none;
+  }
+}
+
+.help-center-header__drawer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.75rem 1rem 1rem;
+  border-top: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.help-center-header__drawer a {
+  padding: 0.55rem 0;
+  font-weight: 600;
+  color: var(--navy);
+  text-decoration: none;
+}
+
+/* —— Filtros guías, estados, sidebar móvil —— */
+.help-hub-v2__hero-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.help-hub-v2__guide-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1.15rem;
+}
+
+.help-hub-v2__guide-filter {
+  padding: 0.45rem 0.85rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background 0.2s,
+    color 0.2s;
+}
+
+.help-hub-v2__guide-filter--active {
+  border-color: var(--teal);
+  background: #f0fdfa;
+  color: var(--teal);
+}
+
+.help-hub-v2__guide-card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 700;
+  color: var(--teal);
+}
+
+.help-hub-v2__guide-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.help-hub-v2__state {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  border-radius: 0.85rem;
+  font-size: 0.9rem;
+}
+
+.help-hub-v2__state--loading {
+  color: #64748b;
+  background: #f8fafc;
+}
+
+.help-hub-v2__state--error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.help-hub-v2__sidebar-mobile {
+  display: block;
+  margin-bottom: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  background: #fff;
+}
+
+.help-hub-v2__sidebar-mobile summary {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--navy);
+  cursor: pointer;
+}
+
+.help-hub-v2__sidebar-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.65rem;
+}
+
+.help-hub-v2__sidebar-tab--active,
+.help-hub-v2__sidebar-tabs button:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+  background: #f0fdfa;
+}
+
+.help-hub-v2__sidebar-tabs button {
+  padding: 0.35rem 0.6rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+}
+
+@media (min-width: 1024px) {
+  .help-hub-v2__sidebar-mobile {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .help-hub-v2__sidebar {
+    display: none !important;
+  }
+
+  .help-hub-v2__sidebar-mobile {
+    display: block;
+    grid-column: 1 / -1;
+  }
+}
+
+.help-hub-v2__guide-grid--featured {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .help-hub-v2__guide-grid--featured {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .help-hub-v2__guide-grid--featured {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.help-hub-v2__guide-card-media {
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: #f1f5f9;
+}
+
+.help-hub-v2__guide-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.help-hub-v2__faq-band {
+  padding: 2rem 0 1rem;
+  width: 100%;
+}
+
+.help-faq-premium__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+}
+
+.help-faq-premium__tab {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.help-faq-premium__tab--active {
+  border-color: var(--teal);
+  background: #f0fdfa;
+  color: var(--teal);
+}
+
+.help-faq-premium__grid--single {
+  grid-template-columns: 1fr !important;
+  max-width: 52rem;
+}
+
+.help-faq-premium__empty {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.help-hub-v2__guide-support {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.help-hub-v2__who-card--active {
+  border-color: var(--teal) !important;
+  background: linear-gradient(160deg, #f0fdfa 0%, #fff 100%) !important;
+  box-shadow: 0 12px 32px rgba(13, 148, 136, 0.12);
+}
+
+.help-hub-v2__who-card--active .help-hub-v2__who-icon {
+  color: var(--teal);
+  background: #ccfbf1;
+}
+
+.ps-shell--wide {
+  width: 100%;
+  max-width: min(1440px, 100%);
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 2.5vw, 2rem);
 }

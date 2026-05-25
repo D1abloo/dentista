@@ -1,13 +1,21 @@
-import { useId, useState } from 'react';
-import { ArrowRight, Building2, ChevronDown, User } from 'lucide-react';
+import { useId, useMemo, useState } from 'react';
+import { Building2, ChevronDown, Shield, User } from 'lucide-react';
 import {
+  helpFaqHubAdmin,
   helpFaqHubClinic,
   helpFaqHubDefaultOpen,
   helpFaqHubPatient,
   type HelpFaqHubItem
 } from '@/lib/guide/helpFaqPremium';
+import type { HelpAudience } from '@/lib/guide/types';
 
-type CardVariant = 'patient' | 'admin';
+type FaqTab = 'patient' | 'admin' | 'platform';
+
+const TAB_LABELS: Record<FaqTab, string> = {
+  patient: 'Pacientes',
+  admin: 'Clínicas',
+  platform: 'Administradores'
+};
 
 function FaqPremiumCard({
   variant,
@@ -15,15 +23,14 @@ function FaqPremiumCard({
   defaultOpenId,
   staggerIndex
 }: {
-  variant: CardVariant;
+  variant: FaqTab;
   items: HelpFaqHubItem[];
   defaultOpenId: string;
   staggerIndex: number;
 }) {
   const titleId = useId();
   const [openId, setOpenId] = useState<string | null>(defaultOpenId);
-  const isPatient = variant === 'patient';
-  const IconHeader = isPatient ? User : Building2;
+  const IconHeader = variant === 'patient' ? User : variant === 'admin' ? Building2 : Shield;
 
   function toggle(id: string) {
     setOpenId((prev) => (prev === id ? null : id));
@@ -31,7 +38,7 @@ function FaqPremiumCard({
 
   return (
     <article
-      className={`help-faq-premium__card help-faq-premium__card--${variant} help-faq-premium__anim-stagger`}
+      className={`help-faq-premium__card help-faq-premium__card--${variant === 'platform' ? 'platform' : variant === 'admin' ? 'admin' : 'patient'} help-faq-premium__anim-stagger`}
       style={{ animationDelay: `${staggerIndex * 80}ms` }}
       aria-labelledby={titleId}
     >
@@ -43,7 +50,7 @@ function FaqPremiumCard({
         <p className="help-faq-premium__kicker">Respuestas rápidas</p>
         <h3 id={titleId}>Preguntas frecuentes</h3>
         <p className="help-faq-premium__subtitle">
-          {isPatient ? 'Pacientes' : 'Clínicas'} · {items.length} temas
+          {TAB_LABELS[variant]} · {items.length} temas
         </p>
       </header>
 
@@ -99,48 +106,88 @@ function FaqPremiumCard({
 type Props = {
   onViewAll?: () => void;
   showViewAll?: boolean;
-  /** Texto SEO bajo el título de sección (opcional). */
   seoLead?: boolean;
+  /** Filtra ítems por búsqueda global del hub. */
+  searchQuery?: string;
+  /** Alinea pestaña FAQ con perfil activo. */
+  activeAudience?: HelpAudience;
 };
 
-export function HelpFaqPremiumSection({ onViewAll, showViewAll = true, seoLead = true }: Props) {
+function filterFaqItems(items: HelpFaqHubItem[], q: string): HelpFaqHubItem[] {
+  const query = q.trim().toLowerCase();
+  if (!query) return items;
+  return items.filter(
+    (f) => f.question.toLowerCase().includes(query) || f.answer.toLowerCase().includes(query)
+  );
+}
+
+export function HelpFaqPremiumSection({
+  onViewAll,
+  showViewAll = false,
+  seoLead = true,
+  searchQuery = '',
+  activeAudience = 'patient'
+}: Props) {
+  const defaultTab: FaqTab =
+    activeAudience === 'platform' ? 'platform' : activeAudience === 'admin' ? 'admin' : 'patient';
+  const [tab, setTab] = useState<FaqTab>(defaultTab);
+
+  const patientItems = useMemo(
+    () => filterFaqItems(helpFaqHubPatient, searchQuery),
+    [searchQuery]
+  );
+  const clinicItems = useMemo(() => filterFaqItems(helpFaqHubClinic, searchQuery), [searchQuery]);
+  const adminItems = useMemo(() => filterFaqItems(helpFaqHubAdmin, searchQuery), [searchQuery]);
+
+  const activeItems =
+    tab === 'patient' ? patientItems : tab === 'admin' ? clinicItems : adminItems;
+
   return (
-    <section
-      className="help-faq-premium"
-      id="help-faq"
-      aria-labelledby="help-faq-section-title"
-    >
+    <section className="help-faq-premium" id="help-faq" aria-labelledby="help-faq-section-title">
       <div className="help-faq-premium__intro">
         <h2 id="help-faq-section-title">Preguntas frecuentes</h2>
         {seoLead ? (
           <p className="help-faq-premium__seo">
-            Preguntas frecuentes AgendaClinic: ayuda del portal paciente dental, soporte para clínicas
-            dentales, reservar cita dental online, informes odontológicos, facturación dental y
-            consentimiento dental digital.
+            Ayuda portal paciente dental, panel clínica dental, informes odontológicos, facturación
+            dental, consentimiento dental digital y soporte software dental AgendaClinic.
           </p>
         ) : null}
         {showViewAll && onViewAll ? (
           <button type="button" className="help-faq-premium__view-all" onClick={onViewAll}>
-            Ver todas
-            <ArrowRight className="h-4 w-4" aria-hidden />
+            Ver documentación completa
           </button>
         ) : null}
       </div>
 
-      <div className="help-faq-premium__grid">
-        <FaqPremiumCard
-          variant="patient"
-          items={helpFaqHubPatient}
-          defaultOpenId={helpFaqHubDefaultOpen.patient}
-          staggerIndex={0}
-        />
-        <FaqPremiumCard
-          variant="admin"
-          items={helpFaqHubClinic}
-          defaultOpenId={helpFaqHubDefaultOpen.admin}
-          staggerIndex={1}
-        />
+      <div className="help-faq-premium__tabs" role="tablist" aria-label="Perfil de preguntas frecuentes">
+        {(Object.keys(TAB_LABELS) as FaqTab[]).map((key) => (
+          <button
+            key={key}
+            type="button"
+            role="tab"
+            aria-selected={tab === key}
+            className={`help-faq-premium__tab${tab === key ? ' help-faq-premium__tab--active' : ''}`}
+            onClick={() => setTab(key)}
+          >
+            {TAB_LABELS[key]}
+          </button>
+        ))}
       </div>
+
+      {searchQuery && activeItems.length === 0 ? (
+        <p className="help-faq-premium__empty" role="status">
+          No se encontraron resultados en FAQ. Selecciona otro perfil o cambia la búsqueda.
+        </p>
+      ) : (
+        <div className="help-faq-premium__grid help-faq-premium__grid--single">
+          <FaqPremiumCard
+            variant={tab}
+            items={activeItems}
+            defaultOpenId={helpFaqHubDefaultOpen[tab]}
+            staggerIndex={0}
+          />
+        </div>
+      )}
     </section>
   );
 }

@@ -15,6 +15,8 @@ export type HubGuideCard = {
   id: string;
   title: string;
   description: string;
+  /** Si difiere de `id`, sección real al abrir la guía. */
+  sectionId?: string;
 };
 
 export const helpSectionsByAudience: Record<HelpAudience, GuideSection[]> = {
@@ -73,7 +75,8 @@ export const adminHubCards: HubGuideCard[] = [
     description: 'Fichas, historial y comunicación con cada paciente.'
   },
   {
-    id: 'pacientes-informes',
+    id: 'informes-docs',
+    sectionId: 'pacientes-informes',
     title: 'Informes y documentos',
     description: 'Publica informes y archivos al portal del paciente.'
   },
@@ -106,7 +109,7 @@ export const platformHubCards: HubGuideCard[] = [
     description: 'Alta, estado y configuración de cada centro.'
   },
   {
-    id: 'plataforma-clinicas',
+    id: 'plataforma-panel',
     title: 'Usuarios y accesos',
     description: 'Roles, invitaciones y permisos por clínica.'
   },
@@ -134,42 +137,58 @@ export const platformHubCards: HubGuideCard[] = [
 
 export const helpSidebarNav: HelpSidebarGroup[] = [
   {
-    label: 'Portal del paciente',
+    label: 'En esta guía',
     links: [
-      { id: 'acceso', label: 'Acceso al portal', audience: 'patient' },
+      { id: 'acceso', label: 'Portal del paciente', audience: 'patient' },
       { id: 'citas', label: 'Reservar cita', audience: 'patient' },
       { id: 'citas', label: 'Mis citas', audience: 'patient' },
       { id: 'informes', label: 'Informes', audience: 'patient' },
       { id: 'documentos', label: 'Documentos', audience: 'patient' },
       { id: 'facturas', label: 'Facturas y pagos', audience: 'patient' },
-      { id: 'consentimientos', label: 'Consentimientos', audience: 'patient' }
-    ]
-  },
-  {
-    label: 'Panel clínica',
-    links: [
-      { id: 'panel', label: 'Panel administrativo', audience: 'admin' },
+      { id: 'consentimientos', label: 'Consentimientos', audience: 'patient' },
+      { id: 'panel', label: 'Panel clínica', audience: 'admin' },
       { id: 'agenda-citas', label: 'Agenda', audience: 'admin' },
       { id: 'pacientes-informes', label: 'Pacientes', audience: 'admin' },
-      { id: 'facturacion', label: 'Facturación', audience: 'admin' }
-    ]
-  },
-  {
-    label: 'Plataforma',
-    links: [
+      { id: 'facturacion', label: 'Facturación', audience: 'admin' },
       { id: 'plataforma-panel', label: 'Plataforma', audience: 'platform' },
       { id: 'plataforma-seguridad', label: 'Seguridad', audience: 'platform' },
-      { id: 'plataforma-auditoria', label: 'Auditoría', audience: 'platform' }
-    ]
-  },
-  {
-    label: 'Soporte',
-    links: [
-      { id: 'help-faq', label: 'Preguntas frecuentes', audience: 'patient', href: '#help-faq' },
-      { id: 'contacto', label: 'Contactar soporte', audience: 'patient', href: '/contacto?tipo=soporte' }
+      { id: 'help-faq', label: 'Soporte', audience: 'patient', href: '#help-faq' }
     ]
   }
 ];
+
+/** Meta visible en tarjetas de guía destacadas. */
+export const hubGuideMeta: Record<string, { steps: string; mins: number }> = {
+  acceso: { steps: '4 pasos', mins: 5 },
+  citas: { steps: '5 pasos', mins: 4 },
+  informes: { steps: '3 pasos', mins: 4 },
+  documentos: { steps: '3 pasos', mins: 4 },
+  facturas: { steps: '3 pasos', mins: 4 },
+  consentimientos: { steps: '2 pasos', mins: 3 },
+  panel: { steps: '4 pasos', mins: 6 },
+  'agenda-citas': { steps: '5 pasos', mins: 5 },
+  'pacientes-informes': { steps: '4 pasos', mins: 5 },
+  facturacion: { steps: '4 pasos', mins: 5 },
+  'portal-acceso': { steps: '3 pasos', mins: 4 },
+  'informes-docs': { steps: '4 pasos', mins: 5 },
+  'logo-marca': { steps: '3 pasos', mins: 4 },
+  'plataforma-organizaciones': { steps: '4 pasos', mins: 6 },
+  'plataforma-clinicas': { steps: '4 pasos', mins: 5 },
+  'plataforma-panel': { steps: '4 pasos', mins: 5 },
+  'plataforma-suscripciones': { steps: '3 pasos', mins: 5 },
+  'plataforma-seguridad': { steps: '4 pasos', mins: 5 },
+  'plataforma-auditoria': { steps: '3 pasos', mins: 4 },
+  'plataforma-monitor': { steps: '3 pasos', mins: 4 }
+};
+
+export function hubCardMetaLabel(sectionId: string, section?: GuideSection): string {
+  const preset = hubGuideMeta[sectionId];
+  if (preset) return `${preset.steps} · ${preset.mins} min`;
+  if (!section) return '3 pasos · 4 min';
+  const steps = section.steps.length;
+  const mins = estimateGuideMinutes(section);
+  return `${steps} pasos · ${mins} min`;
+}
 
 export const helpPopularLinks: { label: string; guideId: string; audience: HelpAudience }[] = [
   { label: 'Reservar cita', guideId: 'citas', audience: 'patient' },
