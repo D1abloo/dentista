@@ -400,5 +400,53 @@ export const platformGuideSections: GuideSection[] = [
       { title: 'Políticas', detail: 'Revisa contraseñas, caducidad y bloqueos de sesión.' }
     ],
     warnings: ['Las acciones de plataforma afectan a todas las clínicas: confirma antes de aplicar cambios globales.']
+  },
+  {
+    id: 'plataforma-organizaciones',
+    title: 'Organizaciones multi-sede',
+    summary: 'Crea y gestiona organizaciones con varias clínicas bajo un mismo contacto administrativo.',
+    goal: 'Estructurar redes de clínicas sin mezclar datos entre centros.',
+    audience: 'Administradores globales Dentista+.',
+    screenshots: [{ src: mobile('admin-dashboard'), alt: 'Organizaciones', caption: 'Vista de organizaciones y sedes.' }],
+    steps: [
+      { title: 'Nueva organización', detail: 'Define nombre, contacto y sedes desde Plataforma → Organizaciones.' },
+      { title: 'Vincula clínicas', detail: 'Cada sede mantiene su clinic_id y aislamiento de datos.' }
+    ]
+  },
+  {
+    id: 'plataforma-suscripciones',
+    title: 'Suscripciones',
+    summary: 'Planes SaaS, facturación de la clínica y estado de la suscripción.',
+    goal: 'Controlar el ciclo comercial de cada centro en la plataforma.',
+    audience: 'Administradores globales Dentista+.',
+    screenshots: [{ src: mobile('admin-dashboard'), alt: 'Suscripciones', caption: 'Estado de plan y renovaciones.' }],
+    steps: [
+      { title: 'Listado de suscripciones', detail: 'Filtra por plan, estado o clínica.' },
+      { title: 'Cambios de plan', detail: 'Coordina upgrades con el equipo comercial antes de aplicar.' }
+    ]
+  },
+  {
+    id: 'plataforma-auditoria',
+    title: 'Auditoría',
+    summary: 'Historial de accesos, inspección de clínica y eventos sensibles.',
+    goal: 'Revisar trazabilidad para cumplimiento y soporte.',
+    audience: 'Administradores globales Dentista+.',
+    screenshots: [{ src: mobile('admin-acceso'), alt: 'Auditoría', caption: 'Registro de acciones auditadas.' }],
+    steps: [
+      { title: 'Abre Auditoría', detail: 'Consulta eventos por clínica, usuario y tipo.' },
+      { title: 'Exporta si aplica', detail: 'Descarga informes para revisiones internas.' }
+    ]
+  },
+  {
+    id: 'plataforma-monitor',
+    title: 'Monitorización',
+    summary: 'Estado de servicios, incidencias y métricas operativas del SaaS.',
+    goal: 'Detectar problemas antes de que afecten a pacientes y clínicas.',
+    audience: 'Administradores globales Dentista+.',
+    screenshots: [{ src: mobile('admin-dashboard'), alt: 'Monitorización', caption: 'Panel de estado y alertas.' }],
+    steps: [
+      { title: 'Estado del servicio', detail: 'Revisa disponibilidad de APIs, correo y colas.' },
+      { title: 'Incidencias abiertas', detail: 'Prioriza tickets vinculados a clínicas afectadas.' }
+    ]
   }
 ];

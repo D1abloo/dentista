@@ -60,6 +60,13 @@ export const helpQuickLinks: HelpQuickLink[] = [
 
 export const helpFaqs: HelpFaq[] = [
   {
+    id: 'login-fail',
+    audience: 'patient',
+    question: '¿Por qué no puedo iniciar sesión?',
+    answer:
+      'Comprueba email y contraseña. Si acabas de registrarte, activa la cuenta desde el correo (48 h). Si persiste, contacta con tu clínica o soporte.'
+  },
+  {
     id: 'activate',
     audience: 'patient',
     question: '¿Por qué no puedo iniciar sesión tras registrarme?',
@@ -71,6 +78,18 @@ export const helpFaqs: HelpFaq[] = [
     audience: 'patient',
     question: '¿Puedo reservar cita sin cuenta?',
     answer: 'No. El registro y la activación por email son obligatorios para reservar online en /reserva.'
+  },
+  {
+    id: 'reports-where',
+    audience: 'patient',
+    question: '¿Dónde veo mis informes?',
+    answer: 'En el portal del paciente, menú Informes. Solo aparecen los que tu clínica ha publicado para ti.'
+  },
+  {
+    id: 'invoices-download',
+    audience: 'patient',
+    question: '¿Cómo descargo mis facturas?',
+    answer: 'Abre Facturas y pagos en el portal. Desde cada factura puedes ver el detalle y descargar el PDF si está disponible.'
   },
   {
     id: 'cancel',
@@ -92,6 +111,24 @@ export const helpFaqs: HelpFaq[] = [
     question: '¿Por qué el paciente no ve un informe?',
     answer:
       'Comprueba que el documento esté publicado al portal (interruptor de visibilidad en Informes o Documentos).'
+  },
+  {
+    id: 'create-appointment',
+    audience: 'admin',
+    question: '¿Cómo creo una cita?',
+    answer: 'En Agenda pulsa Nueva cita, elige paciente, profesional, tratamiento y hueco libre. Confirma para notificar al paciente si está configurado.'
+  },
+  {
+    id: 'block-slot',
+    audience: 'admin',
+    question: '¿Cómo bloqueo un horario?',
+    answer: 'En Agenda usa Bloquear horario: selecciona fecha, franja y opcionalmente profesional o gabinete afectado.'
+  },
+  {
+    id: 'logo-change',
+    audience: 'admin',
+    question: '¿Cómo cambio el logo de la clínica?',
+    answer: 'En Configuración → Marca y logo sube una imagen en formato recomendado. Se refleja en facturas y portal si está activado.'
   },
   {
     id: 'multi-site',
@@ -128,6 +165,36 @@ export const helpFaqs: HelpFaq[] = [
     audience: 'platform',
     question: '¿Quién puede acceder al panel de plataforma?',
     answer: 'Solo cuentas de administrador global autorizadas por Dentista+. No es visible para pacientes ni personal de clínica.'
+  },
+  {
+    id: 'org-multi',
+    audience: 'platform',
+    question: '¿Cómo creo una organización multi-sede?',
+    answer: 'En Plataforma → Organizaciones crea la entidad y asocia cada clínica como sede independiente con su propio clinic_id.'
+  },
+  {
+    id: 'roles-review',
+    audience: 'platform',
+    question: '¿Cómo reviso usuarios y roles?',
+    answer: 'Desde Clínicas o Usuarios filtra por centro y revisa perfiles staff. Los cambios de rol aplican solo a esa clínica.'
+  },
+  {
+    id: 'audit-how',
+    audience: 'platform',
+    question: '¿Cómo consulto auditoría?',
+    answer: 'Abre el módulo Auditoría y filtra por clínica, tipo de evento o fecha. Las inspecciones de clínica quedan registradas.'
+  },
+  {
+    id: 'monitoring-how',
+    audience: 'platform',
+    question: '¿Cómo funciona la monitorización?',
+    answer: 'El panel de monitorización muestra estado de servicios y colas. Las alertas se vinculan a tickets de soporte si hay incidencia.'
+  },
+  {
+    id: 'data-isolation',
+    audience: 'platform',
+    question: '¿Cómo se evita el cruce de datos entre clínicas?',
+    answer: 'Cada registro operativo incluye clinic_id y políticas RLS en base de datos. El personal solo ve datos de sus clínicas asignadas.'
   }
 ];
 

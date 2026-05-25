@@ -6,7 +6,7 @@ export function HelpCenterPage() {
   return (
     <>
       <PublicHeader activeHref="/ayuda" />
-      <main className="help-hub">
+      <main className="help-hub help-hub--public">
         <HelpHubPage />
       </main>
       <PublicFooter />

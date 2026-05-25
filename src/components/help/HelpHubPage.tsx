@@ -1,9 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
   BookOpen,
   Building2,
+  CheckCircle2,
+  ChevronRight,
+  ExternalLink,
   Headphones,
   HelpCircle,
   Search,
@@ -16,126 +19,198 @@ import { HelpGuideExperience } from '@/components/help/HelpGuideExperience';
 import { HelpFaqPanel } from '@/components/help/HelpFaqPanel';
 import { useHelpState } from '@/components/help/useHelpState';
 import {
-  adminHubCards,
-  estimateGuideMinutes,
-  filterGuideSections,
+  audienceBadgeLabel,
+  filterHubCards,
+  guideAnchorId,
+  helpPopularLinks,
+  helpQuickAccessLinks,
   helpSectionsByAudience,
   helpSidebarNav,
-  patientHubCards,
-  platformHubCards,
-  searchAllGuides
+  hubCardsForAudience,
+  profileCardCopy,
+  searchAllGuides,
+  searchHelpFaqs,
+  type HubGuideCard
 } from '@/lib/guide/hubCatalog';
 import { helpAudiences, sectionThumb, type HelpAudience } from '@/lib/guide/catalog';
 import type { GuideSection } from '@/lib/guide/types';
+
 const AUDIENCE_ICONS = {
   patient: User,
   admin: Building2,
   platform: Shield
 } as const;
 
-function GuideSectionBlock({
-  title,
-  cards,
-  audience,
-  onOpen,
-  compact
-}: {
-  title: string;
-  cards: { id: string; title: string }[];
-  audience: HelpAudience;
-  onOpen: (id: string, aud: HelpAudience) => void;
-  compact?: boolean;
-}) {
-  const sections = helpSectionsByAudience[audience];
-  const byId = new Map(sections.map((s) => [s.id, s]));
-
-  return (
-    <section className={`help-hub-v2__block${compact ? ' help-hub-v2__block--compact' : ''}`}>
-      <div className="help-hub-v2__block-head">
-        <h2>{title}</h2>
-      </div>
-      <div className={`help-hub-v2__guide-grid${compact ? ' help-hub-v2__guide-grid--dense' : ''}`}>
-        {cards.map((card, i) => {
-          const section = byId.get(card.id);
-          if (!section) return null;
-          return (
-            <GuideCard
-              key={`${card.id}-${i}`}
-              section={section}
-              displayTitle={card.title}
-              audience={audience}
-              compact={compact}
-              onOpen={() => onOpen(card.id, audience)}
-            />
-          );
-        })}
-      </div>
-    </section>
-  );
-}
+type FaqTab = HelpAudience;
 
 function GuideCard({
+  card,
   section,
-  displayTitle,
   audience,
-  compact,
   onOpen
 }: {
+  card: HubGuideCard;
   section: GuideSection;
-  displayTitle: string;
   audience: HelpAudience;
-  compact?: boolean;
   onOpen: () => void;
 }) {
   const thumb = sectionThumb(section);
-  const mins = estimateGuideMinutes(section);
+  const mins = Math.max(2, section.steps.length + (section.id === 'acceso' ? 1 : 0));
+  const stepsLabel = section.id === 'acceso' ? '4 pasos' : `${section.steps.length} pasos`;
 
   return (
-    <button type="button" className={`help-hub-v2__guide-card${compact ? ' help-hub-v2__guide-card--sm' : ''}`} onClick={onOpen}>
-      {!compact ? (
+    <article id={guideAnchorId(audience, card.id)} className="help-hub-v2__guide-wrap">
+      <button type="button" className="help-hub-v2__guide-card" onClick={onOpen}>
         <span className="help-hub-v2__guide-card-media">
-          <img src={thumb} alt="" loading="lazy" decoding="async" />
+          <img src={thumb} alt={`Captura: ${card.title}`} loading="lazy" decoding="async" />
         </span>
-      ) : null}
-      <span className="help-hub-v2__guide-card-body">
-        <span className="help-hub-v2__guide-card-title">{displayTitle}</span>
-        <span className="help-hub-v2__guide-card-desc">{section.summary}</span>
-        <span className="help-hub-v2__guide-card-meta">
-          {section.steps.length} pasos · {mins} min
-          <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+        <span className="help-hub-v2__guide-card-body">
+          <span className={`help-hub-v2__guide-badge help-hub-v2__guide-badge--${audience}`}>
+            {audienceBadgeLabel(audience)}
+          </span>
+          <span className="help-hub-v2__guide-card-title">{card.title}</span>
+          <span className="help-hub-v2__guide-card-desc">{card.description}</span>
+          <span className="help-hub-v2__guide-card-meta">
+            <span>
+              {stepsLabel} · {mins} min
+            </span>
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </span>
         </span>
-      </span>
-    </button>
+      </button>
+    </article>
+  );
+}
+
+function HelpHubAside({
+  onOpenGuide
+}: {
+  onOpenGuide: (id: string, aud: HelpAudience) => void;
+}) {
+  return (
+    <aside className="help-hub-v2__rail" aria-label="Recursos de ayuda">
+      <div className="help-hub-v2__rail-card help-hub-v2__rail-card--accent">
+        <Headphones className="h-6 w-6 text-teal-700" aria-hidden />
+        <h3>¿Necesitas ayuda?</h3>
+        <p>Nuestro equipo está disponible para ayudarte.</p>
+        <a href="/contacto?tipo=soporte" className="help-hub-v2__btn help-hub-v2__btn--primary no-underline">
+          Contactar soporte
+        </a>
+      </div>
+
+      <div className="help-hub-v2__rail-card">
+        <h3>Guías populares</h3>
+        <ul className="help-hub-v2__rail-links">
+          {helpPopularLinks.map((link) => (
+            <li key={link.label}>
+              <button type="button" onClick={() => onOpenGuide(link.guideId, link.audience)}>
+                {link.label}
+                <ChevronRight className="h-4 w-4" aria-hidden />
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="help-hub-v2__rail-card">
+        <h3>Estado del servicio</h3>
+        <p className="help-hub-v2__status">
+          <CheckCircle2 className="h-5 w-5 text-emerald-600" aria-hidden />
+          <span>Todos los sistemas operativos</span>
+        </p>
+        <a href="/contacto?tipo=soporte" className="help-hub-v2__rail-muted-link">
+          Informar de una incidencia
+        </a>
+      </div>
+
+      <div className="help-hub-v2__rail-card">
+        <h3>Accesos rápidos</h3>
+        <ul className="help-hub-v2__rail-links help-hub-v2__rail-links--external">
+          {helpQuickAccessLinks.map((link) => (
+            <li key={link.href}>
+              <a href={link.href}>
+                {link.label}
+                <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </aside>
   );
 }
 
 export function HelpHubPage() {
   const help = useHelpState('patient');
   const [q, setQ] = useState('');
+  const [faqTab, setFaqTab] = useState<FaqTab>('patient');
+  const [sidebarActive, setSidebarActive] = useState<string | null>(null);
 
-  const searchHits = useMemo(() => searchAllGuides(q), [q]);
+  const guideHits = useMemo(() => searchAllGuides(q), [q]);
+  const faqHits = useMemo(() => searchHelpFaqs(q), [q]);
 
-  const patientFiltered = useMemo(
-    () => filterGuideSections(helpSectionsByAudience.patient, q),
-    [q]
-  );
-  const adminFiltered = useMemo(() => filterGuideSections(helpSectionsByAudience.admin, q), [q]);
+  const activeCards = useMemo(() => {
+    const cards = hubCardsForAudience(help.audience);
+    return filterHubCards(cards, q);
+  }, [help.audience, q]);
 
-  const showPatientGuides = !q || patientFiltered.length > 0;
-  const showAdminGuides = !q || adminFiltered.length > 0;
+  const sections = helpSectionsByAudience[help.audience];
+  const byId = useMemo(() => new Map(sections.map((s) => [s.id, s])), [sections]);
+
+  const copy = profileCardCopy[help.audience];
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tipo = params.get('tipo');
+    if (tipo === 'paciente' || tipo === 'patient') help.selectAudience('patient');
+    if (tipo === 'clinica' || tipo === 'admin') help.selectAudience('admin');
+    if (tipo === 'administrador' || tipo === 'platform') help.selectAudience('platform');
+  }, []);
 
   function selectAudienceCard(id: HelpAudience) {
     help.selectAudience(id);
-    document.getElementById('help-guides')?.scrollIntoView({ behavior: 'smooth' });
+    setSidebarActive(null);
+    requestAnimationFrame(() => {
+      document.getElementById('help-guides')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   }
 
   function openGuide(id: string, aud: HelpAudience) {
     help.openSection(id, aud);
   }
 
+  function scrollToGuide(id: string, aud: HelpAudience) {
+    if (aud !== help.audience) {
+      help.selectAudience(aud);
+      requestAnimationFrame(() => {
+        document.getElementById(guideAnchorId(aud, id))?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+      return;
+    }
+    const el = document.getElementById(guideAnchorId(aud, id));
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setSidebarActive(id);
+    } else {
+      openGuide(id, aud);
+    }
+  }
+
+  function handleSidebarClick(link: (typeof helpSidebarNav)[0]['links'][0]) {
+    if (link.href) {
+      if (link.href.startsWith('#')) {
+        document.querySelector(link.href)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        window.location.href = link.href;
+      }
+      return;
+    }
+    scrollToGuide(link.id, link.audience);
+  }
+
   if (help.mode === 'guide' && help.activeSection) {
     return (
-      <div className="shell help-hub-v2 help-hub-v2--stage" id="help-hub">
+      <div className="ps-shell ps-shell--wide help-hub-v2 help-hub-v2--stage" id="help-hub">
         <HelpGuideExperience section={help.activeSection} onClose={help.openIndex} />
       </div>
     );
@@ -143,83 +218,143 @@ export function HelpHubPage() {
 
   if (help.mode === 'faq') {
     return (
-      <div className="shell help-hub-v2" id="help-hub">
+      <div className="ps-shell ps-shell--wide help-hub-v2" id="help-hub">
         <button type="button" className="help-hub-v2__back" onClick={help.openIndex}>
           <ArrowLeft className="h-4 w-4" aria-hidden />
           Volver al centro de ayuda
         </button>
-        <div className="help-hub-v2__faq-layout">
-          <HelpFaqPanel audience="patient" />
-          <HelpFaqPanel audience="admin" />
+        <header className="help-hub-v2__faq-page-head">
+          <h1>Preguntas frecuentes</h1>
+          <p>Respuestas para pacientes, clínicas y administradores de la plataforma.</p>
+        </header>
+        <div className="help-hub-v2__faq-tabs help-hub-v2__faq-tabs--page" role="tablist">
+          {(['patient', 'admin', 'platform'] as FaqTab[]).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              role="tab"
+              aria-selected={faqTab === tab}
+              className={faqTab === tab ? 'help-hub-v2__faq-tab--on' : ''}
+              onClick={() => setFaqTab(tab)}
+            >
+              {tab === 'patient' ? 'Pacientes' : tab === 'admin' ? 'Clínicas' : 'Administradores'}
+            </button>
+          ))}
         </div>
+        <HelpFaqPanel audience={faqTab} />
+        <p className="help-hub-v2__faq-page-cta">
+          <a href="/contacto?tipo=soporte" className="help-hub-v2__btn help-hub-v2__btn--primary no-underline">
+            Contactar soporte
+          </a>
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="help-hub-v2" id="help-hub">
-      <section className="help-hub-v2__hero shell">
-        <h1>Centro de ayuda Dentista+</h1>
-        <p>Encuentra guías y respuestas para pacientes, clínicas y administradores.</p>
-        <label className="help-hub-v2__search">
-          <Search className="h-5 w-5 shrink-0 text-slate-400" aria-hidden />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar ayuda sobre citas, informes, facturas, portal paciente…"
-            aria-label="Buscar en el centro de ayuda"
-          />
-        </label>
-        {q && searchHits.length > 0 ? (
-          <ul className="help-hub-v2__search-hits">
-            {searchHits.slice(0, 8).map(({ audience, section }) => (
-              <li key={`${audience}-${section.id}`}>
-                <button type="button" onClick={() => openGuide(section.id, audience)}>
-                  <span className="help-hub-v2__hit-audience">{helpAudiences.find((a) => a.id === audience)?.label}</span>
-                  {section.title}
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-        {q && searchHits.length === 0 ? (
-          <p className="help-hub-v2__search-empty">No hay resultados para «{q}». Prueba con otras palabras.</p>
-        ) : null}
+    <div className="help-hub-v2 help-hub-v2--full" id="help-hub">
+      <section className="help-hub-v2__hero help-hub-v2__hero--bleed" aria-labelledby="help-hero-title">
+        <div className="ps-shell ps-shell--wide help-hub-v2__hero-inner help-hub-v2__anim-in">
+          <p className="help-hub-v2__hero-kicker">
+            <BookOpen className="h-4 w-4" aria-hidden />
+            Centro de ayuda
+          </p>
+          <h1 id="help-hero-title">Centro de ayuda Dentista+</h1>
+          <p className="help-hub-v2__hero-lead">
+            Encuentra guías, respuestas y documentación para pacientes, clínicas y administradores. Ayuda sobre el
+            portal paciente dental, reservar citas online, informes odontológicos, facturación dental y consentimiento
+            digital.
+          </p>
+          <label className="help-hub-v2__search">
+            <span className="sr-only">Buscar en el centro de ayuda</span>
+            <Search className="h-5 w-5 shrink-0 text-slate-400" aria-hidden />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Buscar ayuda sobre citas, informes, facturas, portal paciente…"
+            />
+            <button type="button" className="help-hub-v2__search-btn">
+              Buscar
+            </button>
+          </label>
+          {q ? (
+            <div className="help-hub-v2__search-results">
+              {guideHits.length === 0 && faqHits.length === 0 ? (
+                <p className="help-hub-v2__search-empty">No hay resultados para «{q}». Prueba con otras palabras.</p>
+              ) : (
+                <>
+                  {guideHits.length > 0 ? (
+                    <ul className="help-hub-v2__search-hits">
+                      {guideHits.slice(0, 6).map(({ audience, section }) => (
+                        <li key={`${audience}-${section.id}`}>
+                          <button type="button" onClick={() => openGuide(section.id, audience)}>
+                            <span className="help-hub-v2__hit-audience">{audienceBadgeLabel(audience)}</span>
+                            {section.title}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  {faqHits.length > 0 ? (
+                    <ul className="help-hub-v2__search-hits help-hub-v2__search-hits--faq">
+                      {faqHits.slice(0, 4).map((faq) => (
+                        <li key={faq.id}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFaqTab(faq.audience === 'all' ? 'patient' : (faq.audience as FaqTab));
+                              document.getElementById('help-faq')?.scrollIntoView({ behavior: 'smooth' });
+                            }}
+                          >
+                            <span className="help-hub-v2__hit-audience">FAQ</span>
+                            {faq.question}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </>
+              )}
+            </div>
+          ) : null}
+        </div>
       </section>
 
-      <section className="help-hub-v2__who shell">
-        <h2>¿Quién eres?</h2>
+      <section className="help-hub-v2__who ps-shell ps-shell--wide" aria-labelledby="help-who-title">
+        <h2 id="help-who-title" className="sr-only">
+          Elige tu perfil
+        </h2>
         <div className="help-hub-v2__who-grid">
-          {helpAudiences.map((a) => {
+          {helpAudiences.map((a, i) => {
             const Icon = AUDIENCE_ICONS[a.id];
             const active = help.audience === a.id;
+            const card = profileCardCopy[a.id];
             return (
               <button
                 key={a.id}
                 type="button"
-                className={`help-hub-v2__who-card help-hub-v2__who-card--${a.id}${active ? ' help-hub-v2__who-card--active' : ''}`}
+                className={`help-hub-v2__who-card help-hub-v2__who-card--${a.id}${active ? ' help-hub-v2__who-card--active' : ''} help-hub-v2__anim-stagger`}
+                style={{ animationDelay: `${i * 60}ms` }}
                 onClick={() => selectAudienceCard(a.id)}
               >
                 <span className="help-hub-v2__who-icon" aria-hidden>
                   <Icon className="h-6 w-6" />
                 </span>
                 <span className="help-hub-v2__who-text">
-                  <strong>
-                  {a.id === 'patient' ? 'Soy paciente' : a.id === 'admin' ? 'Soy clínica' : 'Soy administrador'}
-                </strong>
-                  <span>{a.description}</span>
+                  <strong>{card.title}</strong>
+                  <span>{card.text}</span>
+                  <span className="help-hub-v2__who-cta">{card.cta}</span>
                 </span>
-                <ArrowRight className="help-hub-v2__who-arrow h-5 w-5" aria-hidden />
               </button>
             );
           })}
         </div>
       </section>
 
-      <div className="help-hub-v2__layout shell" id="help-guides">
-        <aside className="help-hub-v2__sidebar">
+      <div className="help-hub-v2__layout ps-shell ps-shell--wide" id="help-guides">
+        <aside className="help-hub-v2__sidebar" aria-label="Índice de guías">
           <p className="help-hub-v2__sidebar-label">En esta guía</p>
-          <nav aria-label="Enlaces de guías">
+          <nav>
             {helpSidebarNav.map((group) => (
               <div key={group.label} className="help-hub-v2__sidebar-group">
                 <p>{group.label}</p>
@@ -229,11 +364,11 @@ export function HelpHubPage() {
                       <button
                         type="button"
                         className={
-                          help.sectionId === link.id && help.audience === link.audience
+                          sidebarActive === link.id && !link.href
                             ? 'help-hub-v2__sidebar-link--active'
                             : ''
                         }
-                        onClick={() => openGuide(link.id, link.audience)}
+                        onClick={() => handleSidebarClick(link)}
                       >
                         {link.label}
                       </button>
@@ -243,76 +378,67 @@ export function HelpHubPage() {
               </div>
             ))}
           </nav>
-          <div className="help-hub-v2__sidebar-cta">
-            <Headphones className="h-5 w-5 text-teal-700" aria-hidden />
-            <p>
-              <strong>¿Necesitas ayuda?</strong>
-              <span>Nuestro equipo está disponible para ayudarte.</span>
-            </p>
-            <a href="/contacto" className="help-hub-v2__btn help-hub-v2__btn--primary no-underline">
-              Contactar soporte
-            </a>
-          </div>
         </aside>
 
         <div className="help-hub-v2__main">
-          {help.audience === 'platform' && !q ? (
-            <GuideSectionBlock
-              title="Guías para administradores"
-              cards={platformHubCards}
-              audience="platform"
-              onOpen={openGuide}
-            />
-          ) : null}
+          <section className="help-hub-v2__featured" aria-labelledby="help-featured-title">
+            <div className="help-hub-v2__block-head">
+              <h2 id="help-featured-title">{copy.featuredTitle}</h2>
+              {q ? <span className="help-hub-v2__filter-hint">{activeCards.length} resultados</span> : null}
+            </div>
+            {activeCards.length === 0 ? (
+              <p className="help-hub-v2__empty">No hay guías que coincidan con tu búsqueda en este perfil.</p>
+            ) : (
+              <div className="help-hub-v2__guide-grid help-hub-v2__guide-grid--featured">
+                {activeCards.map((card, i) => {
+                  const section = byId.get(card.id);
+                  if (!section) return null;
+                  return (
+                    <GuideCard
+                      key={`${card.id}-${card.title}-${i}`}
+                      card={card}
+                      section={section}
+                      audience={help.audience}
+                      onOpen={() => openGuide(card.id, help.audience)}
+                    />
+                  );
+                })}
+              </div>
+            )}
+            <p className="help-hub-v2__view-all">
+              <button type="button" className="help-hub-v2__link-btn" onClick={help.openFaq}>
+                Ver documentación completa (FAQ)
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </button>
+            </p>
+          </section>
 
-          {showPatientGuides ? (
-            <GuideSectionBlock
-              title="Guías para pacientes"
-              cards={patientHubCards}
-              audience="patient"
-              onOpen={openGuide}
-            />
-          ) : null}
-
-          {showAdminGuides ? (
-            <GuideSectionBlock
-              title="Guías para clínicas"
-              cards={adminHubCards}
-              audience="admin"
-              onOpen={openGuide}
-              compact
-            />
-          ) : null}
-
-          <section className="help-hub-v2__faq-section" id="help-faq">
+          <section className="help-hub-v2__faq-section" id="help-faq" aria-labelledby="help-faq-title">
             <div className="help-hub-v2__faq-head">
-              <h2>Preguntas frecuentes</h2>
+              <h2 id="help-faq-title">Preguntas frecuentes</h2>
               <button type="button" className="help-hub-v2__link-btn" onClick={help.openFaq}>
                 Ver todas
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </button>
             </div>
-            <div className="help-hub-v2__faq-columns">
-              <div>
-                <p className="help-hub-v2__faq-col-label">Pacientes</p>
-                <HelpFaqPanel audience="patient" compact />
-              </div>
-              <div>
-                <p className="help-hub-v2__faq-col-label">Clínicas</p>
-                <HelpFaqPanel audience="admin" compact />
-              </div>
-              <aside className="help-hub-v2__need-help">
-                <HelpCircle className="h-8 w-8 text-teal-600" aria-hidden />
-                <h3>¿Necesitas ayuda?</h3>
-                <p>Escríbenos y te ayudaremos lo antes posible.</p>
-                <a href="/contacto" className="help-hub-v2__btn help-hub-v2__btn--primary no-underline">
-                  Contactar soporte
-                </a>
-              </aside>
+            <div className="help-hub-v2__faq-tabs" role="tablist" aria-label="Categorías de preguntas frecuentes">
+              {(['patient', 'admin', 'platform'] as FaqTab[]).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  role="tab"
+                  aria-selected={faqTab === tab}
+                  className={faqTab === tab ? 'help-hub-v2__faq-tab--on' : ''}
+                  onClick={() => setFaqTab(tab)}
+                >
+                  {tab === 'patient' ? 'Pacientes' : tab === 'admin' ? 'Clínicas' : 'Administradores'}
+                </button>
+              ))}
             </div>
+            <HelpFaqPanel audience={faqTab} compact />
           </section>
 
-          <section className="help-hub-v2__trust">
+          <section className="help-hub-v2__trust" aria-label="Ventajas del centro de ayuda">
             <div>
               <BookOpen className="h-5 w-5" aria-hidden />
               <strong>Guías paso a paso</strong>
@@ -326,7 +452,7 @@ export function HelpHubPage() {
             <div>
               <Shield className="h-5 w-5" aria-hidden />
               <strong>Acceso seguro</strong>
-              <span>Información confidencial.</span>
+              <span>Información confidencial protegida.</span>
             </div>
             <div>
               <Users className="h-5 w-5" aria-hidden />
@@ -334,18 +460,29 @@ export function HelpHubPage() {
               <span>Equipo disponible para ayudarte.</span>
             </div>
           </section>
-
-          <p className="help-hub-v2__docs-link">
-            <a href="#documentacion">Ver documentación detallada con capturas ampliadas</a>
-          </p>
         </div>
+
+        <HelpHubAside onOpenGuide={openGuide} />
       </div>
 
-      <div id="documentacion" className="help-hub-v2__docs-anchor shell">
-        <p className="text-sm text-slate-500 m-0">
-          La documentación extendida se muestra al abrir cada guía desde las tarjetas superiores.
-        </p>
-      </div>
+      <section className="help-hub-v2__cta" aria-labelledby="help-cta-title">
+        <div className="ps-shell ps-shell--wide help-hub-v2__cta-inner">
+          <div>
+            <h2 id="help-cta-title">¿No encuentras lo que buscas?</h2>
+            <p>Contacta con soporte y te ayudamos a resolverlo. Software dental con soporte humano.</p>
+          </div>
+          <div className="help-hub-v2__cta-actions">
+            <a href="/contacto?tipo=soporte" className="help-hub-v2__btn help-hub-v2__btn--primary no-underline">
+              <Headphones className="h-4 w-4" aria-hidden />
+              Contactar soporte
+            </a>
+            <button type="button" className="help-hub-v2__btn help-hub-v2__btn--ghost" onClick={help.openFaq}>
+              Ver documentación completa
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </button>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
