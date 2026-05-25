@@ -757,6 +757,28 @@ export const clinicUserCreateSchema = z
     }
   });
 
+export const staffClinicAccessGrantSchema = z
+  .object({
+    authUserId: z.string().uuid(),
+    clinicId: z.string().uuid(),
+    role: z.enum(['clinic_admin', 'admin', 'owner', 'dentist', 'receptionist']),
+    specialty: z.string().max(80).optional(),
+    collegiateNumber: z.string().max(40).optional()
+  })
+  .superRefine((data, ctx) => {
+    if (data.role === 'dentist' && (!data.collegiateNumber?.trim() || data.collegiateNumber.trim().length < 3)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Nº de colegiado obligatorio para dentistas.',
+        path: ['collegiateNumber']
+      });
+    }
+  });
+
+export const staffClinicAccessRevokeSchema = z.object({
+  profileId: z.string().uuid()
+});
+
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1),

@@ -120,7 +120,7 @@ export const adminSubtitles: Record<AdminView, string> = {
   configuracion: 'Identidad, facturación, portal del paciente y preferencias',
   'acceso-portal': 'Tokens de acceso al portal del paciente (sin historial)',
   'auditoria-pdp': 'Registro de actividad por profesional · exportar Excel',
-  usuarios: 'Alta de personal vinculado a la clínica',
+  usuarios: 'Alta de personal y accesos a varias clínicas / sedes',
   consentimientos: 'Firma obligatoria del paciente en el portal',
   monitorizacion: 'Actividad de tu clínica · logins · seguridad · especificación del sistema'
 };

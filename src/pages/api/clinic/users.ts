@@ -3,6 +3,10 @@ import { requireStaffSession } from '@/lib/api/guards';
 import { fail, ok } from '@/lib/http';
 import { logError } from '@/lib/logger';
 import { createClinicUser, listClinicUsersForScope } from '@/lib/services/clinicUsers';
+import {
+  listAssignableClinicsForManager,
+  listStaffUsersWithClinicAccess
+} from '@/lib/services/staffClinicAccess';
 import { hasSupabaseConfig } from '@/lib/supabaseServer';
 import { clinicUserCreateSchema } from '@/lib/validators';
 
@@ -25,7 +29,9 @@ export const GET: APIRoute = async (context) => {
     const users = (await listClinicUsersForScope(clinicId, gate.user.tenantId)).filter((u) =>
       ['clinic_admin', 'admin', 'owner', 'dentist', 'receptionist'].includes(u.role)
     );
-    return ok({ users });
+    const staffAccess = await listStaffUsersWithClinicAccess(gate.user, clinicId);
+    const assignableClinics = await listAssignableClinicsForManager(gate.user);
+    return ok({ users, staffAccess, assignableClinics });
   } catch (error) {
     logError('clinic.users.get', error);
     return fail('No se pudieron listar los usuarios.', 500);
