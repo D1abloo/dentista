@@ -1,0 +1,85 @@
+# DentalFlow — usuarios demo (control interno)
+# Actualizado: 2026-05-20
+# NO subir contraseñas reales a repos públicos: usar las de tu .env local.
+
+================================================================================
+CONTRASEÑAS (variables .env)
+================================================================================
+SUPER_ADMIN_EMAIL       → admin@dentista.app (por defecto)
+SUPER_ADMIN_PASSWORD    → plataforma + cuenta dual Nova
+CLINIC_DEFAULT_PASSWORD → altas clínica, red demo, pacientes seed
+
+Tras `npm run seed:clinics-network` la consola muestra la contraseña aplicada
+(por defecto DemoClinic2026! si no defines CLINIC_DEFAULT_PASSWORD).
+
+================================================================================
+PLATAFORMA (super admin)
+================================================================================
+admin@dentista.app              | super_admin + clinic_admin (Nova) | /platform/login, /login/admin
+                                | Portal paciente misma cuenta Auth
+
+================================================================================
+CLÍNICA NOVA (seed principal: npm run seed:clinic)
+================================================================================
+admin@dentista.app              | clinic_admin | Clínica Dental Nova
+maria.gonzalez@clinicadentalnova.es | patient  | Nova
+carlos.ruiz@clinicadentalnova.es    | patient  | Nova
+ana.torres@clinicadentalnova.es     | patient  | Nova
+lucia.mendez@clinicadentalnova.es   | patient  | Nova
+
+================================================================================
+QA MEDITERRÁNEO (npm run seed:qa-med)
+================================================================================
+mediterraneo.admin@dentista.app | clinic_admin | Mediterráneo (legacy QA)
+
+================================================================================
+RED DEMO — 10 CLÍNICAS INDEPENDIENTES (npm run seed:clinics-network)
+Admin por clínica: admin@{slug}.demo
+================================================================================
+admin@demo-alba-dental.demo         | clinic_admin | Clínica Dental Alba (Zaragoza)
+admin@demo-sonrisa-norte.demo       | clinic_admin | Sonrisa Norte (Bilbao)
+admin@demo-dientes-plus.demo        | clinic_admin | Dientes Plus (Valladolid)
+admin@demo-oral-centro.demo         | clinic_admin | Oral Centro (Murcia)
+admin@demo-estetica-dental.demo     | clinic_admin | Estética Dental Castilla (Salamanca)
+admin@demo-gabinete-iris.demo       | clinic_admin | Gabinete Iris (A Coruña)
+admin@demo-clinica-aurora.demo      | clinic_admin | Clínica Aurora (Santander)
+admin@demo-dental-prisma.demo       | clinic_admin | Dental Prisma (Pamplona)
+admin@demo-sonrisa-activa.demo      | clinic_admin | Sonrisa Activa (Córdoba)
+admin@demo-integral-bucal.demo      | clinic_admin | Integral Bucal (Granada)
+
+Dentistas (solo ficha clínica, sin login): ver panel de cada clínica.
+
+================================================================================
+RED DEMO — 3 ORGANIZACIONES MULTI-SEDE (misma cuenta en las 3 sedes)
+================================================================================
+admin.mediterraneo@demo.dentista.app | clinic_admin | Grupo Dental Mediterráneo
+  · Mediterráneo Barcelona (demo-med-bcn)
+  · Mediterráneo Valencia (demo-med-vlc)
+  · Mediterráneo Palma (demo-med-pmi)
+
+admin.sonrisaplus@demo.dentista.app  | clinic_admin | Red Sonrisa Plus
+  · Sonrisa Plus Madrid (demo-sp-mad)
+  · Sonrisa Plus Sevilla (demo-sp-sev)
+  · Sonrisa Plus Málaga (demo-sp-mal)
+
+admin.unida@demo.dentista.app          | clinic_admin | Odontología Unida
+  · Unida Eixample (demo-un-bcn)
+  · Unida Girona (demo-un-gir)
+  · Unida Tarragona (demo-un-tar)
+
+================================================================================
+MODO DEMO LOCAL (sin Supabase — datos en memoria)
+================================================================================
+centro@dentista.demo | admin demo | Clínica Centro
+norte@dentista.demo    | admin demo | Clínica Norte
+sur@dentista.demo      | admin demo | Clínica Sur
+
+================================================================================
+COMANDOS ÚTILES
+================================================================================
+npm run seed:clinic           # Nova + admin@dentista.app + pacientes
+npm run seed:clinics-network  # 10 independientes + 3 multi-sede
+npm run seed:qa-med           # Mediterráneo QA legacy
+
+Acceso admin red demo: /login/admin?email=admin@demo-alba-dental.demo
+Multi-sede: /login/admin?email=admin.mediterraneo@demo.dentista.app

@@ -57,7 +57,7 @@ export async function registerPatient(input: PatientRegistrationInput) {
     .maybeSingle();
   if (existing) throw new Error('Ya existe una cuenta con este email en esta clínica.');
 
-  const { raw, hash } = generateActivationToken();
+  const { raw, hash } = await generateActivationToken();
   const expiresAt = activationExpiresAt(48);
   const now = new Date().toISOString();
   const tenantId = clinic.tenant_id as string | null;
@@ -138,7 +138,7 @@ export async function registerPatient(input: PatientRegistrationInput) {
 
 export async function activatePatientAccount(rawToken: string) {
   const db = requireDb();
-  const hash = hashActivationToken(rawToken);
+  const hash = await hashActivationToken(rawToken);
   const now = new Date().toISOString();
 
   const { data: profile, error } = await db
@@ -193,7 +193,4 @@ export async function registerPatientByStaff(input: AdminPatientCreateInput & { 
   });
 }
 
-export function isPatientActivated(profile: { role: string; activated_at?: string | null }) {
-  if (profile.role !== 'patient') return true;
-  return Boolean(profile.activated_at);
-}
+export { isPatientActivated } from '@/lib/auth/patientActivation';

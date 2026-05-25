@@ -2,14 +2,11 @@ import type { SessionUser } from '@/lib/auth';
 import { profileCompletionPercent } from '@/lib/clinical/professionalProfile';
 import { dentistToRowPatch, mapDentistRow, type DentistRow } from '@/lib/records/dentistMapper';
 import type { Dentist } from '@/types/demo';
+import { isClinicProfileManager } from '@/lib/clinical/clinicStaffRoles';
 import { getStaffContextForSession } from '@/lib/services/staffContext';
 import { getSupabaseAdmin, hasSupabaseConfig, isDemoMode } from '@/lib/supabaseServer';
 
-const MANAGER_ROLES = new Set(['clinic_admin', 'admin', 'owner']);
-
-export function isClinicProfileManager(role: string) {
-  return MANAGER_ROLES.has(role);
-}
+export { isClinicProfileManager } from '@/lib/clinical/clinicStaffRoles';
 
 async function resolveTenantId(clinicId: string): Promise<string> {
   const db = getSupabaseAdmin();

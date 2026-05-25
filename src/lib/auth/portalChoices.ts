@@ -1,6 +1,6 @@
 import type { SessionUser } from '@/lib/auth';
 import type { ClinicProfileRow } from '@/lib/auth/profilePick';
-import { isPatientActivated } from '@/lib/services/patientRegistration';
+import { isPatientActivated } from '@/lib/auth/patientActivation';
 import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
 import { signInWithEmailPassword } from '@/lib/supabaseAuth';
 

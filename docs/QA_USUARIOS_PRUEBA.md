@@ -1,5 +1,7 @@
 # Usuarios y contraseñas de prueba — Dentista+
 
+Listado maestro en texto: [DEMO_USUARIOS.txt](./DEMO_USUARIOS.txt)
+
 > **Solo entorno de desarrollo / QA.** No uses estas credenciales en producción ni subas contraseñas reales de PRO a repositorios públicos.  
 > Generado: 2026-05-23 · Fuente: Supabase Auth + seeds (`npm run seed:clinic`, `npm run seed:qa-mediterraneo`).
 

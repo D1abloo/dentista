@@ -4,7 +4,6 @@ import { isClientDemoMode, modeCopy } from '@/lib/appMode';
 import { addMessage, saveMessage } from '@/lib/demoStore';
 import { fmtDate, todayIso } from '@/lib/format';
 import { formatMessageDate } from '@/lib/patient/messagesData';
-import { markPatientMessagesReadForClinic } from '@/lib/services/messageRead';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import type { Message, Patient } from '@/types/demo';
@@ -45,10 +44,15 @@ export function PatientMessageThread({
     }
     commit(next);
     if (!isClientDemoMode() && patient.preferredClinicId) {
-      void markPatientMessagesReadForClinic(
-        patient.preferredClinicId,
-        unreadFromPatient.map((m) => m.id)
-      ).catch(() => undefined);
+      void fetch('/api/records/messages/read', {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          clinicId: patient.preferredClinicId,
+          messageIds: unreadFromPatient.map((m) => m.id)
+        })
+      }).catch(() => undefined);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mark once when opening thread
   }, [patient.id]);

@@ -31,7 +31,7 @@ import { readScopedDentistId } from '@/lib/dentistScope';
 import { createDentist, saveDentist } from '@/lib/demoStore';
 import { resolveDemoFileUrl, saveDemoFile } from '@/lib/demoFiles';
 import { getStaffProfile, organizationDisplayName } from '@/lib/organization';
-import { isClinicProfileManager } from '@/lib/services/clinicalProfessionals';
+import { isClinicProfileManager } from '@/lib/clinical/clinicStaffRoles';
 import { settingsFor } from '@/lib/demoStore';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';

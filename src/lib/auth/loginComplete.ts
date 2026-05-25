@@ -5,7 +5,7 @@ import { loginPlatformAppAdminForClinicPanel } from '@/lib/auth/platformClinicAc
 import { loginPlatformAdmin } from '@/lib/auth/productionLogin';
 import { pickProfileForLogin, type ClinicProfileRow } from '@/lib/auth/profilePick';
 import type { AuthenticatedIdentity, PortalChoiceId } from '@/lib/auth/portalChoices';
-import { isPatientActivated } from '@/lib/services/patientRegistration';
+import { isPatientActivated } from '@/lib/auth/patientActivation';
 import { getSupabaseAdmin } from '@/lib/supabaseServer';
 
 const STAFF_ROLES = new Set(['admin', 'owner', 'clinic_admin', 'dentist', 'receptionist']);

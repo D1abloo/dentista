@@ -1,5 +1,3 @@
-import { randomBytes } from 'node:crypto';
-
 /** Roles sin caducidad de contraseña (administradores de clínica). */
 export const ADMIN_PASSWORD_ROLES = new Set(['clinic_admin', 'admin', 'owner']);
 
@@ -9,9 +7,15 @@ export function isAdminPasswordRole(role: string) {
   return ADMIN_PASSWORD_ROLES.has(role);
 }
 
+function secureRandomBytes(length: number) {
+  const bytes = new Uint8Array(length);
+  globalThis.crypto.getRandomValues(bytes);
+  return bytes;
+}
+
 export function generateTemporaryPassword(length = 12) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$';
-  const bytes = randomBytes(length);
+  const bytes = secureRandomBytes(length);
   let out = '';
   for (let i = 0; i < length; i++) {
     out += chars[bytes[i]! % chars.length];

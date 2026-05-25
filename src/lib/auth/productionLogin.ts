@@ -2,7 +2,7 @@ import type { SessionUser } from '@/lib/auth';
 import { AccountNotActivatedError } from '@/lib/auth/accountErrors';
 import { evaluatePasswordStatus } from '@/lib/auth/passwordPolicy';
 import { pickProfileForLogin, type ClinicProfileRow } from '@/lib/auth/profilePick';
-import { isPatientActivated } from '@/lib/services/patientRegistration';
+import { isPatientActivated } from '@/lib/auth/patientActivation';
 import { getSupabaseAdmin } from '@/lib/supabaseServer';
 import { signInWithEmailPassword } from '@/lib/supabaseAuth';
 import type { LoginInput } from '@/lib/validators';

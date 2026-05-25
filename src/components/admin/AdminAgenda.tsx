@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { dentistsForClinic, getPrimaryClinic } from '@/lib/clinic';
 import { toAgendaDentistColumns } from '@/lib/clinical/dentistDisplay';
-import { isClinicProfileManager } from '@/lib/services/clinicalProfessionals';
+import { isClinicProfileManager } from '@/lib/clinical/clinicStaffRoles';
 import { isClientDemoMode, isClientLiveMode } from '@/lib/appMode';
 import { appointmentsInRange, monthPrefix, weekRange } from '@/lib/appointments';
 import {
