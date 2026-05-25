@@ -53,7 +53,15 @@ export function EnterPortalChoicePage() {
       });
       const json = (await res.json()) as { data?: { redirect?: string }; error?: { message?: string } };
       if (!res.ok) throw new Error(json.error?.message ?? 'No se pudo entrar.');
-      window.location.href = json.data?.redirect ?? '/';
+      const dest = json.data?.redirect ?? '/';
+      if (dest.startsWith('/admin')) {
+        try {
+          await fetch('/api/auth/ensure-admin-access', { method: 'POST', credentials: 'include' });
+        } catch {
+          /* select-portal ya emite gate */
+        }
+      }
+      window.location.href = dest;
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo entrar.');
       setPicking(null);

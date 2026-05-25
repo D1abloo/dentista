@@ -26,6 +26,11 @@ export function ClinicCenterPicker({ autoSingle = false, title, lead }: Props) {
           setSwitching(list[0]!.clinicId);
           const result = await switchClinicCenter(list[0]!.clinicId);
           if (result.ok) {
+            try {
+              await fetch('/api/auth/ensure-admin-access', { method: 'POST', credentials: 'include' });
+            } catch {
+              /* gate aplicada en switch-clinic */
+            }
             window.location.href = '/admin';
             return;
           }
@@ -53,6 +58,11 @@ export function ClinicCenterPicker({ autoSingle = false, title, lead }: Props) {
       setError(result.message);
       setSwitching(null);
       return;
+    }
+    try {
+      await fetch('/api/auth/ensure-admin-access', { method: 'POST', credentials: 'include' });
+    } catch {
+      /* gate aplicada en switch-clinic */
     }
     window.location.href = '/admin';
   }

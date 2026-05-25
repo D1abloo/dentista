@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createSessionToken, sessionCookieName } from '@/lib/auth';
+import { applyAdminPanelGateCookie } from '@/lib/auth/adminPanelGate';
 import { requireStaffSession } from '@/lib/api/guards';
 import { fail, ok } from '@/lib/http';
 import { logError } from '@/lib/logger';
@@ -22,13 +23,15 @@ export const POST: APIRoute = async (context) => {
     const nextUser = await switchSessionToClinic(gate.user, parsed.data.clinicId);
     if (!nextUser) return fail('No tienes acceso a ese centro clínico.', 403);
 
+    const maxAge = 60 * 60 * SESSION_HOURS;
     context.cookies.set(sessionCookieName, createSessionToken(nextUser), {
       httpOnly: true,
       sameSite: 'lax',
       secure: import.meta.env.PROD,
       path: '/',
-      maxAge: 60 * 60 * SESSION_HOURS
+      maxAge
     });
+    applyAdminPanelGateCookie(context.cookies, maxAge);
 
     return ok(
       {

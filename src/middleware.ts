@@ -19,7 +19,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return next();
   }
 
-  if (isAdminPanelRoute(pathname) && hasClinicPanelSession(context.cookies)) {
+  if (isAdminPanelRoute(pathname) && (await hasClinicPanelSession(context.cookies))) {
     return next();
   }
 

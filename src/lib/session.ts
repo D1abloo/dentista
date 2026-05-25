@@ -82,11 +82,11 @@ function redirectAfterLogin(user: SessionUser): string {
   return '/admin';
 }
 
-function finishSessionLogin(
+async function finishSessionLogin(
   user: SessionUser,
   forcedRole?: 'admin' | 'patient',
   opts?: { deferRedirect?: boolean }
-): LoginUnifiedResult {
+): Promise<LoginUnifiedResult> {
   if (forcedRole === 'admin' && user.role === 'super_admin') {
     return { ok: false, message: 'Tu cuenta no tiene acceso al panel clínica.' };
   }
@@ -120,6 +120,14 @@ function finishSessionLogin(
   const dest = redirectAfterLogin(user);
   if (opts?.deferRedirect) {
     return { ok: true, redirectTo: dest, portalRole };
+  }
+
+  if (dest.startsWith('/admin')) {
+    try {
+      await fetch('/api/auth/ensure-admin-access', { method: 'POST', credentials: 'include' });
+    } catch {
+      /* middleware también acepta sesión clínica válida */
+    }
   }
 
   window.location.href = dest;
@@ -185,7 +193,7 @@ export async function loginUnified(
     return { ok: false, message: json.error?.message ?? 'Credenciales incorrectas.' };
   }
 
-  return finishSessionLogin(json.data, forcedRole, { deferRedirect: opts?.deferRedirect });
+  return await finishSessionLogin(json.data, forcedRole, { deferRedirect: opts?.deferRedirect });
 }
 
 export async function loginWithPortalChoice(
@@ -207,7 +215,7 @@ export async function loginWithPortalChoice(
     return { ok: false, message: json.error?.message ?? 'No se pudo completar el acceso.' };
   }
 
-  return finishSessionLogin(json.data, forcedRole, { deferRedirect: opts?.deferRedirect });
+  return await finishSessionLogin(json.data, forcedRole, { deferRedirect: opts?.deferRedirect });
 }
 
 export async function logoutSession(): Promise<void> {

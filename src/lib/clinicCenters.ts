@@ -28,6 +28,15 @@ export async function switchClinicCenter(clinicId: string): Promise<{ ok: true }
   return { ok: true };
 }
 
+async function ensureAdminAccessBeforeRedirect(dest: string) {
+  if (!dest.startsWith('/admin')) return;
+  try {
+    await fetch('/api/auth/ensure-admin-access', { method: 'POST', credentials: 'include' });
+  } catch {
+    /* sesión clínica válida basta para el middleware */
+  }
+}
+
 export async function resolvePublicEnter(): Promise<void> {
   const res = await fetch('/api/auth/enter-destination', { credentials: 'include' });
   if (!res.ok) {
@@ -35,5 +44,7 @@ export async function resolvePublicEnter(): Promise<void> {
     return;
   }
   const json = (await res.json()) as { data?: { redirect?: string } };
-  window.location.href = json.data?.redirect ?? '/login';
+  const dest = json.data?.redirect ?? '/login';
+  await ensureAdminAccessBeforeRedirect(dest);
+  window.location.href = dest;
 }

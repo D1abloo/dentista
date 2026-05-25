@@ -1,5 +1,8 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { getEffectiveSessionUser, type SessionUser } from '@/lib/auth';
+import { enrichDualRoleClinicSession } from '@/lib/auth/dualRoleClinic';
+
+const STAFF_ROLES = new Set(['clinic_admin', 'admin', 'owner', 'dentist', 'receptionist']);
 
 export const adminPanelGateCookieName = 'df_admin_gate';
 
@@ -74,19 +77,28 @@ export function hasAdminPanelGate(cookies: CookieReader): boolean {
   return parseAdminPanelGateCookie(cookies.get(adminPanelGateCookieName)?.value);
 }
 
-/** Usuario con acceso al panel clínica (admin o super_admin en inspección). */
-export function isClinicPanelUser(user: Pick<SessionUser, 'role' | 'platformInspect' | 'inspectMode'>): boolean {
+/** Usuario con acceso al panel clínica (alineado con requireStaffSession). */
+export function isClinicPanelUser(
+  user: Pick<SessionUser, 'role' | 'platformInspect' | 'inspectMode' | 'staffRole' | 'clinicId' | 'profileId'>
+): boolean {
   if (user.role === 'patient') return false;
-  if (user.role === 'super_admin') {
-    return Boolean(user.platformInspect && user.inspectMode === 'clinic_admin');
+  if (user.platformInspect && user.inspectMode === 'clinic_admin') {
+    return Boolean(user.clinicId);
   }
-  return user.role === 'admin';
+  if (user.role === 'admin') return true;
+  if (user.role === 'super_admin' && user.clinicId) return true;
+  const staffRole = user.staffRole ?? user.role;
+  return STAFF_ROLES.has(staffRole);
 }
 
-/** Sesión válida de personal clínica (post-login). */
-export function hasClinicPanelSession(cookies: CookieReader): boolean {
-  const user = getEffectiveSessionUser(cookies);
-  return user ? isClinicPanelUser(user) : false;
+/** Sesión válida de personal clínica (post-login), con enriquecimiento dual-role si aplica. */
+export async function hasClinicPanelSession(cookies: CookieReader): Promise<boolean> {
+  let user = getEffectiveSessionUser(cookies);
+  if (!user) return false;
+  if (user.role === 'super_admin' && !user.platformInspect) {
+    user = await enrichDualRoleClinicSession(user);
+  }
+  return isClinicPanelUser(user);
 }
 
 export function applyAdminPanelGateCookie(cookies: CookieWriter, maxAge = GATE_MAX_AGE_SEC) {
