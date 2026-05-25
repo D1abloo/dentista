@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowRight, Check, X } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { scrollToSection } from '@/lib/publicScroll';
 import { useReveal } from '@/hooks/useReveal';
 import {
@@ -8,10 +8,10 @@ import {
   landingSecurityCards,
   landingTrustLogos
 } from '@/lib/landing/content';
-import { publicExplorePaths, publicProductPillars } from '@/lib/landing/publicSiteContent';
 import { PublicFooter } from './PublicFooter';
 import { PublicHeader } from './PublicHeader';
 import { CookieBanner } from './CookieBanner';
+import { LandingAccessPlatformSection } from './LandingAccessPlatformSection';
 import { LandingHeroSection } from './LandingHeroSection';
 import { LandingMobileShowcase } from './LandingMobileShowcase';
 import { ProAccessForm, type ProPlan } from './ProAccessForm';
@@ -25,8 +25,6 @@ export function LandingPage() {
   const [plan, setPlan] = useState<ProPlan>('pro_clinica');
   const [demoOpen, setDemoOpen] = useState(false);
 
-  const pathsR = useReveal();
-  const showR = useReveal();
   const featR = useReveal();
   const priceR = useReveal();
 
@@ -60,97 +58,7 @@ export function LandingPage() {
 
         <LandingHeroSection onRequestDemo={() => openDemo('pro_clinica')} />
         <LandingMobileShowcase />
-
-        <section id="perfiles" className="ps-section">
-          <div className="ps-shell">
-            <div className="ps-section__panel">
-              <header className="ps-section__head">
-                <span className="ps-kicker">Acceso rápido</span>
-                <h2>Accede al portal o gestiona tu clínica</h2>
-                <p>Dos accesos directos según tu perfil: paciente o equipo clínico.</p>
-              </header>
-              <div className={`ps-paths ${revealClass(pathsR.visible)}`} ref={pathsR.ref}>
-            {publicExplorePaths.map((card) => {
-              const Icon = card.icon;
-              const inner = (
-                <>
-                  <span className="ps-path__eyebrow">{card.eyebrow}</span>
-                  <span className="ps-path__icon" aria-hidden>
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <h3>{card.title}</h3>
-                  <p>{card.text}</p>
-                  <span className="ps-path__cta">
-                    {'demo' in card && card.demo ? 'Solicitar demo' : card.cta}
-                    <ArrowRight className="h-4 w-4" aria-hidden />
-                  </span>
-                </>
-              );
-              if ('demo' in card && card.demo) {
-                return (
-                  <button
-                    key={card.id}
-                    type="button"
-                    className={`ps-path ps-path--${card.tone}`}
-                    onClick={() => openDemo()}
-                  >
-                    {inner}
-                  </button>
-                );
-              }
-              return (
-                <a key={card.id} href={card.href} className={`ps-path ps-path--${card.tone}`}>
-                  {inner}
-                </a>
-              );
-            })}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="producto" className="ps-section ps-section--alt">
-          <div className="ps-shell">
-            <div className={`ps-showcase ${revealClass(showR.visible)}`} ref={showR.ref}>
-              <header className="ps-showcase__head">
-                <span className="ps-kicker">Plataforma</span>
-                <h2>Agenda, portal paciente y facturación</h2>
-                <p>
-                  Tres módulos conectados para recepción, gabinete y administración: menos llamadas, más
-                  transparencia y cobros al día.
-                </p>
-              </header>
-              <div className="ps-showcase__grid">
-                {publicProductPillars.map((pillar, index) => {
-                  const Icon = pillar.icon;
-                  return (
-                    <article
-                      key={pillar.id}
-                      className={`ps-showcase-card ps-showcase-card--${pillar.tone}`}
-                      style={{ animationDelay: `${index * 0.08}s` }}
-                    >
-                      <div className="ps-showcase-card__media">
-                        <img src={pillar.image} alt={pillar.alt} loading="lazy" decoding="async" />
-                      </div>
-                      <div className="ps-showcase-card__body">
-                        <span className="ps-showcase-card__icon" aria-hidden>
-                          <Icon className="h-4 w-4" />
-                        </span>
-                        <h3>{pillar.title}</h3>
-                        <p>{pillar.text}</p>
-                        <ul className="ps-showcase-card__list">
-                          {pillar.bullets.map((b) => (
-                            <li key={b}>{b}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </section>
+        <LandingAccessPlatformSection onRequestDemo={() => openDemo('pro_clinica')} />
 
         <section id="funcionalidades" className="ps-section">
           <div className="ps-shell">
