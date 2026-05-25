@@ -1,5 +1,8 @@
 import type { SessionUser } from '@/lib/auth';
-import { isPlatformAppAdminSession } from '@/lib/auth/platformClinicAccess';
+import {
+  hasGlobalClinicAdministratorAccess,
+  listActiveClinicIdsForGlobalAdministrator
+} from '@/lib/auth/platformClinicAccess';
 import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
 
 const STAFF_ROLES = new Set(['clinic_admin', 'admin', 'owner', 'dentist', 'receptionist']);
@@ -24,10 +27,8 @@ export type StaffContext = {
 
 /** Clínicas donde el usuario tiene perfil staff (cada una con su propio tenant). */
 export async function listAssignedClinicIdsForSession(user: Omit<SessionUser, 'expiresAt'>): Promise<string[]> {
-  if (await isPlatformAppAdminSession(user)) {
-    const db = getSupabaseAdmin();
-    const { data } = await db.from('clinics').select('id').eq('status', 'active');
-    return (data ?? []).map((r) => r.id as string);
+  if (await hasGlobalClinicAdministratorAccess(user)) {
+    return listActiveClinicIdsForGlobalAdministrator();
   }
   if (!user.profileId) return user.clinicId ? [user.clinicId] : [];
   const db = getSupabaseAdmin();

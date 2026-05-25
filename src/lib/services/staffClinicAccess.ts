@@ -1,4 +1,7 @@
-import { isPlatformAppAdminSession } from '@/lib/auth/platformClinicAccess';
+import {
+  hasGlobalClinicAdministratorAccess,
+  listActiveClinicIdsForGlobalAdministrator
+} from '@/lib/auth/platformClinicAccess';
 import type { SessionUser } from '@/lib/auth';
 import type { ClinicUserRow } from '@/lib/services/clinicUsers';
 import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
@@ -48,13 +51,12 @@ export async function listAssignableClinicsForManager(
 ): Promise<AssignableClinic[]> {
   const db = requireDb();
   const currentClinicId = user.clinicId;
-  if (!currentClinicId && !(await isPlatformAppAdminSession(user))) return [];
+  if (!currentClinicId && !(await hasGlobalClinicAdministratorAccess(user))) return [];
 
   let clinicIds: string[] = [];
 
-  if (await isPlatformAppAdminSession(user)) {
-    const { data } = await db.from('clinics').select('id').eq('status', 'active');
-    clinicIds = (data ?? []).map((r) => r.id as string);
+  if (await hasGlobalClinicAdministratorAccess(user)) {
+    clinicIds = await listActiveClinicIdsForGlobalAdministrator();
   } else {
     const { data: current } = await db
       .from('clinics')

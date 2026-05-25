@@ -96,6 +96,10 @@ Migraciones `0028_rls_records_gaps.sql` y `0031_security_rls_hardening.sql` cier
 
 `admin@dentista.app` puede operar como `super_admin` y `clinic_admin` con una sola cuenta Auth. Si hay sesión de plataforma y el usuario abre `/admin`, se resuelve automáticamente el perfil staff de clínica (`src/lib/auth/dualRoleClinic.ts`) para evitar estado vacío del panel.
 
+### Administradores globales de clínica
+
+Usuarios en `platform_admins` (activos), sesión `super_admin` o `SUPER_ADMIN_EMAIL` tienen acceso a **todas** las clínicas con `status = active` sin crear perfiles por sede. La lista se obtiene en cada petición (`hasGlobalClinicAdministratorAccess`, `listActiveClinicIdsForGlobalAdministrator` en `src/lib/auth/platformClinicAccess.ts`): una clínica recién creada o aprobada aparece en `/admin/elegir-centro` en cuanto pasa a activa. El personal sin ese rol sigue limitado a las clínicas donde tiene perfil staff.
+
 ## Roles
 
 - `patient`: portal propio.

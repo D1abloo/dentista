@@ -1,7 +1,7 @@
 import type { APIContext } from 'astro';
 import { getEffectiveSessionUser, getSessionUser, type SessionUser } from '@/lib/auth';
 import { enrichDualRoleClinicSession } from '@/lib/auth/dualRoleClinic';
-import { isPlatformAppAdminSession } from '@/lib/auth/platformClinicAccess';
+import { hasGlobalClinicAdministratorAccess } from '@/lib/auth/platformClinicAccess';
 import { fail } from '@/lib/http';
 import { listAssignedClinicIdsForSession } from '@/lib/services/staffContext';
 
@@ -26,7 +26,7 @@ export async function requireStaffSession(context: APIContext) {
     if (!user.clinicId) return { user: null as null, response: fail('Inspección sin clínica.', 403) };
     return { user, response: null as null };
   }
-  if (await isPlatformAppAdminSession(user)) {
+  if (await hasGlobalClinicAdministratorAccess(user)) {
     return { user, response: null as null };
   }
   if (user.role === 'super_admin' && user.clinicId) {
@@ -49,7 +49,7 @@ export function assertClinicScope(user: SessionUser, clinicId: string) {
 }
 
 export async function assertClinicScopeAsync(user: SessionUser, clinicId: string) {
-  if (await isPlatformAppAdminSession(user)) return null;
+  if (await hasGlobalClinicAdministratorAccess(user)) return null;
   if (user.role === 'super_admin') return null;
   if (user.clinicId === clinicId) return null;
   const assigned = await listAssignedClinicIdsForSession(user);

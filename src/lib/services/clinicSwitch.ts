@@ -4,6 +4,7 @@ import type { ClinicProfileRow } from '@/lib/auth/profilePick';
 import { listEnterPortalChoices } from '@/lib/auth/portalChoices';
 import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
 import {
+  hasGlobalClinicAdministratorAccess,
   isPlatformAppAdminSession,
   switchPlatformAdminToClinic
 } from '@/lib/auth/platformClinicAccess';
@@ -63,14 +64,15 @@ async function authUserIdForSession(user: Omit<SessionUser, 'expiresAt'>): Promi
   return (byEmail?.auth_user_id as string | undefined) ?? null;
 }
 
-/** Centros clínicos independientes donde el usuario tiene perfil staff. */
+/** Centros clínicos: todos los activos para administradores globales; solo perfiles staff para el resto. */
 export async function listAssignedCenters(user: Omit<SessionUser, 'expiresAt'>): Promise<AssignedCenter[]> {
   if (!hasSupabaseConfig()) return [];
-  if (user.role !== 'admin' && user.role !== 'super_admin') return [];
 
-  if (await isPlatformAppAdminSession(user)) {
+  if (await hasGlobalClinicAdministratorAccess(user)) {
     return listAllActiveCentersForPlatformAdmin(user);
   }
+
+  if (user.role !== 'admin' && user.role !== 'super_admin') return [];
 
   let clinicIds = await listAssignedClinicIdsForSession(user);
   if (!clinicIds.length) {
@@ -183,7 +185,7 @@ export async function switchSessionToClinic(
   if (!hasSupabaseConfig()) return null;
   if (user.role !== 'admin' && user.role !== 'super_admin') return null;
 
-  if (await isPlatformAppAdminSession(user)) {
+  if (await hasGlobalClinicAdministratorAccess(user)) {
     const inspect = await switchPlatformAdminToClinic(user, clinicId);
     if (!inspect) return null;
     const assigned = await listAllActiveCentersForPlatformAdmin(user);

@@ -6,8 +6,20 @@ import { createPlatformInspectCookie } from '@/lib/auth/platformInspect';
 import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
 import { logPlatformInspectEvent } from '@/lib/services/platformInspect';
 
-/** Super admin de plataforma (tabla platform_admins). Puede entrar a cualquier clínica activa. */
+function envSuperAdminEmail(): string | null {
+  const configured = import.meta.env.SUPER_ADMIN_EMAIL?.trim().toLowerCase();
+  return configured || null;
+}
+
+/** Cuenta SUPER_ADMIN_EMAIL del entorno (sin fila en platform_admins). */
+export function isEnvSuperAdminEmail(email: string): boolean {
+  const configured = envSuperAdminEmail();
+  return Boolean(configured && email.trim().toLowerCase() === configured);
+}
+
+/** Super admin de plataforma (tabla platform_admins o SUPER_ADMIN_EMAIL). Puede entrar a cualquier clínica activa. */
 export async function isPlatformAppAdminEmail(email: string): Promise<boolean> {
+  if (isEnvSuperAdminEmail(email)) return true;
   if (!hasSupabaseConfig()) return false;
   const db = getSupabaseAdmin();
   const { data } = await db
@@ -31,11 +43,29 @@ export async function isPlatformAppAdminAuthUser(authUserId: string): Promise<bo
   return Boolean(data);
 }
 
-/** Sesión con acceso a todas las clínicas activas (tabla platform_admins, sin depender del rol en cookie). */
-export async function isPlatformAppAdminSession(
-  user: Pick<SessionUser, 'email'>
+/**
+ * Administradores globales: todas las clínicas con status=active, sin perfiles por sede.
+ * Se consulta en cada petición; clínicas nuevas o aprobadas quedan accesibles al instante.
+ */
+export async function hasGlobalClinicAdministratorAccess(
+  user: Pick<SessionUser, 'email' | 'role'>
 ): Promise<boolean> {
+  if (user.role === 'super_admin') return true;
   return isPlatformAppAdminEmail(user.email);
+}
+
+export async function listActiveClinicIdsForGlobalAdministrator(): Promise<string[]> {
+  if (!hasSupabaseConfig()) return [];
+  const db = getSupabaseAdmin();
+  const { data } = await db.from('clinics').select('id').eq('status', 'active');
+  return (data ?? []).map((row) => row.id as string);
+}
+
+/** Alias: sesión con acceso a todas las clínicas activas. */
+export async function isPlatformAppAdminSession(
+  user: Pick<SessionUser, 'email' | 'role'>
+): Promise<boolean> {
+  return hasGlobalClinicAdministratorAccess(user);
 }
 
 const STAFF_ROLES = new Set(['admin', 'owner', 'clinic_admin', 'dentist', 'receptionist']);
