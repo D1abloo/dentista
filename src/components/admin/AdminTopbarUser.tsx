@@ -3,6 +3,7 @@ import { Camera, ChevronDown, KeyRound, LogOut, MapPin, Settings, Trash2, UserCi
 import { useLogout } from '@/components/auth/RoleGate';
 import { useAdminSession } from '@/hooks/useAdminSession';
 import { useNotice } from '@/hooks/useNotice';
+import { settingsPathForPortal, inferSessionPortal, type SessionPortal } from '@/lib/auth/sessionPortal';
 import { clearStaffAvatarUrl, fileToAvatarDataUrl, saveStaffAvatarUrl } from '@/lib/staffAvatar';
 
 type Props = {
@@ -15,8 +16,26 @@ export function AdminTopbarUser({ fallbackName }: Props) {
   const { displayName, email, roleLabel, initials, avatarUrl, tenantId, clinicId, refreshAvatar } =
     useAdminSession(fallbackName);
   const [open, setOpen] = useState(false);
+  const [settingsHref, setSettingsHref] = useState('/admin/configuracion');
   const wrapRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    void fetch('/api/auth/me', { credentials: 'include' })
+      .then((r) => r.json())
+      .then((json: { data?: { role?: string; sessionPortal?: SessionPortal; platformInspect?: boolean; clinicId?: string } }) => {
+        const data = json.data;
+        if (!data) return;
+        const portal = inferSessionPortal({
+          role: data.role ?? 'admin',
+          clinicId: data.clinicId,
+          platformInspect: data.platformInspect,
+          sessionPortal: data.sessionPortal
+        });
+        setSettingsHref(settingsPathForPortal(portal));
+      })
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -115,7 +134,7 @@ export function AdminTopbarUser({ fallbackName }: Props) {
               </a>
             </li>
             <li>
-              <a href="/admin/configuracion" role="menuitem">
+              <a href={settingsHref} role="menuitem">
                 <Settings className="h-4 w-4" aria-hidden />
                 Mi perfil y clínica
               </a>

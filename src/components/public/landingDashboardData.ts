@@ -40,7 +40,7 @@ export const landingDashNav: LandingDashNavItem[] = [
   { label: 'Clínicas', icon: Building2, href: '/admin/clinicas' },
   { label: 'Reportes', icon: LineChart, href: '/admin/reportes' },
   { label: 'Notificaciones', icon: Bell, href: '/admin/notificaciones' },
-  { label: 'Ajustes', icon: Settings, href: '/admin/configuracion' }
+  { label: 'Ajustes', icon: Settings, href: '/login/admin' }
 ];
 
 export const landingDashQuickModules = [

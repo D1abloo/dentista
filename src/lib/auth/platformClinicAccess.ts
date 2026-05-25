@@ -1,4 +1,6 @@
 import type { SessionUser } from '@/lib/auth';
+import { evaluatePasswordStatus } from '@/lib/auth/passwordPolicy';
+import { pickProfileForLogin } from '@/lib/auth/profilePick';
 import { loginPlatformAdmin } from '@/lib/auth/productionLogin';
 import type { AuthenticatedIdentity } from '@/lib/auth/portalChoices';
 import { createPlatformInspectCookie } from '@/lib/auth/platformInspect';
@@ -37,14 +39,44 @@ export async function isPlatformAppAdminSession(
   return isPlatformAppAdminEmail(user.email);
 }
 
-/** Sesión super_admin al entrar por /login/admin (sin perfil staff obligatorio). */
+const STAFF_ROLES = new Set(['admin', 'owner', 'clinic_admin', 'dentist', 'receptionist']);
+
+/** Super admin que elige panel clínica: perfil staff si existe; si no, sesión clínica sin sede (elegir centro). */
 export async function loginPlatformAppAdminForClinicPanel(
   identity: AuthenticatedIdentity
 ): Promise<Omit<SessionUser, 'expiresAt'> | null> {
   if (!hasSupabaseConfig()) return null;
   if (!(await isPlatformAppAdminAuthUser(identity.authUserId))) return null;
   const db = getSupabaseAdmin();
-  return loginPlatformAdmin(db, identity.authUserId, identity.email);
+
+  const staffRow = pickProfileForLogin(identity.profiles, 'admin');
+  if (staffRow && STAFF_ROLES.has(staffRow.role)) {
+    const { data: clinic } = await db
+      .from('clinics')
+      .select('id, status, tenant_id')
+      .eq('id', staffRow.clinic_id)
+      .maybeSingle();
+    if (clinic?.status === 'active') {
+      const tenantId = staffRow.tenant_id ?? (clinic.tenant_id as string | null) ?? null;
+      const pwd = evaluatePasswordStatus(staffRow);
+      return {
+        role: 'admin',
+        email: staffRow.email,
+        name: staffRow.full_name,
+        profileId: staffRow.id,
+        clinicId: staffRow.clinic_id,
+        tenantId: tenantId ?? undefined,
+        staffRole: staffRow.role,
+        mustChangePassword: pwd.requiresPasswordChange,
+        passwordExpired: pwd.passwordExpired,
+        sessionPortal: 'clinic'
+      };
+    }
+  }
+
+  const platformSession = await loginPlatformAdmin(db, identity.authUserId, identity.email);
+  if (!platformSession) return null;
+  return { ...platformSession, sessionPortal: 'clinic' };
 }
 
 /** Activa inspección de clínica y devuelve cookie para el panel /admin. */

@@ -23,7 +23,8 @@ function toPortalSession(profile: ClinicProfileRow): Omit<SessionUser, 'expiresA
     patientId: isPatient ? profile.id : undefined,
     staffRole: profile.role,
     mustChangePassword: pwd.requiresPasswordChange,
-    passwordExpired: pwd.passwordExpired
+    passwordExpired: pwd.passwordExpired,
+    sessionPortal: isPatient ? 'patient' : 'clinic'
   };
 }
 

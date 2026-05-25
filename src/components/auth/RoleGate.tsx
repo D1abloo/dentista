@@ -3,12 +3,15 @@ import { isClientDemoMode } from '@/lib/appMode';
 import { clearDemoRoleHints } from '@/lib/demoStore';
 import { logoutSession } from '@/lib/session';
 import { Restricted } from './Restricted';
+import { homePathForPortal, inferSessionPortal, type SessionPortal } from '@/lib/auth/sessionPortal';
 import type { DemoRole } from '@/types/demo';
 
 type MeUser = {
   role: string;
   platformInspect?: boolean;
   inspectMode?: string;
+  sessionPortal?: SessionPortal;
+  clinicId?: string;
 };
 
 const STAFF_ME_ROLES = new Set(['admin', 'owner', 'clinic_admin', 'dentist', 'receptionist']);
@@ -43,6 +46,18 @@ export function RoleGate({ role, children }: { role: DemoRole; children: ReactNo
         const json = (await res.json()) as { data?: MeUser };
         const data = json.data;
         if (!cancelled) {
+          if (live && role === 'admin' && data) {
+            const portal = inferSessionPortal({
+              role: data.role,
+              clinicId: data.clinicId,
+              platformInspect: data.platformInspect,
+              sessionPortal: data.sessionPortal
+            });
+            if (portal === 'platform' && !data.platformInspect) {
+              window.location.replace(homePathForPortal('platform'));
+              return;
+            }
+          }
           setCurrent(data ? mapMeToPortalRole(data) : null);
           setReady(true);
         }

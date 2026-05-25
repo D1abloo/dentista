@@ -91,7 +91,7 @@ export function LandingDashboardPreview() {
                 decoding="async"
                 onError={onCaptureError}
               />
-              <a href="/admin" className="pro-dash__capture-link">
+              <a href="/login/admin" className="pro-dash__capture-link">
                 Abrir panel de clínica
               </a>
             </figure>

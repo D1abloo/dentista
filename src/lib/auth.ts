@@ -27,6 +27,8 @@ export interface SessionUser {
   platformInspect?: boolean;
   inspectMode?: 'clinic_admin' | 'patient_portal';
   inspectAccessRole?: string;
+  /** Portal elegido al iniciar sesión: plataforma, clínica o paciente. */
+  sessionPortal?: 'platform' | 'clinic' | 'patient';
 }
 
 interface CookieReader {
@@ -143,7 +145,13 @@ export function loginDemoUser(input: LoginInput): Omit<SessionUser, 'expiresAt'>
   const patientPassword = import.meta.env.PATIENT_DEMO_PASSWORD || 'paciente123';
 
   if (input.role === 'admin' && input.email === adminEmail && input.password === adminPassword) {
-    return { role: 'admin', email: adminEmail, name: 'Administrador demo', clinicId: 'demo-clinic' };
+    return {
+      role: 'admin',
+      email: adminEmail,
+      name: 'Administrador demo',
+      clinicId: 'demo-clinic',
+      sessionPortal: 'clinic'
+    };
   }
 
   if (input.role === 'patient' && input.email === patientEmail && input.password === patientPassword) {
@@ -152,7 +160,8 @@ export function loginDemoUser(input: LoginInput): Omit<SessionUser, 'expiresAt'>
       email: patientEmail,
       name: 'Paciente demo',
       clinicId: 'demo-clinic',
-      patientId: 'p-maria'
+      patientId: 'p-maria',
+      sessionPortal: 'patient'
     };
   }
 

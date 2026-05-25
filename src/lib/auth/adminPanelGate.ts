@@ -3,6 +3,7 @@ import { getEffectiveSessionUser, type SessionUser } from '@/lib/auth';
 import { isCookieSecure } from '@/lib/auth/cookieResponse';
 import { isPlatformAppAdminEmail } from '@/lib/auth/platformClinicAccess';
 import { enrichDualRoleClinicSession } from '@/lib/auth/dualRoleClinic';
+import { canAccessClinicPanel, inferSessionPortal } from '@/lib/auth/sessionPortal';
 
 const STAFF_ROLES = new Set(['clinic_admin', 'admin', 'owner', 'dentist', 'receptionist']);
 
@@ -103,16 +104,17 @@ export async function hasClinicPanelSession(cookies: CookieReader): Promise<bool
   try {
     let user = getEffectiveSessionUser(cookies);
     if (!user) return false;
-    if (user.role === 'super_admin' && (await isPlatformAppAdminEmail(user.email))) return true;
-    if (isClinicPanelUser(user)) return true;
+    if (inferSessionPortal(user) === 'platform' && !user.platformInspect) return false;
+    if (canAccessClinicPanel(user)) return true;
     if (user.role === 'super_admin' && !user.platformInspect) {
       user = await enrichDualRoleClinicSession(user);
-      return isClinicPanelUser(user);
+      if (inferSessionPortal(user) === 'platform' && !user.platformInspect) return false;
+      return canAccessClinicPanel(user);
     }
     return false;
   } catch {
     const user = getEffectiveSessionUser(cookies);
-    return user ? isClinicPanelUser(user) : false;
+    return user ? canAccessClinicPanel(user) : false;
   }
 }
 
@@ -133,6 +135,18 @@ export function isDemoGateBypass(): boolean {
 /** Rutas HTML del panel clínica (el login /login/admin es público). */
 export function isAdminPanelProtectedPath(pathname: string): boolean {
   return pathname === '/admin' || pathname.startsWith('/admin/');
+}
+
+export function isAdminCenterPickerPath(pathname: string): boolean {
+  return pathname === '/admin/elegir-centro' || pathname.startsWith('/admin/elegir-centro/');
+}
+
+export function isPlatformProtectedPath(pathname: string): boolean {
+  return pathname === '/platform' || pathname.startsWith('/platform/');
+}
+
+export function isPlatformPublicPath(pathname: string): boolean {
+  return pathname === '/platform/login' || pathname.startsWith('/platform/login/');
 }
 
 /** Solo rutas del panel (no login). Tras autenticación basta la sesión clínica. */

@@ -22,7 +22,8 @@ function toPortalSession(profile: ClinicProfileRow): Omit<SessionUser, 'expiresA
     patientId: isPatient ? profile.id : undefined,
     staffRole: profile.role,
     mustChangePassword: pwd.requiresPasswordChange,
-    passwordExpired: pwd.passwordExpired
+    passwordExpired: pwd.passwordExpired,
+    sessionPortal: isPatient ? 'patient' : 'clinic'
   };
 }
 
@@ -44,7 +45,8 @@ export async function loginPlatformAdmin(
   return {
     role: 'super_admin',
     email: row.email ?? fallbackEmail,
-    name: row.full_name ?? 'Super Admin'
+    name: row.full_name ?? 'Super Admin',
+    sessionPortal: 'platform'
   };
 }
 

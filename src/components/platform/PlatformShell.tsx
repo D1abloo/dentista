@@ -105,6 +105,9 @@ export function PlatformShell({ title, subtitle, headerActions, children, hideHe
             </div>
             <div className="plt-top__right">
               {headerActions}
+              <a href="/platform/configuracion" className="plt-btn plt-btn--ghost plt-btn--sm no-underline hidden sm:inline-flex">
+                Configuración
+              </a>
               <button type="button" className="pub-menu-btn lg:hidden" onClick={() => setOpen(true)} aria-label="Abrir menú">
                 <Menu className="h-5 w-5" />
               </button>

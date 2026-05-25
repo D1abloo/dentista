@@ -1,15 +1,36 @@
 import { useEffect, useState, type ReactNode } from 'react';
-type SessionRole = string | null;
+import { homePathForPortal, inferSessionPortal, type SessionPortal } from '@/lib/auth/sessionPortal';
+
+type MePayload = {
+  role?: string;
+  sessionPortal?: SessionPortal;
+  platformInspect?: boolean;
+  clinicId?: string;
+};
 
 export function PlatformGate({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
-  const [role, setRole] = useState<SessionRole>(null);
+  const [me, setMe] = useState<MePayload | null>(null);
 
   useEffect(() => {
-    if (ready && role !== 'super_admin') {
+    if (!ready || !me) return;
+    if (me.role !== 'super_admin') {
       window.location.replace('/platform/login');
+      return;
     }
-  }, [ready, role]);
+    const portal = inferSessionPortal({
+      role: me.role,
+      clinicId: me.clinicId,
+      platformInspect: me.platformInspect,
+      sessionPortal: me.sessionPortal
+    });
+    if (portal === 'clinic' && !me.platformInspect) {
+      window.location.replace(homePathForPortal('clinic', me.clinicId));
+    }
+    if (portal === 'patient') {
+      window.location.replace('/paciente');
+    }
+  }, [ready, me]);
 
   useEffect(() => {
     let cancelled = false;
@@ -18,19 +39,19 @@ export function PlatformGate({ children }: { children: ReactNode }) {
         const res = await fetch('/api/auth/me', { credentials: 'include' });
         if (!res.ok) {
           if (!cancelled) {
-            setRole(null);
+            setMe(null);
             setReady(true);
           }
           return;
         }
-        const json = (await res.json()) as { data?: { role?: string } };
+        const json = (await res.json()) as { data?: MePayload };
         if (!cancelled) {
-          setRole(json.data?.role ?? null);
+          setMe(json.data ?? null);
           setReady(true);
         }
       } catch {
         if (!cancelled) {
-          setRole(null);
+          setMe(null);
           setReady(true);
         }
       }
@@ -48,10 +69,26 @@ export function PlatformGate({ children }: { children: ReactNode }) {
     );
   }
 
-  if (role !== 'super_admin') {
+  if (me?.role !== 'super_admin') {
     return (
       <main className="grid min-h-screen place-items-center bg-slate-50 p-6 text-center text-sm text-[var(--muted)]">
         Redirigiendo al acceso de plataforma…
+      </main>
+    );
+  }
+
+  const portal = me
+    ? inferSessionPortal({
+        role: me.role,
+        clinicId: me.clinicId,
+        platformInspect: me.platformInspect,
+        sessionPortal: me.sessionPortal
+      })
+    : null;
+  if (portal === 'clinic' && !me?.platformInspect) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-slate-50 p-6 text-center text-sm text-[var(--muted)]">
+        Redirigiendo al panel de clínica…
       </main>
     );
   }

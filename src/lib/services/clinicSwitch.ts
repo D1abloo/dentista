@@ -33,7 +33,8 @@ function toPortalSession(profile: ClinicProfileRow): Omit<SessionUser, 'expiresA
     tenantId: profile.tenant_id ?? undefined,
     staffRole: profile.role,
     mustChangePassword: pwd.requiresPasswordChange,
-    passwordExpired: pwd.passwordExpired
+    passwordExpired: pwd.passwordExpired,
+    sessionPortal: 'clinic'
   };
 }
 
@@ -230,10 +231,11 @@ export async function resolveEnterDestination(user: SessionUser | null): Promise
 
   if (user.role === 'patient') return '/paciente';
   if (user.role === 'super_admin' && !user.platformInspect) {
-    if (await isPlatformAppAdminSession(user)) {
-      const centers = await listAssignedCenters(user);
-      if (centers.length <= 1) return '/admin';
-      return '/admin/elegir-centro';
+    if (user.sessionPortal === 'clinic' || (await isPlatformAppAdminSession(user) && user.clinicId)) {
+      return resolvePostLoginAdminDestination(user);
+    }
+    if (user.sessionPortal === 'platform' || (await isPlatformAppAdminSession(user))) {
+      return '/platform';
     }
     return '/platform';
   }
@@ -251,7 +253,7 @@ export async function resolvePortalSwitchDestination(user: Omit<SessionUser, 'ex
   }
   if (user.role === 'patient') return '/paciente';
   if (user.role === 'super_admin' && !user.platformInspect) {
-    if (await isPlatformAppAdminSession(user)) {
+    if (user.sessionPortal === 'clinic') {
       return resolvePostLoginAdminDestination(user);
     }
     return '/platform';
