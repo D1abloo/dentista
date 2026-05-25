@@ -1,5 +1,4 @@
 import type { SessionUser } from '@/lib/auth';
-import { evaluatePasswordStatus } from '@/lib/auth/passwordPolicy';
 import { pickProfileForLogin } from '@/lib/auth/profilePick';
 import { loginPlatformAdmin } from '@/lib/auth/productionLogin';
 import type { AuthenticatedIdentity } from '@/lib/auth/portalChoices';
@@ -32,22 +31,25 @@ export async function isPlatformAppAdminAuthUser(authUserId: string): Promise<bo
   return Boolean(data);
 }
 
+/** Sesión con acceso a todas las clínicas activas (tabla platform_admins, sin depender del rol en cookie). */
 export async function isPlatformAppAdminSession(
-  user: Pick<SessionUser, 'email' | 'role'>
+  user: Pick<SessionUser, 'email'>
 ): Promise<boolean> {
-  if (user.role !== 'super_admin') return false;
   return isPlatformAppAdminEmail(user.email);
 }
 
 const STAFF_ROLES = new Set(['admin', 'owner', 'clinic_admin', 'dentist', 'receptionist']);
 
-/** Super admin que elige panel clínica: perfil staff si existe; si no, sesión clínica sin sede (elegir centro). */
+/** Super admin que elige panel clínica: sesión de plataforma (todas las sedes), no perfil staff de una sola clínica. */
 export async function loginPlatformAppAdminForClinicPanel(
   identity: AuthenticatedIdentity
 ): Promise<Omit<SessionUser, 'expiresAt'> | null> {
   if (!hasSupabaseConfig()) return null;
   if (!(await isPlatformAppAdminAuthUser(identity.authUserId))) return null;
   const db = getSupabaseAdmin();
+
+  const platformSession = await loginPlatformAdmin(db, identity.authUserId, identity.email);
+  if (!platformSession) return null;
 
   const staffRow = pickProfileForLogin(identity.profiles, 'admin');
   if (staffRow && STAFF_ROLES.has(staffRow.role)) {
@@ -58,24 +60,16 @@ export async function loginPlatformAppAdminForClinicPanel(
       .maybeSingle();
     if (clinic?.status === 'active') {
       const tenantId = staffRow.tenant_id ?? (clinic.tenant_id as string | null) ?? null;
-      const pwd = evaluatePasswordStatus(staffRow);
       return {
-        role: 'admin',
-        email: staffRow.email,
-        name: staffRow.full_name,
-        profileId: staffRow.id,
+        ...platformSession,
+        sessionPortal: 'clinic',
         clinicId: staffRow.clinic_id,
-        tenantId: tenantId ?? undefined,
-        staffRole: staffRow.role,
-        mustChangePassword: pwd.requiresPasswordChange,
-        passwordExpired: pwd.passwordExpired,
-        sessionPortal: 'clinic'
+        profileId: staffRow.id,
+        tenantId: tenantId ?? undefined
       };
     }
   }
 
-  const platformSession = await loginPlatformAdmin(db, identity.authUserId, identity.email);
-  if (!platformSession) return null;
   return { ...platformSession, sessionPortal: 'clinic' };
 }
 

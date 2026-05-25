@@ -1,4 +1,5 @@
 import { getEffectiveSessionUser, getSessionUser, type SessionUser } from '@/lib/auth';
+import { isPlatformAppAdminEmail } from '@/lib/auth/platformClinicAccess';
 import { canAccessClinicPanel, inferSessionPortal } from '@/lib/auth/sessionPortal';
 import { enrichDualRoleClinicSession } from '@/lib/auth/dualRoleClinic';
 
@@ -10,6 +11,7 @@ export function canAccessClinicPanelFromRaw(
   >
 ): boolean {
   if (user.role === 'super_admin' && user.sessionPortal === 'clinic') return true;
+  if (user.role === 'super_admin' && !user.sessionPortal) return true;
   return canAccessClinicPanel(user);
 }
 
@@ -26,6 +28,8 @@ export async function hasClinicPanelAccess(cookies: {
 
   if (raw.role === 'patient') return false;
   if (raw.role === 'super_admin' && raw.sessionPortal === 'platform') return false;
+
+  if (await isPlatformAppAdminEmail(raw.email)) return true;
 
   if (canAccessClinicPanelFromRaw(raw)) return true;
 

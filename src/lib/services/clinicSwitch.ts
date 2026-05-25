@@ -196,8 +196,6 @@ export async function switchSessionToClinic(
     };
   }
 
-  if (user.platformInspect) return null;
-
   const assigned = await listAssignedClinicIdsForSession(user);
   if (!assigned.includes(clinicId)) return null;
 

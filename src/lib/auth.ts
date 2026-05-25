@@ -106,10 +106,14 @@ export function getSessionUser(cookies: CookieReader) {
 export function getEffectiveSessionUser(cookies: CookieReader): SessionUser | null {
   const user = getSessionUser(cookies);
   if (!user) return null;
-  if (user.role !== 'super_admin') return user;
 
   const inspect = getPlatformInspectSession(cookies);
   if (!inspect) return user;
+
+  const ownsInspect =
+    user.role === 'super_admin' ||
+    user.email.trim().toLowerCase() === inspect.superAdminEmail.trim().toLowerCase();
+  if (!ownsInspect) return user;
 
   if (inspect.mode === 'clinic_admin') {
     return {

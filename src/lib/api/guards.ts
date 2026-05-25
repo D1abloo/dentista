@@ -26,10 +26,10 @@ export async function requireStaffSession(context: APIContext) {
     if (!user.clinicId) return { user: null as null, response: fail('Inspección sin clínica.', 403) };
     return { user, response: null as null };
   }
-  if (user.role === 'super_admin' && user.clinicId) {
+  if (await isPlatformAppAdminSession(user)) {
     return { user, response: null as null };
   }
-  if (user.role === 'super_admin' && (await isPlatformAppAdminSession(user))) {
+  if (user.role === 'super_admin' && user.clinicId) {
     return { user, response: null as null };
   }
   if (!STAFF_ROLES.has(role) && user.role !== 'admin') {
@@ -49,6 +49,7 @@ export function assertClinicScope(user: SessionUser, clinicId: string) {
 }
 
 export async function assertClinicScopeAsync(user: SessionUser, clinicId: string) {
+  if (await isPlatformAppAdminSession(user)) return null;
   if (user.role === 'super_admin') return null;
   if (user.clinicId === clinicId) return null;
   const assigned = await listAssignedClinicIdsForSession(user);

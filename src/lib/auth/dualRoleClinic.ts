@@ -70,7 +70,7 @@ export async function enrichDualRoleClinicSession(user: SessionUser): Promise<Se
   if (!hasSupabaseConfig()) return user;
   if (user.platformInspect || user.clinicId) return user;
   if (user.role !== 'super_admin' && user.role !== 'admin') return user;
-  if (user.role === 'super_admin' && (await isPlatformAppAdminEmail(user.email))) return user;
+  if (await isPlatformAppAdminEmail(user.email)) return user;
 
   try {
     const authUserId = await authUserIdForSession(user);
