@@ -1,32 +1,21 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Check, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { scrollToSection } from '@/lib/publicScroll';
-import { useReveal } from '@/hooks/useReveal';
-import {
-  landingFeatures,
-  landingPlans,
-  landingSecurityCards,
-  landingTrustLogos
-} from '@/lib/landing/content';
+import { landingTrustLogos } from '@/lib/landing/content';
 import { PublicFooter } from './PublicFooter';
 import { PublicHeader } from './PublicHeader';
 import { CookieBanner } from './CookieBanner';
 import { LandingAccessPlatformSection } from './LandingAccessPlatformSection';
 import { LandingHeroSection } from './LandingHeroSection';
 import { LandingMobileShowcase } from './LandingMobileShowcase';
+import { LandingPricingExperienceSection } from './landingProduct/LandingPricingExperienceSection';
+import { LandingProductExperienceSection } from './landingProduct/LandingProductExperienceSection';
 import { ProAccessForm, type ProPlan } from './ProAccessForm';
-
-function revealClass(visible: boolean) {
-  return `ps-reveal${visible ? ' ps-reveal--in' : ''}`;
-}
 
 export function LandingPage() {
   const [loggedOut, setLoggedOut] = useState(false);
   const [plan, setPlan] = useState<ProPlan>('pro_clinica');
   const [demoOpen, setDemoOpen] = useState(false);
-
-  const featR = useReveal();
-  const priceR = useReveal();
 
   const openDemo = useCallback((nextPlan: ProPlan = 'pro_clinica') => {
     setPlan(nextPlan);
@@ -60,100 +49,8 @@ export function LandingPage() {
         <LandingMobileShowcase />
         <LandingAccessPlatformSection onRequestDemo={() => openDemo('pro_clinica')} />
 
-        <section id="funcionalidades" className="ps-section">
-          <div className="ps-shell">
-            <div className="ps-section__panel">
-              <header className="ps-section__head">
-            <span className="ps-kicker">Funcionalidades</span>
-            <h2>Todo lo que necesita una clínica dental</h2>
-          </header>
-          <div className={`ps-features ${revealClass(featR.visible)}`} ref={featR.ref}>
-            {landingFeatures.map((f) => {
-              const Icon = f.icon;
-              return (
-                <article key={f.title} className="ps-feature">
-                  <span className="ps-feature__icon" aria-hidden>
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <h3>{f.title}</h3>
-                  <p>{f.text}</p>
-                </article>
-              );
-            })}
-            </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="precios" className="ps-section ps-section--alt">
-          <div className="ps-shell">
-            <div className="ps-section__panel">
-              <header className="ps-section__head">
-              <span className="ps-kicker">Planes</span>
-              <h2>Tarifas claras para tu clínica</h2>
-              <p>Empieza gratis o activa el plan profesional con prueba de 14 días.</p>
-            </header>
-            <div className={`ps-pricing-wrap ${revealClass(priceR.visible)}`} ref={priceR.ref}>
-              <div className="ps-pricing">
-                {landingPlans.map((p) => (
-                  <article key={p.id} className={`ps-price${p.featured ? ' ps-price--featured' : ''}`}>
-                    {p.badge ? <span className="ps-price__badge">{p.badge}</span> : null}
-                    <h3>{p.name}</h3>
-                    <p className="ps-price__amount">
-                      {p.price}
-                      {p.period ? <small>{p.period}</small> : null}
-                    </p>
-                    {p.blurb ? <p className="ps-price__blurb">{p.blurb}</p> : null}
-                    <ul>
-                      {p.features.map((f) => (
-                        <li key={f}>
-                          <Check className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
-                    {p.demoPlan ? (
-                      <button
-                        type="button"
-                        className={`ps-btn ${p.featured ? 'ps-btn--primary' : 'ps-btn--outline'} ps-btn--block`}
-                        onClick={() => openDemo(p.demoPlan!)}
-                      >
-                        {p.cta}
-                      </button>
-                    ) : (
-                      <a
-                        href={p.href}
-                        className={`ps-btn ${p.featured ? 'ps-btn--primary' : 'ps-btn--outline'} ps-btn--block`}
-                      >
-                        {p.cta}
-                      </a>
-                    )}
-                  </article>
-                ))}
-              </div>
-              <aside className="ps-security" aria-labelledby="ps-security-title">
-                <h2 id="ps-security-title">Seguridad y privacidad clínica</h2>
-                <ul>
-                  {landingSecurityCards.map((c) => {
-                    const Icon = c.icon;
-                    return (
-                      <li key={c.title}>
-                        <span className="ps-security__icon" aria-hidden>
-                          <Icon className="h-4 w-4" />
-                        </span>
-                        <div>
-                          <strong>{c.title}</strong>
-                          <p>{c.text}</p>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </aside>
-            </div>
-            </div>
-          </div>
-        </section>
+        <LandingProductExperienceSection />
+        <LandingPricingExperienceSection onRequestDemo={openDemo} />
 
         <section className="ps-trust ps-shell" aria-label="Clínicas que confían">
           <p className="ps-trust__label">Clínicas que confían en Dentista+</p>
