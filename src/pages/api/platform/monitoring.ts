@@ -7,7 +7,8 @@ import {
   escalateMonitoringDemo,
   filterMonitoringEvents,
   getMonitoringDemo,
-  markMonitoringReviewedDemo
+  markMonitoringReviewedDemo,
+  mergePageEventsWithAlerts
 } from '@/lib/platform/monitoringDemo';
 import type { MonitoringChip, MonitoringKpiId } from '@/lib/platform/monitoringTypes';
 import { listAuditEvents } from '@/lib/audit/listEvents';
@@ -55,7 +56,7 @@ export const GET: APIRoute = async (context) => {
     const page = Math.max(1, filters.page);
     const pageSize = Math.min(50, Math.max(5, filters.page_size));
     const start = (page - 1) * pageSize;
-    const pageEvents = filtered.slice(start, start + pageSize);
+    const pageEvents = mergePageEventsWithAlerts(filtered.slice(start, start + pageSize), payload.alerts);
 
     return ok({
       ...payload,

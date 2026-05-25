@@ -1,4 +1,4 @@
-import { Copy, Eye, Shield, X } from 'lucide-react';
+import { Copy, Eye, Link2, Shield, X } from 'lucide-react';
 import type { MonitoringEventRow } from '@/lib/platform/monitoringTypes';
 
 type Props = {
@@ -8,10 +8,20 @@ type Props = {
   onReview: () => void;
   onEscalate: () => void;
   onViewResource: () => void;
+  onViewRelated: () => void;
   toast: (msg: string, ok?: boolean) => void;
 };
 
-export function MonitoringDetail({ event, onClose, busy, onReview, onEscalate, onViewResource, toast }: Props) {
+export function MonitoringDetail({
+  event,
+  onClose,
+  busy,
+  onReview,
+  onEscalate,
+  onViewResource,
+  onViewRelated,
+  toast
+}: Props) {
   const metaJson = JSON.stringify(event.metadata, null, 2);
 
   function copy(text: string, label: string) {
@@ -60,8 +70,12 @@ export function MonitoringDetail({ event, onClose, busy, onReview, onEscalate, o
               <span className="mon-detail__value">{event.clinic_name}</span>
             </div>
             <div className="mon-detail__field">
+              <span className="mon-detail__label">Evento</span>
+              <span className="mon-detail__value mon-detail__value--strong">{event.event_label}</span>
+            </div>
+            <div className="mon-detail__field">
               <span className="mon-detail__label">Tipo de evento</span>
-              <span className="mon-detail__value">{event.event_label}</span>
+              <span className="mon-detail__value mon-detail__value--mono">{event.event_type}</span>
             </div>
             <div className="mon-detail__field">
               <span className="mon-detail__label">Ruta</span>
@@ -106,16 +120,20 @@ export function MonitoringDetail({ event, onClose, busy, onReview, onEscalate, o
           </section>
 
           <div className="mon-detail__actions">
-            <button type="button" className="plt-btn plt-btn--secondary plt-btn--sm" onClick={onViewResource}>
-              <Eye className="h-4 w-4" aria-hidden />
-              Ver recurso
-            </button>
             <button type="button" className="plt-btn plt-btn--secondary plt-btn--sm" disabled={busy || event.reviewed} onClick={onReview}>
               Marcar revisado
             </button>
             <button type="button" className="plt-btn plt-btn--danger plt-btn--sm" disabled={busy} onClick={onEscalate}>
               <Shield className="h-4 w-4" aria-hidden />
               Escalar incidencia
+            </button>
+            <button type="button" className="plt-btn plt-btn--secondary plt-btn--sm" onClick={onViewRelated}>
+              <Link2 className="h-4 w-4" aria-hidden />
+              Ver eventos relacionados
+            </button>
+            <button type="button" className="plt-btn plt-btn--ghost plt-btn--sm" onClick={onViewResource}>
+              <Eye className="h-4 w-4" aria-hidden />
+              Ver recurso
             </button>
           </div>
         </div>

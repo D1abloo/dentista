@@ -1,4 +1,5 @@
 import type {
+  CriticalAlert,
   MonitoringEventRow,
   MonitoringFilters,
   MonitoringPayload,
@@ -71,7 +72,7 @@ const EVENTS: MonitoringEventRow[] = [
     event_code: 'EVT-2026-000045',
     created_at: '2026-05-24T10:45:12+02:00',
     date_time_label: '24/05/2026 10:45',
-    event_label: 'Intento de acceso denegado',
+    event_label: 'Acceso denegado a recurso protegido',
     module: 'security',
     module_label: 'Seguridad',
     user_email: 'paciente@email.com',
@@ -125,6 +126,89 @@ const EVENTS: MonitoringEventRow[] = [
     escalated: false
   },
   {
+    id: 'evt-alert-1',
+    event_code: 'EVT-2026-000050',
+    created_at: '2026-05-24T11:42:00+02:00',
+    date_time_label: '24/05/2026 11:42',
+    event_label: '5 intentos fallidos en 10 min',
+    module: 'auth',
+    module_label: 'Auth',
+    user_email: 'intruso@ejemplo.net',
+    user_role: 'Desconocido',
+    clinic_name: 'Clínica Dental Nova',
+    resource_label: 'Login',
+    severity: 'critical',
+    severity_label: 'Crítico',
+    result: 'failed',
+    result_label: 'Requiere revisión',
+    route: '/api/auth/login',
+    ip_address: '203.0.113.44',
+    user_agent: 'Mozilla/5.0 Chrome/124',
+    browser_label: 'Chrome 124.0.0.0',
+    os_label: 'Windows 11',
+    event_type: 'auth.login_failed',
+    metadata: {
+      intentos: 5,
+      ventana_minutos: 10,
+      origen: 'web',
+      bloqueo_temporal: true
+    },
+    reviewed: false,
+    escalated: false
+  },
+  {
+    id: 'evt-alert-3',
+    event_code: 'EVT-2026-000051',
+    created_at: '2026-05-24T11:22:00+02:00',
+    date_time_label: '24/05/2026 11:22',
+    event_label: 'Pico de errores en autenticación',
+    module: 'auth',
+    module_label: 'Auth',
+    user_email: 'sistema@agendaclinic.app',
+    user_role: 'Sistema',
+    clinic_name: '—',
+    resource_label: 'Auth API',
+    severity: 'high',
+    severity_label: 'Alto',
+    result: 'failed',
+    result_label: 'Fallido',
+    route: '/api/auth/login',
+    ip_address: '10.0.0.12',
+    user_agent: 'AgendaClinic/1.0',
+    browser_label: '—',
+    os_label: '—',
+    event_type: 'auth.login_failed',
+    metadata: { errores_10m: 12, umbral: 8 },
+    reviewed: false,
+    escalated: false
+  },
+  {
+    id: 'evt-alert-4',
+    event_code: 'EVT-2026-000052',
+    created_at: '2026-05-24T10:58:00+02:00',
+    date_time_label: '24/05/2026 10:58',
+    event_label: 'Cambio sensible en permisos',
+    module: 'security',
+    module_label: 'Seguridad',
+    user_email: 'super@agendaclinic.app',
+    user_role: 'Super Admin',
+    clinic_name: 'Plataforma',
+    resource_label: 'Roles staff',
+    severity: 'high',
+    severity_label: 'Alto',
+    result: 'blocked',
+    result_label: 'Requiere revisión',
+    route: '/platform/usuarios',
+    ip_address: '185.199.108.10',
+    user_agent: 'Mozilla/5.0 Chrome/124',
+    browser_label: 'Chrome 124.0.0.0',
+    os_label: 'macOS 14',
+    event_type: 'security.permission_change',
+    metadata: { rol_anterior: 'recepcion', rol_nuevo: 'admin_clinica', clinica_id: 'nova' },
+    reviewed: false,
+    escalated: false
+  },
+  {
     id: 'evt-005',
     event_code: 'EVT-2026-000047',
     created_at: '2026-05-24T11:15:00+02:00',
@@ -163,6 +247,22 @@ for (let i = 6; i <= 248; i++) {
   });
 }
 
+export function getMonitoringEventById(id: string): MonitoringEventRow | undefined {
+  return EVENTS.find((x) => x.id === id);
+}
+
+export function mergePageEventsWithAlerts(
+  pageEvents: MonitoringEventRow[],
+  alerts: CriticalAlert[]
+): MonitoringEventRow[] {
+  const merged = [...pageEvents];
+  for (const alert of alerts) {
+    const ev = getMonitoringEventById(alert.event_id);
+    if (ev && !merged.some((e) => e.id === ev.id)) merged.push(ev);
+  }
+  return merged;
+}
+
 export function getMonitoringDemo(): MonitoringPayload {
   return {
     kpis: [
@@ -174,8 +274,10 @@ export function getMonitoringDemo(): MonitoringPayload {
       { id: 'downloads', label: 'Descargas', value: 18, trend_label: '12% vs ayer', trend_direction: 'up', trend_positive: true }
     ],
     alerts: [
-      { id: 'alert-1', title: '5 intentos fallidos en 10 min', time_label: 'Hace 3 min', tone: 'red', event_id: 'evt-003' },
-      { id: 'alert-2', title: 'Acceso denegado a recurso protegido', time_label: 'Hace 11 min', tone: 'orange', event_id: 'evt-003' }
+      { id: 'alert-1', title: '5 intentos fallidos en 10 min', time_label: 'Hace 3 min', tone: 'red', event_id: 'evt-alert-1' },
+      { id: 'alert-2', title: 'Acceso denegado a recurso protegido', time_label: 'Hace 11 min', tone: 'orange', event_id: 'evt-003' },
+      { id: 'alert-3', title: 'Pico de errores en autenticación', time_label: 'Hace 23 min', tone: 'orange', event_id: 'evt-alert-3' },
+      { id: 'alert-4', title: 'Cambio sensible en permisos', time_label: 'Hace 47 min', tone: 'orange', event_id: 'evt-alert-4' }
     ],
     hourly: [
       { hour: '00:00', events: 8 },

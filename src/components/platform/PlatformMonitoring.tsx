@@ -1,20 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import {
-  Activity,
-  AlertTriangle,
-  ChevronRight,
-  Download,
-  Lock,
-  LogIn,
-  Search,
-  ShieldAlert,
-  XCircle
-} from 'lucide-react';
+import { Activity, Download, Lock, LogIn, Search, ShieldAlert, XCircle } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useCountUp } from '@/hooks/useCountUp';
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
 import { PlatformMonitoringToolbar } from './PlatformMonitoringToolbar';
 import { PlatformShell } from './PlatformShell';
+import { MonitoringCriticalAlerts } from './monitoring/MonitoringCriticalAlerts';
 import { MonitoringDetail } from './monitoring/MonitoringDetail';
 import type {
   CriticalAlert,
@@ -293,8 +284,23 @@ export function PlatformMonitoring() {
 
   const openAlert = (alert: CriticalAlert) => {
     const ev = data?.events.find((e) => e.id === alert.event_id);
-    if (ev) setSelected(ev);
-    else showToast('Abriendo evento de seguridad…', true);
+    if (ev) {
+      setSelected(ev);
+      return;
+    }
+    showToast('No se encontró el evento vinculado a esta alerta.', false);
+  };
+
+  const viewRelatedEvents = (event: MonitoringEventRow) => {
+    setSelected(null);
+    if (event.severity === 'critical') setChip('critical');
+    else if (event.module === 'auth') setChip('errors');
+    else if (event.module === 'security') setChip('security');
+    else setChip('all');
+    setPage(1);
+    requestAnimationFrame(() => {
+      document.getElementById('mon-events-table')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   };
 
   const total = data?.filtered_total ?? 0;
@@ -322,40 +328,20 @@ export function PlatformMonitoring() {
         <PlatformMonitoringToolbar alerts={data?.alerts ?? []} onOpenAlert={openAlert} />
 
 
-        <div className="mon-head-row">
-          <div className="mon-head">
-            <div className="mon-head__brand">
-              <DentistaWebpLockup placement="header" context="platform" showWordmark={false} />
-              <div>
-                <h1 className="mon-head__title">Monitorización y seguridad</h1>
-                <p className="mon-head__sub">
-                  Supervisa accesos, actividad, errores y eventos de seguridad de la plataforma AgendaClinic.
-                </p>
-              </div>
+        <header className="mon-head">
+          <div className="mon-head__brand">
+            <DentistaWebpLockup placement="header" context="platform" showWordmark={false} />
+            <div>
+              <h1 className="mon-head__title">Monitorización y seguridad</h1>
+              <p className="mon-head__sub">
+                Supervisa accesos, actividad, errores y eventos de seguridad de la plataforma AgendaClinic.
+              </p>
             </div>
-            <span className="mon-head__badge">Aplicación principal: gestión clínica multi-tenant</span>
           </div>
-          <aside className="mon-alerts">
-            <div className="mon-alerts__head">
-              <h2>Alertas críticas</h2>
-              <span className="mon-alerts__badge">{data?.alerts.length ?? 0}</span>
-            </div>
-            <ul>
-              {data?.alerts.map((a) => (
-                <li key={a.id}>
-                  <button type="button" onClick={() => openAlert(a)}>
-                    <AlertTriangle className={`mon-alerts__icon mon-alerts__icon--${a.tone}`} aria-hidden />
-                    <span>
-                      <strong>{a.title}</strong>
-                      <small>{a.time_label}</small>
-                    </span>
-                    <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </aside>
-        </div>
+          <span className="mon-head__badge">Aplicación principal: gestión clínica multi-tenant</span>
+        </header>
+
+        {data ? <MonitoringCriticalAlerts alerts={data.alerts} onOpenAlert={openAlert} /> : null}
 
         <div className="mon-kpis">
           {data?.kpis.map((k) => (
@@ -451,7 +437,7 @@ export function PlatformMonitoring() {
         </section>
 
         <div className="mon-main">
-          <section className="mon-table-wrap">
+          <section id="mon-events-table" className="mon-table-wrap">
             <div className="mon-table-head">
               <h2>
                 Actividad reciente <span className="mon-table-head__badge">{data?.total_events ?? 0} eventos</span>
@@ -568,6 +554,7 @@ export function PlatformMonitoring() {
                 if (selected.route.startsWith('/admin')) window.location.href = selected.route;
                 else showToast('Recurso disponible en panel clínica con permisos.', true);
               }}
+              onViewRelated={() => viewRelatedEvents(selected)}
               toast={showToast}
             />
           ) : null}
