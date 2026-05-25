@@ -71,7 +71,7 @@ export const helpFaqs: HelpFaq[] = [
     audience: 'patient',
     question: '¿Por qué no puedo iniciar sesión tras registrarme?',
     answer:
-      'Debes activar la cuenta desde el correo que recibes al registrarte. El enlace caduca a las 48 horas. Revisa también la carpeta de spam.'
+      'Debes activar la cuenta desde el correo que recibes al registrarte. El enlace caduca a las 48 horas. Revisa también la carpeta de spam antes de volver a intentar el acceso.'
   },
   {
     id: 'booking-account',
@@ -96,7 +96,7 @@ export const helpFaqs: HelpFaq[] = [
     audience: 'patient',
     question: '¿Cómo cancelo o cambio una cita?',
     answer:
-      'Entra en Mis citas del portal. La cancelación online puede tener plazo mínimo (p. ej. 24 h) según la normativa de tu clínica.'
+      'Entra en el Portal del Paciente, abre Mis citas y selecciona la cita que quieres cancelar o modificar. Si la clínica no permite cambios online, contacta con soporte.'
   },
   {
     id: 'pdp-access',
@@ -110,7 +110,7 @@ export const helpFaqs: HelpFaq[] = [
     audience: 'admin',
     question: '¿Por qué el paciente no ve un informe?',
     answer:
-      'Comprueba que el documento esté publicado al portal (interruptor de visibilidad en Informes o Documentos).'
+      'Comprueba que el informe está vinculado al paciente correcto, que pertenece a la clínica correcta y que está marcado como visible en el Portal del Paciente.'
   },
   {
     id: 'create-appointment',
@@ -134,7 +134,8 @@ export const helpFaqs: HelpFaq[] = [
     id: 'multi-site',
     audience: 'admin',
     question: '¿Cómo cambio de sede?',
-    answer: 'Si gestionas varias clínicas, usa el selector de sede en la barra del panel.'
+    answer:
+      'Usa el selector de clínica o sede en la barra superior del panel. Solo verás las sedes a las que tu usuario tenga acceso.'
   },
   {
     id: 'support',
@@ -143,22 +144,39 @@ export const helpFaqs: HelpFaq[] = [
     answer: 'Usa /contacto?tipo=soporte o el email de soporte publicado en esa página.'
   },
   {
+    id: 'support-patient',
+    audience: 'patient',
+    question: '¿Dónde contacto con soporte?',
+    answer:
+      'Puedes contactar con soporte desde el Centro de ayuda, desde la sección Ayuda del portal o usando el botón Contactar soporte.'
+  },
+  {
+    id: 'support-clinic',
+    audience: 'admin',
+    question: '¿Dónde contacto con soporte?',
+    answer:
+      'Desde el panel clínico puedes abrir Soporte o Contactar soporte. Incluye la clínica, paciente o recurso afectado para acelerar la revisión.'
+  },
+  {
     id: 'docs-patient',
     audience: 'patient',
     question: '¿Dónde descargo mis informes o facturas?',
-    answer: 'En el portal paciente, secciones Informes, Documentos y Facturas. Solo verás lo publicado por tu clínica.'
+    answer:
+      'Entra en el Portal del Paciente y abre Mis informes, Mis documentos o Mis facturas. Solo verás los archivos que la clínica haya marcado como visibles para ti.'
   },
   {
     id: 'consent-faq',
     audience: 'patient',
     question: '¿Cómo firmo un consentimiento?',
-    answer: 'Abre Consentimientos en el menú del portal y pulsa Leer y firmar en cada documento pendiente.'
+    answer:
+      'Accede a Consentimientos en tu portal, abre el documento pendiente, confirma que lo has leído y firma digitalmente antes de guardar.'
   },
   {
     id: 'invoice-admin',
     audience: 'admin',
     question: '¿Cómo emito una factura al paciente?',
-    answer: 'En Facturación crea FAC-XXXX vinculada al paciente y tratamiento. El PDF puede incluir el logo de tu clínica.'
+    answer:
+      'Abre Facturación, crea una nueva factura, selecciona paciente y concepto, genera el PDF y marca si será visible en el Portal del Paciente.'
   },
   {
     id: 'platform-access',

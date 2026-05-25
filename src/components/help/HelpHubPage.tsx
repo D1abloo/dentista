@@ -8,7 +8,6 @@ import {
   ChevronRight,
   ExternalLink,
   Headphones,
-  HelpCircle,
   Search,
   Shield,
   Sparkles,
@@ -17,6 +16,7 @@ import {
 } from 'lucide-react';
 import { HelpGuideExperience } from '@/components/help/HelpGuideExperience';
 import { HelpFaqPanel } from '@/components/help/HelpFaqPanel';
+import { HelpFaqPremiumSection } from '@/components/help/HelpFaqPremiumSection';
 import { useHelpState } from '@/components/help/useHelpState';
 import {
   audienceBadgeLabel,
@@ -32,6 +32,7 @@ import {
   searchHelpFaqs,
   type HubGuideCard
 } from '@/lib/guide/hubCatalog';
+import { helpFaqHubPatient, searchHubFaqs } from '@/lib/guide/helpFaqPremium';
 import { helpAudiences, sectionThumb, type HelpAudience } from '@/lib/guide/catalog';
 import type { GuideSection } from '@/lib/guide/types';
 
@@ -40,8 +41,6 @@ const AUDIENCE_ICONS = {
   admin: Building2,
   platform: Shield
 } as const;
-
-type FaqTab = HelpAudience;
 
 function GuideCard({
   card,
@@ -143,11 +142,27 @@ function HelpHubAside({
 export function HelpHubPage() {
   const help = useHelpState('patient');
   const [q, setQ] = useState('');
-  const [faqTab, setFaqTab] = useState<FaqTab>('patient');
   const [sidebarActive, setSidebarActive] = useState<string | null>(null);
 
   const guideHits = useMemo(() => searchAllGuides(q), [q]);
-  const faqHits = useMemo(() => searchHelpFaqs(q), [q]);
+  const faqHits = useMemo(() => {
+    const hub = searchHubFaqs(q).map((f) => ({
+      id: f.id,
+      question: f.question,
+      audience: helpFaqHubPatient.some((p) => p.id === f.id) ? ('patient' as const) : ('admin' as const)
+    }));
+    const catalog = searchHelpFaqs(q).map((f) => ({
+      id: f.id,
+      question: f.question,
+      audience: f.audience === 'all' ? ('patient' as const) : f.audience
+    }));
+    const seen = new Set<string>();
+    return [...hub, ...catalog].filter((f) => {
+      if (seen.has(f.id)) return false;
+      seen.add(f.id);
+      return true;
+    });
+  }, [q]);
 
   const activeCards = useMemo(() => {
     const cards = hubCardsForAudience(help.audience);
@@ -218,7 +233,7 @@ export function HelpHubPage() {
 
   if (help.mode === 'faq') {
     return (
-      <div className="ps-shell ps-shell--wide help-hub-v2" id="help-hub">
+      <div className="ps-shell ps-shell--wide help-hub-v2 help-hub-v2--faq-page" id="help-hub">
         <button type="button" className="help-hub-v2__back" onClick={help.openIndex}>
           <ArrowLeft className="h-4 w-4" aria-hidden />
           Volver al centro de ayuda
@@ -227,21 +242,11 @@ export function HelpHubPage() {
           <h1>Preguntas frecuentes</h1>
           <p>Respuestas para pacientes, clínicas y administradores de la plataforma.</p>
         </header>
-        <div className="help-hub-v2__faq-tabs help-hub-v2__faq-tabs--page" role="tablist">
-          {(['patient', 'admin', 'platform'] as FaqTab[]).map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              role="tab"
-              aria-selected={faqTab === tab}
-              className={faqTab === tab ? 'help-hub-v2__faq-tab--on' : ''}
-              onClick={() => setFaqTab(tab)}
-            >
-              {tab === 'patient' ? 'Pacientes' : tab === 'admin' ? 'Clínicas' : 'Administradores'}
-            </button>
-          ))}
+        <HelpFaqPremiumSection showViewAll={false} seoLead={false} />
+        <div className="help-faq-premium help-faq-premium--platform">
+          <h2 className="help-faq-premium__platform-title">Administradores</h2>
+          <HelpFaqPanel audience="platform" premium />
         </div>
-        <HelpFaqPanel audience={faqTab} />
         <p className="help-hub-v2__faq-page-cta">
           <a href="/contacto?tipo=soporte" className="help-hub-v2__btn help-hub-v2__btn--primary no-underline">
             Contactar soporte
@@ -302,7 +307,6 @@ export function HelpHubPage() {
                           <button
                             type="button"
                             onClick={() => {
-                              setFaqTab(faq.audience === 'all' ? 'patient' : (faq.audience as FaqTab));
                               document.getElementById('help-faq')?.scrollIntoView({ behavior: 'smooth' });
                             }}
                           >
@@ -413,57 +417,37 @@ export function HelpHubPage() {
             </p>
           </section>
 
-          <section className="help-hub-v2__faq-section" id="help-faq" aria-labelledby="help-faq-title">
-            <div className="help-hub-v2__faq-head">
-              <h2 id="help-faq-title">Preguntas frecuentes</h2>
-              <button type="button" className="help-hub-v2__link-btn" onClick={help.openFaq}>
-                Ver todas
-                <ArrowRight className="h-4 w-4" aria-hidden />
-              </button>
-            </div>
-            <div className="help-hub-v2__faq-tabs" role="tablist" aria-label="Categorías de preguntas frecuentes">
-              {(['patient', 'admin', 'platform'] as FaqTab[]).map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  role="tab"
-                  aria-selected={faqTab === tab}
-                  className={faqTab === tab ? 'help-hub-v2__faq-tab--on' : ''}
-                  onClick={() => setFaqTab(tab)}
-                >
-                  {tab === 'patient' ? 'Pacientes' : tab === 'admin' ? 'Clínicas' : 'Administradores'}
-                </button>
-              ))}
-            </div>
-            <HelpFaqPanel audience={faqTab} compact />
-          </section>
-
-          <section className="help-hub-v2__trust" aria-label="Ventajas del centro de ayuda">
-            <div>
-              <BookOpen className="h-5 w-5" aria-hidden />
-              <strong>Guías paso a paso</strong>
-              <span>Instrucciones claras con imágenes.</span>
-            </div>
-            <div>
-              <Sparkles className="h-5 w-5" aria-hidden />
-              <strong>Siempre actualizado</strong>
-              <span>Contenido revisado con frecuencia.</span>
-            </div>
-            <div>
-              <Shield className="h-5 w-5" aria-hidden />
-              <strong>Acceso seguro</strong>
-              <span>Información confidencial protegida.</span>
-            </div>
-            <div>
-              <Users className="h-5 w-5" aria-hidden />
-              <strong>Soporte real</strong>
-              <span>Equipo disponible para ayudarte.</span>
-            </div>
-          </section>
         </div>
 
         <HelpHubAside onOpenGuide={openGuide} />
       </div>
+
+      <div className="ps-shell ps-shell--wide help-hub-v2__faq-band">
+        <HelpFaqPremiumSection onViewAll={help.openFaq} />
+      </div>
+
+      <section className="help-hub-v2__trust ps-shell ps-shell--wide" aria-label="Ventajas del centro de ayuda">
+        <div>
+          <BookOpen className="h-5 w-5" aria-hidden />
+          <strong>Guías paso a paso</strong>
+          <span>Instrucciones claras con imágenes.</span>
+        </div>
+        <div>
+          <Sparkles className="h-5 w-5" aria-hidden />
+          <strong>Siempre actualizado</strong>
+          <span>Contenido revisado con frecuencia.</span>
+        </div>
+        <div>
+          <Shield className="h-5 w-5" aria-hidden />
+          <strong>Acceso seguro</strong>
+          <span>Información confidencial protegida.</span>
+        </div>
+        <div>
+          <Users className="h-5 w-5" aria-hidden />
+          <strong>Soporte real</strong>
+          <span>Equipo disponible para ayudarte.</span>
+        </div>
+      </section>
 
       <section className="help-hub-v2__cta" aria-labelledby="help-cta-title">
         <div className="ps-shell ps-shell--wide help-hub-v2__cta-inner">
