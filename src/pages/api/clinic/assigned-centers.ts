@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { requireStaffSession } from '@/lib/api/guards';
 import { fail, ok } from '@/lib/http';
 import { logError } from '@/lib/logger';
+import { isPlatformAppAdminSession } from '@/lib/auth/platformClinicAccess';
 import { listAssignedCenters } from '@/lib/services/clinicSwitch';
 import { hasSupabaseConfig } from '@/lib/supabaseServer';
 
@@ -14,7 +15,8 @@ export const GET: APIRoute = async (context) => {
 
   try {
     const centers = await listAssignedCenters(gate.user);
-    return ok({ centers });
+    const allClinicsAccess = await isPlatformAppAdminSession(gate.user);
+    return ok({ centers, allClinicsAccess });
   } catch (error) {
     logError('clinic.assigned-centers', error);
     return fail('No se pudieron cargar tus centros.', 500);

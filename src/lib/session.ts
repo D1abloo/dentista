@@ -46,7 +46,7 @@ function mapApiRole(role: string): DemoRole | null {
 }
 
 function sessionRoleMatchesForced(userRole: string, forced: 'admin' | 'patient'): boolean {
-  if (forced === 'admin') return userRole === 'admin';
+  if (forced === 'admin') return userRole === 'admin' || userRole === 'super_admin';
   return userRole === 'patient';
 }
 
@@ -68,7 +68,7 @@ export async function resolvePortalRole(): Promise<DemoRole | null> {
   }
 }
 
-function redirectAfterLogin(user: SessionUser): string {
+function redirectAfterLogin(user: SessionUser, forcedRole?: 'admin' | 'patient'): string {
   if (typeof window !== 'undefined') {
     const next = new URLSearchParams(window.location.search).get('next');
     if (next && isSafeInternalPath(next)) {
@@ -82,7 +82,9 @@ function redirectAfterLogin(user: SessionUser): string {
       if (user.role === 'patient') return next;
     }
   }
-  if (user.role === 'super_admin') return '/platform';
+  if (user.role === 'super_admin') {
+    return forcedRole === 'admin' ? '/admin/elegir-centro?auto=1' : '/platform';
+  }
   if (user.role === 'patient') return '/paciente';
   if (user.role === 'admin') return '/admin/elegir-centro?auto=1';
   return '/admin';
@@ -93,9 +95,6 @@ async function finishSessionLogin(
   forcedRole?: 'admin' | 'patient',
   opts?: { deferRedirect?: boolean }
 ): Promise<LoginUnifiedResult> {
-  if (forcedRole === 'admin' && user.role === 'super_admin') {
-    return { ok: false, message: 'Tu cuenta no tiene acceso al panel clínica.' };
-  }
 
   if (forcedRole && !sessionRoleMatchesForced(user.role, forcedRole)) {
     if (forcedRole === 'admin') {
@@ -123,7 +122,7 @@ async function finishSessionLogin(
     return { ok: true, portalRole, mustChangePassword: true };
   }
 
-  const dest = redirectAfterLogin(user);
+  const dest = redirectAfterLogin(user, forcedRole);
   if (opts?.deferRedirect) {
     if (dest.startsWith('/admin')) {
       await ensureAdminAccessBeforeRedirect(dest);

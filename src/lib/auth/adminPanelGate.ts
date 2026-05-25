@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { getEffectiveSessionUser, type SessionUser } from '@/lib/auth';
 import { isCookieSecure } from '@/lib/auth/cookieResponse';
+import { isPlatformAppAdminEmail } from '@/lib/auth/platformClinicAccess';
 import { enrichDualRoleClinicSession } from '@/lib/auth/dualRoleClinic';
 
 const STAFF_ROLES = new Set(['clinic_admin', 'admin', 'owner', 'dentist', 'receptionist']);
@@ -102,6 +103,7 @@ export async function hasClinicPanelSession(cookies: CookieReader): Promise<bool
   try {
     let user = getEffectiveSessionUser(cookies);
     if (!user) return false;
+    if (user.role === 'super_admin' && (await isPlatformAppAdminEmail(user.email))) return true;
     if (isClinicPanelUser(user)) return true;
     if (user.role === 'super_admin' && !user.platformInspect) {
       user = await enrichDualRoleClinicSession(user);

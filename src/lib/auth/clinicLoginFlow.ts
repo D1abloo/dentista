@@ -1,5 +1,9 @@
 import { loginDemoUser } from '@/lib/auth';
 import { authenticateCredentials } from '@/lib/auth/portalChoices';
+import {
+  isPlatformAppAdminAuthUser,
+  loginPlatformAppAdminForClinicPanel
+} from '@/lib/auth/platformClinicAccess';
 import { pickProfileForLogin } from '@/lib/auth/profilePick';
 import { resolveProductionLogin } from '@/lib/auth/loginResolve';
 import { isPortalChoiceLogin, type LoginProductionResult } from '@/lib/auth/loginResolve';
@@ -15,6 +19,14 @@ export async function loginClinicAdminOnly(input: LoginInput): Promise<LoginProd
   if (demo) return demo;
 
   if (!hasSupabaseConfig()) return null;
+
+  const identity = await authenticateCredentials(input.email, input.password);
+  if (!identity) return null;
+
+  if (await isPlatformAppAdminAuthUser(identity.authUserId)) {
+    const platformUser = await loginPlatformAppAdminForClinicPanel(identity);
+    if (platformUser) return platformUser;
+  }
 
   return resolveProductionLogin({ ...input, role: 'admin' });
 }
@@ -43,7 +55,7 @@ export async function detectClinicLoginDenial(
     Boolean(staffProfile && STAFF_ROLES.has(staffProfile.role)) ||
     identity.profiles.some((p) => STAFF_ROLES.has(p.role));
 
-  if (platformRow && !hasStaff) return 'platform_only';
+  if (platformRow && !hasStaff) return 'invalid_credentials';
 
   const patientOnly =
     identity.profiles.length > 0 &&

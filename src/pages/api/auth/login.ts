@@ -13,6 +13,7 @@ import {
 } from '@/lib/auth/platformLoginFlow';
 import { AccountNotActivatedError } from '@/lib/auth/accountErrors';
 import { isCookieSecure, okWithCookies } from '@/lib/auth/cookieResponse';
+import { isPlatformAppAdminEmail } from '@/lib/auth/platformClinicAccess';
 import { fail } from '@/lib/http';
 import { logError } from '@/lib/logger';
 import { auditAuthFailure, auditAuthSuccess } from '@/lib/audit/authAudit';
@@ -144,7 +145,10 @@ export const POST: APIRoute = async (context) => {
           if (!completed || isPortalChoiceLogin(completed)) {
             return fail('Tu cuenta no tiene acceso al panel clínica.', 403);
           }
-          if (completed.role === 'patient' || completed.role === 'super_admin') {
+          if (completed.role === 'patient') {
+            return fail('Tu cuenta no tiene acceso al panel clínica.', 403);
+          }
+          if (completed.role === 'super_admin' && !(await isPlatformAppAdminEmail(completed.email))) {
             return fail('Tu cuenta no tiene acceso al panel clínica.', 403);
           }
           await auditAuthSuccess({
@@ -171,14 +175,17 @@ export const POST: APIRoute = async (context) => {
         );
       }
 
-      if (user.role === 'patient' || user.role === 'super_admin') {
+      if (user.role === 'patient') {
+        return fail('Tu cuenta no tiene acceso al panel clínica.', 403);
+      }
+      if (user.role === 'super_admin' && !(await isPlatformAppAdminEmail(user.email))) {
         return fail('Tu cuenta no tiene acceso al panel clínica.', 403);
       }
 
       await auditAuthSuccess({
         request,
         email: user.email,
-        role: user.staffRole ?? user.role,
+        role: user.role === 'super_admin' ? 'super_admin' : (user.staffRole ?? user.role),
         clinicId: user.clinicId,
         tenantId: user.tenantId,
         userId: user.profileId,

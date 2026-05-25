@@ -2,11 +2,19 @@ import type { AssignedCenter } from '@/lib/services/clinicSwitch';
 import { STORAGE_ACTIVE_CLINIC_ID, STORAGE_TENANT_ID } from '@/lib/storage/keys';
 import { setActiveClinicId } from '@/lib/activeClinic';
 
-export async function fetchAssignedCenters(): Promise<AssignedCenter[]> {
-  const res = await fetch('/api/clinic/assigned-centers', { credentials: 'include' });
-  if (!res.ok) return [];
-  const json = (await res.json()) as { data?: { centers?: AssignedCenter[] } };
-  return json.data?.centers ?? [];
+export type AssignedCentersPayload = {
+  centers: AssignedCenter[];
+  allClinicsAccess: boolean;
+};
+
+export async function fetchAssignedCenters(): Promise<AssignedCentersPayload> {
+  const res = await fetch('/api/clinic/assigned-centers', { credentials: 'include', cache: 'no-store' });
+  if (!res.ok) return { centers: [], allClinicsAccess: false };
+  const json = (await res.json()) as { data?: { centers?: AssignedCenter[]; allClinicsAccess?: boolean } };
+  return {
+    centers: json.data?.centers ?? [],
+    allClinicsAccess: Boolean(json.data?.allClinicsAccess)
+  };
 }
 
 export async function switchClinicCenter(clinicId: string): Promise<{ ok: true } | { ok: false; message: string }> {

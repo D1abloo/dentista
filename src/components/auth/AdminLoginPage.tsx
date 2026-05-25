@@ -65,14 +65,14 @@ export function AdminLoginPage() {
         const j = (await r.json()) as { data?: { role?: string; clinicId?: string; staffRole?: string } };
         const data = j.data;
         if (!data?.role) return;
-        if (data.role === 'super_admin' && !data.clinicId) {
-          setPlatformSession(true);
-          return;
-        }
         const staffRole = data.staffRole ?? data.role;
+        const isPlatformAdmin = data.role === 'super_admin' && !data.clinicId;
+        if (isPlatformAdmin) {
+          setPlatformSession(true);
+        }
         const isClinicStaff =
           data.role === 'admin' ||
-          (data.role === 'super_admin' && Boolean(data.clinicId)) ||
+          (data.role === 'super_admin' && (Boolean(data.clinicId) || isPlatformAdmin)) ||
           ['owner', 'clinic_admin', 'dentist', 'receptionist'].includes(staffRole);
         if (!isClinicStaff) return;
 

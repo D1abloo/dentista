@@ -5,6 +5,7 @@ import { requireStaffSession } from '@/lib/api/guards';
 import { isCookieSecure, okWithCookies } from '@/lib/auth/cookieResponse';
 import { fail } from '@/lib/http';
 import { logError } from '@/lib/logger';
+import { platformInspectCookieName } from '@/lib/auth/platformInspect';
 import { switchSessionToClinic } from '@/lib/services/clinicSwitch';
 import { switchClinicSchema } from '@/lib/validators';
 
@@ -21,10 +22,36 @@ export const POST: APIRoute = async (context) => {
     const parsed = switchClinicSchema.safeParse(body);
     if (!parsed.success) return fail('Centro clínico no válido.', 422, parsed.error.flatten());
 
-    const nextUser = await switchSessionToClinic(gate.user, parsed.data.clinicId);
-    if (!nextUser) return fail('No tienes acceso a ese centro clínico.', 403);
+    const switched = await switchSessionToClinic(gate.user, parsed.data.clinicId);
+    if (!switched) return fail('No tienes acceso a ese centro clínico.', 403);
 
     const maxAge = 60 * 60 * SESSION_HOURS;
+
+    if ('mode' in switched && switched.mode === 'inspect') {
+      context.cookies.set(platformInspectCookieName, switched.inspectCookie, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: isCookieSecure(),
+        path: '/',
+        maxAge: 60 * 60 * 4
+      });
+      applyAdminPanelGateCookie(context.cookies, maxAge);
+      return okWithCookies(
+        context.cookies,
+        {
+          clinicId: switched.clinicId,
+          clinicName: switched.clinicName,
+          platformInspect: true
+        },
+        { message: `Acceso a ${switched.clinicName}.` }
+      );
+    }
+
+    if ('mode' in switched) {
+      return fail('No se pudo cambiar de centro.', 500);
+    }
+
+    const nextUser = switched;
     context.cookies.set(sessionCookieName, createSessionToken(nextUser, maxAge), {
       httpOnly: true,
       sameSite: 'lax',

@@ -3,6 +3,9 @@ import { Building2, ChevronRight, Loader2, MapPin } from 'lucide-react';
 import type { AssignedCenter } from '@/lib/services/clinicSwitch';
 import { fetchAssignedCenters, switchClinicCenter } from '@/lib/clinicCenters';
 
+const PLATFORM_ADMIN_LEAD =
+  'Como administrador de la plataforma puedes acceder a cualquier clínica activa. Elige el centro al que quieres entrar.';
+
 type Props = {
   /** Tras login: si hay un solo centro, entrar automáticamente. */
   autoSingle?: boolean;
@@ -15,13 +18,15 @@ export function ClinicCenterPicker({ autoSingle = false, title, lead }: Props) {
   const [loading, setLoading] = useState(true);
   const [switching, setSwitching] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [platformAdmin, setPlatformAdmin] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     void fetchAssignedCenters()
-      .then(async (list) => {
+      .then(async ({ centers: list, allClinicsAccess }) => {
         if (cancelled) return;
         setCenters(list);
+        setPlatformAdmin(allClinicsAccess);
         if (autoSingle && list.length === 1) {
           setSwitching(list[0]!.clinicId);
           const result = await switchClinicCenter(list[0]!.clinicId);
@@ -75,10 +80,7 @@ export function ClinicCenterPicker({ autoSingle = false, title, lead }: Props) {
           Acceso clínica
         </span>
         <h1>{title ?? 'Elige tu centro clínico'}</h1>
-        <p>
-          {lead ??
-            'Cada clínica tiene su espacio aislado. Selecciona el centro al que quieres acceder; tus datos y configuración son independientes por sede.'}
-        </p>
+        <p>{lead ?? (platformAdmin ? PLATFORM_ADMIN_LEAD : 'Cada clínica tiene su espacio aislado. Selecciona el centro al que quieres acceder; tus datos y configuración son independientes por sede.')}</p>
       </header>
 
       {loading ? (
@@ -123,6 +125,9 @@ export function ClinicCenterPicker({ autoSingle = false, title, lead }: Props) {
                     <small>Centro independiente · tenant aislado</small>
                   )}
                   {center.isCurrent ? <span className="clinic-center-picker__badge">Activo ahora</span> : null}
+                  {center.staffRole === 'super_admin' ? (
+                    <span className="clinic-center-picker__badge clinic-center-picker__badge--platform">Admin plataforma</span>
+                  ) : null}
                 </span>
                 {busy ? (
                   <Loader2 className="h-4 w-4 animate-spin shrink-0" aria-hidden />

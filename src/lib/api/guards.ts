@@ -1,6 +1,7 @@
 import type { APIContext } from 'astro';
 import { getEffectiveSessionUser, getSessionUser, type SessionUser } from '@/lib/auth';
 import { enrichDualRoleClinicSession } from '@/lib/auth/dualRoleClinic';
+import { isPlatformAppAdminSession } from '@/lib/auth/platformClinicAccess';
 import { fail } from '@/lib/http';
 import { listAssignedClinicIdsForSession } from '@/lib/services/staffContext';
 
@@ -26,6 +27,9 @@ export async function requireStaffSession(context: APIContext) {
     return { user, response: null as null };
   }
   if (user.role === 'super_admin' && user.clinicId) {
+    return { user, response: null as null };
+  }
+  if (user.role === 'super_admin' && (await isPlatformAppAdminSession(user))) {
     return { user, response: null as null };
   }
   if (!STAFF_ROLES.has(role) && user.role !== 'admin') {

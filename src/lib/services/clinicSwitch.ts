@@ -3,6 +3,10 @@ import { evaluatePasswordStatus } from '@/lib/auth/passwordPolicy';
 import type { ClinicProfileRow } from '@/lib/auth/profilePick';
 import { listEnterPortalChoices } from '@/lib/auth/portalChoices';
 import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
+import {
+  isPlatformAppAdminSession,
+  switchPlatformAdminToClinic
+} from '@/lib/auth/platformClinicAccess';
 import { listAssignedClinicIdsForSession } from '@/lib/services/staffContext';
 
 const STAFF_ROLES = new Set(['admin', 'owner', 'clinic_admin', 'dentist', 'receptionist']);
@@ -44,6 +48,10 @@ async function authUserIdForSession(user: Omit<SessionUser, 'expiresAt'>): Promi
 export async function listAssignedCenters(user: Omit<SessionUser, 'expiresAt'>): Promise<AssignedCenter[]> {
   if (!hasSupabaseConfig()) return [];
   if (user.role !== 'admin' && user.role !== 'super_admin') return [];
+
+  if (await isPlatformAppAdminSession(user)) {
+    return listAllActiveCentersForPlatformAdmin(user);
+  }
 
   let clinicIds = await listAssignedClinicIdsForSession(user);
   if (!clinicIds.length) {
@@ -96,13 +104,79 @@ export async function listAssignedCenters(user: Omit<SessionUser, 'expiresAt'>):
     .sort((a, b) => a.name.localeCompare(b.name, 'es'));
 }
 
+async function listAllActiveCentersForPlatformAdmin(
+  user: Omit<SessionUser, 'expiresAt'>
+): Promise<AssignedCenter[]> {
+  const db = getSupabaseAdmin();
+  const authUserId = await authUserIdForSession(user);
+
+  const { data: clinics } = await db
+    .from('clinics')
+    .select('id, tenant_id, name, city, address, status')
+    .eq('status', 'active')
+    .order('name');
+
+  const clinicIds = (clinics ?? []).map((c) => c.id as string);
+  const profileByClinic = new Map<string, ClinicProfileRow>();
+
+  if (authUserId && clinicIds.length) {
+    const { data: profiles } = await db
+      .from('profiles')
+      .select('id, clinic_id, tenant_id, role, full_name, email')
+      .eq('auth_user_id', authUserId)
+      .in('clinic_id', clinicIds);
+
+    for (const row of profiles ?? []) {
+      const role = String(row.role);
+      if (!STAFF_ROLES.has(role) || !row.clinic_id) continue;
+      profileByClinic.set(row.clinic_id as string, row as ClinicProfileRow);
+    }
+  }
+
+  return (clinics ?? []).map((c) => {
+    const profile = profileByClinic.get(c.id as string);
+    const tenantId = (c.tenant_id as string | null) ?? profile?.tenant_id ?? '';
+    return {
+      clinicId: c.id as string,
+      tenantId,
+      name: c.name as string,
+      city: (c.city as string | null) ?? null,
+      address: (c.address as string | null) ?? null,
+      profileId: profile?.id ?? '',
+      staffRole: profile?.role ?? 'super_admin',
+      isCurrent: Boolean(user.clinicId === c.id || (user.platformInspect && user.clinicId === c.id))
+    } satisfies AssignedCenter;
+  });
+}
+
+export type PlatformClinicSwitchResult = {
+  mode: 'inspect';
+  inspectCookie: string;
+  clinicId: string;
+  clinicName: string;
+};
+
 /** Cambia la sesión al centro clínico indicado (perfil staff aislado por clínica). */
 export async function switchSessionToClinic(
   user: SessionUser,
   clinicId: string
-): Promise<Omit<SessionUser, 'expiresAt'> | null> {
+): Promise<Omit<SessionUser, 'expiresAt'> | PlatformClinicSwitchResult | null> {
   if (!hasSupabaseConfig()) return null;
   if (user.role !== 'admin' && user.role !== 'super_admin') return null;
+
+  if (await isPlatformAppAdminSession(user)) {
+    const inspect = await switchPlatformAdminToClinic(user, clinicId);
+    if (!inspect) return null;
+    const assigned = await listAllActiveCentersForPlatformAdmin(user);
+    if (!assigned.some((c) => c.clinicId === clinicId)) return null;
+    return {
+      mode: 'inspect',
+      inspectCookie: inspect.inspectCookie,
+      clinicId,
+      clinicName: inspect.clinicName
+    };
+  }
+
   if (user.platformInspect) return null;
 
   const assigned = await listAssignedClinicIdsForSession(user);
@@ -155,7 +229,14 @@ export async function resolveEnterDestination(user: SessionUser | null): Promise
   }
 
   if (user.role === 'patient') return '/paciente';
-  if (user.role === 'super_admin' && !user.platformInspect) return '/platform';
+  if (user.role === 'super_admin' && !user.platformInspect) {
+    if (await isPlatformAppAdminSession(user)) {
+      const centers = await listAssignedCenters(user);
+      if (centers.length <= 1) return '/admin';
+      return '/admin/elegir-centro';
+    }
+    return '/platform';
+  }
   if (user.role === 'admin' || (user.role === 'super_admin' && user.platformInspect)) {
     const centers = await listAssignedCenters(user);
     if (centers.length <= 1) return '/admin';
@@ -169,7 +250,12 @@ export async function resolvePortalSwitchDestination(user: Omit<SessionUser, 'ex
     return user.passwordExpired ? '/login/cambiar-password?expired=1' : '/login/cambiar-password';
   }
   if (user.role === 'patient') return '/paciente';
-  if (user.role === 'super_admin' && !user.platformInspect) return '/platform';
+  if (user.role === 'super_admin' && !user.platformInspect) {
+    if (await isPlatformAppAdminSession(user)) {
+      return resolvePostLoginAdminDestination(user);
+    }
+    return '/platform';
+  }
   if (user.role === 'admin' || (user.role === 'super_admin' && user.platformInspect)) {
     return resolvePostLoginAdminDestination(user);
   }
@@ -181,6 +267,7 @@ export async function resolvePostLoginAdminDestination(user: Omit<SessionUser, '
     return user.passwordExpired ? '/login/cambiar-password?expired=1' : '/login/cambiar-password';
   }
   const centers = await listAssignedCenters(user);
-  if (centers.length <= 1) return '/admin';
+  if (centers.length === 0) return '/login/admin';
+  if (centers.length <= 1 && !(await isPlatformAppAdminSession(user))) return '/admin';
   return '/admin/elegir-centro?auto=1';
 }

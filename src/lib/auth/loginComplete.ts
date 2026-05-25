@@ -1,6 +1,7 @@
 import type { SessionUser } from '@/lib/auth';
 import { AccountNotActivatedError } from '@/lib/auth/accountErrors';
 import { evaluatePasswordStatus } from '@/lib/auth/passwordPolicy';
+import { loginPlatformAppAdminForClinicPanel } from '@/lib/auth/platformClinicAccess';
 import { loginPlatformAdmin } from '@/lib/auth/productionLogin';
 import { pickProfileForLogin, type ClinicProfileRow } from '@/lib/auth/profilePick';
 import type { AuthenticatedIdentity, PortalChoiceId } from '@/lib/auth/portalChoices';
@@ -37,6 +38,10 @@ export async function completePortalLogin(
   }
 
   const intent = portal === 'patient' ? 'patient' : 'admin';
+  if (portal === 'admin') {
+    const platformUser = await loginPlatformAppAdminForClinicPanel(identity);
+    if (platformUser) return platformUser;
+  }
   const row = pickProfileForLogin(identity.profiles, intent);
   if (!row) return null;
   if (row.role !== 'patient' && !STAFF_ROLES.has(row.role)) return null;

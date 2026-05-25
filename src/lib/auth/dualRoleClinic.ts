@@ -1,4 +1,5 @@
 import type { SessionUser } from '@/lib/auth';
+import { isPlatformAppAdminEmail } from '@/lib/auth/platformClinicAccess';
 import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
 
 const STAFF_ROLES = new Set(['admin', 'owner', 'clinic_admin', 'dentist', 'receptionist']);
@@ -69,6 +70,7 @@ export async function enrichDualRoleClinicSession(user: SessionUser): Promise<Se
   if (!hasSupabaseConfig()) return user;
   if (user.platformInspect || user.clinicId) return user;
   if (user.role !== 'super_admin' && user.role !== 'admin') return user;
+  if (user.role === 'super_admin' && (await isPlatformAppAdminEmail(user.email))) return user;
 
   try {
     const authUserId = await authUserIdForSession(user);

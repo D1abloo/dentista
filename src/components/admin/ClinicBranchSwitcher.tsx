@@ -10,7 +10,7 @@ export function ClinicBranchSwitcher() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    void fetchAssignedCenters().then((list) => {
+    void fetchAssignedCenters().then(({ centers: list }) => {
       setCenters(list);
       const current = list.find((c) => c.isCurrent)?.clinicId ?? list[0]?.clinicId ?? '';
       setActiveId(current);

@@ -74,6 +74,15 @@ export async function listPortalChoices(identity: AuthenticatedIdentity): Promis
   const staff = identity.profiles.filter((p) => STAFF_ROLES.has(p.role));
   const patients = identity.profiles.filter((p) => p.role === 'patient' && isPatientActivated(p));
 
+  if (platformRow) {
+    options.push({
+      id: 'admin',
+      label: 'Panel administrativo',
+      description: 'Acceso a todas las clínicas activas de la plataforma',
+      href: '/admin/elegir-centro'
+    });
+  }
+
   for (const profile of staff) {
     if (!(await clinicIsActive(profile.clinic_id))) continue;
     if (options.some((o) => o.id === 'admin')) continue;
