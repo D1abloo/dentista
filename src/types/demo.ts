@@ -164,6 +164,8 @@ export interface ClinicalReport {
 
 export interface InvoiceLine {
   description: string;
+  /** Descripción ampliada en PDF (columna Descripción). */
+  detail?: string;
   quantity: number;
   unitPrice: number;
   taxPercent: number;
@@ -174,6 +176,8 @@ export interface Invoice {
   tenantId: string;
   patientId: string;
   appointmentId?: string;
+  /** Profesional responsable (colegiado/firma en PDF). */
+  professionalId?: string;
   amount: number;
   concept: string;
   status: InvoiceStatus;
@@ -186,6 +190,7 @@ export interface Invoice {
   discount?: number;
   portalVisible?: boolean;
   sentAt?: string;
+  notes?: string;
 }
 
 export interface Payment {
@@ -349,6 +354,11 @@ export interface AppSettings {
   /** Sello o imagen de sello para justificantes (URL o data URL). */
   clinicStampUrl?: string;
   website?: string;
+  commercialName?: string;
+  addressLine2?: string;
+  postalCode?: string;
+  province?: string;
+  country?: string;
   instagram?: string;
   facebook?: string;
   openTime?: string;

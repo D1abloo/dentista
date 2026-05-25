@@ -18,7 +18,9 @@ import { useNotice } from '@/hooks/useNotice';
 import { usePatient } from '@/hooks/usePatient';
 import { logPortalAudit, usePortalAccess } from '@/hooks/usePortalAccess';
 import { createPayment } from '@/lib/demoStore';
-import { openDemoFilePreview, resolveDemoFileUrl } from '@/lib/demoFiles';
+import { isInvoiceDocumentMime, openDemoFilePreview, resolveDemoFileUrl } from '@/lib/demoFiles';
+import { previewInvoiceFromState } from '@/lib/pdfInvoice';
+import { getStoredTenantId, settingsFor } from '@/lib/demoStore';
 import { money } from '@/lib/format';
 import { resolveFocusId, usePatientUrlParams } from '@/hooks/usePatientUrlParams';
 import {
@@ -165,16 +167,20 @@ export function PatientInvoices() {
   function viewInvoice(v: PatientInvoiceView, e?: React.MouseEvent) {
     e?.stopPropagation();
     openDetail(v);
-    if (v.invoice.fileRef) openDemoFilePreview(v.invoice.fileRef);
-    else setNotice({ type: 'error', message: 'No se pudo abrir la factura.' });
+    const settings = settingsFor(state, getStoredTenantId());
+    if (v.invoice.fileRef && isInvoiceDocumentMime(v.invoice.mimeType, v.invoice.fileName)) {
+      openDemoFilePreview(v.invoice.fileRef);
+      return;
+    }
+    previewInvoiceFromState(state, v.invoice, patient, settings);
   }
 
   async function downloadInvoice(v: PatientInvoiceView, e?: React.MouseEvent) {
     e?.stopPropagation();
     setDownloadingId(v.invoice.id);
     try {
-      const ok = await downloadPatientInvoicePdf(state, v.invoice);
-      if (!ok) throw new Error('fail');
+      const result = await downloadPatientInvoicePdf(state, v.invoice, patient.id);
+      if (!result) throw new Error('fail');
       if (portalAccess.active) {
         void logPortalAudit({
           eventType: 'view_invoice',
@@ -183,7 +189,13 @@ export function PatientInvoices() {
           resourceId: v.invoice.id
         });
       }
-      setNotice({ type: 'ok', message: 'Factura descargada correctamente.' });
+      setNotice({
+        type: 'ok',
+        message:
+          result === 'print'
+            ? 'Se abrió la vista de impresión. Elige «Guardar como PDF» para descargar la factura.'
+            : 'Factura descargada correctamente.'
+      });
     } catch {
       setNotice({ type: 'error', message: 'No se pudo descargar la factura.' });
     } finally {

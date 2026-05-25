@@ -220,7 +220,10 @@ export function documentLink(state: DemoState, documentId: string) {
 export async function downloadMessagePdf(state: DemoState, v: PatientMessageView): Promise<boolean> {
   if (v.message.invoiceId) {
     const inv = state.invoices.find((i) => i.id === v.message.invoiceId);
-    if (inv) return downloadPatientInvoicePdf(state, inv);
+    if (inv) {
+      const result = await downloadPatientInvoicePdf(state, inv, v.message.patientId);
+      return Boolean(result);
+    }
   }
   if (v.message.documentId) {
     const doc = state.patientDocuments.find((d) => d.id === v.message.documentId);

@@ -101,6 +101,14 @@ export function isPdfMime(mime?: string, name?: string) {
   return Boolean(name?.toLowerCase().endsWith('.pdf'));
 }
 
+/** Factura AgendaClinic (HTML imprimible o PDF subido). */
+export function isInvoiceDocumentMime(mime?: string, name?: string) {
+  if (isPdfMime(mime, name)) return true;
+  if (mime?.includes('text/html')) return true;
+  const n = name?.toLowerCase() ?? '';
+  return n.endsWith('.html') && n.includes('factura');
+}
+
 export function isImageMime(mime?: string, name?: string) {
   if (mime?.startsWith('image/')) return true;
   const n = name?.toLowerCase() ?? '';

@@ -1,7 +1,7 @@
 import type { DemoState, Invoice, InvoiceStatus, Payment } from '@/types/demo';
 import { fmtDate, money } from '@/lib/format';
-import { downloadDemoFileRef, isPdfMime } from '@/lib/demoFiles';
-import { generateInvoicePdfFile } from '@/lib/pdfInvoice';
+import { downloadDemoFileRef, isInvoiceDocumentMime } from '@/lib/demoFiles';
+import { downloadInvoiceFromState } from '@/lib/pdfInvoice';
 import { getPatientById, visibleInvoicesForPatient } from '@/lib/selectors';
 import { getStoredTenantId, settingsFor } from '@/lib/demoStore';
 import { displayInvoiceId, effectiveStatus, statusLabel } from '@/lib/invoiceAdmin';
@@ -50,7 +50,9 @@ export function enrichPatientInvoices(
     const { clinicId, clinicName } = clinicForInvoice(state, invoice);
     const eff = effectiveStatus(invoice);
     const payment = paymentForInvoice(state, invoice);
-    const hasPdf = Boolean(invoice.fileRef && isPdfMime(invoice.mimeType, invoice.fileName ?? invoice.fileRef));
+    const hasPdf = Boolean(
+      invoice.fileRef && isInvoiceDocumentMime(invoice.mimeType, invoice.fileName ?? invoice.fileRef)
+    );
     return {
       invoice,
       displayId: displayInvoiceId(invoice),
@@ -127,13 +129,23 @@ export function filterAndSortInvoices(
   return list;
 }
 
-export async function downloadPatientInvoicePdf(state: DemoState, invoice: Invoice): Promise<boolean> {
-  if (invoice.fileRef && downloadDemoFileRef(invoice.fileRef, invoice.fileName ?? `${invoice.id}.pdf`)) return true;
+export async function downloadPatientInvoicePdf(
+  state: DemoState,
+  invoice: Invoice,
+  expectedPatientId: string
+): Promise<'download' | 'print' | false> {
+  if (invoice.patientId !== expectedPatientId) return false;
   const patient = getPatientById(state, invoice.patientId);
   if (!patient) return false;
   const settings = settingsFor(state, getStoredTenantId());
-  const gen = await generateInvoicePdfFile(invoice, patient, settings);
-  return downloadDemoFileRef(gen.fileRef, gen.fileName);
+
+  if (invoice.fileRef && isInvoiceDocumentMime(invoice.mimeType, invoice.fileName ?? invoice.fileRef)) {
+    const ok = downloadDemoFileRef(invoice.fileRef, invoice.fileName ?? `${invoice.id}.html`);
+    return ok ? 'download' : false;
+  }
+
+  const ok = await downloadInvoiceFromState(state, invoice, patient, settings);
+  return ok ? 'print' : false;
 }
 
 export function paymentsLinkForInvoice(invoiceId: string) {

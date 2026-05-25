@@ -30,7 +30,7 @@ import {
   saveInvoice,
   settingsFor
 } from '@/lib/demoStore';
-import { downloadDemoFileRef, isPdfMime, resolveDemoFileUrl, saveDemoFile } from '@/lib/demoFiles';
+import { downloadDemoFileRef, isInvoiceDocumentMime, isPdfMime, resolveDemoFileUrl, saveDemoFile } from '@/lib/demoFiles';
 import {
   calcInvoiceTotals,
   calcLineTotal,
@@ -47,7 +47,13 @@ import {
   type InvoiceFilter,
   type InvoiceSort
 } from '@/lib/invoiceAdmin';
-import { generateInvoicePdfFile, generateInvoicesSummaryPdf } from '@/lib/pdfInvoice';
+import {
+  downloadInvoiceFromState,
+  generateInvoicePdfFile,
+  generateInvoicesSummaryPdf,
+  invoiceFiscalWarnings,
+  previewInvoiceFromState
+} from '@/lib/pdfInvoice';
 import { patientDisplayCode } from '@/lib/nhc';
 import { findPatientsByQuery } from '@/lib/patientSearch';
 import { getPatientById, patientName } from '@/lib/selectors';
@@ -282,6 +288,27 @@ export function AdminInvoices() {
   }, [selectedId, invoices, pageItems, filtered]);
 
   const totals = useMemo(() => calcInvoiceTotals(form.lines, form.discount), [form.lines, form.discount]);
+
+  const formFiscalWarnings = useMemo(() => {
+    if (!form.patientId) return [];
+    const patient = getPatientById(state, form.patientId);
+    if (!patient) return [];
+    const draft: Invoice = {
+      id: 'preview',
+      tenantId,
+      patientId: form.patientId,
+      appointmentId: form.appointmentId || undefined,
+      amount: totals.total,
+      concept: form.concept,
+      status: form.status,
+      issuedAt: form.issuedAt,
+      dueDate: form.dueDate || undefined,
+      lines: form.lines,
+      discount: form.discount
+    };
+    return invoiceFiscalWarnings(clinicSettings, state, draft, patient);
+  }, [form, state, clinicSettings, tenantId, totals.total]);
+
   useEffect(() => setPage(1), [debouncedSearch, filter, sort]);
 
   useEffect(() => {
@@ -368,7 +395,7 @@ export function AdminInvoices() {
 
       let fileRef: string | undefined;
       let fileName: string | undefined;
-      const mimeType = 'application/pdf';
+      let mimeType = 'text/html;charset=utf-8';
 
       if (pdfFile && pdfMode === 'upload') {
         fileRef = await saveDemoFile(pdfFile);
@@ -388,9 +415,10 @@ export function AdminInvoices() {
           lines: form.lines,
           discount: form.discount
         };
-        const gen = await generateInvoicePdfFile(draft, patient, clinicSettings);
+        const gen = await generateInvoicePdfFile(draft, patient, clinicSettings, state);
         fileRef = gen.fileRef;
         fileName = gen.fileName;
+        mimeType = gen.mimeType;
       } else {
         setNotice({ type: 'error', message: 'Sube un PDF o activa generación automática.' });
         return;
@@ -503,6 +531,41 @@ export function AdminInvoices() {
     );
     updateInvoice(inv, { sentAt: new Date().toISOString() });
     setNotice({ type: 'ok', message: 'Recordatorio enviado al paciente.' });
+  }
+
+  function openInvoicePreview(inv: Invoice) {
+    const patient = getPatientById(state, inv.patientId);
+    if (!patient) {
+      setNotice({ type: 'error', message: 'Paciente no encontrado.' });
+      return;
+    }
+    if (inv.fileRef && isInvoiceDocumentMime(inv.mimeType, inv.fileName)) {
+      setPreviewInv(inv);
+      return;
+    }
+    previewInvoiceFromState(state, inv, patient, clinicSettings);
+  }
+
+  async function downloadInvoiceDoc(inv: Invoice) {
+    const patient = getPatientById(state, inv.patientId);
+    if (!patient) {
+      setNotice({ type: 'error', message: 'Paciente no encontrado.' });
+      return;
+    }
+    if (inv.fileRef && isInvoiceDocumentMime(inv.mimeType, inv.fileName)) {
+      downloadDemoFileRef(inv.fileRef, inv.fileName);
+      setNotice({ type: 'ok', message: 'Factura descargada.' });
+      return;
+    }
+    const ok = await downloadInvoiceFromState(state, inv, patient, clinicSettings);
+    if (ok) {
+      setNotice({
+        type: 'ok',
+        message: 'Se abrió la vista de impresión. Elige «Guardar como PDF» para descargar la factura.'
+      });
+    } else {
+      setNotice({ type: 'error', message: 'No se pudo abrir la factura.' });
+    }
   }
 
   async function sendToPatient(inv: Invoice) {
@@ -808,21 +871,11 @@ export function AdminInvoices() {
                       </td>
                       <td>
                         <div className="inv-actions" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            type="button"
-                            className="inv-btn-ghost"
-                            disabled={!inv.fileRef}
-                            onClick={() => inv.fileRef && setPreviewInv(inv)}
-                          >
-                            <Eye className="h-3.5 w-3.5" /> Ver PDF
+                          <button type="button" className="inv-btn-ghost" onClick={() => openInvoicePreview(inv)}>
+                            <Eye className="h-3.5 w-3.5" /> Vista previa PDF
                           </button>
-                          <button
-                            type="button"
-                            className="inv-btn-ghost"
-                            disabled={!inv.fileRef}
-                            onClick={() => inv.fileRef && downloadDemoFileRef(inv.fileRef, inv.fileName)}
-                          >
-                            <Download className="h-3.5 w-3.5" /> Descargar
+                          <button type="button" className="inv-btn-ghost" onClick={() => void downloadInvoiceDoc(inv)}>
+                            <Download className="h-3.5 w-3.5" /> Descargar factura
                           </button>
                           {st !== 'pagada' ? (
                             <button type="button" className="inv-btn-ghost" onClick={() => markPaid(inv)}>
@@ -881,6 +934,16 @@ export function AdminInvoices() {
                 <h2>Nueva factura</h2>
               </div>
               <div className="inv-form__body">
+                {formFiscalWarnings.length ? (
+                  <div className="inv-fiscal-warn" role="status">
+                    <AlertCircle className="h-4 w-4 shrink-0" aria-hidden />
+                    <ul>
+                      {formFiscalWarnings.map((w: string) => (
+                        <li key={w}>{w}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
                 <div className="inv-form-grid">
               <InvPatientPicker
                 patients={clinicPatients}
@@ -1253,19 +1316,17 @@ export function AdminInvoices() {
                 </div>
               </dl>
               <p className="inv-preview-util__badges">
-                {selected.fileRef ? <span className="inv-badge inv-badge--pdf">PDF</span> : null}
+                {selected.fileRef ? <span className="inv-badge inv-badge--pdf">Documento</span> : null}
                 <span className={`inv-badge ${statusBadgeClass(effectiveStatus(selected, today))}`}>
                   {statusLabel(effectiveStatus(selected, today))}
                 </span>
               </p>
               <div className="inv-preview-util__actions">
-                <button
-                  type="button"
-                  className="inv-btn-secondary"
-                  disabled={!selected.fileRef}
-                  onClick={() => selected.fileRef && downloadDemoFileRef(selected.fileRef, selected.fileName)}
-                >
-                  Descargar
+                <button type="button" className="inv-btn-secondary" onClick={() => openInvoicePreview(selected)}>
+                  Vista previa PDF
+                </button>
+                <button type="button" className="inv-btn-secondary" onClick={() => void downloadInvoiceDoc(selected)}>
+                  Descargar factura
                 </button>
                 <button type="button" className="inv-btn-secondary" onClick={() => void sendToPatient(selected)}>
                   Enviar al paciente
@@ -1287,7 +1348,7 @@ export function AdminInvoices() {
       {previewInv?.fileRef ? (
         <Modal open title={displayInvoiceId(previewInv)} onClose={() => setPreviewInv(null)}>
           <div className="inv-preview-modal">
-            <iframe title="PDF" src={resolveDemoFileUrl(previewInv.fileRef) ?? ''} />
+            <iframe title="Vista previa factura" src={resolveDemoFileUrl(previewInv.fileRef) ?? ''} />
           </div>
         </Modal>
       ) : null}

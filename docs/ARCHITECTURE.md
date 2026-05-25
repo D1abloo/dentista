@@ -60,7 +60,7 @@ Entidades principales:
 - rooms
 - appointments
 - appointment_events
-- invoices
+- invoices (`professional_id` en migración 0036; PDF vía plantilla HTML AgendaClinic en `src/lib/invoice/`)
 - payments
 - messages
 - reminders
