@@ -177,7 +177,8 @@ export function loginSuperAdmin(input: LoginInput): Omit<SessionUser, 'expiresAt
   return {
     role: 'super_admin',
     email,
-    name: import.meta.env.SUPER_ADMIN_NAME || 'Super Admin Dentista+'
+    name: import.meta.env.SUPER_ADMIN_NAME || 'Super Admin Dentista+',
+    sessionPortal: 'platform'
   };
 }
 

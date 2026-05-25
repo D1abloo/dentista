@@ -10,7 +10,8 @@ export const GET: APIRoute = async ({ cookies }) => {
   const effective = getEffectiveSessionUser(cookies) ?? user;
   const payload = {
     ...effective,
-    sessionPortal: effective.sessionPortal ?? user.sessionPortal
+    baseRole: user.role,
+    sessionPortal: user.sessionPortal ?? effective.sessionPortal
   };
   return ok(payload, { authenticated: true });
 };

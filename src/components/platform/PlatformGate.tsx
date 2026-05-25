@@ -1,12 +1,38 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { homePathForPortal, inferSessionPortal, type SessionPortal } from '@/lib/auth/sessionPortal';
+import type { SessionUser } from '@/lib/auth';
+import {
+  canAccessPlatformPanelFromSession,
+  homePathForPortal,
+  inferSessionPortal,
+  type SessionPortal
+} from '@/lib/auth/sessionPortal';
 
 type MePayload = {
   role?: string;
+  baseRole?: SessionUser['role'];
   sessionPortal?: SessionPortal;
   platformInspect?: boolean;
   clinicId?: string;
 };
+
+function redirectForMe(me: MePayload): string | null {
+  if (!canAccessPlatformPanelFromSession({
+    role: me.role as SessionUser['role'] | undefined,
+    baseRole: me.baseRole,
+    sessionPortal: me.sessionPortal,
+    platformInspect: me.platformInspect
+  })) {
+    const portal = inferSessionPortal({
+      role: me.baseRole ?? me.role ?? '',
+      sessionPortal: me.sessionPortal,
+      platformInspect: false
+    });
+    if (portal === 'clinic') return homePathForPortal('clinic', me.clinicId);
+    if (portal === 'patient') return '/paciente';
+    return '/platform/login';
+  }
+  return null;
+}
 
 export function PlatformGate({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -14,22 +40,8 @@ export function PlatformGate({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!ready || !me) return;
-    if (me.role !== 'super_admin') {
-      window.location.replace('/platform/login');
-      return;
-    }
-    const portal = inferSessionPortal({
-      role: me.role,
-      clinicId: me.clinicId,
-      platformInspect: me.platformInspect,
-      sessionPortal: me.sessionPortal
-    });
-    if (portal === 'clinic' && !me.platformInspect) {
-      window.location.replace(homePathForPortal('clinic', me.clinicId));
-    }
-    if (portal === 'patient') {
-      window.location.replace('/paciente');
-    }
+    const dest = redirectForMe(me);
+    if (dest) window.location.replace(dest);
   }, [ready, me]);
 
   useEffect(() => {
@@ -69,26 +81,10 @@ export function PlatformGate({ children }: { children: ReactNode }) {
     );
   }
 
-  if (me?.role !== 'super_admin') {
+  if (!me || redirectForMe(me)) {
     return (
       <main className="grid min-h-screen place-items-center bg-slate-50 p-6 text-center text-sm text-[var(--muted)]">
         Redirigiendo al acceso de plataforma…
-      </main>
-    );
-  }
-
-  const portal = me
-    ? inferSessionPortal({
-        role: me.role,
-        clinicId: me.clinicId,
-        platformInspect: me.platformInspect,
-        sessionPortal: me.sessionPortal
-      })
-    : null;
-  if (portal === 'clinic' && !me?.platformInspect) {
-    return (
-      <main className="grid min-h-screen place-items-center bg-slate-50 p-6 text-center text-sm text-[var(--muted)]">
-        Redirigiendo al panel de clínica…
       </main>
     );
   }

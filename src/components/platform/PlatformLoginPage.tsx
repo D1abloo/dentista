@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react';
 import { ChevronRight, Eye, EyeOff, Lock, Mail, ShieldCheck } from 'lucide-react';
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
+import {
+  canAccessPlatformPanelFromSession,
+  homePathForPortal,
+  inferSessionPortal,
+  postLoginPathForUser
+} from '@/lib/auth/sessionPortal';
+import { isSafeInternalPath } from '@/lib/loginIntent';
 
 const HERO_IMAGE = '/images/login-dentista-paciente.jpg';
 const REMEMBER_KEY = 'df_platform_remember';
@@ -30,6 +37,65 @@ export function PlatformLoginPage() {
   useEffect(() => {
     const t = window.setTimeout(() => setEntered(true), 40);
     return () => window.clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const r = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
+        if (!r.ok) return;
+        const j = (await r.json()) as {
+          data?: {
+            role?: string;
+            baseRole?: string;
+            clinicId?: string;
+            sessionPortal?: 'platform' | 'clinic' | 'patient';
+            platformInspect?: boolean;
+          };
+        };
+        const data = j.data;
+        if (!data) return;
+
+        if (
+          canAccessPlatformPanelFromSession({
+            role: data.role,
+            baseRole: data.baseRole as 'super_admin' | undefined,
+            sessionPortal: data.sessionPortal,
+            platformInspect: data.platformInspect
+          })
+        ) {
+          const params = new URLSearchParams(window.location.search);
+          const next = params.get('next');
+          const dest =
+            next && isSafeInternalPath(next) && next.startsWith('/platform')
+              ? next
+              : postLoginPathForUser(
+                  {
+                    role: 'super_admin',
+                    clinicId: data.clinicId,
+                    sessionPortal: data.sessionPortal ?? 'platform',
+                    platformInspect: false
+                  },
+                  { preferAdmin: false }
+                );
+          window.location.replace(dest);
+          return;
+        }
+
+        const portal = inferSessionPortal({
+          role: data.baseRole ?? data.role ?? '',
+          sessionPortal: data.sessionPortal,
+          platformInspect: false
+        });
+        if (portal === 'clinic') {
+          window.location.replace(homePathForPortal('clinic', data.clinicId));
+        } else if (portal === 'patient') {
+          window.location.replace('/paciente');
+        }
+      } catch {
+        /* sin sesión previa */
+      }
+    })();
   }, []);
 
   useEffect(() => {
@@ -95,7 +161,10 @@ export function PlatformLoginPage() {
         /* ignore */
       }
 
-      window.location.href = '/platform';
+      const params = new URLSearchParams(window.location.search);
+      const next = params.get('next');
+      window.location.href =
+        next && isSafeInternalPath(next) && next.startsWith('/platform') ? next : '/platform';
     } catch {
       setError('No se pudo iniciar sesión. Inténtalo de nuevo.');
     } finally {

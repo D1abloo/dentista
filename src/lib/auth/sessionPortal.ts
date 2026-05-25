@@ -55,6 +55,22 @@ export function canAccessPlatformPanel(
   return inferSessionPortal(user) === 'platform' && !user.platformInspect;
 }
 
+/** Acceso plataforma según cookie base (ignora sesión efectiva de inspección). */
+export function canAccessPlatformPanelFromSession(
+  user: Pick<SessionUser, 'sessionPortal' | 'platformInspect'> & {
+    role?: SessionUser['role'] | string;
+    baseRole?: SessionUser['role'] | string;
+  }
+): boolean {
+  const baseRole = user.baseRole ?? user.role;
+  if (baseRole !== 'super_admin') return false;
+  return canAccessPlatformPanel({
+    role: 'super_admin',
+    sessionPortal: user.sessionPortal,
+    platformInspect: false
+  });
+}
+
 /** Destino tras login según el portal elegido en la sesión. */
 export function postLoginPathForUser(
   user: Pick<SessionUser, 'role' | 'clinicId' | 'sessionPortal' | 'platformInspect' | 'patientId'>,
