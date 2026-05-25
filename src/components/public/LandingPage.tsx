@@ -9,7 +9,7 @@ import {
   landingSecurityCards,
   landingTrustLogos
 } from '@/lib/landing/content';
-import { publicExplorePaths, publicHeroStats, publicShowcaseTiles } from '@/lib/landing/publicSiteContent';
+import { publicExplorePaths, publicHeroStats, publicProductPillars } from '@/lib/landing/publicSiteContent';
 import { PublicFooter } from './PublicFooter';
 import { PublicHeader } from './PublicHeader';
 import { CookieBanner } from './CookieBanner';
@@ -178,21 +178,43 @@ export function LandingPage() {
 
         <section id="producto" className="ps-section ps-section--alt">
           <div className="ps-shell">
-            <div className="ps-section__panel">
-              <header className="ps-section__head">
-              <span className="ps-kicker">Plataforma</span>
-              <h2>Agenda, portal paciente y facturación</h2>
-              <p>Interfaz clara para el día a día en recepción, gabinete y administración.</p>
-            </header>
-            <div className={`ps-bento ${revealClass(showR.visible)}`} ref={showR.ref}>
-              {publicShowcaseTiles.map((tile) => (
-                <article key={tile.id} className={`ps-tile ps-tile--${tile.span}`}>
-                  <h3>{tile.title}</h3>
-                  <p>{tile.text}</p>
-                  <img className="ps-tile__img" src={tile.image} alt={tile.alt} loading="lazy" />
-                </article>
-              ))}
-            </div>
+            <div className={`ps-showcase ${revealClass(showR.visible)}`} ref={showR.ref}>
+              <header className="ps-showcase__head">
+                <span className="ps-kicker">Plataforma</span>
+                <h2>Agenda, portal paciente y facturación</h2>
+                <p>
+                  Tres módulos conectados para recepción, gabinete y administración: menos llamadas, más
+                  transparencia y cobros al día.
+                </p>
+              </header>
+              <div className="ps-showcase__grid">
+                {publicProductPillars.map((pillar, index) => {
+                  const Icon = pillar.icon;
+                  return (
+                    <article
+                      key={pillar.id}
+                      className={`ps-showcase-card ps-showcase-card--${pillar.tone}`}
+                      style={{ animationDelay: `${index * 0.08}s` }}
+                    >
+                      <div className="ps-showcase-card__media">
+                        <img src={pillar.image} alt={pillar.alt} loading="lazy" decoding="async" />
+                      </div>
+                      <div className="ps-showcase-card__body">
+                        <span className="ps-showcase-card__icon" aria-hidden>
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        <h3>{pillar.title}</h3>
+                        <p>{pillar.text}</p>
+                        <ul className="ps-showcase-card__list">
+                          {pillar.bullets.map((b) => (
+                            <li key={b}>{b}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </section>

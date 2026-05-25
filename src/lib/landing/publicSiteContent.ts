@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import {
   Building2,
+  CalendarDays,
   FileText,
   MessageSquare,
   Receipt,
@@ -10,14 +11,15 @@ import {
   UserRound
 } from 'lucide-react';
 
-export type PublicShowcaseTile = {
+export type PublicProductPillar = {
   id: string;
   title: string;
   text: string;
+  bullets: string[];
   image: string;
   alt: string;
-  span: 'hero' | 'wide' | 'tall' | 'square';
-  tone: 'mint' | 'sand' | 'ink' | 'teal';
+  tone: 'mint' | 'sand' | 'teal';
+  icon: LucideIcon;
 };
 
 export type PublicStat = { value: string; label: string; hint?: string };
@@ -54,51 +56,37 @@ export const publicExplorePaths = [
   }
 ] as const;
 
-export const publicShowcaseTiles: PublicShowcaseTile[] = [
+/** Tres pilares del bloque «Agenda, portal paciente y facturación». */
+export const publicProductPillars: PublicProductPillar[] = [
   {
     id: 'agenda',
-    title: 'Panel clínico',
-    text: 'Vista operativa para recepción, gabinete y administración.',
-    image: '/img/inicio.webp',
-    alt: 'Panel clínica en portátil',
-    span: 'hero',
-    tone: 'mint'
+    title: 'Agenda',
+    text: 'Vista día, semana y mes con profesionales, bloqueos y estados de cita en tiempo real.',
+    bullets: ['Disponibilidad por gabinete', 'Recordatorios automáticos', 'Agenda por profesional'],
+    image: '/img/citas.webp',
+    alt: 'Agenda de citas dentales en el panel clínico',
+    tone: 'mint',
+    icon: CalendarDays
   },
   {
     id: 'portal',
-    title: 'Agenda y citas',
-    text: 'Organiza disponibilidad y profesionales en un solo flujo.',
-    image: '/img/citas.webp',
-    alt: 'Agenda de citas dentales',
-    span: 'tall',
-    tone: 'sand'
-  },
-  {
-    id: 'facturas',
-    title: 'Mensajería',
-    text: 'Comunicación directa entre clínica y paciente.',
-    image: '/img/mensajes.webp',
-    alt: 'Mensajes clínica-paciente',
-    span: 'square',
-    tone: 'teal'
-  },
-  {
-    id: 'informes',
-    title: 'Informes clínicos',
-    text: 'Redacción, firma y publicación al paciente.',
+    title: 'Portal del paciente',
+    text: 'El paciente consulta informes, documentos y mensajes sin llamar a recepción.',
+    bullets: ['Informes y radiografías', 'Mensajería segura', 'Acceso 24/7 desde móvil'],
     image: '/img/informes.webp',
-    alt: 'Informes clínicos',
-    span: 'wide',
-    tone: 'ink'
+    alt: 'Informes clínicos en el portal del paciente',
+    tone: 'sand',
+    icon: UserRound
   },
   {
-    id: 'documentos',
-    title: 'Equipo clínico',
-    text: 'Profesionales, roles y accesos al panel administrativo.',
-    image: '/img/Dr.webp',
-    alt: 'Profesional dental usando Dentista+',
-    span: 'square',
-    tone: 'mint'
+    id: 'facturacion',
+    title: 'Facturación',
+    text: 'Emite facturas PDF, registra cobros y comparte el estado de pago con el paciente.',
+    bullets: ['Facturas PDF automáticas', 'Pagos y recibos', 'Historial por paciente'],
+    image: '/images/guides/mobile/pdp-facturas.png',
+    alt: 'Facturación y pagos en el portal del paciente',
+    tone: 'teal',
+    icon: Receipt
   }
 ];
 
