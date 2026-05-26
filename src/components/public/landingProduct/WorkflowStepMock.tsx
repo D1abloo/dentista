@@ -29,7 +29,7 @@ export function WorkflowStepMock({ variant }: Props) {
               <span className="ps-flow-mock__dot ps-flow-mock__dot--b" /> Carlos Ruiz · 11:00
             </li>
             <li>
-              <span className="ps-flow-mock__dot ps-flow-mock__dot--c" /> Ana Martín · 16:00
+              <span className="ps-flow-mock__dot ps-flow-mock__dot--c" /> Ana Torres · 16:00
             </li>
           </ul>
         </div>
@@ -46,7 +46,7 @@ export function WorkflowStepMock({ variant }: Props) {
     case 'invoice':
       return (
         <div className="ps-flow-mock ps-flow-mock--invoice" aria-hidden>
-          <span>Factura #F-2024-0158</span>
+          <span>Factura #FAC-2026-0158</span>
           <strong>120,00 €</strong>
           <span className="ps-flow-mock__badge ps-flow-mock__badge--paid">Pagada</span>
         </div>

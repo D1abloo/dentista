@@ -49,7 +49,7 @@ export function LandingPage() {
         <LandingMobileShowcase />
         <LandingAccessPlatformSection onRequestDemo={() => openDemo('pro_clinica')} />
 
-        <LandingProductExperienceSection />
+        <LandingProductExperienceSection onRequestDemo={() => openDemo('pro_clinica')} />
         <LandingPricingExperienceSection onRequestDemo={openDemo} />
 
         <LandingClosingSection onRequestDemo={() => openDemo('pro_clinica')} />

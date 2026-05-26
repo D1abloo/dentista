@@ -19,46 +19,132 @@ import {
 
 export type WorkflowMock = 'booking' | 'agenda' | 'report' | 'invoice' | 'portal';
 
+export type WorkflowPreviewImage = 'citas' | 'informes' | 'inicio' | 'doctor' | 'mensajes';
+
 export const landingWorkflowSteps = [
   {
     step: 1,
-    title: '1. El paciente reserva',
-    text: 'El paciente elige clínica, tratamiento, profesional, fecha y hora disponible desde su portal.',
+    title: 'El paciente reserva',
+    text: 'El paciente elige clínica, tratamiento, profesional, fecha y hora disponible desde el portal o el asistente de citas.',
     icon: Calendar,
     mock: 'booking' as WorkflowMock,
-    scrollTo: 'modulos-pacientes'
+    scrollTo: 'modulos-recepcion',
+    preview: {
+      title: 'Reserva online conectada con la agenda',
+      text: 'El paciente puede solicitar cita online y AgendaClinic solo muestra huecos reales, respetando horarios de clínica, profesionales disponibles, citas ocupadas y bloqueos.',
+      bullets: [
+        'Disponibilidad real',
+        'Bloqueos respetados',
+        'Profesionales activos',
+        'Confirmación automática o manual'
+      ],
+      cta: 'Ver cómo funciona la agenda',
+      ctaScrollTo: 'modulos-recepcion',
+      image: 'citas' as WorkflowPreviewImage
+    }
   },
   {
     step: 2,
-    title: '2. La clínica organiza',
-    text: 'Recepción gestiona agenda, bloqueos horarios, disponibilidad y estados de cita.',
+    title: 'La clínica organiza',
+    text: 'Recepción gestiona agenda, bloqueos horarios, disponibilidad por profesional y estados de cita.',
     icon: CalendarClock,
     mock: 'agenda' as WorkflowMock,
-    scrollTo: 'modulos-recepcion'
+    scrollTo: 'modulos-recepcion',
+    preview: {
+      title: 'Agenda clínica dental en tiempo real',
+      text: 'Recepción visualiza el día, semana o mes, aplica bloqueos por profesional o gabinete y actualiza estados sin solapar citas ni ignorar indisponibilidad.',
+      bullets: [
+        'Vistas día, semana y mes',
+        'Bloqueos multi-profesional',
+        'Estados de cita claros',
+        'Coordinación con reservas online'
+      ],
+      cta: 'Ver cómo funciona la agenda',
+      ctaScrollTo: 'modulos-recepcion',
+      image: 'citas' as WorkflowPreviewImage
+    }
   },
   {
     step: 3,
-    title: '3. El doctor documenta',
+    title: 'El doctor documenta',
     text: 'El profesional crea informes odontológicos, adjunta documentos y firma con sus datos clínicos.',
     icon: FileText,
     mock: 'report' as WorkflowMock,
-    scrollTo: 'modulos-doctores'
+    scrollTo: 'modulos-doctores',
+    preview: {
+      title: 'Informes odontológicos con trazabilidad',
+      text: 'El equipo clínico redacta informes, adjunta radiografías o documentos y deja constancia de firma profesional vinculada al historial del paciente.',
+      bullets: [
+        'Plantillas clínicas',
+        'Firma profesional',
+        'Documentos adjuntos',
+        'Visibilidad controlada en portal'
+      ],
+      cta: 'Ver informes clínicos',
+      ctaScrollTo: 'modulos-doctores',
+      image: 'informes' as WorkflowPreviewImage
+    }
   },
   {
     step: 4,
-    title: '4. Administración factura',
-    text: 'La clínica genera facturas PDF, registra pagos y comparte recibos.',
+    title: 'Administración factura',
+    text: 'La clínica genera facturas PDF, registra pagos y comparte recibos con el paciente.',
     icon: Receipt,
     mock: 'invoice' as WorkflowMock,
-    scrollTo: 'modulos-admin'
+    scrollTo: 'modulos-admin',
+    preview: {
+      title: 'Facturación dental integrada',
+      text: 'Administración emite facturas PDF, registra cobros y deja el estado de pago visible para la clínica y, cuando corresponde, para el paciente en su portal.',
+      bullets: [
+        'Facturas PDF',
+        'Pagos y recibos',
+        'Estados pendiente / pagada',
+        'Vinculación con citas y paciente'
+      ],
+      cta: 'Ver facturación',
+      ctaScrollTo: 'modulos-admin',
+      image: 'doctor' as WorkflowPreviewImage
+    }
   },
   {
     step: 5,
-    title: '5. El paciente lo consulta',
+    title: 'El paciente lo consulta',
     text: 'Informes, documentos, facturas, pagos, mensajes y consentimientos aparecen en el Portal del Paciente.',
     icon: UserRound,
     mock: 'portal' as WorkflowMock,
-    scrollTo: 'modulos-pacientes'
+    scrollTo: 'modulos-pacientes',
+    preview: {
+      title: 'Portal paciente dental unificado',
+      text: 'El paciente accede a su espacio privado para consultar informes, facturas, mensajes y consentimientos sin llamar a recepción por cada detalle.',
+      bullets: [
+        'Mis informes y documentos',
+        'Facturas y pagos',
+        'Mensajes con la clínica',
+        'Consentimientos firmados'
+      ],
+      cta: 'Ver portal paciente',
+      ctaScrollTo: 'modulos-pacientes',
+      image: 'inicio' as WorkflowPreviewImage
+    }
+  }
+] as const;
+
+export const landingWorkflowBenefits = [
+  {
+    title: 'Todo conectado',
+    text: 'Agenda, pacientes, informes y facturas trabajan juntos.'
+  },
+  {
+    title: 'Menos llamadas',
+    text: 'El paciente consulta información desde su portal.'
+  },
+  {
+    title: 'Sin huecos duplicados',
+    text: 'Los bloqueos y citas ocupadas se respetan.'
+  },
+  {
+    title: 'Datos seguros',
+    text: 'Aislamiento por clínica, paciente y rol.'
   }
 ] as const;
 
