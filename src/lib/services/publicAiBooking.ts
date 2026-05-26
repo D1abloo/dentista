@@ -42,8 +42,10 @@ export type PublicBookingProfessional = {
 
 export type PublicBookingSlot = {
   clinicId: string
+  clinicName?: string
   treatmentId: string
   treatmentName: string
+  durationMinutes?: number
   professionalId: string | null
   professionalName: string
   startsAt: string
@@ -305,6 +307,7 @@ export async function getAvailableSlotsForPublicBooking(query: PublicAvailabilit
               clinicId: query.clinicId,
               treatmentId: treatment.id,
               treatmentName: treatment.name,
+              durationMinutes: treatment.durationMinutes,
               professionalId: professional.id,
               professionalName: professional.fullName,
               startsAt: cursor.toISOString(),

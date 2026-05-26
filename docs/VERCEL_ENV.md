@@ -55,6 +55,8 @@ Tras configurar `ADMIN_PANEL_ENTRY_SLUG` y `ADMIN_PANEL_ENTRY_SECRET` en Vercel:
 
 | Variable | Si vacío |
 |----------|----------|
+| `GEMINI_API_KEY` | Asistente IA con fallback local (sin Gemini Pro) |
+| `GEMINI_MODEL` | `gemini-1.5-pro` |
 | `REDIS_URL` | Cache en memoria |
 | `CACHE_TTL_SECONDS` | `60` |
 | `STRIPE_SECRET_KEY` | Sin Stripe |
@@ -76,7 +78,7 @@ node scripts/vercel-env-from-dotenv.mjs --push production
 ```
 
 Marca manualmente como **Sensitive** en el dashboard:  
-`AUTH_SESSION_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_PANEL_ENTRY_SECRET`, `SUPER_ADMIN_PASSWORD`, `CLINIC_DEFAULT_PASSWORD`, `SMTP_PASS`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`.
+`AUTH_SESSION_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_PANEL_ENTRY_SECRET`, `SUPER_ADMIN_PASSWORD`, `CLINIC_DEFAULT_PASSWORD`, `SMTP_PASS`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `GEMINI_API_KEY`.
 
 ## Tras cambiar variables
 

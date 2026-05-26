@@ -581,6 +581,52 @@ export const publicAiBookingActionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('confirm'), payload: publicAiBookingConfirmSchema })
 ]);
 
+export const aiBookingStateSchema = z.object({
+  clinicId: z.string().uuid().optional(),
+  clinicName: z.string().max(120).optional(),
+  treatmentId: z.string().uuid().optional(),
+  treatmentName: z.string().max(120).optional(),
+  professionalId: z.string().uuid().optional(),
+  professionalName: z.string().max(120).optional(),
+  preferredTime: z.enum(['morning', 'afternoon', 'any']).optional(),
+  dateRange: z
+    .object({
+      from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
+    })
+    .optional(),
+  patientName: z.string().max(120).optional(),
+  patientEmail: z.string().email().optional(),
+  patientPhone: z.string().max(20).optional(),
+  patientDni: z.string().max(20).optional(),
+  reason: z.string().max(500).optional(),
+  notes: z.string().max(500).optional(),
+  selectedSlot: z
+    .object({
+      startsAt: z.string().datetime({ offset: true }),
+      endsAt: z.string().datetime({ offset: true }),
+      professionalId: z.string().uuid()
+    })
+    .optional()
+});
+
+export const aiBookingChatSchema = z.object({
+  message: z.string().min(1).max(2000),
+  conversation: z
+    .array(
+      z.object({
+        role: z.enum(['user', 'assistant']),
+        text: z.string().max(2000)
+      })
+    )
+    .max(40)
+    .default([]),
+  bookingState: aiBookingStateSchema.default({})
+});
+
+export const publicBookingSlotsRequestSchema = publicAiBookingSlotsSchema;
+export const publicBookingCreateSchema = publicAiBookingConfirmSchema;
+
 export const reportCreateSchema = z.object({
   clinicId: z.string().uuid(),
   patientId: z.string().uuid(),

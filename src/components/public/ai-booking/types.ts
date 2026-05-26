@@ -1,7 +1,9 @@
 export type AssistantUiState =
   | 'idle'
   | 'thinking'
+  | 'asking_followup'
   | 'fetching_availability'
+  | 'showing_slots'
   | 'collecting_patient_data'
   | 'confirming'
   | 'booking'
@@ -17,28 +19,34 @@ export type ChatEntry = {
   text: string
 }
 
-export type ClinicOption = {
-  id: string
-  name: string
-  address?: string | null
-}
-
-export type TreatmentOption = {
-  id: string
-  name: string
-  durationMinutes: number
-}
-
-export type ProfessionalOption = {
-  id: string
-  fullName: string
-  specialty?: string | null
+export type BookingState = {
+  clinicId?: string
+  clinicName?: string
+  treatmentId?: string
+  treatmentName?: string
+  professionalId?: string
+  professionalName?: string
+  preferredTime?: 'morning' | 'afternoon' | 'any'
+  dateRange?: { from: string; to: string }
+  patientName?: string
+  patientEmail?: string
+  patientPhone?: string
+  patientDni?: string
+  reason?: string
+  notes?: string
+  selectedSlot?: {
+    startsAt: string
+    endsAt: string
+    professionalId: string
+  }
 }
 
 export type SlotOption = {
   clinicId: string
+  clinicName?: string
   treatmentId: string
   treatmentName: string
+  durationMinutes?: number
   professionalId: string | null
   professionalName: string
   startsAt: string

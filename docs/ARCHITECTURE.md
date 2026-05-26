@@ -137,6 +137,9 @@ Usuarios en `platform_admins` (activos), sesión `super_admin` o `SUPER_ADMIN_EM
 - `GET /api/locations`
 - `GET /api/availability`
 - `GET/POST /api/public/ai-booking`
+- `POST /api/ai/booking-chat` (Gemini Pro server-side)
+- `POST /api/public-booking/available-slots`
+- `POST /api/public-booking/create`
 - `GET /api/admin/metrics`
 - `GET /api/admin/modules`
 - `GET /api/cache/health`

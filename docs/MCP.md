@@ -92,6 +92,17 @@ No copies este bloque sin adaptar los nombres de servidores a tu cliente MCP:
 }
 ```
 
+## Gemini Pro (asistente de citas)
+
+Variables (solo servidor):
+
+```bash
+GEMINI_API_KEY="..."
+GEMINI_MODEL="gemini-1.5-pro"
+```
+
+Endpoint principal: `POST /api/ai/booking-chat`. La clave nunca debe exponerse al cliente.
+
 ## Política de secretos
 
 - Nunca commitear `.env`.

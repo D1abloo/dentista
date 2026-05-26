@@ -1,12 +1,6 @@
 import { useState } from 'react'
 import { MessageCircle, X } from 'lucide-react'
 
-const SUGGESTIONS = [
-  'Quiero pedir cita para una limpieza dental.',
-  'Necesito cita esta semana por la tarde.',
-  '¿Hay hueco mañana con la Dra. Ana?'
-]
-
 export function AiBookingWidget() {
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState('')
@@ -34,10 +28,10 @@ export function AiBookingWidget() {
               Cuéntanos qué necesitas y te ayudamos a encontrar el mejor hueco disponible.
             </p>
             <div className="ai-widget__hint">
-              Hola, soy el asistente de AgendaClinic. Puedo ayudarte a reservar una cita. ¿Qué tratamiento necesitas?
+              Hola, soy el asistente de AgendaClinic. Dime qué necesitas y buscaré una cita disponible para ti.
             </div>
             <div className="ai-widget__chips" aria-label="Sugerencias">
-              {SUGGESTIONS.map((suggestion) => (
+              {['Quiero reservar cita', 'Limpieza dental', 'Por la tarde'].map((suggestion) => (
                 <button
                   key={suggestion}
                   type="button"
