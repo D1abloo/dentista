@@ -2,11 +2,11 @@
 import AppLayout from '@/layouts/AppLayout.astro';
 import { LegalPage } from '@/components/public/LegalPage';
 import { privacySections } from '@/lib/legal/content';
+import { seoLayoutProps } from '@/lib/seo/layoutProps';
+
+const seo = seoLayoutProps('/privacidad');
 ---
-<AppLayout
-  title="Política de privacidad · AgendaClinic"
-  description="Información sobre tratamiento de datos personales, derechos RGPD y seguridad multi-tenant en AgendaClinic."
->
+<AppLayout {...seo}>
   <LegalPage
     client:load
     title="Política de privacidad"

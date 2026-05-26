@@ -1,10 +1,10 @@
 ---
 import AppLayout from '@/layouts/AppLayout.astro';
 import { HelpCenterPage } from '@/components/help/HelpCenterPage';
+import { seoLayoutProps } from '@/lib/seo/layoutProps';
+
+const seo = seoLayoutProps('/ayuda');
 ---
-<AppLayout
-  title="Centro de ayuda AgendaClinic | Guías para pacientes y clínicas"
-  description="Encuentra guías para usar AgendaClinic: portal paciente, citas, informes, documentos, facturas, pagos, consentimientos, panel clínica y plataforma."
->
+<AppLayout {...seo}>
   <HelpCenterPage client:load />
 </AppLayout>

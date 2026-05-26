@@ -2,11 +2,11 @@
 import AppLayout from '@/layouts/AppLayout.astro';
 import { LegalPage } from '@/components/public/LegalPage';
 import { cookiesSections } from '@/lib/legal/content';
+import { seoLayoutProps } from '@/lib/seo/layoutProps';
+
+const seo = seoLayoutProps('/cookies');
 ---
-<AppLayout
-  title="Política de cookies · AgendaClinic"
-  description="Tipos de cookies y almacenamiento local en AgendaClinic, gestión de consentimiento y cookies de terceros."
->
+<AppLayout {...seo}>
   <LegalPage
     client:load
     title="Política de cookies"

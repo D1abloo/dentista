@@ -1,10 +1,10 @@
 ---
 import AppLayout from '@/layouts/AppLayout.astro';
 import { ContactPage } from '@/components/public/ContactPage';
+import { seoLayoutProps } from '@/lib/seo/layoutProps';
+
+const seo = seoLayoutProps('/contacto');
 ---
-<AppLayout
-  title="Contacto · AgendaClinic"
-  description="Centro de soporte AgendaClinic: email, formulario y ayuda para pacientes, clínicas y administradores. Respuesta en menos de 24 horas laborables."
->
+<AppLayout {...seo}>
   <ContactPage client:load />
 </AppLayout>

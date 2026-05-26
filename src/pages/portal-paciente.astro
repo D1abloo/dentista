@@ -1,10 +1,10 @@
 ---
 import AppLayout from '@/layouts/AppLayout.astro';
 import { PatientPortalPublicPage } from '@/components/public/PatientPortalPublicPage';
+import { seoLayoutProps } from '@/lib/seo/layoutProps';
+
+const seo = seoLayoutProps('/portal-paciente');
 ---
-<AppLayout
-  title="Portal del Paciente | AgendaClinic"
-  description="Accede al portal del paciente para consultar citas, informes, documentos, facturas, pagos, mensajes y consentimientos compartidos por tu clínica."
->
+<AppLayout {...seo}>
   <PatientPortalPublicPage client:load />
 </AppLayout>

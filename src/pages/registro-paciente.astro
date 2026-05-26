@@ -1,7 +1,10 @@
 ---
 import AppLayout from '@/layouts/AppLayout.astro';
 import { PatientRegistrationPage } from '@/components/auth/PatientRegistrationPage';
+import { seoLayoutProps } from '@/lib/seo/layoutProps';
+
+const seo = seoLayoutProps('/registro-paciente');
 ---
-<AppLayout title="Registro paciente · AgendaClinic">
+<AppLayout {...seo}>
   <PatientRegistrationPage client:load />
 </AppLayout>

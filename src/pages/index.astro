@@ -2,26 +2,10 @@
 import AppLayout from '@/layouts/AppLayout.astro';
 import { LandingPage } from '@/components/DentistaApp';
 import { landingStructuredDataGraph } from '@/lib/seo/landingStructuredData';
+import { seoLayoutProps } from '@/lib/seo/layoutProps';
 
-const title = 'AgendaClinic | Software dental para citas, pacientes y facturación';
-const description =
-  'AgendaClinic es una plataforma dental para gestionar citas, pacientes, agenda clínica, informes, documentos, facturas, pagos, consentimientos y portal del paciente.';
-const keywords =
-  'software dental, agenda dental, programa clínica dental, gestión clínica dental, portal paciente dental, citas dentales online, facturación dental, informes odontológicos, software odontológico, clínica dental digital, gestión de pacientes dental, AgendaClinic';
+const seo = seoLayoutProps('/');
 ---
-<AppLayout
-  title={title}
-  description={description}
-  keywords={keywords}
-  canonical="https://dentista.app/"
-  ogTitle="AgendaClinic | Software dental para clínicas modernas"
-  ogDescription="Digitaliza tu clínica dental con agenda, portal paciente, informes, facturas, pagos y gestión multi-sede."
-  ogType="website"
-  ogLocale="es_ES"
-  twitterCard="summary_large_image"
-  twitterTitle="AgendaClinic | Plataforma dental para clínicas"
-  twitterDescription="Gestiona citas, pacientes, informes, documentos, facturas y portal paciente desde una sola plataforma."
-  structuredData={landingStructuredDataGraph}
->
+<AppLayout {...seo} structuredData={landingStructuredDataGraph}>
   <LandingPage client:load />
 </AppLayout>
