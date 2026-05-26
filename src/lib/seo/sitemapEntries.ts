@@ -6,6 +6,7 @@ export const indexablePaths = [
   { loc: '/portal-paciente', changefreq: 'monthly' as const, priority: 0.88 },
   { loc: '/registro-clinica', changefreq: 'monthly' as const, priority: 0.82 },
   { loc: '/registro-paciente', changefreq: 'monthly' as const, priority: 0.8 },
+  { loc: '/reservar-con-ia', changefreq: 'weekly' as const, priority: 0.92 },
   { loc: '/privacidad', changefreq: 'yearly' as const, priority: 0.35 },
   { loc: '/cookies', changefreq: 'yearly' as const, priority: 0.3 },
   { loc: '/terminos', changefreq: 'yearly' as const, priority: 0.35 }

@@ -532,6 +532,55 @@ export const appointmentNotificationSchema = z.object({
   }
 });
 
+export const publicAiBookingMessageSchema = z.object({
+  message: z.string().min(2).max(1000),
+  clinicId: z.string().uuid().optional(),
+  treatmentId: z.string().uuid().optional(),
+  professionalId: z.string().uuid().optional()
+});
+
+export const publicAiBookingSlotsSchema = z.object({
+  clinicId: z.string().uuid(),
+  treatmentId: z.string().uuid(),
+  professionalId: z.string().uuid().optional(),
+  fromDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  toDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  preferredTime: z.enum(['morning', 'afternoon', 'any']).default('any')
+});
+
+export const publicAiPatientSchema = z.object({
+  fullName: z.string().min(2).max(120),
+  email: z.string().email(),
+  phone: z
+    .string()
+    .min(9, 'Teléfono obligatorio.')
+    .max(20)
+    .regex(/^[\d\s+()-]+$/, 'Formato de teléfono no válido.'),
+  dni: z
+    .string()
+    .max(20)
+    .regex(/^[0-9A-Za-z]*$/, 'DNI/NIE no válido.')
+    .optional()
+});
+
+export const publicAiBookingConfirmSchema = z.object({
+  clinicId: z.string().uuid(),
+  treatmentId: z.string().uuid(),
+  professionalId: z.string().uuid(),
+  startsAt: z.string().datetime({ offset: true }),
+  endsAt: z.string().datetime({ offset: true }),
+  reason: z.string().max(500).optional(),
+  hasPortalAccount: z.boolean().default(false),
+  patient: publicAiPatientSchema
+});
+
+export const publicAiBookingActionSchema = z.discriminatedUnion('action', [
+  z.object({ action: z.literal('bootstrap') }),
+  z.object({ action: z.literal('message'), payload: publicAiBookingMessageSchema }),
+  z.object({ action: z.literal('slots'), payload: publicAiBookingSlotsSchema }),
+  z.object({ action: z.literal('confirm'), payload: publicAiBookingConfirmSchema })
+]);
+
 export const reportCreateSchema = z.object({
   clinicId: z.string().uuid(),
   patientId: z.string().uuid(),

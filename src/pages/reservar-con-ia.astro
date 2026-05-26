@@ -1,0 +1,10 @@
+---
+import AppLayout from '@/layouts/AppLayout.astro'
+import { AiBookingPage } from '@/components/public/AiBookingPage'
+import { seoLayoutProps } from '@/lib/seo/layoutProps'
+
+const seo = seoLayoutProps('/reservar-con-ia')
+---
+<AppLayout {...seo}>
+  <AiBookingPage client:load />
+</AppLayout>

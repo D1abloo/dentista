@@ -17,6 +17,7 @@ const NAV_LINKS = [
 const MOBILE_EXTRA = { href: '/contacto', label: 'Contacto' } as const;
 
 const PORTAL_LINKS = [
+  { href: '/reservar-con-ia', label: 'Asistente de citas' },
   { href: '/portal-paciente', label: 'Portal paciente' },
   { href: '/login/admin', label: 'Panel clínica' },
   { href: '/platform/login', label: 'Plataforma' }
@@ -118,6 +119,9 @@ export function PublicHeader({ activeHref = '/', onWantDemo }: Props) {
         </nav>
 
         <div className="ps-header__actions">
+          <a href="/reservar-con-ia" className="ps-btn ps-btn--outline ps-btn--sm ps-header__demo">
+            Asistente de citas
+          </a>
           <button
             type="button"
             className="ps-btn ps-btn--demo-outline ps-btn--sm ps-header__demo"

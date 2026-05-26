@@ -136,6 +136,7 @@ Usuarios en `platform_admins` (activos), sesión `super_admin` o `SUPER_ADMIN_EM
 - `GET /api/dentists`
 - `GET /api/locations`
 - `GET /api/availability`
+- `GET/POST /api/public/ai-booking`
 - `GET /api/admin/metrics`
 - `GET /api/admin/modules`
 - `GET /api/cache/health`
