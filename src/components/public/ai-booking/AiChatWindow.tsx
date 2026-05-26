@@ -13,6 +13,8 @@ type Props = {
   onSend: (value: string) => void
   onQuickReply: (value: string) => void
   footer?: ReactNode
+  variant?: 'page' | 'widget'
+  inputId?: string
 }
 
 const STATUS_LABEL: Partial<Record<AssistantUiState, string>> = {
@@ -30,21 +32,32 @@ export function AiChatWindow({
   onInputChange,
   onSend,
   onQuickReply,
-  footer
+  footer,
+  variant = 'page',
+  inputId = 'ai-booking-input'
 }: Props) {
   const statusLabel = STATUS_LABEL[status]
+  const isWidget = variant === 'widget'
 
   return (
-    <article className="ai-page__card ai-page__chat flex min-h-[62vh] flex-col rounded-3xl p-4">
-      <header className="mb-3 flex items-center gap-3 border-b border-slate-200/70 pb-3">
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-700 text-white shadow-sm">
-          <Bot className="h-5 w-5" aria-hidden />
-        </span>
-        <div>
-          <h2 className="text-sm font-bold text-slate-900">Asistente de citas</h2>
-          <p className="text-xs text-slate-600">Te ayudamos a reservar tu cita en pocos pasos.</p>
-        </div>
-      </header>
+    <article
+      className={
+        isWidget
+          ? 'ai-widget__chat flex min-h-0 flex-1 flex-col'
+          : 'ai-page__card ai-page__chat flex min-h-[62vh] flex-col rounded-3xl p-4'
+      }
+    >
+      {!isWidget ? (
+        <header className="mb-3 flex items-center gap-3 border-b border-slate-200/70 pb-3">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-700 text-white shadow-sm">
+            <Bot className="h-5 w-5" aria-hidden />
+          </span>
+          <div>
+            <h2 className="text-sm font-bold text-slate-900">Asistente de citas</h2>
+            <p className="text-xs text-slate-600">Te ayudamos a reservar tu cita en pocos pasos.</p>
+          </div>
+        </header>
+      ) : null}
 
       <div
         className="flex flex-1 flex-col gap-3 overflow-y-auto pr-1"
@@ -57,12 +70,12 @@ export function AiChatWindow({
         <QuickReplyChips options={quickReplies} onSelect={onQuickReply} />
       </div>
 
-      <label htmlFor="ai-booking-input" className="sr-only">
+      <label htmlFor={inputId} className="sr-only">
         Mensaje para el asistente de citas
       </label>
-      <div className="ai-page__stickyInput mt-3 flex gap-2">
+      <div className={`${isWidget ? 'ai-widget__inputRow' : 'ai-page__stickyInput'} mt-3 flex gap-2`}>
         <input
-          id="ai-booking-input"
+          id={inputId}
           value={chatInput}
           onChange={(event) => onInputChange(event.target.value)}
           placeholder="Escribe, por ejemplo: quiero una limpieza dental esta semana…"
