@@ -4720,9 +4720,36 @@ body:has(.ps-header) .help-hub__support {
   background: #fff;
   border: 1px solid rgba(23, 59, 64, 0.08);
   box-shadow: 0 8px 24px rgba(23, 59, 64, 0.07);
+  opacity: 1;
+  transform: none;
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
+}
+
+.ps-reveal:not(.ps-reveal--in) .ps-flow__card--reveal {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.ps-reveal--in .ps-flow__card--reveal {
+  animation: ps-hero-rise 0.5s ease forwards;
+}
+
+.ps-reveal--in .ps-flow__card--reveal-1 {
+  animation-delay: 0.08s;
+}
+.ps-reveal--in .ps-flow__card--reveal-2 {
+  animation-delay: 0.14s;
+}
+.ps-reveal--in .ps-flow__card--reveal-3 {
+  animation-delay: 0.2s;
+}
+.ps-reveal--in .ps-flow__card--reveal-4 {
+  animation-delay: 0.26s;
+}
+.ps-reveal--in .ps-flow__card--reveal-5 {
+  animation-delay: 0.32s;
 }
 
 .ps-flow__card:hover {
@@ -4752,14 +4779,25 @@ body:has(.ps-header) .help-hub__support {
 
 .ps-flow__card-icon {
   display: inline-flex;
-  width: 2rem;
-  height: 2rem;
+  width: 2.35rem;
+  height: 2.35rem;
   align-items: center;
   justify-content: center;
-  border-radius: 0.5rem;
-  background: var(--ps-mint-soft);
+  border-radius: 0.55rem;
+  background: linear-gradient(145deg, #dff5f2 0%, #c8ebe8 100%);
+  border: 1px solid rgba(14, 124, 134, 0.22);
   color: var(--ps-teal-deep);
   margin-bottom: 0.45rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(14, 124, 134, 0.12);
+}
+
+.ps-flow__card-icon-svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  stroke: currentColor;
+  color: var(--ps-teal-deep);
+  flex-shrink: 0;
 }
 
 .ps-flow__card h3 {
@@ -4781,11 +4819,25 @@ body:has(.ps-header) .help-hub__support {
 /* Workflow mocks */
 .ps-flow-mock {
   margin-top: auto;
-  padding: 0.5rem;
+  padding: 0.55rem 0.5rem;
   border-radius: 0.55rem;
-  background: var(--ps-paper);
-  border: 1px solid var(--ps-line);
+  background: #fff;
+  border: 1px solid rgba(23, 59, 64, 0.14);
+  box-shadow: 0 2px 8px rgba(23, 59, 64, 0.06);
   font-size: 0.62rem;
+  color: var(--ps-ink);
+  min-height: 4.25rem;
+}
+
+.ps-flow-mock strong {
+  color: var(--ps-ink);
+  font-weight: 700;
+}
+
+.ps-flow-mock small {
+  display: block;
+  color: var(--ps-muted);
+  font-weight: 600;
 }
 
 .ps-flow-mock__cal-head {
@@ -4804,8 +4856,10 @@ body:has(.ps-header) .help-hub__support {
   text-align: center;
   padding: 0.2rem;
   border-radius: 0.3rem;
-  background: #fff;
-  border: 1px solid var(--ps-line);
+  background: #f4fafb;
+  border: 1px solid rgba(23, 59, 64, 0.12);
+  color: var(--ps-ink-soft);
+  font-weight: 600;
 }
 
 .ps-flow-mock__slot--on {
@@ -5656,6 +5710,7 @@ body:has(.ps-header) .help-hub__support {
 
   .ps-prod-exp__anim,
   .ps-price-exp__anim,
+  .ps-flow__card--reveal,
   .ps-reveal--in .ps-flow__line {
     animation: none;
     opacity: 1;

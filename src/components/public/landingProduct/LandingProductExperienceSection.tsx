@@ -52,7 +52,7 @@ export function LandingProductExperienceSection() {
                 return (
                   <article
                     key={step.step}
-                    className={`ps-flow__card ps-prod-exp__anim ps-prod-exp__anim--${index + 2}`}
+                    className={`ps-flow__card ps-flow__card--reveal ps-flow__card--reveal-${index + 1}`}
                   >
                     <button
                       type="button"
@@ -60,7 +60,7 @@ export function LandingProductExperienceSection() {
                       onClick={() => scrollToSection(step.scrollTo)}
                     >
                       <span className="ps-flow__card-icon" aria-hidden>
-                        <Icon className="h-4 w-4" strokeWidth={2.25} />
+                        <Icon className="ps-flow__card-icon-svg" strokeWidth={2.25} />
                       </span>
                       <h3>{step.title}</h3>
                       <p>{step.text}</p>
