@@ -6,8 +6,11 @@ Repositorio objetivo: `https://github.com/D1abloo/dentista.git`.
 
 ```bash
 npm run smoke
+npm run check          # recomendado antes de push
 npm run git:save -- "feat: mensaje descriptivo"
 ```
+
+Ejemplos de mensaje: `docs: actualizar documentación al estado actual`, `feat(ai-appointments): …`, `fix(admin): …`.
 
 El script:
 

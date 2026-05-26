@@ -1,5 +1,7 @@
 # Persistencia demo en localStorage
 
+> **Solo desarrollo** (`PUBLIC_DEMO_MODE=true`). En producción y para el **asistente IA** (`/citas-con-ia`) los huecos y citas reales vienen de Supabase; este modo no sustituye la BD.
+
 ## Claves
 
 | Clave | Contenido |

@@ -1,3 +1,5 @@
-# Skill DentalFlow
+# Skill — puntero
 
-Usa `.codex/skills/dentalflow/SKILL.md`. Regla clave: desarrollo con `npm run dev`, sin Docker ni Kubernetes, y push a GitHub tras cambios validados.
+Instrucciones completas: **[.codex/skills/dentalflow/SKILL.md](.codex/skills/dentalflow/SKILL.md)**
+
+Incluye flujo para asistente IA, Supabase LIVE y validación antes de `npm run git:save`.

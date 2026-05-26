@@ -1,3 +1,5 @@
-# MCP
+# MCP — puntero
 
-Configura servidores MCP desde `.mcp.example.json` si Codex/IDE lo permite. Flujo dev: `npm run dev`, sin Docker ni Kubernetes.
+La guía completa está en **[docs/MCP.md](docs/MCP.md)** (filesystem, Supabase, GitHub, Gemini Pro para `/citas-con-ia`).
+
+Desarrollo: `npm run dev` · sin Docker/Kubernetes · secretos solo en `.env`.

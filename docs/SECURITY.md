@@ -28,6 +28,15 @@
 - Normalizar errores.
 - Añadir rate limit antes de producción.
 
+## Asistente IA y verificación de paciente
+
+- **Gemini** (`GEMINI_API_KEY`): solo en servidor (`src/lib/ai/geminiAppointmentsAssistant.ts`). No clasifica disponibilidad ni inventa citas.
+- Huecos de reserva: `getAvailableSlotsForPublicBooking` — misma lógica que reserva pública clásica.
+- **Citas existentes:** no se listan sin verificación previa (`POST /api/patient-appointments/verify`).
+- Tokens de verificación: tabla `patient_verification_tokens` + HMAC (`src/lib/auth/patientVerificationToken.ts`, migración `0038`).
+- Sesión paciente autenticada (`df_session` con rol `patient`) puede omitir re-verificación en el mismo flujo de chat.
+- Cancelación/reprogramación online respetan política de la clínica (`clinic_settings`) y revalidan huecos en servidor.
+
 ## Hallazgos y correcciones recientes (2026-05)
 
 - Detectada exposición de `tenants` por `anon` (RLS desactivado) y tablas con RLS sin políticas.

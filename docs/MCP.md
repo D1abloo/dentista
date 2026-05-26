@@ -101,7 +101,7 @@ GEMINI_API_KEY="..."
 GEMINI_MODEL="gemini-1.5-pro"
 ```
 
-Endpoint principal: `POST /api/ai/booking-chat`. La clave nunca debe exponerse al cliente.
+Endpoint principal: `POST /api/ai/appointments-chat` (`POST /api/ai/booking-chat` es alias legacy). La clave nunca debe exponerse al cliente. Sin `GEMINI_API_KEY`, el servidor usa clasificación local de intención; huecos y citas siempre salen de Supabase.
 
 ## Política de secretos
 

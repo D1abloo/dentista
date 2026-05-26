@@ -1,147 +1,153 @@
-# Arquitectura DentalFlow
+# Arquitectura DentalFlow / AgendaClinic
 
 ## Vista general
 
-DentalFlow está diseñado como SaaS multi-clínica con frontend SSR, componentes interactivos y backend ligero en rutas API de Astro.
+SaaS multi-clínica con frontend SSR (Astro), islas React, API en rutas Astro y PostgreSQL (Supabase) con RLS.
 
-**Regla de aislamiento:** cada clínica registrada es **siempre independiente** — relación 1:1 entre `clinics` y `tenants`. No hay sedes compartiendo `tenant_id` ni cruce de datos clínicos entre clínicas del mismo grupo comercial. Un administrador con varias clínicas tiene un perfil staff por clínica y cambia de contexto sin ver datos de otra.
+**Regla de aislamiento:** cada clínica registrada es **independiente** — relación 1:1 entre `clinics` y `tenants`. No hay cruce de datos clínicos entre clínicas.
 
 ```txt
-Paciente/Admin Browser
+Navegador (público / paciente / admin / plataforma)
         ↓
 Astro SSR + React Islands
         ↓
-API Routes Astro
+API Routes (Zod + guards)
         ↓                    ↓
-Supabase PostgreSQL/RLS       Redis Cache
+Supabase PostgreSQL/RLS       Redis (opcional)
         ↓                    ↓
-Auth / Storage / Audit        Metrics / Availability / Sessions
+Auth / Storage / Audit        Métricas / disponibilidad
 ```
 
 ## Capas
 
 ### Frontend
 
-- Páginas Astro: SEO, routing y layout general.
-- Islas React: login, portal paciente, dashboards, calendario, wizard de reserva, charts.
-- Tailwind: sistema visual premium.
+- **Páginas Astro:** SEO, routing, layouts (`AppLayout`, shells admin/paciente).
+- **React:** portales, agenda, asistente IA, formularios.
+- **Estilos:** Tailwind + `dental-saas.css`, `public-site.css`, `ai-booking.css`.
 
-Superficies separadas:
+### Superficies principales
 
-- `/`: landing pública Dentista+ con mockup premium desktop/móvil y reserva conectada a APIs demo.
-- `/reserva`: flujo público de reserva extendido, sin panel administrativo.
-- `/login`: selector de acceso paciente/admin con sesión HTTP-only firmada.
-- `/paciente`: portal privado de paciente para gestionar sus citas.
-- `/admin`: panel administrativo privado, protegido por rol admin.
+| Superficie | Rutas | Notas |
+|------------|-------|-------|
+| Sitio público | `/`, `/contacto`, `/registro-clinica`, `/registro-paciente` | Marca AgendaClinic |
+| Asistente IA | `/citas-con-ia`, widget «Citas con IA» | Gemini + verificación paciente |
+| Reserva clásica | `/reserva` | Flujo público extendido |
+| Portal paciente | `/paciente/*` | Cookie `df_session` en LIVE |
+| Panel clínica | `/admin/*` | Bootstrap `GET /api/clinic/bootstrap` |
+| Super Admin | `/platform/*` | Plataforma multi-clínica |
 
 ### API
 
-- Endpoints dentro de `src/pages/api`.
-- Validación con Zod.
-- Fallback demo cuando no hay credenciales.
-- Respuestas JSON homogéneas `{ data, error, meta }`.
+- Ubicación: `src/pages/api/**`
+- Validación: **Zod** (`src/lib/validators.ts`)
+- Respuesta: `{ data, error, meta }`
+- Guards: `src/lib/api/guards.ts` (`assertClinicScopeAsync`, `assertOwnPatient`, …)
+- Service role **solo servidor** (`getSupabaseAdmin`)
 
-### Auth producción (fase 2)
+### Auth producción
 
-- Login: `POST /api/auth/login` → Supabase `signInWithPassword` + lectura de `profiles` (`src/lib/auth/productionLogin.ts`).
-- Sesión servidor: cookie HMAC `df_session` (`src/lib/auth.ts`).
-- Bootstrap panel: `GET /api/clinic/bootstrap` mapea filas Supabase a `DemoState` (`src/lib/bootstrap/clinicState.ts`).
-- Guards: `src/lib/api/guards.ts` acota APIs por `clinic_id` de la sesión.
-- Migración: `0009_auth_bootstrap.sql` (`profiles.tenant_id`, índices).
+- Login: `POST /api/auth/login` → Supabase Auth + `profiles`
+- Sesión: cookie HMAC `df_session` (`src/lib/auth.ts`)
+- Bootstrap: `GET /api/clinic/bootstrap`
+- Cuenta dual plataforma+clínica: `src/lib/auth/dualRoleClinic.ts`
+- Admin global: `src/lib/auth/platformClinicAccess.ts`
 
-### Datos
+## Asistente de citas con IA
 
-Entidades principales:
+### Principios
 
-- clinics
-- profiles
-- dentists (`collegiate_number`, `email`, `phone` — obligatorio al alta de Dr/Dra para pie de informes)
-- treatments
-- rooms
-- appointments
-- appointment_events
-- invoices (`professional_id` en migración 0036; PDF vía plantilla HTML AgendaClinic en `src/lib/invoice/`)
-- payments
-- messages
-- reminders
-- campaigns
-- reviews
-- availability_rules
-- audit_logs (event_type, module, severity, result, user_email, tenant_id, IP, user_agent — migraciones 0030/0031)
-- login_events (historial de sesiones e intentos de login)
-- Panel `/platform/monitorizacion` (Super Admin): KPIs, alertas, gráficas y actividad en tiempo real
-- system_logs
-- role_permissions
-- clinic_settings
-- integrations
+1. **Gemini Pro** (`src/lib/ai/geminiAppointmentsAssistant.ts`) clasifica intención y genera respuesta en español.
+2. **Nunca** inventa huecos ni citas existentes.
+3. Huecos: `getAvailableSlotsForPublicBooking` (`src/lib/services/publicAiBooking.ts`).
+4. Citas del paciente: solo tras verificación (`src/lib/services/patientAppointmentsPublic.ts`).
 
-### Cache
+### Flujo reserva nueva
 
-Redis se usa para:
+```txt
+Chat → POST /api/ai/appointments-chat → intent JSON
+     → disponibilidad real → selección hueco
+     → datos paciente → POST /api/public-booking/create
+     → appointments.source = public_ai_assistant
+```
 
-- Métricas de dashboard.
-- Slots de disponibilidad.
-- Catálogos de tratamientos/dentistas.
-- Estado de jobs de recordatorios.
+### Flujo gestión citas (ver / cambiar / cancelar)
 
-Nunca cachear datos clínicos sensibles sin estrategia explícita de seguridad.
+```txt
+Chat → intención review | next | cancel | reschedule
+     → verificación (sesión paciente o email+teléfono)
+     → token firmado (patient_verification_tokens + HMAC)
+     → list / cancel / reschedule con revalidación de huecos
+```
 
-## Multi-tenant
+### Componentes UI
 
-Toda entidad operativa contiene `clinic_id`. Las políticas RLS deben impedir acceso cruzado entre clínicas.
+- `src/components/public/ai-booking/` — `AiAppointmentsAssistant`, hook `useAiAppointmentsFlow`
+- `src/components/public/AiAppointmentsWidget.tsx` — drawer flotante
 
-Migraciones `0028_rls_records_gaps.sql` y `0031_security_rls_hardening.sql` cierran huecos de RLS (records, auditoría, tablas base como `tenants`, `rooms`, `reminders`). Las APIs usan `assertClinicScopeAsync` y `assertOwnPatient` en `src/lib/api/guards.ts`. Matriz QA: `docs/QA_E2E_MATRIX.md`; auditoría DB: `npm run qa:db-security`.
+## Entidades principales (PostgreSQL)
 
-### Cuenta dual plataforma + clínica
+- `clinics`, `profiles`, `dentists`, `treatments`, `appointments`, `appointment_events`
+- `schedule_blocks`, `availability_rules`
+- Informes, documentos, facturas, pagos, mensajes, consentimientos
+- `clinic_settings` (incl. `allow_public_ai_booking`, límites reserva pública)
+- `patient_verification_tokens` (migración `0038`)
+- `audit_logs`, `login_events` (monitorización `0030`/`0031`)
 
-`admin@dentista.app` puede operar como `super_admin` y `clinic_admin` con una sola cuenta Auth. Si hay sesión de plataforma y el usuario abre `/admin`, se resuelve automáticamente el perfil staff de clínica (`src/lib/auth/dualRoleClinic.ts`) para evitar estado vacío del panel.
+## Cache
 
-### Administradores globales de clínica
-
-Usuarios en `platform_admins` (activos), sesión `super_admin` o `SUPER_ADMIN_EMAIL` tienen acceso a **todas** las clínicas con `status = active` sin crear perfiles por sede. La lista se obtiene en cada petición (`hasGlobalClinicAdministratorAccess`, `listActiveClinicIdsForGlobalAdministrator` en `src/lib/auth/platformClinicAccess.ts`): una clínica recién creada o aprobada aparece en `/admin/elegir-centro` en cuanto pasa a activa. El personal sin ese rol sigue limitado a las clínicas donde tiene perfil staff.
+Redis (opcional) para métricas, catálogos y disponibilidad. Sin Redis: fallback en memoria (`src/lib/cache.ts`).
 
 ## Roles
 
-- `patient`: portal propio.
-- `receptionist`: agenda, pacientes, citas, pagos.
-- `dentist`: agenda propia, ficha clínica, notas.
-- `admin`: configuración clínica, reportes, equipos.
-- `owner`: multi-sede, facturación SaaS, permisos globales.
+| Rol | Acceso |
+|-----|--------|
+| `patient` | Portal paciente |
+| `receptionist`, `dentist`, `admin`, `owner` | Panel clínica (alcance según rol) |
+| `super_admin` | Plataforma `/platform` |
 
 ## Notificaciones
 
-`src/pages/api/reminders/send.ts` está en modo mock para envíos masivos administrativos.
-`src/pages/api/notifications/appointment.ts` procesa confirmaciones de cita y genera enlace de activación `/activar`.
+- Email: `src/lib/email/send.ts` (SMTP / Resend)
+- WhatsApp: Meta Cloud API si está configurado
+- Confirmaciones cita: `POST /api/notifications/appointment`
 
-- WhatsApp Cloud API de Meta si `WHATSAPP_PROVIDER=meta`.
-- Email transaccional unificado en `src/lib/email/send.ts`: SMTP (Hostinger) o Resend según credenciales (`EMAIL_PROVIDER=auto` por defecto).
-- SMS en modo mock preparado para futuro adaptador.
-- Fallback mock si faltan credenciales.
+## Rutas API (referencia)
 
-## Estado actual
+### Citas y catálogo
 
-- **Producción por defecto** (`PUBLIC_DEMO_MODE=false`): sin semillas demo en UI ni `/api/demo/state`.
-- Panel **Super Admin** en `/platform` (clínicas, registros, soporte).
-- Alta de clínicas en `/registro-clinica` con aprobación manual.
-- Migración `0008_production_platform.sql`: RLS, registros, suscripciones, soporte.
-- Paneles clínica/paciente: estado vacío hasta integración Supabase Auth completa (ver `docs/PRODUCTION.md`).
-- Redis con fallback memoria.
-
-## Rutas API
-
-- `GET/POST /api/appointments`
-- `PATCH /api/appointments`
-- `GET /api/patients`
-- `GET /api/treatments`
-- `GET /api/dentists`
-- `GET /api/locations`
+- `GET/POST/PATCH /api/appointments`
+- `GET /api/patients`, `/api/treatments`, `/api/dentists`, `/api/locations`
 - `GET /api/availability`
-- `GET/POST /api/public/ai-booking`
-- `POST /api/ai/booking-chat` (Gemini Pro server-side)
+
+### Asistente IA y reserva pública
+
+- `POST /api/ai/appointments-chat` — chat + intención + huecos/citas según contexto
+- `POST /api/ai/booking-chat` — alias legacy (misma lógica)
 - `POST /api/public-booking/available-slots`
 - `POST /api/public-booking/create`
-- `GET /api/admin/metrics`
-- `GET /api/admin/modules`
-- `GET /api/cache/health`
-- `POST /api/reminders/send`
-- `POST /api/notifications/appointment`
+- `GET/POST /api/public/ai-booking` — bootstrap/slots legacy
+
+### Gestión citas paciente (verificado)
+
+- `POST /api/patient-appointments/verify`
+- `GET /api/patient-appointments/list`
+- `GET /api/patient-appointments/next`
+- `POST /api/patient-appointments/cancel`
+- `POST /api/patient-appointments/reschedule`
+- `POST /api/patient-appointments/send-secure-link`
+
+### Admin, plataforma, auth
+
+- `GET /api/admin/metrics`, `/api/admin/modules`
+- `POST /api/auth/login`, `GET /api/auth/me`
+- `GET /api/clinic/bootstrap`
+- Rutas bajo `/api/platform/*`, `/api/records/*`, `/api/billing/*`
+
+## Estado actual (mayo 2026)
+
+- Producción por defecto: `PUBLIC_DEMO_MODE=false`
+- Paneles LIVE con Supabase Auth y bootstrap
+- SEO: `robots.txt`, `sitemap.xml`, metadatos por ruta
+- Asistente IA premium en widget + `/citas-con-ia`
+- Migraciones aplicables hasta `0038_patient_verification_ai_appointments.sql`

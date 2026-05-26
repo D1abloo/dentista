@@ -1,6 +1,6 @@
 # Matriz QA E2E — Dentista+
 
-Última revisión: 2026-05-23.  
+Última revisión: 2026-05-27.  
 Scripts: `npm run qa:audit` (estructura) · `npm run qa:live` (E2E API en vivo) · `npm run qa:db-security` (auditoría RLS DB) · `npm run test:unit`
 
 ## Leyenda de estado
@@ -52,6 +52,10 @@ Scripts: `npm run qa:audit` (estructura) · `npm run qa:live` (E2E API en vivo) 
 | Stripe checkout | Pago otro paciente | Paciente A | 403 | `assertOwnPatient` | FIX | `stripe-checkout.ts` |
 | Auditoría | Eventos críticos | Sistema | Registro en audit | — | MANUAL | `platform/inspect` |
 | Storage | Buckets sensibles | — | No públicos | Service role en API | PASS-C | Sin keys en cliente |
+| IA pública | Reservar cita nueva | Anónimo | Hueco real + `source=public_ai_assistant` | `public-booking/*` | PASS-C | `0037`, `publicAiBooking.ts` |
+| IA pública | Listar citas sin verificar | Anónimo | No datos / pide verificación | `patientAppointmentsPublic` | PASS-C | `0038`, tokens HMAC |
+| IA pública | Cancelar tras verificar | Anónimo verificado | PATCH/POST cancel | `patient-appointments/cancel` | MANUAL | Política horaria clínica |
+| IA pública | Chat sin Gemini key | Anónimo | Fallback intención local | `appointmentsChatHandler` | PASS-C | Sin inventar slots |
 
 ## Usuarios de prueba sugeridos
 
@@ -76,6 +80,8 @@ Clínicas independientes: Nova, Sonrisa, Horizonte.
 | `0027_schedule_block_group.sql` | `block_group_id` |
 | `0028_rls_records_gaps.sql` | RLS consentimientos, documentos, mensajes, pagos, facturas paciente |
 | `0029_independent_clinics_only.sql` | 1 clínica = 1 tenant; separa legacy multi-sede; trigger DB |
+| `0037_public_ai_booking.sql` | Reserva pública IA, `appointments.source` |
+| `0038_patient_verification_ai_appointments.sql` | Verificación paciente para gestión vía IA |
 
 **Aplicar en remoto:** `npm run db:migrate` o SQL Editor Supabase.
 
@@ -120,6 +126,7 @@ Informe JSON: `docs/QA_E2E_LIVE_RESULTS.json`
 4. Firma consentimiento con canvas en PdP.
 5. Verificar buckets Storage en dashboard Supabase (privados + signed URLs).
 6. Procesar webhook Stripe con firma real.
+7. Asistente IA: reserva en `/citas-con-ia`, verificación email+teléfono, listar y cancelar cita propia.
 
 ## Confirmación aislamiento
 

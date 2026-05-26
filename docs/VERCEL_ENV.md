@@ -83,7 +83,7 @@ Marca manualmente como **Sensitive** en el dashboard:
 ## Tras cambiar variables
 
 1. **Deployments → Redeploy** (desactivar *Use existing Build Cache*).
-2. Probar: `/`, `/login/admin`, `/admin`, `/platform/login`, `/portal-paciente`.
+2. Probar: `/`, `/citas-con-ia`, `/login/admin`, `/admin`, `/platform/login`, `/portal-paciente`.
 3. Probar entrada oculta: `/entrada/{tu-slug}`.
 
 ## Seguridad

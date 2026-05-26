@@ -1,69 +1,79 @@
-# Frontend Dentista+
+# Frontend Dentista+ / AgendaClinic
 
 ## Resumen
 
-Dentista+ es una aplicación SaaS premium para gestión de citas dentales. El frontend usa **Astro** (páginas y layout), **React** (portales interactivos), **TypeScript** estricto y el design system en `src/styles/dental-saas.css`.
+Frontend con **Astro** (páginas, SEO, API), **React** (portales y asistente IA), **TypeScript** estricto y design system en `src/styles/`.
 
-Notas recientes:
-
-- Marca unificada con logo circular transparente en header/footer (`DentistaWebpLockup`).
-- Flujo LIVE priorizado (`/login/admin`, `/login/paciente`, `/platform/login`) con cookie `df_session`.
-- Usuario dual `admin@dentista.app`: puede alternar plataforma y panel clínica sin perder contexto.
+- Marca pública: **AgendaClinic** (SEO, asistente IA).
+- Producto interno: **Dentista+ / DentalFlow**.
+- Modo recomendado: **LIVE** (`PUBLIC_DEMO_MODE=false`) con cookie `df_session`.
 
 ## Sitio público
 
-- **Ruta:** `/`
-- **Componentes:** `src/components/public/` (`LandingPage`, `PublicHeader`, `PublicFooter`, `CookieBanner`)
-- **Contenido:** hero con CTAs «Reservar cita» y «Entrar al portal», secciones de servicios, portal paciente, panel admin, informes/facturas/pagos y multi-clínica
-- **Legal:** `/cookies`, `/privacidad`, `/terminos`, `/documentacion`, `/contacto`
-- **Ancho máximo:** contenedor `.shell` (~1200px), responsive mobile-first
+| Ruta | Componentes / notas |
+|------|---------------------|
+| `/` | `LandingPage`, hero, CTAs «Citas con IA», portal, demo clínica |
+| `/citas-con-ia` | `AiAppointmentsPage` — asistente completo (reserva + gestión) |
+| `/reservar-con-ia` | Redirección 301 → `/citas-con-ia` |
+| `/reserva` | Flujo reserva público clásico |
+| `/contacto`, `/documentacion` | Contacto y ayuda |
+| `/registro-clinica`, `/registro-paciente` | Altas |
+| Legal | `/cookies`, `/privacidad`, `/terminos` |
+
+**Widget global:** `AiAppointmentsWidget` en `AppLayout` (todas las páginas públicas) — botón «Citas con IA», drawer premium.
+
+### Asistente de citas con IA (UI)
+
+- **Título:** Asistente de citas con IA
+- **Pestañas:** Nueva cita · Mis citas · Cambiar · Ayuda
+- **Progreso:** 5 pasos (reserva) o 4 pasos (gestión con verificación)
+- **Panel lateral:** resumen de reserva, huecos reales, citas existentes, formularios
+- **Estilos:** `src/styles/ai-booking.css`
+- **Hook:** `useAiAppointmentsFlow` en `src/components/public/ai-booking/`
 
 ## Portal del paciente
 
-- **Rutas:** `/paciente`, `/paciente/citas`, `/paciente/reservar`, `/paciente/informes`, `/paciente/documentos`, `/paciente/facturas`, `/paciente/pagos`, `/paciente/perfil`, `/paciente/mensajes`
-- **Layout:** `PatientShell` con barra lateral (escritorio) y menú inferior (móvil)
-- **Sesión demo:** `localStorage` con `role: "paciente"` y `patientId` (por defecto `PAT-0001`)
-- **Regla de datos:** el paciente ve **todos** sus registros por `patientId`, aunque provengan de distintos `tenantId` (multi-clínica)
-
-## Informes clínicos — nueva organización visual
-
-- **Panel clínica** (`/admin/informes`): formulario por recuadros numerados (antecedentes, informe clínico, fuentes, anamnesis, diagnóstico, recomendaciones), membrete con logo y nº de colegiado, plantillas rápidas por tipo de cita. Estilos: `admin-clinical-reports.css`, componentes `AdminClinicalReports` y `ReportSectionBox`.
-- **Portal paciente** (`/paciente/informes`): listado con vista previa; **Ver informe** abre visor a pantalla completa (móvil) o modal (escritorio) con pestañas *Informe clínico · Diagnóstico · Indicaciones* y bloques legibles. Componente `PatientReportViewer`, estilos `patient-reports.css`.
-- **Portal paciente** (`/paciente/mensajes`): bandeja con vista previa; **Ver mensaje** abre `PatientMessageViewer` (pestañas *Mensaje · Responder*), texto legible sin panel lateral con scroll excesivo.
+- **Rutas:** `/paciente`, `/paciente/citas`, `/paciente/reservar`, informes, documentos, facturas, pagos, mensajes, perfil
+- **Layout:** `PatientShell` (sidebar + bottom nav móvil)
+- **LIVE:** sesión por cookie; datos vía APIs con `patientId` de sesión
+- **Demo** (`PUBLIC_DEMO_MODE=true`): ver `docs/LOCALSTORAGE_DEMO.md`
 
 ## Panel administrativo
 
-- **Rutas:** `/admin`, `/admin/agenda`, `/admin/citas`, `/admin/pacientes`, `/admin/pacientes/:id`, módulos de informes, documentos, facturas, pagos, dentistas, tratamientos, clínicas, configuración y normativa
-- **Layout:** `AdminShell` con aviso de clínica activa y `tenantId`
-- **Sesión demo:** `role: "admin"` y `tenantId` (`TEN-0001` Centro, `TEN-0002` Norte, `TEN-0003` Sur)
-- **Regla de datos:** solo registros con `record.tenantId === activeTenantId`
+- **Rutas:** agenda, citas, pacientes, informes, documentos, facturas, pagos, dentistas, tratamientos, configuración, normativa
+- **Layout:** `AdminShell` + selector de clínica activa
+- **Agenda:** vistas día/semana/mes, bloqueos, huecos
+- **Informes clínicos:** `admin-clinical-reports.css`, visor paciente en `patient-reports.css`
 
-## Login demo
+## Accesos (LIVE)
 
-En `/login` puedes entrar como:
+| Portal | URL |
+|--------|-----|
+| Clínica | `/login/admin` |
+| Paciente | `/login/paciente` o `/portal-paciente` |
+| Plataforma | `/platform/login` |
+| Hub | `/login` |
 
-1. Paciente (`PAT-0001`)
-2. Admin Clínica Centro (`TEN-0001`)
-3. Admin Clínica Norte (`TEN-0002`)
-4. Admin Clínica Sur (`TEN-0003`)
+Credenciales QA: [`QA_USUARIOS_PRUEBA.md`](QA_USUARIOS_PRUEBA.md).
 
-La sesión se guarda en `localStorage` (ver `docs/LOCALSTORAGE_DEMO.md`).
+## SEO
+
+- Metadatos: `src/lib/seo/publicPages.ts`
+- `robots.txt`, `sitemap.xml` (generados)
+- Página IA: título «Citas con IA | AgendaClinic»
 
 ## Componentes reutilizables
 
-- UI: `src/components/ui/` (`Card`, `StatCard`, `IdBadge`, `Badge`, formularios, modales)
-- Marca: `LogoMark`
-- Búsqueda global de IDs: `GlobalIdSearch`
-
-## Validación y mensajes
-
-Los formularios usan `src/lib/validation.ts`. Todos los errores visibles están en **español**.
+- UI: `src/components/ui/`
+- Público: `src/components/public/`
+- Admin: `src/components/admin/`
+- Paciente: `src/components/patient/`
 
 ## Comandos
 
 ```bash
-npm run dev      # desarrollo
-npm run build    # compilación
-npm run smoke    # comprobación de estructura
-npm run lint:light
+npm run dev
+npm run build
+npm run check
+npm run smoke
 ```

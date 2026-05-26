@@ -44,7 +44,8 @@ npm run dev
 
 Abre:
 
-- `http://localhost:4321/` — landing pública Dentista+ (header/footer con logo circular transparente).
+- `http://localhost:4321/` — landing pública AgendaClinic / Dentista+.
+- `http://localhost:4321/citas-con-ia` — asistente de citas con IA (reserva + gestión verificada).
 - `http://localhost:4321/login/admin` — acceso panel clínica (LIVE con Supabase).
 - `http://localhost:4321/platform/login` — Super Admin plataforma.
 - `http://localhost:4321/login/paciente` — portal del paciente.
@@ -92,7 +93,8 @@ Configura `ADMIN_DEMO_*`, `PATIENT_DEMO_*` en `.env`. La sesión demo usa `local
 | Documento | Contenido |
 |-----------|-----------|
 | [`docs/QA_USUARIOS_PRUEBA.md`](docs/QA_USUARIOS_PRUEBA.md) | Credenciales y URLs de prueba |
-| [`docs/SUPABASE_APPLY.md`](docs/SUPABASE_APPLY.md) | Orden de migraciones SQL (incl. `0031`) |
+| [`docs/SUPABASE_APPLY.md`](docs/SUPABASE_APPLY.md) | Orden de migraciones SQL (hasta `0038`) |
+| [`docs/README.md`](docs/README.md) | Índice de documentación |
 | [`docs/SECURITY.md`](docs/SECURITY.md) | RLS, sesiones y auditoría BBDD |
 | [`docs/QA_E2E_MATRIX.md`](docs/QA_E2E_MATRIX.md) | Matriz QA y comandos `qa:live` |
 | [`docs/FRONTEND.md`](docs/FRONTEND.md) | Sitio público, portales y marca |
@@ -210,8 +212,20 @@ npm run codex:bootstrap  # bootstrap pensado para Codex
 npm run git:save -- "msg" # commit + push a GitHub
 ```
 
+## Asistente de citas con IA (mayo 2026)
+
+- **Página:** `/citas-con-ia` · **Widget:** «Citas con IA» en todas las páginas públicas.
+- **Chat:** `POST /api/ai/appointments-chat` (Gemini Pro solo servidor; sin clave usa fallback de intención).
+- **Reserva nueva:** huecos reales vía `POST /api/public-booking/available-slots` y `POST /api/public-booking/create`.
+- **Mis citas / cancelar / reprogramar:** verificación obligatoria (`POST /api/patient-appointments/verify` y rutas relacionadas).
+- **Migraciones:** `0037_public_ai_booking.sql`, `0038_patient_verification_ai_appointments.sql`.
+- Variable: `GEMINI_API_KEY` (ver `docs/VERCEL_ENV.md`).
+
 ## Rutas API incluidas
 
+- `POST /api/ai/appointments-chat` asistente IA (reserva + gestión).
+- `POST /api/public-booking/available-slots` y `POST /api/public-booking/create` reserva pública.
+- `POST /api/patient-appointments/verify`, `GET .../list`, `GET .../next`, `POST .../cancel`, `POST .../reschedule`.
 - `GET /api/appointments` lista citas.
 - `POST /api/appointments` crea cita validada con Zod.
 - `GET /api/treatments` lista tratamientos por clínica.
@@ -279,7 +293,7 @@ npm run lint:light
 npm run build
 ```
 
-Para pruebas manuales, levanta `npm run dev` y visita `/`, `/login`, `/paciente`, `/paciente/reservar`, `/paciente/citas`, `/admin`, `/admin/agenda`, `/admin/citas`, `/admin/normativa` y `/api/cache/health`.
+Para pruebas manuales, levanta `npm run dev` y visita `/`, `/citas-con-ia`, `/login`, `/paciente`, `/paciente/reservar`, `/paciente/citas`, `/admin`, `/admin/agenda`, `/admin/citas`, `/admin/normativa` y `/api/cache/health`.
 
 ## Seguridad
 

@@ -23,16 +23,21 @@ Si en Supabase **no has ejecutado ninguna migración**, sigue este orden en el *
 | 20 | `0031_security_rls_hardening.sql` | **Sí** | Hardening RLS + backfill idempotente de `0030` |
 | 21 | `0032_schedule_block_dentist_ids.sql` | **Sí** | Columna `dentist_ids` en `schedule_blocks` (desbloqueo multi-profesional) |
 | 22 | `0033_messages_from_patient.sql` | **Sí** | Columna `from_patient` en `messages` (mensajes bidireccionales portal) |
+| 23 | `0034_staff_clinic_preferences.sql` | **Sí** | Preferencias staff por clínica |
+| 24 | `0035_organizations_staff_access.sql` | **Sí** | Acceso staff multi-organización |
+| 25 | `0036_invoice_fiscal_fields.sql` | **Sí** | Campos fiscales en facturas |
+| 26 | `0037_public_ai_booking.sql` | **Sí** | Reserva pública IA: `appointments.source`, settings `allow_public_ai_booking` |
+| 27 | `0038_patient_verification_ai_appointments.sql` | **Sí** | Tokens verificación paciente, `cancelled_at`, `rescheduled_from_id`, `visible_to_patient` |
 
 ### Resumen rápido — modo PRO (`PUBLIC_DEMO_MODE=false`)
 
 Ejecuta como mínimo:
 
 ```
-0001 → 0003 → 0006 → 0008 → 0009 → 0010 → 0011 → … → 0033
+0001 → 0003 → 0006 → 0008 → 0009 → 0010 → 0011 → … → 0038
 ```
 
-**Estado remoto (may 2026):** `0032` y `0033` aplicadas en el proyecto Supabase de producción.
+**Estado remoto (may 2026):** aplicar `0037` y `0038` antes de usar el asistente IA completo en producción.
 
 Opcional: `0007_demo_app_state.sql` (solo demo remoto).
 

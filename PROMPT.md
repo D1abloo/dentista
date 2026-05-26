@@ -1,3 +1,5 @@
-# Prompt maestro
+# Prompt maestro — puntero
 
-Construye y mejora DentalFlow/Dentista con Astro, React, Supabase y Redis cache opcional. Debe funcionar en local con `npm run dev`, ser responsive 100% y subirse a `https://github.com/D1abloo/dentista.git` tras cada cambio.
+Detalle en **[docs/PROMPT.md](docs/PROMPT.md)** y reglas obligatorias en **[AGENTS.md](AGENTS.md)**.
+
+**AgendaClinic / Dentista+** — Astro + React + Supabase, modo producción `PUBLIC_DEMO_MODE=false`, asistente de citas en `/citas-con-ia`, push a `https://github.com/D1abloo/dentista.git` tras validar con `npm run smoke` y `npm run check`.

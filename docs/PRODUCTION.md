@@ -59,7 +59,11 @@ SUPER_ADMIN_EMAIL=
 SUPER_ADMIN_PASSWORD=
 CLINIC_DEFAULT_PASSWORD=<password-temporal-alta-clinica>
 PUBLIC_APP_URL=https://tu-dominio.com
+GEMINI_API_KEY=<opcional-asistente-ia>
+GEMINI_MODEL=gemini-1.5-pro
 ```
+
+Aplica migraciones hasta `0038` (ver `docs/SUPABASE_APPLY.md`). Para el asistente IA en producción son obligatorias `0037` y `0038`, además de `allow_public_ai_booking` en `clinic_settings`.
 
 Aplica también la migración `0009_auth_bootstrap.sql` (índices y `profiles.tenant_id`).
 
@@ -107,7 +111,7 @@ npm run smoke
 npm run build
 ```
 
-Verificar manualmente: `/`, `/contacto`, `/registro-clinica`, `/platform/login`, `/login`, `/admin` (vacío sin datos hasta Supabase).
+Verificar manualmente: `/`, `/citas-con-ia`, `/contacto`, `/registro-clinica`, `/platform/login`, `/login`, `/admin` (vacío sin datos hasta Supabase).
 
 ## Ayuda funcional de paneles
 

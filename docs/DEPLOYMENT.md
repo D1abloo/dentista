@@ -50,13 +50,9 @@ https://github.com/D1abloo/dentista.git
 ## Supabase real
 
 1. Crea proyecto en Supabase.
-2. Ejecuta migraciones en orden:
-   - `0001_schema.sql`
-   - `0002_seed.sql`
-   - `0003_operations.sql`
-   - `0004_seed_operations.sql`
-3. Configura variables en `.env`.
-4. Cambia `PUBLIC_DEMO_MODE=false`.
+2. Ejecuta migraciones según `docs/SUPABASE_APPLY.md` (PRO: hasta `0038`).
+3. Configura variables en `.env` (incl. `GEMINI_API_KEY` si usas asistente IA).
+4. `PUBLIC_DEMO_MODE=false` en producción.
 
 ## Redis en desarrollo
 
@@ -104,4 +100,5 @@ Build con `@astrojs/vercel` y `output: 'static'` (páginas HTML en build + APIs 
 - [ ] Emails/WhatsApp/SMS con proveedor real.
 - [ ] Rate limit para endpoints públicos.
 - [ ] Monitoring de errores.
-- [ ] Pruebas e2e de reserva y cancelación.
+- [ ] Pruebas e2e de reserva y cancelación (`/reserva`, `/citas-con-ia`, portal paciente).
+- [ ] `GEMINI_API_KEY` en Vercel si el asistente IA debe usar Gemini Pro.
