@@ -21,6 +21,9 @@ const required = [
   'src/pages/admin/empresa.astro',
   'src/pages/admin/pagos.astro',
   'src/pages/admin/reportes.astro',
+  'src/pages/admin/informes.astro',
+  'src/lib/auth/panelRouteAccess.ts',
+  'src/middleware.ts',
   'src/pages/admin/configuracion.astro',
   'src/pages/admin/notificaciones.astro',
   'src/pages/admin/normativa.astro',
@@ -78,6 +81,19 @@ const missing = required.filter((path) => !existsSync(path));
 if (missing.length) {
   console.error('Faltan archivos requeridos:\n' + missing.join('\n'));
   process.exit(1);
+}
+
+const panelPages = [
+  'src/pages/admin/informes.astro',
+  'src/pages/admin/documentos.astro',
+  'src/pages/paciente/facturas.astro'
+];
+for (const path of panelPages) {
+  const src = readFileSync(path, 'utf8');
+  if (!src.includes('export const prerender = false')) {
+    console.error(`Falta prerender SSR en panel: ${path}`);
+    process.exit(1);
+  }
 }
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));

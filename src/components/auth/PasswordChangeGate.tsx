@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { isClientDemoMode } from '@/lib/appMode';
 
 function needsPasswordChange(user: {
   mustChangePassword?: boolean;
@@ -13,9 +14,13 @@ export function PasswordChangeGate({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    if (isClientDemoMode()) {
+      setReady(true);
+      return;
+    }
     void (async () => {
       try {
-        const res = await fetch('/api/auth/me', { credentials: 'include' });
+        const res = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
         if (!res.ok) {
           setReady(true);
           return;

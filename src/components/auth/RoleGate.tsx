@@ -1,12 +1,13 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { isClientDemoMode } from '@/lib/appMode';
-import { clearDemoRoleHints } from '@/lib/demoStore';
+import { clearDemoRoleHints, getStoredRole } from '@/lib/demoStore';
 import { logoutSession } from '@/lib/session';
 import { Restricted } from './Restricted';
 import type { DemoRole } from '@/types/demo';
 
 type MeUser = {
   role: string;
+  staffRole?: string;
   platformInspect?: boolean;
   inspectMode?: string;
 };
@@ -15,24 +16,34 @@ const STAFF_ME_ROLES = new Set(['admin', 'owner', 'clinic_admin', 'dentist', 're
 
 function mapMeToPortalRole(data: MeUser): DemoRole | null {
   if (data.role === 'patient') return 'paciente';
+  if (data.platformInspect && data.inspectMode === 'patient_portal') return 'paciente';
+  const staffRole = data.staffRole ?? data.role;
   if (data.role === 'admin' || data.role === 'super_admin') return 'admin';
+  if (STAFF_ME_ROLES.has(staffRole)) return 'admin';
   if (data.platformInspect && data.inspectMode === 'clinic_admin') return 'admin';
-  if (STAFF_ME_ROLES.has(data.role)) return 'admin';
   return null;
 }
 
 export function RoleGate({ role, children }: { role: DemoRole; children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [current, setCurrent] = useState<DemoRole | null>(null);
-  const live = isClientDemoMode() === false;
+  const demo = isClientDemoMode();
 
   useEffect(() => {
     let cancelled = false;
 
     const sync = async () => {
-      if (live) clearDemoRoleHints();
+      if (demo) {
+        if (!cancelled) {
+          setCurrent(getStoredRole());
+          setReady(true);
+        }
+        return;
+      }
+
+      clearDemoRoleHints();
       try {
-        const res = await fetch('/api/auth/me', { credentials: 'include' });
+        const res = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
         if (!res.ok) {
           if (!cancelled) {
             setCurrent(null);
@@ -59,14 +70,14 @@ export function RoleGate({ role, children }: { role: DemoRole; children: ReactNo
     const onStorage = () => void sync();
     const onFocus = () => void sync();
     window.addEventListener('storage', onStorage);
-    if (live) window.addEventListener('focus', onFocus);
+    if (!demo) window.addEventListener('focus', onFocus);
 
     return () => {
       cancelled = true;
       window.removeEventListener('storage', onStorage);
-      if (live) window.removeEventListener('focus', onFocus);
+      if (!demo) window.removeEventListener('focus', onFocus);
     };
-  }, [live]);
+  }, [demo]);
 
   if (!ready) {
     const label = role === 'admin' ? 'clínica' : 'paciente';
@@ -78,7 +89,7 @@ export function RoleGate({ role, children }: { role: DemoRole; children: ReactNo
   }
 
   if (current !== role) {
-    return <Restricted expected={role} current={current} live={live} />;
+    return <Restricted expected={role} current={current} live={!demo} />;
   }
 
   return <>{children}</>;
