@@ -1,6 +1,7 @@
 import { Calendar, FileText, Heart, LayoutDashboard, Receipt, Shield } from 'lucide-react';
 import { BRAND_NAME } from '@/lib/brand/identity';
 import { LandingDashboardPreview } from './LandingDashboardPreview';
+import { LandingHeroDemoLegend } from './LandingHeroDemoLegend';
 
 /** Mockup portal paciente (móvil). */
 function PatientPhoneMock() {
@@ -96,6 +97,7 @@ export function LandingHeroMocks() {
       <div className="ps-hero-mocks__tablet ps-hero-mocks__anim ps-hero-mocks__anim--5">
         <PlatformTabletMock />
       </div>
+      <LandingHeroDemoLegend />
     </div>
   );
 }

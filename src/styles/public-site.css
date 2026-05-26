@@ -805,6 +805,61 @@
   width: min(100%, 30rem);
   min-height: 18rem;
   margin-inline: auto;
+  padding-bottom: 0.25rem;
+}
+
+.ps-hero-mocks__legend {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 1rem;
+  padding: 0.85rem 0.9rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(22, 138, 148, 0.14);
+  box-shadow: 0 10px 28px rgba(23, 59, 64, 0.08);
+}
+
+@media (min-width: 640px) {
+  .ps-hero-mocks__legend {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+}
+
+.ps-hero-mocks__legend-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.ps-hero-mocks__legend-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: 0.55rem;
+  background: linear-gradient(145deg, #e8f7f5 0%, #d4efec 100%);
+  border: 1px solid rgba(22, 138, 148, 0.2);
+  color: var(--ps-teal-deep);
+}
+
+.ps-hero-mocks__legend-item strong {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ps-ink);
+  line-height: 1.25;
+}
+
+.ps-hero-mocks__legend-item p {
+  margin: 0.15rem 0 0;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: var(--ps-muted);
 }
 
 .ps-hero-mocks__laptop {

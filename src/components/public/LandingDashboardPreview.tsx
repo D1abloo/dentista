@@ -5,6 +5,7 @@ import {
   landingDashNav,
   landingDashQuickModules
 } from './landingDashboardData';
+import { LandingDashboardDemoInsights } from './LandingDashboardDemoInsights';
 import { LandingDashboardMockBody } from './LandingDashboardMockBody';
 import { brandImageAlts, brandImages, clinicDashboardFallback } from '@/lib/brand/assets';
 import { BRAND_NAME, BRAND_PANEL_CLINIC } from '@/lib/brand/identity';
@@ -104,16 +105,16 @@ export function LandingDashboardPreview() {
             <LandingDashboardMockBody />
           )}
 
-          {!useFallback ? (
-            <div className="pro-dash__modules pro-dash__modules--compact" aria-label="Accesos a módulos">
-              {landingDashQuickModules.map((m) => (
-                <a key={m.href} href={m.href} className="pro-dash__module">
-                  <m.icon className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
-                  {m.label}
-                </a>
-              ))}
-            </div>
-          ) : null}
+          {!useFallback ? <LandingDashboardDemoInsights compact /> : null}
+
+          <div className="pro-dash__modules pro-dash__modules--compact" aria-label="Accesos a módulos">
+            {landingDashQuickModules.map((m) => (
+              <a key={m.href} href={m.href} className="pro-dash__module">
+                <m.icon className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+                {m.label}
+              </a>
+            ))}
+          </div>
 
           <div className="pro-dash__actions">
             {landingDashActions.map((a) => (
