@@ -32,9 +32,9 @@ export function PatientConsentsCompact() {
           Debes firmar los consentimientos pendientes antes de tu visita.
         </p>
       ) : null}
-      <a href="/paciente/consentimientos" className="btn btn--secondary btn--sm mt-3 inline-flex">
+      <span className="btn btn--secondary btn--sm mt-3 inline-flex">
         Ver y firmar
-      </a>
+      </span>
     </Card>
   );
 }
@@ -49,9 +49,9 @@ export function PatientConsentAlert() {
       <span>
         Tienes <strong>{pending.length}</strong> consentimiento(s) por firmar antes de tu próxima visita.
       </span>
-      <a href="/paciente/consentimientos" className="btn btn--teal btn--sm w-full sm:w-auto text-center">
+      <span className="btn btn--teal btn--sm w-full sm:w-auto text-center">
         Firmar ahora
-      </a>
+      </span>
     </div>
   );
 }

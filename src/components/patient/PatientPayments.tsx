@@ -25,9 +25,6 @@ import {
   downloadPatientReceipt,
   enrichPatientPayments,
   filterAndSortPayments,
-  invoiceLinkForPayment,
-  messagesWithPaymentContext,
-  pendingInvoicesLink,
   visiblePaymentsForPatient,
   type PaymentChip,
   type PatientPaymentSort,
@@ -240,9 +237,9 @@ export function PatientPayments() {
       {urlFactura ? (
         <div className="banner-alert flex flex-wrap items-center justify-between gap-2 mb-3">
           <span>Pagos filtrados por factura vinculada.</span>
-          <a href="/paciente/pagos" className="text-xs font-bold text-teal-800 underline">
+          <span className="text-xs font-bold text-teal-800 underline">
             Ver todos los pagos
-          </a>
+          </span>
         </div>
       ) : null}
       <header className="ppay-header">
@@ -318,12 +315,10 @@ export function PatientPayments() {
             Cuando realices un pago o la clínica registre un cobro vinculado a tus facturas, aparecerá aquí.
           </p>
           <div className="flex flex-wrap gap-2 justify-center">
-            <a href={pendingInvoicesLink()} className="ppay-btn ppay-btn--primary no-underline">
+            <span className="ppay-btn ppay-btn--primary no-underline">
               Ver facturas pendientes
-            </a>
-            <a href="/paciente/mensajes" className="ppay-btn ppay-btn--outline no-underline">
-              Contactar clínica
-            </a>
+            </span>
+<p className="panel-hint text-sm text-slate-500 m-0">Usa el menú lateral del portal para abrir otras secciones.</p>
           </div>
         </section>
       ) : showNoResults ? (
@@ -385,9 +380,9 @@ export function PatientPayments() {
                     </button>
                   ) : null}
                   {v.invoiceId ? (
-                    <a href={invoiceLinkForPayment(v.invoiceId)} className="ppay-btn ppay-btn--outline no-underline">
+                    <span className="ppay-btn ppay-btn--outline no-underline">
                       Ver factura
-                    </a>
+                    </span>
                   ) : null}
                 </div>
               </article>
@@ -422,9 +417,7 @@ export function PatientPayments() {
               <p className="text-xs text-slate-500 mt-1 mb-2">
                 Si tienes importes pendientes, puedes revisarlos desde la sección Mis facturas.
               </p>
-              <a href="/paciente/facturas" className="ppay-btn ppay-btn--outline no-underline inline-flex">
-                Ver mis facturas
-              </a>
+<p className="panel-hint text-sm text-slate-500 m-0">Usa el menú lateral del portal para abrir otras secciones.</p>
             </div>
 
             <div className="ppay-privacy">
@@ -469,7 +462,7 @@ export function PatientPayments() {
                     <dt>Factura vinculada</dt>
                     <dd>
                       {selected.invoiceId ? (
-                        <a href={invoiceLinkForPayment(selected.invoiceId)}>{selected.invoiceDisplayId}</a>
+                        <span >{selected.invoiceDisplayId}</span>
                       ) : (
                         selected.invoiceDisplayId
                       )}
@@ -538,17 +531,14 @@ export function PatientPayments() {
                     </button>
                   ) : null}
                   {selected.invoiceId ? (
-                    <a href={invoiceLinkForPayment(selected.invoiceId)} className="ppay-btn ppay-btn--outline w-full no-underline">
+                    <span className="ppay-btn ppay-btn--outline w-full no-underline">
                       Ver factura
-                    </a>
+                    </span>
                   ) : null}
-                  <a
-                    href={messagesWithPaymentContext(selected.displayId, selected.invoiceDisplayId)}
-                    className="ppay-btn ppay-btn--outline w-full no-underline"
-                  >
+                  <span className="ppay-btn ppay-btn--outline w-full no-underline">
                     <MessageSquare className="h-4 w-4" aria-hidden />
                     Enviar mensaje a la clínica
-                  </a>
+                  </span>
                 </div>
                 <div className="ppay-help">
                   <p className="m-0 text-xs text-slate-600">

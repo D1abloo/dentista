@@ -207,20 +207,14 @@ export function PatientReportViewer({
               {downloading ? 'Descargando…' : 'Descargar PDF'}
             </button>
           ) : null}
-          <a
-            href={messagesWithReportContext(view.report.title)}
-            className="prt-btn prt-btn--outline prt-viewer__footer-btn no-underline"
-          >
+          <span className="prt-btn prt-btn--outline prt-viewer__footer-btn no-underline">
             <MessageSquare className="h-4 w-4" aria-hidden />
             Consultar clínica
-          </a>
-          <a
-            href={relatedDocumentsQuery(view.report.id, view.report.appointmentId)}
-            className="prt-btn prt-btn--outline prt-viewer__footer-btn no-underline"
-          >
+          </span>
+          <span className="prt-btn prt-btn--outline prt-viewer__footer-btn no-underline">
             <FileText className="h-4 w-4" aria-hidden />
             Documentos
-          </a>
+          </span>
           {view.isNew ? (
             <button type="button" className="prt-btn prt-btn--outline prt-viewer__footer-btn" onClick={onMarkRead}>
               <CheckCircle2 className="h-4 w-4" aria-hidden />

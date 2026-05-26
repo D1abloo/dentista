@@ -1261,15 +1261,9 @@ export function AdminInvoices() {
         <div className="inv-util-card inv-util-card--teal">
           <h3>Automatiza tu facturación</h3>
           <p>Configura series, IVA y datos fiscales desde ajustes de clínica.</p>
-          <button
-            type="button"
-            className="inv-btn-secondary"
-            onClick={() => {
-              window.location.href = '/admin/configuracion';
-            }}
-          >
-            Configurar automatización
-          </button>
+          <p className="text-xs text-slate-500 m-0">
+            Configura series, IVA y datos fiscales en Ajustes del menú lateral.
+          </p>
         </div>
         <div className="inv-util-card">
           <h3>Recordatorios</h3>

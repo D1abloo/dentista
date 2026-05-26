@@ -326,9 +326,7 @@ export function PatientBook() {
             Tu cita ha sido registrada. La clínica podrá confirmarla y recibirás una notificación en tu portal.
           </p>
           <div className="flex flex-wrap gap-2 justify-center mt-6">
-            <a href="/paciente/citas" className="pb-btn pb-btn--primary no-underline">
-              Ver mis citas
-            </a>
+<p className="panel-hint text-sm text-slate-500 m-0">Usa el menú lateral del portal para abrir otras secciones.</p>
             <button type="button" className="pb-btn pb-btn--outline" onClick={resetBooking}>
               Reservar otra cita
             </button>
@@ -683,7 +681,7 @@ export function PatientBook() {
             <li key={tip.link}>
               <Check className="h-3.5 w-3.5 text-teal-600" aria-hidden />
               {tip.text}
-              <a href={tip.href}>{tip.link}</a>
+              <span >{tip.link}</span>
             </li>
           )
         )}

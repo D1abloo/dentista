@@ -257,12 +257,7 @@ export function PatientHistory() {
             Cuando completes una cita, aparecerá aquí con su tratamiento, informe, documentos y facturas relacionadas.
           </p>
           <div className="flex flex-wrap gap-2 justify-center">
-            <a href="/paciente/reservar" className="phis-btn phis-btn--primary no-underline">
-              Reservar cita
-            </a>
-            <a href="/paciente/citas" className="phis-btn phis-btn--outline no-underline">
-              Ver mis citas
-            </a>
+<p className="panel-hint text-sm text-slate-500 m-0">Usa el menú lateral del portal para abrir otras secciones.</p>
           </div>
         </section>
       ) : showNoResults ? (
@@ -315,24 +310,24 @@ export function PatientHistory() {
                       Ver detalle
                     </button>
                     {v.report ? (
-                      <a href={reportLink(v.report.id)} className="phis-btn phis-btn--outline no-underline">
+                      <span className="phis-btn phis-btn--outline no-underline">
                         Ver informe
-                      </a>
+                      </span>
                     ) : null}
                     {v.hasDocuments ? (
-                      <a href={documentsLink(v.appointment.id)} className="phis-btn phis-btn--outline no-underline">
+                      <span className="phis-btn phis-btn--outline no-underline">
                         Ver documentos
-                      </a>
+                      </span>
                     ) : null}
                     {v.invoice ? (
-                      <a href={invoiceLink(v.invoice.id)} className="phis-btn phis-btn--outline no-underline">
+                      <span className="phis-btn phis-btn--outline no-underline">
                         Ver factura
-                      </a>
+                      </span>
                     ) : null}
                     {!v.invoice && !v.report ? (
-                      <a href={followUpBookingLink(v)} className="phis-btn phis-btn--primary no-underline">
+                      <span className="phis-btn phis-btn--primary no-underline">
                         Reservar seguimiento
-                      </a>
+                      </span>
                     ) : null}
                   </div>
                 </div>
@@ -411,7 +406,7 @@ export function PatientHistory() {
                     <dt>Informe relacionado</dt>
                     <dd>
                       {selected.report ? (
-                        <a href={reportLink(selected.report.id)}>{selected.report.title}</a>
+                        <span >{selected.report.title}</span>
                       ) : (
                         '—'
                       )}
@@ -421,7 +416,7 @@ export function PatientHistory() {
                     <dt>Documentos relacionados</dt>
                     <dd>
                       {selected.documents.length ? (
-                        <a href={documentsLink(selected.appointment.id)}>{selected.documents[0]?.title}</a>
+                        <span >{selected.documents[0]?.title}</span>
                       ) : (
                         '—'
                       )}
@@ -431,7 +426,7 @@ export function PatientHistory() {
                     <dt>Factura relacionada</dt>
                     <dd>
                       {selected.invoice ? (
-                        <a href={invoiceLink(selected.invoice.id)}>{selected.invoice.displayId}</a>
+                        <span >{selected.invoice.displayId}</span>
                       ) : (
                         '—'
                       )}
@@ -441,9 +436,9 @@ export function PatientHistory() {
                     <dt>Pago relacionado</dt>
                     <dd>
                       {selected.payment ? (
-                        <a href={paymentLink(selected.payment.id, selected.invoice?.id)}>
+                        <span >
                           {selected.payment.displayId}
-                        </a>
+                        </span>
                       ) : (
                         'Sin pago registrado'
                       )}
@@ -466,28 +461,28 @@ export function PatientHistory() {
                     {downloadingId === selected.appointment.id ? 'Descargando…' : 'Descargar resumen'}
                   </button>
                   {selected.report ? (
-                    <a href={reportLink(selected.report.id)} className="phis-btn phis-btn--outline w-full no-underline">
+                    <span className="phis-btn phis-btn--outline w-full no-underline">
                       Ver informe
-                    </a>
+                    </span>
                   ) : null}
                   {selected.hasDocuments ? (
-                    <a href={documentsLink(selected.appointment.id)} className="phis-btn phis-btn--outline w-full no-underline">
+                    <span className="phis-btn phis-btn--outline w-full no-underline">
                       Ver documentos
-                    </a>
+                    </span>
                   ) : null}
                   {selected.invoice ? (
-                    <a href={invoiceLink(selected.invoice.id)} className="phis-btn phis-btn--outline w-full no-underline">
+                    <span className="phis-btn phis-btn--outline w-full no-underline">
                       Ver factura
-                    </a>
+                    </span>
                   ) : null}
-                  <a href={followUpBookingLink(selected)} className="phis-btn phis-btn--outline w-full no-underline">
+                  <span className="phis-btn phis-btn--outline w-full no-underline">
                     <Calendar className="h-4 w-4" aria-hidden />
                     Reservar seguimiento
-                  </a>
-                  <a href={messagesWithVisitContext(selected)} className="phis-btn phis-btn--outline w-full no-underline">
+                  </span>
+                  <span className="phis-btn phis-btn--outline w-full no-underline">
                     <MessageSquare className="h-4 w-4" aria-hidden />
                     Enviar mensaje a la clínica
-                  </a>
+                  </span>
                 </div>
               </aside>
             </>

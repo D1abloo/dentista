@@ -413,7 +413,10 @@ export function AdminClinicalReports() {
     onNewReport: openNewReport,
     onOpenList: () => setTab('list'),
     onClearDentistFilter: () => {
-      window.location.href = '/admin/informes';
+      setDentistFilter('');
+      if (typeof window !== 'undefined') {
+        window.history.replaceState({}, '', window.location.pathname);
+      }
     },
     onSelectAppointment,
     onWithoutAppointment: toggleWithoutAppointment,

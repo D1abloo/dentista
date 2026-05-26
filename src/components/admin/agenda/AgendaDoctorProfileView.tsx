@@ -97,10 +97,9 @@ export function AgendaDoctorProfileView({ dentist, clinicId, canEdit, onOpenAgen
               <Calendar className="h-4 w-4" aria-hidden />
               Ver agenda
             </button>
-            <a href={`/admin/profesionales?dr=${encodeURIComponent(dentist.id)}`} className="agd-btn-secondary no-underline">
-              <ExternalLink className="h-4 w-4" aria-hidden />
-              Editar perfil completo
-            </a>
+            <span className="agd-btn-secondary agd-btn-secondary--static text-sm text-slate-500">
+              Editar perfil completo en Profesionales (menú lateral)
+            </span>
           </div>
         </div>
       </header>

@@ -373,10 +373,7 @@ export function AdminSettings() {
             Recordatorios de citas activos
           </label>
           <p style={{ margin: '0.5rem 0 0', fontSize: '0.78rem', fontWeight: 600, color: '#64748b' }}>
-            Centro de avisos del panel:{' '}
-            <a href="/admin/notificaciones" className="set-link">
-              Ir a Notificaciones
-            </a>
+            Los avisos del panel se gestionan en la sección Notificaciones del menú lateral.
           </p>
         </section>
       );
@@ -391,28 +388,16 @@ export function AdminSettings() {
               Cada clínica tiene configuración y datos aislados. Cambia de centro para acceder a otra sede donde
               tienes permiso.
             </p>
-            <a href="/admin/elegir-centro" className="set-btn-secondary inline-flex items-center gap-2 no-underline">
-              <MapPin className="h-4 w-4" aria-hidden />
-              Cambiar centro
-            </a>
+            <p className="text-sm font-semibold text-slate-600 m-0">
+              Usa el selector de centro en la barra superior del panel para cambiar de sede.
+            </p>
           </section>
           <section className="set-card">
             <h2>Seguridad</h2>
             <p className="set-card__sub">Acceso y credenciales del personal.</p>
-            <p className="text-sm font-semibold text-slate-600">
-              <a href="/login/cambiar-password?optional=1" className="font-bold text-[var(--set-primary)]">
-                Cambiar mi contraseña
-              </a>
+            <p className="text-sm font-semibold text-slate-600 m-0">
+              Los tokens de acceso al portal del paciente se gestionan en la sección «Acceso PdP» del menú lateral.
             </p>
-            <button
-              type="button"
-              className="set-btn-secondary"
-              onClick={() => {
-                window.location.href = '/admin/acceso-portal';
-              }}
-            >
-              Gestionar token del portal
-            </button>
           </section>
           <AdminStaffPortalProfile />
         </>
@@ -686,43 +671,6 @@ export function AdminSettings() {
         </aside>
       </div>
 
-      <section>
-        <h2 style={{ margin: '0 0 0.65rem', fontSize: '0.95rem', fontWeight: 800 }}>Atajos rápidos</h2>
-        <div className="set-quick-grid">
-          <button type="button" className="set-quick" onClick={() => { window.location.href = '/login/cambiar-password?optional=1'; }}>
-            <Lock className="h-5 w-5 text-teal-600" />
-            <h3>Cambiar contraseña</h3>
-            <p>Actualiza tu contraseña de acceso.</p>
-          </button>
-          <button type="button" className="set-quick" onClick={() => { window.location.href = '/admin/acceso-portal'; }}>
-            <Key className="h-5 w-5 text-teal-600" />
-            <h3>Gestionar token</h3>
-            <p>Configura el acceso al portal del paciente.</p>
-          </button>
-          <button
-            type="button"
-            className="set-quick"
-            onClick={() => {
-              window.location.href = '/admin/facturas';
-            }}
-          >
-            <Receipt className="h-5 w-5 text-teal-600" />
-            <h3>Ir a facturación</h3>
-            <p>Gestiona facturas y series desde el módulo financiero.</p>
-          </button>
-          <button
-            type="button"
-            className="set-quick"
-            onClick={() => {
-              window.location.href = '/admin/notificaciones';
-            }}
-          >
-            <Bell className="h-5 w-5 text-teal-600" />
-            <h3>Configurar recordatorios</h3>
-            <p>Ajusta los recordatorios de citas.</p>
-          </button>
-        </div>
-      </section>
 
       <div className="set-tip">
         <Info className="h-5 w-5 shrink-0 text-blue-600" aria-hidden />

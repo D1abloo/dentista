@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   CreditCard,
   FileStack,
-  HelpCircle,
   Lock,
   MessageSquare,
   Shield,
@@ -15,7 +14,6 @@ import {
 import { useCountUp } from '@/hooks/useCountUp';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { usePatient } from '@/hooks/usePatient';
-import { logPortalAudit, usePortalAccess } from '@/hooks/usePortalAccess';
 import {
   buildPatientHomeKpis,
   buildPatientHomeSummary,
@@ -28,27 +26,22 @@ import { PatientConsentAlert } from './consents';
 function KpiCard({
   label,
   value,
-  linkLabel,
-  href,
   tone,
   delay,
   numeric
 }: {
   label: string;
   value: string | number;
-  linkLabel: string;
-  href: string;
   tone: 'teal' | 'orange' | 'blue' | 'purple';
   delay: number;
   numeric?: boolean;
 }) {
   const n = numeric && typeof value === 'number' ? useCountUp(value, 700) : value;
   return (
-    <a href={href} className={`ph-kpi ph-kpi--${tone} no-underline`} style={{ animationDelay: `${delay}ms` }}>
+    <article className={`ph-kpi ph-kpi--${tone}`} style={{ animationDelay: `${delay}ms` }}>
       <p className="ph-kpi__label">{label}</p>
       <p className="ph-kpi__value">{n}</p>
-      <span className="ph-kpi__link">{linkLabel} →</span>
-    </a>
+    </article>
   );
 }
 
@@ -56,29 +49,21 @@ const ACTION_CARDS = [
   {
     title: 'Reservar cita',
     desc: 'Consulta disponibilidad y elige horario.',
-    href: '/paciente/reservar',
-    link: 'Reservar ahora',
     icon: CalendarPlus
   },
   {
     title: 'Mis documentos',
     desc: 'Descarga consentimientos, informes o justificantes.',
-    href: '/paciente/documentos',
-    link: 'Ver documentos',
     icon: FileStack
   },
   {
     title: 'Facturas y pagos',
     desc: 'Consulta facturas pendientes y pagos realizados.',
-    href: '/paciente/facturas',
-    link: 'Ver facturas',
     icon: CreditCard
   },
   {
     title: 'Enviar mensaje',
     desc: 'Contacta con tu clínica de forma segura.',
-    href: '/paciente/mensajes',
-    link: 'Enviar mensaje',
     icon: MessageSquare
   }
 ] as const;
@@ -93,7 +78,6 @@ const BEFORE_CHECKLIST = [
 export function PatientDashboard() {
   const { state } = useDemoStore();
   const patient = usePatient();
-  const portalAccess = usePortalAccess();
   const [ready, setReady] = useState(false);
   useEffect(() => {
     const t = window.setTimeout(() => setReady(true), 120);
@@ -115,12 +99,6 @@ export function PatientDashboard() {
 
   const notifyCount = kpis.unreadMessages;
 
-  function auditNav(href: string, label: string) {
-    if (portalAccess.active) {
-      void logPortalAudit({ eventType: 'nav_click', pagePath: href, resourceLabel: label });
-    }
-  }
-
   if (!ready) {
     return (
       <div className="ph-home" aria-busy="true">
@@ -133,17 +111,14 @@ export function PatientDashboard() {
 
   return (
     <div className="ph-home">
-      <div className="ph-toolbar">
-        <a
-          href="/paciente/mensajes"
-          className="ph-notify"
-          aria-label={notifyCount ? `${notifyCount} mensajes sin leer` : 'Mensajes'}
-          onClick={() => auditNav('/paciente/mensajes', 'Notificaciones')}
-        >
-          <Bell className="h-4 w-4" aria-hidden />
-          {notifyCount > 0 ? <span className="ph-notify__badge">{notifyCount}</span> : null}
-        </a>
-      </div>
+      {notifyCount > 0 ? (
+        <div className="ph-toolbar">
+          <span className="ph-notify ph-notify--static" aria-label={`${notifyCount} mensajes sin leer`}>
+            <Bell className="h-4 w-4" aria-hidden />
+            <span className="ph-notify__badge">{notifyCount}</span>
+          </span>
+        </div>
+      ) : null}
 
       <PatientConsentAlert />
 
@@ -159,20 +134,9 @@ export function PatientDashboard() {
                 Desde aquí puedes reservar citas, consultar informes, descargar documentos, revisar facturas y comunicarte con tu
                 clínica.
               </p>
-              <div className="ph-welcome__actions">
-                <a href="/paciente/reservar" className="ph-btn ph-btn--primary" onClick={() => auditNav('/paciente/reservar', 'Reservar cita')}>
-                  Reservar cita
-                </a>
-                <a href="/paciente/citas" className="ph-btn ph-btn--outline" onClick={() => auditNav('/paciente/citas', 'Ver mis citas')}>
-                  Ver mis citas
-                </a>
-                <a href="/paciente/documentos" className="ph-btn ph-btn--outline" onClick={() => auditNav('/paciente/documentos', 'Ver documentos')}>
-                  Ver documentos
-                </a>
-                <a href="/paciente/mensajes" className="ph-btn ph-btn--outline" onClick={() => auditNav('/paciente/mensajes', 'Contactar clínica')}>
-                  Contactar clínica
-                </a>
-              </div>
+              <p className="text-sm text-slate-600 m-0 mt-2">
+                Usa el menú lateral del portal para reservar citas, documentos, facturas y mensajes.
+              </p>
             </div>
           </div>
         </section>
@@ -219,14 +183,6 @@ export function PatientDashboard() {
                   <dd>{nextAppt.display.dentist}</dd>
                 </div>
               </dl>
-              <div className="ph-welcome__actions mt-3">
-                <a href="/paciente/citas" className="ph-btn ph-btn--primary" onClick={() => auditNav('/paciente/citas', 'Ver detalle cita')}>
-                  Ver detalle
-                </a>
-                <a href="/paciente/citas" className="ph-btn ph-btn--outline" onClick={() => auditNav('/paciente/citas', 'Reprogramar')}>
-                  Reprogramar
-                </a>
-              </div>
             </>
           ) : (
             <div className="ph-appt-empty">
@@ -235,74 +191,33 @@ export function PatientDashboard() {
               </div>
               <h4>No tienes citas próximas</h4>
               <p>Reserva tu próxima visita en menos de un minuto.</p>
-              <div className="ph-welcome__actions mt-3 justify-center">
-                <a href="/paciente/reservar" className="ph-btn ph-btn--primary" onClick={() => auditNav('/paciente/reservar', 'Reservar cita')}>
-                  Reservar cita
-                </a>
-                <a href="/paciente/reservar" className="ph-btn ph-btn--outline" onClick={() => auditNav('/paciente/reservar', 'Ver disponibilidad')}>
-                  Ver disponibilidad
-                </a>
-              </div>
+              <p className="text-sm text-slate-500 m-0 mt-2 text-center">
+                Reserva desde «Reservar cita» en el menú lateral.
+              </p>
             </div>
           )}
         </section>
 
         <div className="ph-kpis">
-          <KpiCard
-            label="Citas activas"
-            value={kpis.activeAppointments}
-            linkLabel="Ver citas"
-            href="/paciente/citas"
-            tone="teal"
-            delay={160}
-            numeric
-          />
-          <KpiCard
-            label="Facturas pendientes"
-            value={kpis.pendingInvoicesLabel}
-            linkLabel="Ver facturas"
-            href="/paciente/facturas"
-            tone="orange"
-            delay={220}
-          />
-          <KpiCard
-            label="Documentos nuevos"
-            value={kpis.newDocuments}
-            linkLabel="Ver documentos"
-            href="/paciente/documentos"
-            tone="blue"
-            delay={280}
-            numeric
-          />
-          <KpiCard
-            label="Mensajes sin leer"
-            value={kpis.unreadMessages}
-            linkLabel="Ver mensajes"
-            href="/paciente/mensajes"
-            tone="purple"
-            delay={340}
-            numeric
-          />
+          <KpiCard label="Citas activas" value={kpis.activeAppointments} tone="teal" delay={160} numeric />
+          <KpiCard label="Facturas pendientes" value={kpis.pendingInvoicesLabel} tone="orange" delay={220} />
+          <KpiCard label="Documentos nuevos" value={kpis.newDocuments} tone="blue" delay={280} numeric />
+          <KpiCard label="Mensajes sin leer" value={kpis.unreadMessages} tone="purple" delay={340} numeric />
         </div>
       </div>
 
       <section className="ph-card" style={{ animationDelay: '200ms' }}>
         <div className="ph-section-head">
           <h3>Novedades recientes</h3>
-          {updates.length ? (
-            <a href="/paciente/historial" onClick={() => auditNav('/paciente/historial', 'Ver todas novedades')}>
-              Ver todas
-            </a>
-          ) : null}
         </div>
         {updates.length ? (
           <ul className="ph-update-list">
             {updates.map((u, i) => (
               <li key={u.id} style={{ animationDelay: `${i * 55}ms` }}>
-                <a href={u.href} className="ph-update-link" onClick={() => auditNav(u.href, u.title)}>
+                <div className="ph-update-link ph-update-link--static">
                   <strong>{u.title}</strong>
                   {u.subtitle ? <span>{u.subtitle}</span> : null}
-                </a>
+                </div>
               </li>
             ))}
           </ul>
@@ -315,9 +230,6 @@ export function PatientDashboard() {
             <p className="text-xs text-slate-500 mt-1 mb-3">
               Cuando tu clínica publique documentos, informes, facturas o mensajes, aparecerán aquí.
             </p>
-            <a href="/paciente/reservar" className="ph-btn ph-btn--outline" onClick={() => auditNav('/paciente/reservar', 'Reservar desde vacío')}>
-              Reservar cita
-            </a>
           </div>
         )}
       </section>
@@ -332,9 +244,7 @@ export function PatientDashboard() {
               </span>
               <h4>{card.title}</h4>
               <p>{card.desc}</p>
-              <a href={card.href} onClick={() => auditNav(card.href, card.title)}>
-                {card.link} →
-              </a>
+              <span className="ph-action-card__hint">Disponible en el menú lateral</span>
             </article>
           ))}
         </div>
@@ -361,9 +271,6 @@ export function PatientDashboard() {
               <span>{summary.pendingInvoices}</span>
             </li>
           </ul>
-          <a href="/paciente/historial" className="ph-btn ph-btn--outline mt-3" onClick={() => auditNav('/paciente/historial', 'Ver historial')}>
-            Ver historial completo
-          </a>
         </section>
 
         <section className="ph-card" style={{ animationDelay: '380ms' }}>
@@ -403,9 +310,7 @@ export function PatientDashboard() {
               Acceso personal
             </span>
           </div>
-          <a href="/paciente/perfil" className="ph-btn ph-btn--outline mt-3" onClick={() => auditNav('/paciente/perfil', 'Perfil')}>
-            Revisar mi perfil
-          </a>
+          <p className="text-sm text-slate-500 m-0 mt-3">Revisa tus datos en «Mi perfil» del menú lateral.</p>
         </section>
       </div>
 
@@ -414,10 +319,6 @@ export function PatientDashboard() {
           <Lock className="inline h-3.5 w-3.5 mr-1 text-teal-700" aria-hidden />
           AgendaClinic protege tu información y tu privacidad. Si necesitas ayuda, contacta con tu clínica.
         </span>
-        <a href="/ayuda#portal-paciente" className="ph-help-fab" onClick={() => auditNav('/ayuda#portal-paciente', 'Centro de ayuda')}>
-          <HelpCircle className="h-4 w-4" aria-hidden />
-          Centro de ayuda
-        </a>
       </footer>
     </div>
   );

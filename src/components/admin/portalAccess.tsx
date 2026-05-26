@@ -132,11 +132,8 @@ export function AdminPortalAccess() {
         />
         {!staffLoading && staff && !staff.hasLinkedDentist && staff.role === 'dentist' ? (
           <p className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
-            Tu usuario no tiene ficha de dentista vinculada. Pide a administración que te asocie en{' '}
-            <a href="/admin/usuarios" className="font-semibold underline">
-              Usuarios de clínica
-            </a>
-            .
+            Tu usuario no tiene ficha de dentista vinculada. Pide a administración que te asocie en Usuarios de clínica
+            (menú lateral del panel).
           </p>
         ) : null}
         <div className="grid gap-3 md:grid-cols-2">
@@ -174,12 +171,9 @@ export function AdminPortalAccess() {
           <div className="mt-4 rounded-xl border border-[var(--line)] bg-[#f8fafc] p-4 text-sm">
             <p className="font-bold text-[var(--navy)]">Token (copiar ahora)</p>
             <code className="mt-2 block break-all rounded bg-white p-2 text-xs">{createdToken}</code>
-            <a
-              className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-[var(--brand)]"
-              href={`/paciente/acceso?token=${encodeURIComponent(createdToken)}`}
-            >
-              Abrir enlace de acceso <ExternalLink className="h-3 w-3" />
-            </a>
+            <p className="mt-2 text-xs text-slate-600">
+              Copia el token y compártelo de forma segura. El paciente lo usará en la pantalla de acceso del portal.
+            </p>
           </div>
         ) : null}
       </Card>
@@ -214,9 +208,7 @@ export function AdminPortalAccess() {
 
       {canViewPdpAudit(staff?.role) ? (
         <p className="text-center text-sm text-slate-500">
-          <a href="/admin/auditoria-pdp" className="font-semibold text-[var(--blue)] underline">
-            Ver auditoría de actividad en PdP
-          </a>
+          El historial de actividad está disponible en «Auditoría PdP» del menú lateral del panel.
         </p>
       ) : null}
     </div>
@@ -269,9 +261,9 @@ export function AdminStaffPortalProfile() {
       {staffPortal.active ? (
         <div className="rounded-xl border border-teal-200 bg-teal-50 p-4 text-sm">
           <p className="font-bold text-teal-900">Sesión activa en portal paciente</p>
-          <a href="/paciente" className="btn btn--primary btn--sm mt-3 inline-block no-underline">
-            Continuar en portal del paciente
-          </a>
+          <p className="mt-2 text-sm text-teal-900 m-0">
+            Usa el menú «Portal paciente» del panel o el token generado arriba para continuar en el PdP.
+          </p>
         </div>
       ) : (
         <>

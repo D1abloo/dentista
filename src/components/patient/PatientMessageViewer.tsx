@@ -197,10 +197,10 @@ export function PatientMessageViewer({
             <article className="pmsg-viewer__message-card">
               {formatBody(view.message.body)}
               {view.relatedLabel !== '—' && view.relatedHref ? (
-                <a href={view.relatedHref} className="pmsg-viewer__related no-underline">
+                <span className="pmsg-viewer__related no-underline">
                   <ExternalLink className="h-4 w-4 shrink-0" aria-hidden />
                   <span>{view.relatedLabel}</span>
-                </a>
+                </span>
               ) : view.relatedLabel !== '—' ? (
                 <p className="pmsg-viewer__related-static">{view.relatedLabel}</p>
               ) : null}
@@ -229,25 +229,22 @@ export function PatientMessageViewer({
                     </button>
                   ) : null}
                   {view.message.appointmentId ? (
-                    <a href={appointmentLink(view.message.appointmentId)} className="pmsg-viewer__quick-link no-underline">
+                    <span className="pmsg-viewer__quick-link no-underline">
                       <Calendar className="h-3.5 w-3.5" aria-hidden />
                       Ver cita
-                    </a>
+                    </span>
                   ) : null}
                   {view.message.invoiceId ? (
-                    <a
-                      href={`/paciente/facturas?factura=${encodeURIComponent(view.message.invoiceId)}`}
-                      className="pmsg-viewer__quick-link no-underline"
-                    >
+                    <span className="pmsg-viewer__quick-link no-underline">
                       <Receipt className="h-3.5 w-3.5" aria-hidden />
                       Ver factura
-                    </a>
+                    </span>
                   ) : null}
                   {view.relatedHref && view.message.documentId ? (
-                    <a href={view.relatedHref} className="pmsg-viewer__quick-link no-underline">
+                    <span className="pmsg-viewer__quick-link no-underline">
                       <FileText className="h-3.5 w-3.5" aria-hidden />
                       Documento
-                    </a>
+                    </span>
                   ) : null}
                   <button type="button" className="pmsg-viewer__quick-link pmsg-viewer__quick-link--muted" onClick={onArchive}>
                     <Archive className="h-3.5 w-3.5" aria-hidden />

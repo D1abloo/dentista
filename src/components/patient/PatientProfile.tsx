@@ -511,10 +511,7 @@ export function PatientProfile() {
                   <dd>{consents.last}</dd>
                 </div>
               </dl>
-              <a href="/paciente/consentimientos" className="pprof-btn pprof-btn--primary no-underline inline-flex">
-                <FileSignature className="h-4 w-4" aria-hidden />
-                Ver y firmar
-              </a>
+<p className="panel-hint text-sm text-slate-500 m-0">Usa el menú lateral del portal para abrir otras secciones.</p>
             </section>
           ) : null}
 
@@ -536,9 +533,9 @@ export function PatientProfile() {
                 </div>
               </dl>
               <div className="pprof-section__actions pprof-section__actions--stack">
-                <a href="/login/cambiar-password" className="pprof-btn pprof-btn--outline no-underline">
+                <span  className="pprof-btn pprof-btn--outline no-underline">
                   Cambiar contraseña
-                </a>
+                </span>
                 <button type="button" className="pprof-btn pprof-btn--danger" onClick={() => setSessionConfirm(true)}>
                   Cerrar otras sesiones
                 </button>
@@ -601,9 +598,7 @@ export function PatientProfile() {
                 <dd>{consents.last}</dd>
               </div>
             </dl>
-            <a href="/paciente/consentimientos" className="pprof-btn pprof-btn--outline w-full no-underline mt-2">
-              Ver y firmar
-            </a>
+<p className="panel-hint text-sm text-slate-500 m-0">Usa el menú lateral del portal para abrir otras secciones.</p>
           </article>
 
           <article className="pprof-aside-card" style={{ animationDelay: '120ms' }}>
@@ -623,7 +618,7 @@ export function PatientProfile() {
               </div>
             </dl>
             <div className="pprof-aside-card__links">
-              <a href="/login/cambiar-password">Cambiar contraseña</a>
+              <span >Cambiar contraseña</span>
               <button type="button" onClick={() => setSessionConfirm(true)}>
                 Cerrar otras sesiones
               </button>

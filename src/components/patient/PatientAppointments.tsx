@@ -138,12 +138,8 @@ export function PatientAppointments({ section = 'current' }: { section?: ApptSec
     if (!focusId || section !== 'current') return;
     const match = allViews.find((v) => v.appointment.id === focusId);
     if (!match) return;
-    if (match.isCompleted) {
-      window.location.replace(`/paciente/citas-completadas?focus=${encodeURIComponent(focusId)}`);
-      return;
-    }
-    if (match.isPast) {
-      window.location.replace(`/paciente/citas-pasadas?focus=${encodeURIComponent(focusId)}`);
+    if (match.isCompleted || match.isPast) {
+      setSelectedId(match.appointment.id);
     }
   }, [focusId, section, allViews]);
 
@@ -246,13 +242,13 @@ export function PatientAppointments({ section = 'current' }: { section?: ApptSec
         {section === 'current' ? (
           <p className="text-sm text-slate-600 mt-2 mb-0">
             Las citas con fecha pasada están en{' '}
-            <a href="/paciente/citas-pasadas" className="font-semibold text-teal-800 underline">
+            <span className="font-semibold text-teal-800 underline">
               Citas pasadas
-            </a>
+            </span>
             ; las completadas, en{' '}
-            <a href="/paciente/citas-completadas" className="font-semibold text-teal-800 underline">
+            <span className="font-semibold text-teal-800 underline">
               Citas completadas
-            </a>
+            </span>
             .
           </p>
         ) : null}
@@ -317,20 +313,9 @@ export function PatientAppointments({ section = 'current' }: { section?: ApptSec
           </div>
           <h3 className="text-lg font-extrabold text-[var(--corp-navy)] m-0">{meta.emptyTitle}</h3>
           <p className="text-sm text-slate-500 mt-2 mb-4 max-w-md mx-auto">{meta.emptyBody}</p>
-          <div className="flex flex-wrap gap-2 justify-center">
-            {section === 'current' ? (
-              <a href="/paciente/reservar" className="prt-btn prt-btn--primary no-underline">
-                Reservar cita
-              </a>
-            ) : (
-              <a href="/paciente/citas" className="prt-btn prt-btn--primary no-underline">
-                Ver mis citas
-              </a>
-            )}
-            <a href="/paciente/mensajes" className="prt-btn prt-btn--outline no-underline">
-              Contactar clínica
-            </a>
-          </div>
+          <p className="panel-hint text-sm text-slate-500 m-0 text-center">
+            Usa el menú lateral del portal para reservar citas o consultar otras secciones.
+          </p>
         </section>
       ) : showNoResults ? (
         <section className="prt-empty">
@@ -467,36 +452,9 @@ export function PatientAppointments({ section = 'current' }: { section?: ApptSec
                       {certLoading ? 'Generando…' : 'Descargar justificante'}
                     </button>
                   ) : null}
-                  <a href={selected.messageHref} className="prt-btn prt-btn--outline w-full no-underline text-center">
-                    <MessageSquare className="inline h-3.5 w-3.5 mr-1" aria-hidden />
-                    Contactar clínica
-                  </a>
-                  {selected.hasReport && selected.reportHref ? (
-                    <a href={selected.reportHref} className="prt-btn prt-btn--outline w-full no-underline text-center">
-                      <FileText className="inline h-3.5 w-3.5 mr-1" aria-hidden />
-                      Ver informe
-                    </a>
-                  ) : null}
-                  {selected.hasInvoice && selected.invoiceHref ? (
-                    <a href={selected.invoiceHref} className="prt-btn prt-btn--outline w-full no-underline text-center">
-                      <Receipt className="inline h-3.5 w-3.5 mr-1" aria-hidden />
-                      Ver factura
-                    </a>
-                  ) : null}
-                  {selected.isHistory || selected.isCompleted ? (
-                    <a href="/paciente/historial" className="prt-btn prt-btn--outline w-full no-underline text-center">
-                      Ver en historial
-                    </a>
-                  ) : null}
-                  {section === 'current' ? (
-                    <a href="/paciente/reservar" className="prt-btn prt-btn--primary w-full no-underline text-center">
-                      Reservar otra cita
-                    </a>
-                  ) : (
-                    <a href="/paciente/citas" className="prt-btn prt-btn--primary w-full no-underline text-center">
-                      Ver citas activas
-                    </a>
-                  )}
+                  <p className="panel-hint text-sm text-slate-500 m-0">
+                    Informes, facturas y mensajes están en el menú lateral del portal.
+                  </p>
                 </div>
               </aside>
             </>

@@ -90,10 +90,12 @@ function KpiTile({
 
 function ModulePanel({
   area,
-  kpis
+  kpis,
+  onOpen
 }: {
   area: (typeof AREAS)[number];
   kpis: ReturnType<typeof buildClinicalOpsKpis>;
+  onOpen: (id: ClinicalOpsArea) => void;
 }) {
   const stats =
     area.id === 'citas'
@@ -118,7 +120,7 @@ function ModulePanel({
 
   const Icon = area.icon;
   return (
-    <a href={`/admin/operaciones?area=${area.id}`} className={`coh-module coh-module--${area.tone}`}>
+    <button type="button" onClick={() => onOpen(area.id)} className={`coh-module coh-module--${area.tone}`}>
       <span className="coh-module__glow" aria-hidden />
       <div className="coh-module__head">
         <span className="coh-module__icon">
@@ -140,7 +142,7 @@ function ModulePanel({
       <span className="coh-module__cta">
         Abrir módulo <ArrowRight className="h-4 w-4" aria-hidden />
       </span>
-    </a>
+    </button>
   );
 }
 
@@ -186,6 +188,13 @@ export function AdminClinicalOpsHub() {
 
   const activeMeta = AREAS.find((a) => a.id === area);
 
+  const goArea = (next: ClinicalOpsArea | null) => {
+    setArea(next);
+    if (typeof window === 'undefined') return;
+    const url = next ? `/admin/operaciones?area=${next}` : '/admin/operaciones';
+    window.history.replaceState({}, '', url);
+  };
+
   if (area && activeMeta) {
     return (
       <div className="coh-page coh-page--module">
@@ -194,21 +203,22 @@ export function AdminClinicalOpsHub() {
             const Icon = item.icon;
             const active = item.id === area;
             return (
-              <a
+              <button
                 key={item.id}
-                href={`/admin/operaciones?area=${item.id}`}
+                type="button"
+                onClick={() => goArea(item.id)}
                 className={`coh-tab${active ? ' coh-tab--active' : ''}`}
                 aria-current={active ? 'page' : undefined}
               >
                 <Icon className="h-4 w-4" aria-hidden />
                 {item.short}
-              </a>
+              </button>
             );
           })}
-          <a href="/admin/operaciones" className="coh-tab coh-tab--hub">
+          <button type="button" onClick={() => goArea(null)} className="coh-tab coh-tab--hub">
             <Layers3 className="h-4 w-4" aria-hidden />
             Centro
-          </a>
+          </button>
         </nav>
         <header className="coh-module-head">
           <div>
@@ -239,13 +249,10 @@ export function AdminClinicalOpsHub() {
             conectados y acceso directo a cada módulo.
           </p>
           <div className="coh-hero__actions">
-            <a href="/admin/operaciones?area=citas" className="coh-btn coh-btn--primary">
+            <button type="button" onClick={() => goArea('citas')} className="coh-btn coh-btn--primary">
               <CalendarClock className="h-4 w-4" aria-hidden />
               Ver citas de hoy
-            </a>
-            <a href="/admin/agenda" className="coh-btn coh-btn--ghost">
-              Abrir agenda
-            </a>
+            </button>
           </div>
         </div>
         <ul className="coh-hero__mosaic" aria-label="Indicadores rápidos">
@@ -277,7 +284,7 @@ export function AdminClinicalOpsHub() {
 
       <section className="coh-grid">
         {AREAS.map((item) => (
-          <ModulePanel key={item.id} area={item} kpis={kpis} />
+          <ModulePanel key={item.id} area={item} kpis={kpis} onOpen={(id) => goArea(id)} />
         ))}
       </section>
 
@@ -296,7 +303,7 @@ export function AdminClinicalOpsHub() {
               const Icon = meta?.icon ?? FileText;
               return (
                 <li key={item.id} style={{ animationDelay: `${i * 45}ms` }}>
-                  <a href={item.href} className="coh-activity__row">
+                  <div className="coh-activity__row">
                     <span className={`coh-activity__icon coh-activity__icon--${item.area}`}>
                       <Icon className="h-4 w-4" aria-hidden />
                     </span>
@@ -304,8 +311,7 @@ export function AdminClinicalOpsHub() {
                       <strong>{item.title}</strong>
                       <span>{item.meta}</span>
                     </span>
-                    <ArrowRight className="h-4 w-4 coh-activity__arrow" aria-hidden />
-                  </a>
+                  </div>
                 </li>
               );
             })

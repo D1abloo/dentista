@@ -325,12 +325,7 @@ export function PatientInvoices() {
             Cuando tu clínica emita una factura, podrás consultarla, descargarla en PDF y revisar su estado de pago desde esta sección.
           </p>
           <div className="flex flex-wrap gap-2 justify-center">
-            <a href="/paciente/reservar" className="pinv-btn pinv-btn--primary no-underline">
-              Reservar cita
-            </a>
-            <a href="/paciente/mensajes" className="pinv-btn pinv-btn--outline no-underline">
-              Contactar clínica
-            </a>
+<p className="panel-hint text-sm text-slate-500 m-0">Usa el menú lateral del portal para abrir otras secciones.</p>
           </div>
         </section>
       ) : showNoResults ? (
@@ -389,9 +384,9 @@ export function PatientInvoices() {
                       {payingId === v.invoice.id ? 'Procesando…' : 'Pagar ahora'}
                     </button>
                   ) : v.payment ? (
-                    <a href={paymentsLinkForInvoice(v.invoice.id)} className="pinv-btn pinv-btn--outline no-underline">
+                    <span className="pinv-btn pinv-btn--outline no-underline">
                       Ver pago
-                    </a>
+                    </span>
                   ) : null}
                 </div>
               </article>
@@ -426,9 +421,7 @@ export function PatientInvoices() {
               <p className="text-xs text-slate-500 mt-1 mb-2">
                 Cuando realices un pago, podrás consultarlo desde la sección Pagos y descargar el recibo si está disponible.
               </p>
-              <a href="/paciente/pagos" className="pinv-btn pinv-btn--outline no-underline inline-flex">
-                Ver mis pagos
-              </a>
+<p className="panel-hint text-sm text-slate-500 m-0">Usa el menú lateral del portal para abrir otras secciones.</p>
             </div>
 
             <div className="pinv-privacy">
@@ -501,7 +494,7 @@ export function PatientInvoices() {
                     <dt>Pago asociado</dt>
                     <dd>
                       {selected.payment ? (
-                        <a href={paymentsLinkForInvoice(selected.invoice.id)}>{selected.paymentLabel}</a>
+                        <span >{selected.paymentLabel}</span>
                       ) : (
                         selected.paymentLabel
                       )}
@@ -539,16 +532,13 @@ export function PatientInvoices() {
                       {payingId === selected.invoice.id ? 'Procesando…' : 'Pagar ahora'}
                     </button>
                   ) : null}
-                  <a href={paymentsLinkForInvoice(selected.invoice.id)} className="pinv-btn pinv-btn--outline w-full no-underline">
+                  <span className="pinv-btn pinv-btn--outline w-full no-underline">
                     Ver pagos relacionados
-                  </a>
-                  <a
-                    href={messagesWithInvoiceContext(selected.displayId, selected.concept)}
-                    className="pinv-btn pinv-btn--outline w-full no-underline"
-                  >
+                  </span>
+                  <span className="pinv-btn pinv-btn--outline w-full no-underline">
                     <MessageSquare className="h-4 w-4" aria-hidden />
                     Enviar mensaje a la clínica
-                  </a>
+                  </span>
                 </div>
                 <div className="pinv-help">
                   <p className="m-0 text-xs text-slate-600">

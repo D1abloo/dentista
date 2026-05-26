@@ -219,9 +219,9 @@ export function PatientDocuments() {
       {urlFilter.informe || urlFilter.cita ? (
         <div className="banner-alert flex flex-wrap items-center justify-between gap-2 mb-3">
           <span>Documentos filtrados por informe o cita relacionada.</span>
-          <a href="/paciente/informes" className="text-xs font-bold text-teal-800 underline">
+          <span className="text-xs font-bold text-teal-800 underline">
             Volver a informes
-          </a>
+          </span>
         </div>
       ) : null}
 
@@ -299,12 +299,7 @@ export function PatientDocuments() {
             Cuando tu clínica comparta consentimientos, radiografías, recibos u otros archivos contigo, aparecerán aquí.
           </p>
           <div className="flex flex-wrap gap-2 justify-center">
-            <a href="/paciente/reservar" className="pdoc-btn pdoc-btn--primary no-underline">
-              Reservar cita
-            </a>
-            <a href="/paciente/mensajes" className="pdoc-btn pdoc-btn--outline no-underline">
-              Contactar clínica
-            </a>
+<p className="panel-hint text-sm text-slate-500 m-0">Usa el menú lateral del portal para abrir otras secciones.</p>
           </div>
         </section>
       ) : showNoResults ? (
@@ -509,7 +504,7 @@ export function PatientDocuments() {
                   <p>
                     <strong>Informe relacionado:</strong>{' '}
                     {selected.relatedReport ? (
-                      <a href={reportLink(selected.relatedReport.id)}>{selected.relatedReport.title}</a>
+                      <span >{selected.relatedReport.title}</span>
                     ) : (
                       '—'
                     )}
@@ -517,7 +512,7 @@ export function PatientDocuments() {
                   <p>
                     <strong>Factura relacionada:</strong>{' '}
                     {selected.relatedInvoice ? (
-                      <a href="/paciente/facturas">{selected.relatedInvoice.label}</a>
+                      <span>{selected.relatedInvoice.label}</span>
                     ) : (
                       '—'
                     )}
@@ -536,17 +531,14 @@ export function PatientDocuments() {
                     </button>
                   ) : null}
                   {selected.relatedReport ? (
-                    <a href={reportLink(selected.relatedReport.id)} className="pdoc-btn pdoc-btn--outline w-full no-underline">
+                    <span className="pdoc-btn pdoc-btn--outline w-full no-underline">
                       Ver informe relacionado
-                    </a>
+                    </span>
                   ) : null}
-                  <a
-                    href={messagesWithDocumentContext(selected.document.title)}
-                    className="pdoc-btn pdoc-btn--outline w-full no-underline"
-                  >
+                  <span className="pdoc-btn pdoc-btn--outline w-full no-underline">
                     <MessageSquare className="h-4 w-4" aria-hidden />
                     Enviar mensaje a la clínica
-                  </a>
+                  </span>
                   {selected.isNew ? (
                     <button type="button" className="pdoc-btn pdoc-btn--outline w-full" onClick={() => markRead(selected)}>
                       <CheckCircle2 className="h-4 w-4" aria-hidden />

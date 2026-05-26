@@ -5,7 +5,6 @@ import {
   Calendar,
   Check,
   CreditCard,
-  ExternalLink,
   FileStack,
   FileText,
   Globe,
@@ -19,7 +18,7 @@ import {
   unreadCount,
   defaultNotificationPrefs
 } from '@/lib/clinicNotifications';
-import { actionRoute, categoryLabel, priorityLabel } from '@/lib/notificationCenter';
+import { categoryLabel, priorityLabel } from '@/lib/notificationCenter';
 import { formatPayTime } from '@/lib/paymentAdmin';
 import { getStoredTenantId, saveSettings, settingsFor } from '@/lib/demoStore';
 import { useDemoStore } from '@/hooks/useDemoStore';
@@ -81,7 +80,6 @@ export function AdminNotificationBell() {
   function openItem(n: ClinicNotification) {
     if (!n.read) commit(markNotificationRead(state, n.id));
     setOpen(false);
-    window.location.href = actionRoute(n);
   }
 
   function markAll() {
@@ -204,12 +202,6 @@ export function AdminNotificationBell() {
             </button>
           </div>
 
-          <footer className="admin-notif-panel__foot">
-            <a href="/admin/notificaciones" className="admin-notif-panel__all" onClick={() => setOpen(false)}>
-              Ver todas las notificaciones
-              <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-            </a>
-          </footer>
         </div>
       ) : null}
     </div>

@@ -197,51 +197,20 @@ export function AdminPatients() {
     if (!selectedId && visible[0]) setSelectedId(visible[0].patient.id);
   }, [visible, selectedId]);
 
-  async function openPortal(patientId: string) {
-    if (isClientDemoMode()) {
-      window.location.href = '/paciente';
-      return;
-    }
-    try {
-      const res = await fetch('/api/admin/portal-access/enter', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ patientId })
-      });
-      const json = (await res.json()) as { data?: { redirectTo?: string }; error?: { message?: string } };
-      if (!res.ok) throw new Error(json.error?.message ?? 'No se pudo abrir el portal.');
-      if (json.data?.redirectTo) window.location.href = json.data.redirectTo;
-    } catch (e) {
-      setNotice({ type: 'error', message: e instanceof Error ? e.message : 'Error de portal.' });
-    }
-  }
-
   function runAction(action: string, row: PatientRow) {
-    const id = row.patient.id;
-    prefillPatientForBooking(id);
-    switch (action) {
-      case 'cita':
-        window.location.href = '/admin/agenda';
-        break;
-      case 'factura':
-        window.location.href = '/admin/facturas';
-        break;
-      case 'documento':
-        window.location.href = '/admin/documentos';
-        break;
-      case 'informe':
-        window.location.href = '/admin/informes';
-        break;
-      case 'pago':
-        window.location.href = '/admin/pagos';
-        break;
-      case 'portal':
-        void openPortal(id);
-        break;
-      default:
-        break;
-    }
+    prefillPatientForBooking(row.patient.id);
+    const labels: Record<string, string> = {
+      cita: 'Agenda',
+      factura: 'Facturas',
+      documento: 'Documentos',
+      informe: 'Informes clínicos',
+      pago: 'Pagos',
+      portal: 'Acceso PdP'
+    };
+    setNotice({
+      type: 'ok',
+      message: `Usa el menú lateral del panel para abrir «${labels[action] ?? action}». El paciente queda preseleccionado cuando aplique.`
+    });
   }
 
   return (
@@ -367,9 +336,9 @@ export function AdminPatients() {
                 </div>
                 <div className="pt-card__actions" onClick={(e) => e.stopPropagation()}>
                   <div className="pt-card__actions-row">
-                    <a href={`/admin/pacientes/${row.patient.id}`}>
-                      <Button className="pt-btn-sm">Ver ficha</Button>
-                    </a>
+                    <Button className="pt-btn-sm" onClick={() => setSelectedId(row.patient.id)}>
+                      Ver ficha
+                    </Button>
                     <ActionMenu row={row} onPick={(a) => runAction(a, row)} />
                     <RowMenu
                       row={row}
@@ -404,17 +373,12 @@ export function AdminPatients() {
             <p className="text-xs font-semibold text-slate-600">{selected.patient.email}</p>
             <p className="text-xs font-semibold text-slate-600">{selected.patient.phone}</p>
             {selected.nextAppt ? (
-              <a
-                href="/admin/agenda"
-                className="pt-appt-highlight"
-                onClick={() => prefillPatientForBooking(selected.patient.id)}
-              >
+              <div className="pt-appt-highlight">
                 <div>
                   <span>Próxima cita</span>
                   <strong>{fmtDateTime(selected.nextAppt.date, selected.nextAppt.time)}</strong>
                 </div>
-                <ChevronDown className="h-4 w-4 -rotate-90 text-teal-700" aria-hidden />
-              </a>
+              </div>
             ) : (
               <p className="text-sm font-semibold text-slate-500">Sin cita próxima programada.</p>
             )}
@@ -443,14 +407,14 @@ export function AdminPatients() {
               <button type="button" className="pt-quick-btn" onClick={() => runAction('factura', selected)}>
                 <FileText className="h-4 w-4" /> Emitir factura
               </button>
-              <a href="/admin/documentos" className="pt-quick-btn" onClick={() => prefillPatientForBooking(selected.patient.id)}>
+              <button type="button" className="pt-quick-btn" onClick={() => runAction('documento', selected)}>
                 <Upload className="h-4 w-4" /> Subir documento
-              </a>
+              </button>
               <button type="button" className="pt-quick-btn" onClick={() => runAction('pago', selected)}>
                 Registrar pago
               </button>
-              <button type="button" className="pt-quick-btn pt-quick-btn--teal" onClick={() => void openPortal(selected.patient.id)}>
-                <Shield className="h-4 w-4" /> Abrir portal
+              <button type="button" className="pt-quick-btn pt-quick-btn--teal" onClick={() => runAction('portal', selected)}>
+                <Shield className="h-4 w-4" /> Acceso portal
               </button>
             </div>
           </aside>

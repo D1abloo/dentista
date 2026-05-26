@@ -92,9 +92,7 @@ export function AgendaAppointmentModal({
               ) : null}
             </dl>
             {patient?.id ? (
-              <a className="agd-patient-card__link" href={`/admin/pacientes/${patient.id}`}>
-                Ver ficha completa
-              </a>
+              <p className="agd-patient-card__link text-xs text-slate-500 m-0">Ficha completa en Pacientes (menú lateral).</p>
             ) : null}
           </section>
 

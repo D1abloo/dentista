@@ -492,7 +492,7 @@ export function AdminClinics() {
     commit(next);
     setDemoSession({ role: 'admin', tenantId });
     setNotice({ type: 'ok', message: `Organización «${newOrg.centerName}» registrada.` });
-    window.location.href = '/admin/clinicas';
+    /* Sin redirección: la lista de clínicas se actualiza en esta vista */
   }
 
   return (

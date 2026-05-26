@@ -1003,12 +1003,18 @@ body {
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
+  width: 100%;
   padding: 0.55rem 0.65rem;
+  border: 0;
   border-radius: 0.6rem;
+  font: inherit;
   font-size: 0.8rem;
   font-weight: 600;
+  text-align: left;
   text-decoration: none;
   color: var(--app-ink);
+  background: transparent;
+  cursor: pointer;
 }
 
 .admin-search__hit:hover {

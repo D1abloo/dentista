@@ -635,9 +635,9 @@ export function AdminClinicalProfilesPanel() {
                         <button type="button" className="cp-btn cp-btn--outline" onClick={() => setLinkOpen(true)}>
                           <Link2 className="h-4 w-4" aria-hidden /> Vincular usuario existente
                         </button>
-                        <a href="/admin/usuarios" className="cp-btn cp-btn--outline no-underline">
-                          <UserPlus className="h-4 w-4" aria-hidden /> Crear usuario
-                        </a>
+                        <span className="cp-btn cp-btn--outline cp-btn--muted">
+                          <UserPlus className="h-4 w-4" aria-hidden /> Crear usuario (Usuarios en menú lateral)
+                        </span>
                       </div>
                     ) : null}
                   </>
@@ -715,18 +715,9 @@ export function AdminClinicalProfilesPanel() {
               pacientes.
             </p>
             <div className="cp-side-actions">
-              <a
-                href={selected ? `/admin/informes?dentist=${encodeURIComponent(selected.id)}` : '/admin/informes'}
-                className="cp-btn cp-btn--outline no-underline"
-              >
-                <FileText className="h-4 w-4" aria-hidden /> Ver informes
-              </a>
-              <a
-                href={selected ? `/admin/agenda?dentist=${encodeURIComponent(selected.id)}` : '/admin/agenda'}
-                className="cp-btn cp-btn--outline no-underline"
-              >
-                <Calendar className="h-4 w-4" aria-hidden /> Ver agenda
-              </a>
+              <p className="text-xs text-slate-500 m-0">
+                Informes y agenda del profesional se abren desde el menú lateral del panel.
+              </p>
               {isManager && selected ? (
                 <button type="button" className="cp-btn cp-btn--outline" onClick={() => setLinkOpen(true)}>
                   <Link2 className="h-4 w-4" aria-hidden /> Vincular usuario

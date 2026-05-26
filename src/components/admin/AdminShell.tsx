@@ -14,7 +14,6 @@ import { adminCompactNav } from './adminCompactNav';
 import { isNavItemVisible } from '@/lib/adminNav';
 import { useStaffContext } from '@/hooks/useStaffContext';
 import { ClinicBranchSwitcher } from './ClinicBranchSwitcher';
-import { AdminQuickAccess } from './AdminQuickAccess';
 import { AdminNotificationBell } from './AdminNotificationBell';
 import { AdminTopbarUser } from './AdminTopbarUser';
 import { useAdminLiveRefresh } from '@/hooks/useAdminLiveRefresh';
@@ -99,11 +98,6 @@ function AdminRail({
           );
         })}
       </nav>
-      {!compact ? (
-        <a href="/" className="rail-link rail-link--admin text-white/50" onClick={onNav}>
-          ← Inicio público
-        </a>
-      ) : null}
       <button type="button" className="admin-logout-btn mt-2" onClick={onLogout}>
         <LogOut className="h-4 w-4" /> Cerrar sesión
       </button>
@@ -283,12 +277,9 @@ export function AdminShell({
           <div className="admin-topbar__tools">
             <AdminNotificationBell />
             {!dashboardToolbar ? (
-              <>
-                <AdminQuickAccess />
-                <div className="hidden md:block">
-                  <ClinicBranchSwitcher />
-                </div>
-              </>
+              <div className="hidden md:block">
+                <ClinicBranchSwitcher />
+              </div>
             ) : null}
           </div>
 

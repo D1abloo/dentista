@@ -23,7 +23,6 @@ import {
 } from '@/lib/clinicNotifications';
 import { filterUndismissedNotifications } from '@/lib/notificationDismissals';
 import {
-  actionRoute,
   categoryLabel,
   filterNotifications,
   notificationKpis,
@@ -155,7 +154,7 @@ export function AdminNotifications() {
   function quickActions(n: ClinicNotification) {
     const go = () => {
       markRead(n);
-      window.location.href = actionRoute(n);
+      /* Sin redirección: el detalle se consulta en esta sección */
     };
     if (n.category === 'facturas') {
       return (

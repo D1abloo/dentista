@@ -129,24 +129,18 @@ export function PatientShell({
               <p className="m-0">
                 Acceso clínico autorizado — {portalAccess.patientName ?? 'paciente'}.
               </p>
-              <div className="flex flex-wrap gap-2">
-                <a href="/paciente/gestion-clinica" className="btn btn--outline btn--sm shrink-0 no-underline">
-                  Gestión clínica
-                </a>
-                <a href="/admin" className="btn btn--outline btn--sm shrink-0 no-underline">
-                  Panel clínica
-                </a>
-              </div>
+              <p className="m-0 text-xs text-teal-800">
+                Usa el menú lateral del portal para navegar. No hay redirecciones externas desde esta vista.
+              </p>
             </div>
           ) : clinicStaff ? (
             <div
               className="banner-alert mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800"
               role="status"
             >
-              <p className="m-0">Vista clínica en el portal del paciente (sesión de administrador).</p>
-              <a href="/paciente/gestion-clinica" className="btn btn--outline btn--sm shrink-0 no-underline">
-                Gestión clínica
-              </a>
+              <p className="m-0">
+                Vista clínica en el portal del paciente (sesión de administrador). Navega con el menú lateral del PdP.
+              </p>
             </div>
           ) : null}
           {children}

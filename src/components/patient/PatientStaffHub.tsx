@@ -1,4 +1,4 @@
-import { ArrowLeft, KeyRound, Shield, Stethoscope, UserCog } from 'lucide-react';
+import { ArrowLeft, Shield, UserCog } from 'lucide-react';
 import { usePortalAccess } from '@/hooks/usePortalAccess';
 
 export function PatientStaffHub() {
@@ -12,31 +12,24 @@ export function PatientStaffHub() {
       </p>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <a href="/admin/acceso-portal" className="patient-staff-hub__card no-underline">
+        <div className="patient-staff-hub__card patient-staff-hub__card--muted">
           <span className="patient-staff-hub__icon" aria-hidden>
-            <KeyRound className="h-5 w-5" />
+            <UserCog className="h-5 w-5" />
           </span>
           <span>
-            <strong>Acceso autorizado a paciente</strong>
-            <small>Genera o usa tokens para ver el PdP de un paciente concreto</small>
+            <strong>Acceso autorizado</strong>
+            <small>
+              Genera tokens desde «Acceso PdP» en el panel de clínica (menú lateral). No hay enlaces externos desde
+              esta vista.
+            </small>
           </span>
-        </a>
-
-        <a href="/admin" className="patient-staff-hub__card no-underline">
-          <span className="patient-staff-hub__icon" aria-hidden>
-            <Stethoscope className="h-5 w-5" />
-          </span>
-          <span>
-            <strong>Volver al panel clínica</strong>
-            <small>Agenda, facturación y gestión del centro</small>
-          </span>
-        </a>
+        </div>
 
         {portalAccess.active ? (
           <button
             type="button"
             className="patient-staff-hub__card patient-staff-hub__card--action"
-            onClick={() => void portalAccess.closeAccess().then(() => window.location.assign('/admin'))}
+            onClick={() => void portalAccess.closeAccess()}
           >
             <span className="patient-staff-hub__icon" aria-hidden>
               <ArrowLeft className="h-5 w-5" />
@@ -54,8 +47,8 @@ export function PatientStaffHub() {
             <span>
               <strong>Sesión de administrador</strong>
               <small>
-                Estás en el PdP con tu cuenta de clínica. Para ver datos de un paciente, abre un token desde acceso
-                autorizado.
+                Estás en el PdP con tu cuenta de clínica. Para ver datos de un paciente, activa un token desde el panel
+                de clínica.
               </small>
             </span>
           </div>
@@ -68,8 +61,8 @@ export function PatientStaffHub() {
           <span>
             <strong>Privacidad</strong>
             <small>
-              El panel administrativo no aparece en la web pública. Solo personal autorizado con el enlace de entrada
-              puede acceder.
+              El panel administrativo no aparece en la web pública. Solo personal autorizado puede acceder con
+              credenciales válidas.
             </small>
           </span>
         </div>

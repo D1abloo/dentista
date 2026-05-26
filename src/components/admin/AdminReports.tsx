@@ -624,9 +624,7 @@ export function AdminReports() {
                 );
               })}
             </div>
-            <a href="/admin/facturas" className="rep-link">
-              Ver detalle de facturación
-            </a>
+            <span className="rep-link rep-link--static">Resumen de facturación en este panel</span>
           </section>
 
           <section className="rep-card">

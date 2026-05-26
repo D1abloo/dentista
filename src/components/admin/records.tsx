@@ -100,11 +100,7 @@ export function AdminPatientDetail({ patientId }: { patientId: string }) {
           <IdBadge id={patient.id} kind="paciente" />
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
-          <a href="/admin/citas" className="rounded-xl bg-white/15 px-3 py-1.5 text-xs font-bold hover:bg-white/25">Nueva cita</a>
-          <a href="/admin/informes" className="rounded-xl bg-white/15 px-3 py-1.5 text-xs font-bold hover:bg-white/25">Nuevo informe</a>
-          <a href="/admin/facturas" className="rounded-xl bg-white/15 px-3 py-1.5 text-xs font-bold hover:bg-white/25">Nueva factura</a>
-          <a href="/admin/pagos" className="rounded-xl bg-white/15 px-3 py-1.5 text-xs font-bold hover:bg-white/25">Registrar pago</a>
-          <a href="/admin/documentos" className="rounded-xl bg-white/15 px-3 py-1.5 text-xs font-bold hover:bg-white/25">Subir documento</a>
+          <span className="rounded-xl bg-white/10 px-3 py-1.5 text-xs font-bold text-white/80">Gestiona cada módulo desde el menú lateral del panel.</span>
         </div>
       </div>
 

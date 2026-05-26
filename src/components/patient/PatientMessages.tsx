@@ -497,9 +497,9 @@ export function PatientMessages() {
       {contextBanner ? (
         <div className="banner-alert flex flex-wrap items-center justify-between gap-2 mb-3">
           <span>{contextBanner.text}</span>
-          <a href={contextBanner.backHref} className="text-xs font-bold text-teal-800 underline">
+          <span className="text-xs font-bold text-teal-800 underline">
             {contextBanner.backLabel}
-          </a>
+          </span>
         </div>
       ) : null}
 
@@ -602,9 +602,7 @@ export function PatientMessages() {
             <button type="button" className="pmsg-btn pmsg-btn--outline" onClick={contactClinic}>
               Contactar clínica
             </button>
-            <a href="/paciente/reservar" className="pmsg-btn pmsg-btn--primary no-underline">
-              Reservar cita
-            </a>
+<p className="panel-hint text-sm text-slate-500 m-0">Usa el menú lateral del portal para abrir otras secciones.</p>
           </div>
         </section>
       ) : (
@@ -647,34 +645,25 @@ export function PatientMessages() {
                       Ver mensaje
                     </button>
                     {v.message.appointmentId ? (
-                      <a
-                        href={appointmentLink(v.message.appointmentId)}
-                        className="pmsg-btn pmsg-btn--outline no-underline"
-                        onClick={(e) => e.stopPropagation()}
+                      <span className="pmsg-btn pmsg-btn--outline no-underline" onClick={(e) => e.stopPropagation()}
                       >
                         <Calendar className="h-3.5 w-3.5" aria-hidden />
                         Ver cita
-                      </a>
+                      </span>
                     ) : null}
                     {v.message.invoiceId ? (
-                      <a
-                        href={`/paciente/facturas?factura=${encodeURIComponent(v.message.invoiceId)}`}
-                        className="pmsg-btn pmsg-btn--outline no-underline"
-                        onClick={(e) => e.stopPropagation()}
+                      <span className="pmsg-btn pmsg-btn--outline no-underline" onClick={(e) => e.stopPropagation()}
                       >
                         <Receipt className="h-3.5 w-3.5" aria-hidden />
                         Ver factura
-                      </a>
+                      </span>
                     ) : null}
                     {v.message.documentId ? (
-                      <a
-                        href={documentLink(state, v.message.documentId)}
-                        className="pmsg-btn pmsg-btn--outline no-underline"
-                        onClick={(e) => e.stopPropagation()}
+                      <span className="pmsg-btn pmsg-btn--outline no-underline" onClick={(e) => e.stopPropagation()}
                       >
                         <FileText className="h-3.5 w-3.5" aria-hidden />
                         Ver documento
-                      </a>
+                      </span>
                     ) : null}
                     {v.canDownloadPdf ? (
                       <button

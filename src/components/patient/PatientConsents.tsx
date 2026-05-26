@@ -291,12 +291,7 @@ export function PatientConsents() {
           <h3>No tienes consentimientos pendientes</h3>
           <p>Cuando tu clínica necesite que revises o firmes un consentimiento informado, aparecerá aquí.</p>
           <div className="pcon-empty__actions">
-            <a href="/paciente/reservar" className="pcon-btn pcon-btn--primary no-underline">
-              Reservar cita
-            </a>
-            <a href="/paciente/mensajes" className="pcon-btn pcon-btn--outline no-underline">
-              Contactar clínica
-            </a>
+<p className="panel-hint text-sm text-slate-500 m-0">Usa el menú lateral del portal para abrir otras secciones.</p>
           </div>
         </section>
       ) : (
@@ -351,21 +346,12 @@ export function PatientConsents() {
                       </button>
                     ) : null}
                     {v.canSign ? (
-                      <a
-                        href={messagesWithConsentContext(v.consent.title, v.consent.treatmentName)}
-                        className="pcon-btn pcon-btn--ghost no-underline"
-                        onClick={(e) => e.stopPropagation()}
+                      <span className="pcon-btn pcon-btn--ghost no-underline" onClick={(e) => e.stopPropagation()}
                       >
                         Enviar duda
-                      </a>
+                      </span>
                     ) : v.displayStatus === 'caducado' ? (
-                      <a
-                        href="/paciente/mensajes"
-                        className="pcon-btn pcon-btn--ghost no-underline"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Contactar clínica
-                      </a>
+<p className="panel-hint text-sm text-slate-500 m-0">Usa el menú lateral del portal para abrir otras secciones.</p>
                     ) : null}
                   </div>
                 </article>
@@ -479,13 +465,10 @@ export function PatientConsents() {
                       Descargar PDF
                     </button>
                   ) : null}
-                  <a
-                    href={messagesWithConsentContext(selected.consent.title, selected.consent.treatmentName)}
-                    className="pcon-btn pcon-btn--outline w-full no-underline"
-                  >
+                  <span className="pcon-btn pcon-btn--outline w-full no-underline">
                     <MessageSquare className="h-4 w-4" aria-hidden />
                     Enviar mensaje a la clínica
-                  </a>
+                  </span>
                 </div>
               </aside>
             </>

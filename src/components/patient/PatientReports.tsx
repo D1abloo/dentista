@@ -253,12 +253,7 @@ export function PatientReports() {
             Cuando tu clínica publique un informe clínico para ti, podrás consultarlo y descargarlo desde esta sección.
           </p>
           <div className="flex flex-wrap gap-2 justify-center">
-            <a href="/paciente/reservar" className="prt-btn prt-btn--primary no-underline">
-              Reservar cita
-            </a>
-            <a href="/paciente/mensajes" className="prt-btn prt-btn--outline no-underline">
-              Contactar clínica
-            </a>
+<p className="panel-hint text-sm text-slate-500 m-0">Usa el menú lateral del portal para abrir otras secciones.</p>
           </div>
         </section>
       ) : showNoResults ? (

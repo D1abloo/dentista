@@ -328,9 +328,7 @@ export function AdminDashboard() {
         <section className="adm-panel adm-panel--reveal" style={{ animationDelay: '120ms' }}>
           <header className="adm-panel__head">
             <h2>Próximas citas</h2>
-            <a href="/admin/agenda" className="adm-panel__action">
-              Ver agenda
-            </a>
+            <span className="adm-panel__action adm-panel__action--static">Próximas citas</span>
           </header>
           <ul className="adm-appt-list">
             {upcoming.length ? (
@@ -359,18 +357,12 @@ export function AdminDashboard() {
               <li className="adm-panel__empty">No hay citas próximas en este periodo.</li>
             )}
           </ul>
-          <a href="/admin/citas" className="adm-panel__foot">
-            Ver todas las citas
-            <ArrowRight className="h-4 w-4" aria-hidden />
-          </a>
         </section>
 
         <section className="adm-panel adm-panel--reveal" style={{ animationDelay: '200ms' }}>
           <header className="adm-panel__head">
             <h2>Actividad reciente</h2>
-            <a href="/admin/facturas" className="adm-panel__action">
-              Ver todo
-            </a>
+            <span className="adm-panel__action adm-panel__action--static">Actividad reciente</span>
           </header>
           <ul className="adm-activity-list">
             {activity.length ? (
@@ -390,10 +382,6 @@ export function AdminDashboard() {
               <li className="adm-panel__empty">Sin actividad reciente.</li>
             )}
           </ul>
-          <a href="/admin/facturas" className="adm-panel__foot">
-            Ver toda la actividad
-            <ArrowRight className="h-4 w-4" aria-hidden />
-          </a>
         </section>
 
         <section className="adm-panel adm-panel--chart adm-panel--reveal" style={{ animationDelay: '280ms' }}>
@@ -448,33 +436,32 @@ export function AdminDashboard() {
       </div>
 
       <div className="adm-summary-strip">
-        <a href="/admin/reportes" className="adm-summary adm-summary--reveal">
+        <article className="adm-summary adm-summary--reveal">
           <p className="adm-summary__label">Ingresos del mes</p>
           <p className="adm-summary__value">{money(income)}</p>
           <p className="adm-summary__trend">0% vs mes anterior</p>
           <Sparkline points={[8, 12, 10, 16, 14, 20, 18]} tone="teal" />
-        </a>
-        <a href="/admin/facturas" className="adm-summary adm-summary--reveal" style={{ animationDelay: '80ms' }}>
+        </article>
+        <article className="adm-summary adm-summary--reveal" style={{ animationDelay: '80ms' }}>
           <p className="adm-summary__label">Facturas pendientes</p>
           <p className="adm-summary__value">{pendingInvoices}</p>
           <p className="adm-summary__trend">↑ 33% vs semana anterior</p>
           <Sparkline points={[6, 8, 7, 10, 9, 12, pendingInvoices]} tone="orange" />
-        </a>
-        <a href="/admin/pagos" className="adm-summary adm-summary--reveal" style={{ animationDelay: '160ms' }}>
+        </article>
+        <article className="adm-summary adm-summary--reveal" style={{ animationDelay: '160ms' }}>
           <p className="adm-summary__label">Pagos completados</p>
           <p className="adm-summary__value">{completedPayments}</p>
           <p className="adm-summary__trend">0% vs semana anterior</p>
           <Sparkline points={[4, 6, 5, 8, 7, 9, completedPayments]} tone="green" />
-        </a>
-        <a href="/admin/facturas" className="adm-summary adm-summary--alert adm-summary--reveal" style={{ animationDelay: '240ms' }}>
+        </article>
+        <article className="adm-summary adm-summary--alert adm-summary--reveal" style={{ animationDelay: '240ms' }}>
           <AlertTriangle className="adm-summary__alert-icon" aria-hidden />
           <div>
             <p className="adm-summary__label">Alertas</p>
             <p className="adm-summary__value">{alerts}</p>
             <p className="adm-summary__trend">Facturas vencidas</p>
           </div>
-          <ArrowRight className="adm-summary__arrow" aria-hidden />
-        </a>
+        </article>
       </div>
     </div>
   );

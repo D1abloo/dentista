@@ -537,14 +537,9 @@ export function AgendaApptDetailDrawer({
       <Button type="button" tone="ghost" onClick={onReschedule}>
         Reprogramar
       </Button>
-      <a href={`/admin/pacientes/${appointment.patientId}`} className="agd-drawer__link-btn">
-        <User className="h-4 w-4" aria-hidden />
-        Ver paciente
-      </a>
-      <a href={`/admin/mensajes?patient=${appointment.patientId}`} className="agd-drawer__link-btn">
-        <MessageSquare className="h-4 w-4" aria-hidden />
-        Enviar mensaje
-      </a>
+      <p className="agd-drawer__hint text-xs text-slate-500 m-0">
+        Ficha del paciente y mensajes: usa Pacientes y Mensajes en el menú lateral del panel.
+      </p>
     </div>
   );
 

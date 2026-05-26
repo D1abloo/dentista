@@ -14,12 +14,12 @@ export function ClinicCenterPickerPage() {
     <RoleGate role="admin">
       <main className="clinic-center-page">
         <div className="clinic-center-page__shell">
-          <a href="/" className="clinic-center-page__brand">
+          <div className="clinic-center-page__brand">
             <DentistaWebpLockup placement="header" context="clinic" />
-          </a>
+          </div>
           <ClinicCenterPicker autoSingle={autoSingle} />
-          <p className="clinic-center-page__foot">
-            <a href="/">← Volver al inicio</a>
+          <p className="clinic-center-page__foot text-sm text-slate-500 m-0">
+            Tras elegir centro, continúas en el panel de clínica.
           </p>
         </div>
       </main>
