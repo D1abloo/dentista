@@ -782,6 +782,17 @@
   }
 }
 
+.pro-dash__capture--agenda {
+  max-height: 20rem;
+  object-fit: contain;
+  object-position: top center;
+  background: #f4f7f9;
+}
+
+.pro-dash__capture-wrap--agenda {
+  background: #f4f7f9;
+}
+
 .pro-dash__capture-link {
   display: block;
   padding: 0.45rem 0.65rem;

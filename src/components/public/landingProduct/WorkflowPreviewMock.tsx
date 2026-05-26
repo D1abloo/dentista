@@ -8,7 +8,7 @@ type Props = {
 }
 
 const PREVIEW_IMAGES: Record<WorkflowPreviewImage, { src: string; alt: string }> = {
-  citas: { src: brandImages.citas, alt: brandImageAlts.citas },
+  citas: { src: brandImages.agenda, alt: brandImageAlts.agenda },
   informes: { src: brandImages.informes, alt: brandImageAlts.informes },
   inicio: { src: brandImages.inicio, alt: brandImageAlts.inicio },
   doctor: { src: brandImages.doctor, alt: brandImageAlts.doctor },

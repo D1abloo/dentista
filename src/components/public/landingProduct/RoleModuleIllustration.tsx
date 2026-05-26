@@ -3,8 +3,8 @@ import { brandImageAlts, brandImages } from '@/lib/brand/assets';
 
 const IMAGES: Record<RoleModule['illustration'], { src: string; alt: string }> = {
   agenda: {
-    src: brandImages.citas,
-    alt: brandImageAlts.citas
+    src: brandImages.agenda,
+    alt: brandImageAlts.agenda
   },
   report: {
     src: brandImages.informes,

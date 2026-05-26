@@ -1,42 +1,37 @@
-import { useEffect, useState } from 'react';
-import { Bell, ChevronDown, Search } from 'lucide-react';
+import { Bell, ChevronDown, Search } from 'lucide-react'
 import {
   landingDashActions,
   landingDashNav,
   landingDashQuickModules
-} from './landingDashboardData';
-import { LandingDashboardDemoInsights } from './LandingDashboardDemoInsights';
-import { LandingDashboardMockBody } from './LandingDashboardMockBody';
-import { brandImageAlts, brandImages, clinicDashboardFallback } from '@/lib/brand/assets';
-import { BRAND_NAME, BRAND_PANEL_CLINIC } from '@/lib/brand/identity';
-
-const CAPTURE_DESKTOP = '/images/guides/landing/admin-dashboard-hero.png';
-const CAPTURE_MOBILE = '/images/guides/mobile/admin-dashboard.png';
-const CAPTURE_WEBP = clinicDashboardFallback;
+} from './landingDashboardData'
+import { LandingDashboardDemoInsights } from './LandingDashboardDemoInsights'
+import { LandingDashboardMockBody } from './LandingDashboardMockBody'
+import {
+  brandImageAlts,
+  brandImages,
+  clinicDashboardFallback,
+  heroAgendaImage
+} from '@/lib/brand/assets'
+import { BRAND_NAME, BRAND_PANEL_CLINIC } from '@/lib/brand/identity'
+import { useState } from 'react'
 
 /**
- * Vista previa del panel administrativo: barra lateral con scroll + captura real del demo.
+ * Vista previa del panel administrativo: barra lateral + imagen de agenda clínica.
  */
 export function LandingDashboardPreview() {
-  const [useFallback, setUseFallback] = useState(false);
-  const [captureSrc, setCaptureSrc] = useState(CAPTURE_DESKTOP);
+  const [captureSrc, setCaptureSrc] = useState<string>(heroAgendaImage)
+  const [useFallback, setUseFallback] = useState(false)
 
-  useEffect(() => {
-    setCaptureSrc(
-      window.matchMedia('(min-width: 768px)').matches ? CAPTURE_DESKTOP : CAPTURE_MOBILE
-    );
-  }, []);
-
-  function onCaptureError() {
-    if (captureSrc === CAPTURE_DESKTOP) {
-      setCaptureSrc(CAPTURE_MOBILE);
-      return;
+  const handleCaptureError = () => {
+    if (captureSrc === heroAgendaImage) {
+      setCaptureSrc(clinicDashboardFallback)
+      return
     }
-    if (captureSrc === CAPTURE_MOBILE) {
-      setCaptureSrc(CAPTURE_WEBP);
-      return;
+    if (captureSrc === clinicDashboardFallback) {
+      setCaptureSrc(brandImages.doctor)
+      return
     }
-    setUseFallback(true);
+    setUseFallback(true)
   }
 
   return (
@@ -85,20 +80,20 @@ export function LandingDashboardPreview() {
           </div>
 
           {!useFallback ? (
-            <figure className="pro-dash__capture-wrap">
-              <figcaption className="pro-dash__capture-label">Vista real del panel · datos demo</figcaption>
+            <figure className="pro-dash__capture-wrap pro-dash__capture-wrap--agenda">
+              <figcaption className="pro-dash__capture-label">Agenda clínica · vista real</figcaption>
               <img
                 src={captureSrc}
-                alt={brandImageAlts.doctor}
-                className="pro-dash__capture"
+                alt={brandImageAlts.agenda}
+                className="pro-dash__capture pro-dash__capture--agenda"
                 width={920}
                 height={520}
                 loading="eager"
                 decoding="async"
-                onError={onCaptureError}
+                onError={handleCaptureError}
               />
-              <a href="/login/admin" className="pro-dash__capture-link">
-                Abrir panel de clínica
+              <a href="/admin/agenda" className="pro-dash__capture-link">
+                Ver agenda clínica
               </a>
             </figure>
           ) : (
@@ -126,5 +121,5 @@ export function LandingDashboardPreview() {
         </div>
       </div>
     </div>
-  );
+  )
 }
