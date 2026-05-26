@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { MessageCircle } from 'lucide-react'
-import { AiBookingAssistant } from '@/components/public/ai-booking/AiBookingAssistant'
-import { useAiBookingFlow } from '@/components/public/ai-booking/useAiBookingFlow'
+import { AiAppointmentsAssistant } from '@/components/public/ai-booking/AiBookingAssistant'
+import { useAiAppointmentsFlow } from '@/components/public/ai-booking/useAiAppointmentsFlow'
 
-export function AiBookingWidget() {
+export function AiAppointmentsWidget() {
   const [open, setOpen] = useState(false)
-  const flow = useAiBookingFlow()
+  const flow = useAiAppointmentsFlow()
 
   useEffect(() => {
     if (!open) return
@@ -32,12 +32,12 @@ export function AiBookingWidget() {
             aria-modal="true"
             aria-label="Asistente de citas con IA"
           >
-            <p className="ai-widget__drawer-tagline">Te guiamos hasta confirmar tu reserva.</p>
-            <AiBookingAssistant
+            <p className="ai-widget__drawer-tagline">Reserva, revisa o cambia tus citas de forma guiada.</p>
+            <AiAppointmentsAssistant
               variant="widget"
               flow={flow}
-              inputId="ai-widget-booking-input"
-              expandHref="/reservar-con-ia"
+              inputId="ai-widget-appointments-input"
+              expandHref="/citas-con-ia"
               onClose={() => setOpen(false)}
             />
           </aside>
@@ -49,12 +49,14 @@ export function AiBookingWidget() {
         onClick={() => setOpen((value) => !value)}
         className="ai-widget__btn"
         aria-expanded={open}
-        aria-label="Reservar cita"
+        aria-label="Citas con IA"
       >
         <span className="ai-widget__pulse" aria-hidden />
         <MessageCircle className="h-4 w-4" aria-hidden />
-        Reservar cita
+        Citas con IA
       </button>
     </div>
   )
 }
+
+export const AiBookingWidget = AiAppointmentsWidget

@@ -5,9 +5,10 @@ import type { SlotOption } from './types'
 type Props = {
   slot: SlotOption
   onSelect: (slot: SlotOption) => void
+  selectLabel?: string
 }
 
-export function SlotCard({ slot, onSelect }: Props) {
+export function SlotCard({ slot, onSelect, selectLabel = 'Reservar este hueco' }: Props) {
   const duration =
     slot.durationMinutes ??
     Math.max(15, Math.round((new Date(slot.endsAt).getTime() - new Date(slot.startsAt).getTime()) / 60000))
@@ -32,7 +33,7 @@ export function SlotCard({ slot, onSelect }: Props) {
         onClick={() => onSelect(slot)}
         className="ai-btn ai-btn--primary ai-slot-card__cta"
       >
-        Reservar este hueco
+        {selectLabel}
       </button>
     </article>
   )

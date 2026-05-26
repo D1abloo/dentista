@@ -34,8 +34,8 @@ export function LandingHeroSection({ onRequestDemo }: Props) {
                   Solicitar demo para clínica
                   <ArrowRight className="h-4 w-4" aria-hidden />
                 </button>
-                <a href="/reservar-con-ia" className="ps-btn ps-btn--ink ps-btn--lg">
-                  Reservar con IA
+                <a href="/citas-con-ia" className="ps-btn ps-btn--ink ps-btn--lg">
+                  Citas con IA
                 </a>
                 <a href="/portal-paciente" className="ps-btn ps-btn--demo-outline ps-btn--lg">
                   Entrar como paciente

@@ -7,6 +7,7 @@ export type AiBookingMonitorEvent =
   | 'ai.availability_requested'
   | 'ai.no_slots_found'
   | 'ai.appointment_confirmed'
+  | 'ai.appointment_review'
   | 'ai.booking_failed'
 
 export async function logAiBookingMonitor(

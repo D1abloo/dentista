@@ -626,6 +626,63 @@ export const aiBookingChatSchema = z.object({
   bookingState: aiBookingStateSchema.default({})
 });
 
+export const aiAssistantContextSchema = z.object({
+  mode: z.enum(['book', 'manage', 'help']).default('book'),
+  verificationToken: z.string().max(500).optional(),
+  selectedAppointmentId: z.string().uuid().optional(),
+  pendingIntent: z.string().max(80).optional()
+});
+
+export const aiAssistantStateSchema = z.object({
+  bookingState: aiBookingStateSchema.default({}),
+  assistantContext: aiAssistantContextSchema.default({})
+});
+
+export const aiAppointmentsChatSchema = z.object({
+  message: z.string().min(1).max(2000),
+  conversation: z
+    .array(
+      z.object({
+        role: z.enum(['user', 'assistant']),
+        text: z.string().max(2000)
+      })
+    )
+    .max(40)
+    .default([]),
+  assistantState: aiAssistantStateSchema.default({})
+});
+
+export const patientAppointmentsVerifySchema = z.object({
+  email: z.string().email().max(160).optional(),
+  phone: z.string().min(8).max(20).optional(),
+  verificationToken: z.string().max(500).optional()
+});
+
+export const patientAppointmentsListSchema = z.object({
+  verificationToken: z.string().min(10).max(500),
+  upcomingOnly: z.boolean().optional()
+});
+
+export const patientAppointmentsCancelSchema = z.object({
+  verificationToken: z.string().min(10).max(500),
+  appointmentId: z.string().uuid(),
+  clinicId: z.string().uuid()
+});
+
+export const patientAppointmentsRescheduleSchema = z.object({
+  verificationToken: z.string().min(10).max(500),
+  appointmentId: z.string().uuid(),
+  clinicId: z.string().uuid(),
+  startsAt: z.string().datetime({ offset: true }),
+  endsAt: z.string().datetime({ offset: true }),
+  professionalId: z.string().uuid()
+});
+
+export const patientSecureLinkSchema = z.object({
+  email: z.string().email().max(160),
+  phone: z.string().min(8).max(20)
+});
+
 export const publicBookingSlotsRequestSchema = publicAiBookingSlotsSchema;
 export const publicBookingCreateSchema = publicAiBookingConfirmSchema;
 

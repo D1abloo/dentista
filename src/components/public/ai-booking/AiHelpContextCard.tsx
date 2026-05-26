@@ -1,9 +1,9 @@
 const HELP_ITEMS = [
-  'Reservar una cita',
-  'Buscar el primer hueco disponible',
-  'Elegir profesional',
+  'Reservar una cita nueva',
+  'Ver o consultar tus citas',
   'Cambiar fecha u horario',
-  'Resolver dudas antes de reservar'
+  'Cancelar una cita',
+  'Buscar el primer hueco disponible'
 ]
 
 export function AiHelpContextCard() {

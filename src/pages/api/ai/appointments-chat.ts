@@ -4,7 +4,7 @@ import { handleAppointmentsChat, monitorPatientAppointmentsError } from '@/lib/a
 import { logAiBookingMonitor } from '@/lib/ai/bookingMonitoring'
 import { fail, ok } from '@/lib/http'
 import { hasSupabaseConfig } from '@/lib/supabaseServer'
-import { aiBookingChatSchema } from '@/lib/validators'
+import { aiAppointmentsChatSchema } from '@/lib/validators'
 
 export const prerender = false
 
@@ -19,41 +19,26 @@ function isRateLimited(key: string, max: number) {
   return events.length > max
 }
 
-/** @deprecated Usar /api/ai/appointments-chat */
 export const POST: APIRoute = async ({ request }) => {
   if (!hasSupabaseConfig()) {
     return fail('El asistente de citas no está disponible temporalmente.', 503)
   }
 
   const ip = clientIp(request) ?? 'unknown'
-  if (isRateLimited(`chat:${ip}`, 30)) {
+  if (isRateLimited(`appt-chat:${ip}`, 30)) {
     return fail('Has enviado demasiados mensajes. Espera unos segundos.', 429)
   }
 
   try {
     const body = await request.json()
-    const parsed = aiBookingChatSchema.safeParse(body)
+    const parsed = aiAppointmentsChatSchema.safeParse(body)
     if (!parsed.success) return fail('Mensaje del chat inválido.', 422, parsed.error.flatten())
 
-    const result = await handleAppointmentsChat({
-      message: parsed.data.message,
-      conversation: parsed.data.conversation,
-      assistantState: {
-        bookingState: parsed.data.bookingState,
-        assistantContext: { mode: 'book' }
-      }
-    })
-
-    return ok({
-      assistantMessage: result.assistantMessage,
-      intent: result.intent,
-      bookingState: result.bookingState,
-      slots: result.slots,
-      readyForSummary: result.readyForSummary
-    })
+    const result = await handleAppointmentsChat(parsed.data)
+    return ok(result)
   } catch (error) {
-    monitorPatientAppointmentsError('booking-chat', error)
-    await logAiBookingMonitor('ai.booking_failed', { scope: 'booking-chat' })
+    monitorPatientAppointmentsError('appointments-chat', error)
+    await logAiBookingMonitor('ai.booking_failed', { scope: 'appointments-chat' })
     return fail('No se pudo contactar con el asistente.', 500)
   }
 }

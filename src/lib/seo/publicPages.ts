@@ -68,16 +68,25 @@ export const publicPageSeo: Record<string, PageSeo> = {
     ogTitle: 'Registro paciente AgendaClinic',
     ogDescription: 'Activa tu cuenta y reserva citas con tu clínica dental.'
   },
+  '/citas-con-ia': {
+    path: '/citas-con-ia',
+    title: 'Citas con IA | AgendaClinic',
+    description:
+      'Reserva, revisa, cambia o cancela tus citas con el asistente de AgendaClinic. Consulta disponibilidad real y gestiona tus citas de forma segura.',
+    keywords:
+      'citas con ia, gestionar citas dental, asistente citas clínica, reservar cancelar cita online',
+    ogTitle: 'Citas con IA · AgendaClinic',
+    ogDescription:
+      'Reserva, revisa o cambia tus citas con el asistente de AgendaClinic de forma segura y guiada.'
+  },
   '/reservar-con-ia': {
     path: '/reservar-con-ia',
-    title: 'Reservar cita online con IA | AgendaClinic',
+    title: 'Citas con IA | AgendaClinic',
     description:
-      'Reserva tu cita online con el asistente de AgendaClinic. Elige tratamiento, clínica, profesional, fecha y hora disponible de forma rápida y segura.',
-    keywords:
-      'reservar cita online ia, asistente de citas dental, agenda dental inteligente, reservar dentista online',
-    ogTitle: 'Reservar cita online con IA · AgendaClinic',
-    ogDescription:
-      'Habla con el asistente de citas y reserva un hueco real en tu clínica dental en pocos pasos.'
+      'Reserva, revisa, cambia o cancela tus citas con el asistente de AgendaClinic.',
+    keywords: 'citas con ia, asistente citas dental',
+    ogTitle: 'Citas con IA · AgendaClinic',
+    ogDescription: 'Gestiona tus citas con ayuda de IA.'
   },
   '/privacidad': {
     path: '/privacidad',

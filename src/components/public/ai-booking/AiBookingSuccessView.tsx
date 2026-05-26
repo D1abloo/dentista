@@ -9,9 +9,16 @@ type Props = {
   slot: SlotOption
   hasPortalAccount: boolean
   onBookAnother: () => void
+  title?: string
 }
 
-export function AiBookingSuccessView({ bookingState, slot, hasPortalAccount, onBookAnother }: Props) {
+export function AiBookingSuccessView({
+  bookingState,
+  slot,
+  hasPortalAccount,
+  onBookAnother,
+  title = 'Cita reservada correctamente'
+}: Props) {
   const calendarEvent = {
     title: `Cita: ${bookingState.treatmentName ?? slot.treatmentName}`,
     startsAt: slot.startsAt,
@@ -25,7 +32,7 @@ export function AiBookingSuccessView({ bookingState, slot, hasPortalAccount, onB
       <div className="ai-success__icon" aria-hidden>
         <CheckCircle2 className="h-10 w-10" />
       </div>
-      <h2 className="ai-success__title">Cita reservada correctamente</h2>
+      <h2 className="ai-success__title">{title}</h2>
       <p className="ai-success__text">
         Te hemos enviado la confirmación por email. Si tu clínica tiene Portal del Paciente activo,
         podrás consultar la cita desde tu cuenta.

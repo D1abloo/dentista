@@ -53,7 +53,7 @@ import '../styles/login-panels.css';
 import '../styles/platform-login.css';
 import '../styles/clinic-login.css';
 import '../styles/ai-booking.css';
-import { AiBookingWidget } from '@/components/public/AiBookingWidget';
+import { AiAppointmentsWidget } from '@/components/public/AiAppointmentsWidget';
 import {
   BRAND_SEO,
   defaultOgImage,
@@ -153,7 +153,7 @@ const jsonLd =
   </head>
   <body>
     <slot />
-    {!isPrivate ? <AiBookingWidget client:load /> : null}
+    {!isPrivate ? <AiAppointmentsWidget client:load /> : null}
     <script is:inline>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {

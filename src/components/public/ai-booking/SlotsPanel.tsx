@@ -8,9 +8,10 @@ type Props = {
   showAll: boolean
   onToggleShowAll: () => void
   onSelect: (slot: SlotOption) => void
+  selectLabel?: string
 }
 
-export function SlotsPanel({ slots, showAll, onToggleShowAll, onSelect }: Props) {
+export function SlotsPanel({ slots, showAll, onToggleShowAll, onSelect, selectLabel }: Props) {
   if (!slots.length) return null
 
   const visible = showAll ? slots : slots.slice(0, DEFAULT_VISIBLE)
@@ -26,7 +27,7 @@ export function SlotsPanel({ slots, showAll, onToggleShowAll, onSelect }: Props)
             className="ai-slots__item"
             style={{ animationDelay: `${index * 0.06}s` }}
           >
-            <SlotCard slot={slot} onSelect={onSelect} />
+            <SlotCard slot={slot} onSelect={onSelect} selectLabel={selectLabel} />
           </div>
         ))}
       </div>

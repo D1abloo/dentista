@@ -1,15 +1,29 @@
+import type { PublicPatientAppointment } from '@/lib/services/patientAppointmentsPublic'
+
 export type AssistantUiState =
   | 'idle'
   | 'thinking'
   | 'asking_followup'
+  | 'verifying_identity'
+  | 'identity_verified'
+  | 'fetching_appointments'
   | 'fetching_availability'
+  | 'showing_existing_appointments'
   | 'showing_slots'
   | 'collecting_patient_data'
   | 'confirming'
+  | 'confirming_booking'
+  | 'confirming_reschedule'
+  | 'confirming_cancel'
   | 'booking'
   | 'success'
   | 'error'
   | 'no_availability'
+  | 'no_appointments'
+
+export type AssistantTab = 'book' | 'mine' | 'change' | 'help'
+export type AssistantMode = 'book' | 'manage' | 'help'
+export type SuccessKind = 'booked' | 'cancelled' | 'rescheduled' | null
 
 export type ChatRole = 'assistant' | 'user'
 
@@ -43,6 +57,13 @@ export type BookingState = {
   }
 }
 
+export type AssistantContext = {
+  mode: AssistantMode
+  verificationToken?: string
+  selectedAppointmentId?: string
+  pendingIntent?: string
+}
+
 export type SlotOption = {
   clinicId: string
   clinicName?: string
@@ -55,6 +76,8 @@ export type SlotOption = {
   endsAt: string
   label: string
 }
+
+export type PatientAppointment = PublicPatientAppointment
 
 export type PatientFormValue = {
   fullName: string
