@@ -34,6 +34,8 @@ export type BookingState = {
   patientDni?: string
   reason?: string
   notes?: string
+  datePreferenceLabel?: string
+  timePreferenceLabel?: string
   selectedSlot?: {
     startsAt: string
     endsAt: string

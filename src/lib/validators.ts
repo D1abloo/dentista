@@ -601,6 +601,8 @@ export const aiBookingStateSchema = z.object({
   patientDni: z.string().max(20).optional(),
   reason: z.string().max(500).optional(),
   notes: z.string().max(500).optional(),
+  datePreferenceLabel: z.string().max(120).optional(),
+  timePreferenceLabel: z.string().max(80).optional(),
   selectedSlot: z
     .object({
       startsAt: z.string().datetime({ offset: true }),

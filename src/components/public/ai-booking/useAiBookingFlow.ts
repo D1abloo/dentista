@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { validatePatientForm } from './patientValidation'
+import { AI_BOOKING_QUICK_REPLIES } from './quickReplies'
 import type {
   AssistantUiState,
   BookingState,
@@ -6,15 +8,9 @@ import type {
   PatientFormValue,
   SlotOption
 } from './types'
+import type { PatientFormErrors } from './patientValidation'
 
-export const AI_BOOKING_QUICK_REPLIES = [
-  'Quiero reservar cita',
-  'Limpieza dental',
-  'Dolor dental',
-  'Revisión',
-  'Esta semana',
-  'Por la tarde'
-]
+export { AI_BOOKING_QUICK_REPLIES }
 
 export const AI_BOOKING_INITIAL_MESSAGE =
   'Hola, soy el asistente de AgendaClinic. Dime qué necesitas y buscaré una cita disponible para ti.'
@@ -23,17 +19,15 @@ function id(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
 }
 
-function patientFromState(state: BookingState): PatientFormValue {
-  return {
-    fullName: state.patientName ?? '',
-    email: state.patientEmail ?? '',
-    phone: state.patientPhone ?? '',
-    dni: state.patientDni ?? '',
-    reason: state.reason ?? state.treatmentName ?? '',
-    notes: state.notes ?? '',
-    hasPortalAccount: null
-  }
-}
+const emptyPatient = (): PatientFormValue => ({
+  fullName: '',
+  email: '',
+  phone: '',
+  dni: '',
+  reason: '',
+  notes: '',
+  hasPortalAccount: null
+})
 
 type Options = {
   initialQuery?: string
@@ -51,8 +45,22 @@ export function useAiBookingFlow(options: Options = {}) {
   const [readyForSummary, setReadyForSummary] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [hasPortalAccount, setHasPortalAccount] = useState(false)
+  const [patientForm, setPatientForm] = useState<PatientFormValue>(emptyPatient)
+  const [patientErrors, setPatientErrors] = useState<PatientFormErrors | null>(null)
+  const [showAllSlots, setShowAllSlots] = useState(false)
+  const [availabilityFetched, setAvailabilityFetched] = useState(false)
 
-  const patientForm = useMemo(() => patientFromState(bookingState), [bookingState])
+  const syncPatientFromState = useCallback((state: BookingState) => {
+    setPatientForm((prev) => ({
+      ...prev,
+      fullName: state.patientName ?? prev.fullName,
+      email: state.patientEmail ?? prev.email,
+      phone: state.patientPhone ?? prev.phone,
+      dni: state.patientDni ?? prev.dni,
+      reason: state.reason ?? state.treatmentName ?? prev.reason,
+      notes: state.notes ?? prev.notes
+    }))
+  }, [])
 
   const handleSendMessage = useCallback(
     async (value: string) => {
@@ -64,6 +72,7 @@ export function useAiBookingFlow(options: Options = {}) {
       setChatInput('')
       setStatus('thinking')
       setErrorMessage('')
+      setShowAllSlots(false)
 
       try {
         const response = await fetch('/api/ai/booking-chat', {
@@ -94,6 +103,7 @@ export function useAiBookingFlow(options: Options = {}) {
 
         const nextState = (json.data?.bookingState ?? {}) as BookingState
         setBookingState(nextState)
+        syncPatientFromState(nextState)
 
         if (nextState.selectedSlot && !selectedSlot) {
           const match = (json.data?.slots as SlotOption[] | undefined)?.find(
@@ -107,6 +117,15 @@ export function useAiBookingFlow(options: Options = {}) {
 
         const summaryReady = Boolean(json.data?.readyForSummary)
         setReadyForSummary(summaryReady)
+
+        const fetchedAvailability = Boolean(json.data?.intent?.should_fetch_availability)
+        if (fetchedAvailability) {
+          setAvailabilityFetched(true)
+          if (!nextSlots.length) {
+            setStatus('no_availability')
+            return
+          }
+        }
 
         if (nextSlots.length) {
           setStatus('showing_slots')
@@ -124,7 +143,7 @@ export function useAiBookingFlow(options: Options = {}) {
         ])
       }
     },
-    [bookingState, messages, selectedSlot]
+    [bookingState, messages, selectedSlot, syncPatientFromState]
   )
 
   const handleSelectSlot = useCallback((slot: SlotOption) => {
@@ -134,6 +153,7 @@ export function useAiBookingFlow(options: Options = {}) {
     setBookingState((prev) => ({
       ...prev,
       clinicId: slot.clinicId,
+      clinicName: slot.clinicName ?? prev.clinicName,
       treatmentId: slot.treatmentId,
       treatmentName: slot.treatmentName,
       professionalId,
@@ -144,22 +164,58 @@ export function useAiBookingFlow(options: Options = {}) {
         professionalId
       }
     }))
+    setReadyForSummary(false)
     setStatus('collecting_patient_data')
+    setPatientForm((prev) => ({
+      ...prev,
+      reason: prev.reason || slot.treatmentName
+    }))
     setMessages((prev) => [
       ...prev,
       {
         id: id('assistant'),
         role: 'assistant',
-        text: 'Perfecto. Para confirmar, necesito tu nombre completo, email y teléfono.'
+        text: 'Perfecto. Completa tus datos para continuar con la reserva.'
       }
     ])
   }, [])
 
+  const handlePatientContinue = useCallback(() => {
+    const errors = validatePatientForm(patientForm)
+    if (errors) {
+      setPatientErrors(errors)
+      return
+    }
+    setPatientErrors(null)
+    setBookingState((prev) => ({
+      ...prev,
+      patientName: patientForm.fullName.trim(),
+      patientEmail: patientForm.email.trim(),
+      patientPhone: patientForm.phone.trim(),
+      patientDni: patientForm.dni.trim() || undefined,
+      reason: patientForm.reason.trim() || prev.treatmentName,
+      notes: patientForm.notes.trim() || undefined
+    }))
+    setReadyForSummary(true)
+    setStatus('confirming')
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: id('assistant'),
+        role: 'assistant',
+        text: 'Revisa el resumen y confirma tu cita cuando estés listo.'
+      }
+    ])
+  }, [patientForm])
+
   const handleConfirmBooking = useCallback(async () => {
     const slot = selectedSlot
     if (!slot?.professionalId || !bookingState.clinicId || !bookingState.treatmentId) return
-    if (!patientForm.fullName || !patientForm.email || !patientForm.phone) {
-      setStatus('error')
+
+    const errors = validatePatientForm(patientForm)
+    if (errors) {
+      setPatientErrors(errors)
+      setStatus('collecting_patient_data')
       setErrorMessage('Completa los datos obligatorios.')
       return
     }
@@ -192,10 +248,6 @@ export function useAiBookingFlow(options: Options = {}) {
       }
       setStatus('success')
       setHasPortalAccount(Boolean(json.data?.hasPortalAccount))
-      setMessages((prev) => [
-        ...prev,
-        { id: id('assistant'), role: 'assistant', text: 'Cita reservada correctamente.' }
-      ])
     } catch (error) {
       setStatus('error')
       setErrorMessage(error instanceof Error ? error.message : 'No se pudo reservar la cita. Inténtalo de nuevo.')
@@ -205,8 +257,7 @@ export function useAiBookingFlow(options: Options = {}) {
   const handleEditSummary = useCallback(() => {
     setReadyForSummary(false)
     setStatus('collecting_patient_data')
-    void handleSendMessage('Quiero cambiar mis datos')
-  }, [handleSendMessage])
+  }, [])
 
   const resetFlow = useCallback(() => {
     setStatus('idle')
@@ -218,7 +269,17 @@ export function useAiBookingFlow(options: Options = {}) {
     setErrorMessage('')
     setHasPortalAccount(false)
     setChatInput('')
+    setPatientForm(emptyPatient())
+    setPatientErrors(null)
+    setShowAllSlots(false)
+    setAvailabilityFetched(false)
   }, [])
+
+  const handleRetry = useCallback(() => {
+    setErrorMessage('')
+    setStatus(messages.length > 1 ? 'asking_followup' : 'idle')
+    void handleSendMessage('Quiero reintentar la reserva')
+  }, [handleSendMessage, messages.length])
 
   useEffect(() => {
     const query = options.initialQuery?.trim()
@@ -226,6 +287,11 @@ export function useAiBookingFlow(options: Options = {}) {
     void handleSendMessage(query)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options.initialQuery])
+
+  const showHelpCard = useMemo(
+    () => messages.length === 1 && messages[0]?.role === 'assistant',
+    [messages]
+  )
 
   return {
     status,
@@ -239,10 +305,18 @@ export function useAiBookingFlow(options: Options = {}) {
     errorMessage,
     hasPortalAccount,
     patientForm,
+    setPatientForm,
+    patientErrors,
+    showAllSlots,
+    setShowAllSlots,
+    availabilityFetched,
+    showHelpCard,
     handleSendMessage,
     handleSelectSlot,
+    handlePatientContinue,
     handleConfirmBooking,
     handleEditSummary,
+    handleRetry,
     resetFlow
   }
 }

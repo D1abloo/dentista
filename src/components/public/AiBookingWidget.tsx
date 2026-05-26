@@ -1,11 +1,7 @@
 import { useEffect, useState } from 'react'
-import { ExternalLink, MessageCircle, Sparkles, X } from 'lucide-react'
-import { AiBookingSidePanel } from '@/components/public/ai-booking/AiBookingSidePanel'
-import { AiChatWindow } from '@/components/public/ai-booking/AiChatWindow'
-import {
-  AI_BOOKING_QUICK_REPLIES,
-  useAiBookingFlow
-} from '@/components/public/ai-booking/useAiBookingFlow'
+import { MessageCircle } from 'lucide-react'
+import { AiBookingAssistant } from '@/components/public/ai-booking/AiBookingAssistant'
+import { useAiBookingFlow } from '@/components/public/ai-booking/useAiBookingFlow'
 
 export function AiBookingWidget() {
   const [open, setOpen] = useState(false)
@@ -20,80 +16,30 @@ export function AiBookingWidget() {
     }
   }, [open])
 
-  const handleClose = () => setOpen(false)
-
   return (
-    <div className="ai-widget">
+    <div className={`ai-widget${open ? ' ai-widget--open' : ''}`}>
       {open ? (
         <>
           <button
             type="button"
             className="ai-widget__backdrop"
             aria-label="Cerrar asistente de citas"
-            onClick={handleClose}
+            onClick={() => setOpen(false)}
           />
-          <aside className="ai-widget__drawer" role="dialog" aria-modal="true" aria-label="Asistente de citas">
-            <div className="ai-widget__drawer-head">
-              <div className="ai-widget__drawer-brand">
-                <span className="ai-widget__drawer-icon" aria-hidden>
-                  <Sparkles className="h-4 w-4" />
-                </span>
-                <div>
-                  <strong>Asistente de citas con IA</strong>
-                  <span>Te ayudamos a reservar tu cita en pocos pasos.</span>
-                </div>
-              </div>
-              <div className="ai-widget__drawer-actions">
-                <a href="/reservar-con-ia" className="ai-widget__expand" title="Abrir en pantalla completa">
-                  <ExternalLink className="h-4 w-4" aria-hidden />
-                  <span className="sr-only">Abrir en pantalla completa</span>
-                </a>
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  className="ai-widget__close"
-                  aria-label="Cerrar asistente de citas"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-            <p className="ai-widget__drawer-sub">
-              Cuéntanos qué necesitas y te ayudamos a encontrar el mejor hueco disponible.
-            </p>
-
-            <div className="ai-widget__drawer-body">
-              <AiChatWindow
-                variant="widget"
-                inputId="ai-widget-booking-input"
-                messages={flow.messages}
-                quickReplies={AI_BOOKING_QUICK_REPLIES}
-                chatInput={flow.chatInput}
-                status={flow.status}
-                onInputChange={flow.setChatInput}
-                onSend={(value) => void flow.handleSendMessage(value)}
-                onQuickReply={(value) => void flow.handleSendMessage(value)}
-              />
-              <AiBookingSidePanel
-                variant="widget"
-                status={flow.status}
-                errorMessage={flow.errorMessage}
-                slots={flow.slots}
-                selectedSlot={flow.selectedSlot}
-                readyForSummary={flow.readyForSummary}
-                bookingState={flow.bookingState}
-                patientForm={flow.patientForm}
-                hasPortalAccount={flow.hasPortalAccount}
-                onSelectSlot={flow.handleSelectSlot}
-                onConfirmBooking={() => void flow.handleConfirmBooking()}
-                onEditSummary={() => void flow.handleEditSummary()}
-                onBookAnother={() => {
-                  flow.resetFlow()
-                  setOpen(true)
-                }}
-              />
-            </div>
+          <aside
+            className="ai-widget__drawer ai-widget__drawer--enter"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Asistente de citas con IA"
+          >
+            <p className="ai-widget__drawer-tagline">Te guiamos hasta confirmar tu reserva.</p>
+            <AiBookingAssistant
+              variant="widget"
+              flow={flow}
+              inputId="ai-widget-booking-input"
+              expandHref="/reservar-con-ia"
+              onClose={() => setOpen(false)}
+            />
           </aside>
         </>
       ) : null}
@@ -105,7 +51,8 @@ export function AiBookingWidget() {
         aria-expanded={open}
         aria-label="Reservar cita"
       >
-        <MessageCircle className="h-4 w-4" />
+        <span className="ai-widget__pulse" aria-hidden />
+        <MessageCircle className="h-4 w-4" aria-hidden />
         Reservar cita
       </button>
     </div>

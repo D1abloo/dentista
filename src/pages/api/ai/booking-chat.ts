@@ -113,6 +113,15 @@ export const POST: APIRoute = async ({ request }) => {
       patientDni: intent.patient_dni ?? bookingState.patientDni,
       reason: intent.reason ?? bookingState.reason ?? intent.treatment ?? undefined,
       notes: intent.notes ?? bookingState.notes,
+      datePreferenceLabel: intent.date_preference ?? bookingState.datePreferenceLabel,
+      timePreferenceLabel:
+        intent.time_preference === 'morning'
+          ? 'Por la mañana'
+          : intent.time_preference === 'afternoon'
+            ? 'Por la tarde'
+            : intent.time_preference === 'any'
+              ? 'Cualquier hora'
+              : bookingState.timePreferenceLabel,
       selectedSlot: bookingState.selectedSlot
     }
 
@@ -141,7 +150,7 @@ export const POST: APIRoute = async ({ request }) => {
       if (!slots.length) {
         await logAiBookingMonitor('ai.no_slots_found', { clinicId: nextState.clinicId })
         assistantMessage =
-          'No he encontrado huecos disponibles con esos filtros. ¿Quieres que busque otro día, otro profesional o la primera cita disponible?'
+          'No hay huecos con esos filtros. Puedo buscar otro día, otro profesional o la primera cita disponible.'
       } else {
         assistantMessage = `He encontrado ${slots.length} huecos disponibles para ${nextState.treatmentName ?? 'tu tratamiento'}. Elige uno para continuar.`
       }
