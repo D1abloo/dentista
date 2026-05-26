@@ -16,14 +16,14 @@ export function PatientDetailsForm({ value, onChange, onSubmit, loading }: Props
   }
 
   return (
-    <form className="grid gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200" onSubmit={handleSubmit}>
+    <form className="grid gap-3 rounded-3xl bg-white/90 p-4 shadow-sm ring-1 ring-slate-200/70" onSubmit={handleSubmit}>
       <label className="grid gap-1 text-xs font-semibold text-slate-700">
         Nombre completo
         <input
           required
           value={value.fullName}
           onChange={(event) => update({ fullName: event.target.value })}
-          className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+          className="rounded-2xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-4 focus:ring-teal-200/60"
         />
       </label>
       <label className="grid gap-1 text-xs font-semibold text-slate-700">
@@ -33,7 +33,7 @@ export function PatientDetailsForm({ value, onChange, onSubmit, loading }: Props
           type="email"
           value={value.email}
           onChange={(event) => update({ email: event.target.value })}
-          className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+          className="rounded-2xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-4 focus:ring-teal-200/60"
         />
       </label>
       <label className="grid gap-1 text-xs font-semibold text-slate-700">
@@ -42,7 +42,7 @@ export function PatientDetailsForm({ value, onChange, onSubmit, loading }: Props
           required
           value={value.phone}
           onChange={(event) => update({ phone: event.target.value })}
-          className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+          className="rounded-2xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-4 focus:ring-teal-200/60"
         />
       </label>
       <label className="grid gap-1 text-xs font-semibold text-slate-700">
@@ -50,7 +50,7 @@ export function PatientDetailsForm({ value, onChange, onSubmit, loading }: Props
         <input
           value={value.dni}
           onChange={(event) => update({ dni: event.target.value })}
-          className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+          className="rounded-2xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-4 focus:ring-teal-200/60"
         />
       </label>
       <label className="grid gap-1 text-xs font-semibold text-slate-700">
@@ -59,7 +59,7 @@ export function PatientDetailsForm({ value, onChange, onSubmit, loading }: Props
           required
           value={value.reason}
           onChange={(event) => update({ reason: event.target.value })}
-          className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+          className="rounded-2xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-4 focus:ring-teal-200/60"
         />
       </label>
       <label className="grid gap-1 text-xs font-semibold text-slate-700">
@@ -68,7 +68,7 @@ export function PatientDetailsForm({ value, onChange, onSubmit, loading }: Props
           rows={3}
           value={value.notes}
           onChange={(event) => update({ notes: event.target.value })}
-          className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+          className="rounded-2xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-4 focus:ring-teal-200/60"
         />
       </label>
 
@@ -97,7 +97,7 @@ export function PatientDetailsForm({ value, onChange, onSubmit, loading }: Props
       <button
         type="submit"
         disabled={loading}
-        className="rounded-xl bg-teal-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-800 disabled:opacity-60"
+        className="rounded-2xl bg-teal-700 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 disabled:opacity-60"
       >
         {loading ? 'Preparando la reserva…' : 'Continuar'}
       </button>

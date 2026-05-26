@@ -260,8 +260,8 @@ export function AiBookingPage() {
   return (
     <>
       <PublicHeader activeHref="/reservar-con-ia" />
-      <main className="min-h-screen bg-gradient-to-b from-sky-50 to-white">
-        <section className="mx-auto max-w-6xl px-4 pb-8 pt-10 md:px-6">
+      <main className="min-h-screen bg-[radial-gradient(1200px_circle_at_16%_8%,rgba(221,245,242,0.7),transparent_55%),radial-gradient(900px_circle_at_88%_12%,rgba(238,248,249,0.9),transparent_55%),linear-gradient(180deg,#f7fbff,white)]">
+        <section className="mx-auto max-w-6xl px-4 pb-7 pt-10 md:px-6">
           <span className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-800 ring-1 ring-teal-200">
             <MessageSquareHeart className="h-4 w-4" aria-hidden />
             Asistente de citas
@@ -270,12 +270,24 @@ export function AiBookingPage() {
           <p className="mt-2 max-w-3xl text-sm text-slate-600">
             Cuéntanos qué necesitas y te ayudamos a encontrar el mejor hueco disponible.
           </p>
-          <h2 className="mt-6 text-lg font-semibold text-slate-900">Encuentra el mejor hueco disponible</h2>
-          <h2 className="text-lg font-semibold text-slate-900">Reserva segura conectada con tu clínica</h2>
+          <div className="mt-6 grid gap-2 text-sm text-slate-700 md:grid-cols-2">
+            <p className="ai-page__card px-4 py-3">
+              <strong className="text-slate-900">Encuentra el mejor hueco disponible</strong>
+              <span className="mt-1 block text-slate-600">
+                Te guiamos por tratamiento, clínica, profesional y franja horaria. Solo mostramos huecos reales.
+              </span>
+            </p>
+            <p className="ai-page__card px-4 py-3">
+              <strong className="text-slate-900">Reserva segura conectada con tu clínica</strong>
+              <span className="mt-1 block text-slate-600">
+                La cita queda registrada en la agenda y puedes verla en tu Portal del Paciente.
+              </span>
+            </p>
+          </div>
         </section>
 
-        <section className="mx-auto grid max-w-6xl gap-4 px-4 pb-12 md:px-6 lg:grid-cols-[1.15fr_0.85fr]">
-          <article className="flex min-h-[60vh] flex-col rounded-3xl bg-sky-50 p-4 shadow-sm ring-1 ring-sky-100">
+        <section className="mx-auto grid max-w-6xl gap-4 px-4 pb-14 md:px-6 lg:grid-cols-[1.15fr_0.85fr]">
+          <article className="ai-page__card ai-page__chat flex min-h-[62vh] flex-col rounded-3xl p-4">
             <div className="flex-1 space-y-3 overflow-y-auto pr-1">
               {messages.map((message) => (
                 <ChatMessage key={message.id} message={message} />
@@ -285,13 +297,13 @@ export function AiBookingPage() {
             <label htmlFor="ai-booking-input" className="sr-only">
               Mensaje para el asistente de citas
             </label>
-            <div className="mt-3 flex gap-2">
+            <div className="ai-page__stickyInput mt-3 flex gap-2">
               <input
                 id="ai-booking-input"
                 value={chatInput}
                 onChange={(event) => setChatInput(event.target.value)}
                 placeholder="Escribe, por ejemplo: quiero una limpieza dental esta semana por la tarde…"
-                className="w-full rounded-xl border border-sky-200 bg-white px-3 py-2 text-sm"
+                className="w-full rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm shadow-sm focus:outline-none focus:ring-4 focus:ring-teal-200/60"
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') void handleSendMessage(chatInput)
                 }}
@@ -299,7 +311,7 @@ export function AiBookingPage() {
               <button
                 type="button"
                 onClick={() => void handleSendMessage(chatInput)}
-                className="rounded-xl bg-teal-700 px-4 py-2 text-sm font-semibold text-white"
+                className="rounded-2xl bg-teal-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
               >
                 Enviar
               </button>
@@ -312,7 +324,7 @@ export function AiBookingPage() {
           </article>
 
           <aside className="space-y-3">
-            <article className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+            <article className="ai-page__card rounded-2xl bg-white p-4">
               <h3 className="text-sm font-semibold text-slate-900">Preferencias</h3>
               <div className="mt-3 grid gap-2">
                 <label className="grid gap-1 text-xs font-semibold text-slate-700">
@@ -326,7 +338,7 @@ export function AiBookingPage() {
                       setSelectedProfessionalId('')
                       void loadBootstrap(next)
                     }}
-                    className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    className="rounded-2xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-4 focus:ring-teal-200/60"
                   >
                     <option value="">Selecciona clínica</option>
                     {clinics.map((clinic) => (
@@ -341,7 +353,7 @@ export function AiBookingPage() {
                   <select
                     value={selectedTreatmentId}
                     onChange={(event) => setSelectedTreatmentId(event.target.value)}
-                    className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    className="rounded-2xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-4 focus:ring-teal-200/60"
                   >
                     <option value="">Selecciona tratamiento</option>
                     {treatments.map((treatment) => (
@@ -356,7 +368,7 @@ export function AiBookingPage() {
                   <select
                     value={selectedProfessionalId}
                     onChange={(event) => setSelectedProfessionalId(event.target.value)}
-                    className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    className="rounded-2xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-4 focus:ring-teal-200/60"
                   >
                     <option value="">Cualquier profesional</option>
                     {professionals.map((professional) => (
@@ -371,7 +383,7 @@ export function AiBookingPage() {
                   <select
                     value={preferredTime}
                     onChange={(event) => setPreferredTime(event.target.value as 'morning' | 'afternoon' | 'any')}
-                    className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    className="rounded-2xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-4 focus:ring-teal-200/60"
                   >
                     <option value="any">Cualquier horario</option>
                     <option value="morning">Por la mañana</option>
@@ -382,7 +394,7 @@ export function AiBookingPage() {
                   type="button"
                   onClick={() => void handleFetchSlots()}
                   disabled={!selectedClinicId || !selectedTreatmentId}
-                  className="mt-1 rounded-xl bg-teal-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                  className="mt-1 rounded-2xl bg-teal-700 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 disabled:opacity-60"
                 >
                   Buscar huecos reales
                 </button>

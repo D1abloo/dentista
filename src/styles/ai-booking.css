@@ -1,0 +1,190 @@
+/* Asistente de citas — UI premium pública (página + widget) */
+
+:root {
+  --ai-surface: rgba(255, 255, 255, 0.92);
+  --ai-border: rgba(23, 59, 64, 0.12);
+  --ai-shadow: 0 18px 60px rgba(8, 42, 48, 0.18);
+  --ai-shadow-soft: 0 10px 26px rgba(8, 42, 48, 0.08);
+}
+
+.ai-widget {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 60;
+  font-family: var(--ps-body);
+}
+
+.ai-widget__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  border: none;
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 0.85rem 1.05rem;
+  color: white;
+  background: linear-gradient(135deg, var(--ps-teal-deep), var(--ps-teal-hover));
+  box-shadow: 0 16px 40px rgba(14, 124, 134, 0.25);
+  letter-spacing: 0.01em;
+  font-weight: 800;
+}
+
+.ai-widget__btn:focus-visible {
+  outline: 3px solid rgba(22, 138, 148, 0.35);
+  outline-offset: 2px;
+}
+
+.ai-widget__panel {
+  width: min(94vw, 24.5rem);
+  border-radius: 1.1rem;
+  background: var(--ai-surface);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--ai-border);
+  box-shadow: var(--ai-shadow);
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.ai-widget__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1rem;
+  background: linear-gradient(180deg, rgba(238, 248, 249, 0.95), rgba(255, 255, 255, 0.92));
+  border-bottom: 1px solid rgba(23, 59, 64, 0.1);
+}
+
+.ai-widget__title {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.ai-widget__title strong {
+  font-size: 0.92rem;
+  color: var(--ps-ink);
+}
+
+.ai-widget__title span {
+  font-size: 0.73rem;
+  color: var(--ps-muted);
+  font-weight: 650;
+}
+
+.ai-widget__close {
+  border: 1px solid rgba(23, 59, 64, 0.14);
+  background: white;
+  color: var(--ps-ink);
+  border-radius: 0.75rem;
+  padding: 0.35rem;
+  cursor: pointer;
+  box-shadow: var(--ps-shadow-sm);
+}
+
+.ai-widget__body {
+  padding: 0.95rem 1rem;
+}
+
+.ai-widget__hint {
+  margin-top: 0.75rem;
+  border-radius: 0.95rem;
+  background: rgba(221, 245, 242, 0.65);
+  border: 1px solid rgba(22, 138, 148, 0.18);
+  padding: 0.75rem 0.85rem;
+  color: var(--ps-ink-soft);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.ai-widget__chips {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.ai-widget__chip {
+  border-radius: 999px;
+  padding: 0.38rem 0.62rem;
+  font-size: 0.7rem;
+  font-weight: 750;
+  border: 1px solid rgba(22, 138, 148, 0.25);
+  background: rgba(238, 248, 249, 0.9);
+  color: var(--ps-teal-deep);
+  cursor: pointer;
+}
+
+.ai-widget__chip:hover {
+  background: rgba(221, 245, 242, 0.9);
+}
+
+.ai-widget__row {
+  margin-top: 0.9rem;
+  display: flex;
+  gap: 0.55rem;
+}
+
+.ai-widget__input {
+  flex: 1;
+  border-radius: 0.95rem;
+  border: 1px solid rgba(23, 59, 64, 0.18);
+  padding: 0.72rem 0.85rem;
+  font-size: 0.8rem;
+  background: white;
+  outline: none;
+}
+
+.ai-widget__input:focus {
+  border-color: rgba(22, 138, 148, 0.55);
+  box-shadow: 0 0 0 4px rgba(22, 138, 148, 0.12);
+}
+
+.ai-widget__open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.95rem;
+  background: var(--ps-teal-deep);
+  color: white;
+  font-weight: 850;
+  padding: 0.72rem 0.9rem;
+  text-decoration: none;
+  box-shadow: 0 14px 24px rgba(14, 124, 134, 0.22);
+}
+
+.ai-widget__open:hover {
+  background: var(--ps-teal-hover);
+}
+
+.ai-page__card {
+  border-radius: 1.5rem;
+  border: 1px solid rgba(23, 59, 64, 0.12);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--ai-shadow-soft);
+}
+
+.ai-page__chat {
+  background: linear-gradient(180deg, rgba(238, 248, 249, 0.95), rgba(255, 255, 255, 0.92));
+  border: 1px solid rgba(23, 59, 64, 0.12);
+}
+
+.ai-page__stickyInput {
+  position: sticky;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(23, 59, 64, 0.08);
+  padding-top: 0.7rem;
+}
+
+@media (max-width: 640px) {
+  .ai-widget {
+    right: 0.85rem;
+    bottom: 0.85rem;
+  }
+  .ai-widget__panel {
+    width: min(96vw, 24.5rem);
+  }
+}
+

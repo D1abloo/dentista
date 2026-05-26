@@ -9,7 +9,7 @@ type Props = {
 
 export function SlotCard({ slot, onSelect }: Props) {
   return (
-    <article className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200">
+    <article className="rounded-3xl bg-white/95 p-3 shadow-sm ring-1 ring-slate-200/70">
       <p className="text-sm font-semibold text-slate-900">
         {format(parseISO(slot.startsAt), "EEEE dd/MM · HH:mm", { locale: es })}
       </p>
@@ -17,7 +17,7 @@ export function SlotCard({ slot, onSelect }: Props) {
       <button
         type="button"
         onClick={() => onSelect(slot)}
-        className="mt-3 w-full rounded-xl bg-teal-700 px-3 py-2 text-sm font-semibold text-white transition hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
+        className="mt-3 w-full rounded-2xl bg-teal-700 px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
       >
         Reservar este hueco
       </button>
