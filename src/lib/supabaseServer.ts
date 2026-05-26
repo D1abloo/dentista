@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
-/** Alineado con PUBLIC_DEMO_MODE (middleware y APIs en desarrollo). */
-export const isDemoMode = () => import.meta.env.PUBLIC_DEMO_MODE === 'true';
+/** Modo demo desactivado: persistencia y APIs siempre en Supabase cuando está configurado. */
+export const isDemoMode = () => false;
 
 const isConfiguredValue = (value: string | undefined) => Boolean(value && !value.includes('YOUR_') && !value.includes('YOUR_PROJECT'));
 

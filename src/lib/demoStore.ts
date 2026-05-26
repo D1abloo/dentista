@@ -57,14 +57,7 @@ export function isEphemeralSession(): boolean {
 }
 
 export function getInitialState(): DemoState {
-  if (typeof window === 'undefined') {
-    return isClientDemoMode() ? structuredClone(demoSeed) : createEmptyDemoState();
-  }
-  if (!isClientDemoMode()) return createEmptyDemoState();
-  if (isEphemeralSession()) return structuredClone(demoSeed);
-  const loaded = loadPersistedState();
-  if (!loaded?.tenants?.length) return structuredClone(demoSeed);
-  return loaded;
+  return createEmptyDemoState();
 }
 
 export function persistState(state: DemoState) {

@@ -2,7 +2,7 @@
 
 ## Objetivo del repositorio
 
-Construir DentalFlow/Dentista, una app SaaS premium para gestión de citas dentales. Debe ser responsive 100%, funcionar en modo demo sin servicios externos y escalar con Astro, React, Supabase y Redis cache opcional.
+Construir DentalFlow/Dentista, una app SaaS premium para gestión de citas dentales. Debe ser responsive 100%, operar en modo producción (Supabase, sesión real, persistencia de cada acción) y escalar con Astro, React, Supabase y Redis cache opcional.
 
 ## Regla operativa obligatoria
 
@@ -16,7 +16,7 @@ Construir DentalFlow/Dentista, una app SaaS premium para gestión de citas denta
 ## Reglas de trabajo
 
 1. Mantén TypeScript estricto.
-2. No elimines el modo demo: es obligatorio para validar UI/API sin credenciales.
+2. Modo demo desactivado: no usar `localStorage` ni semillas ficticias como fuente de verdad; datos y acciones vía Supabase y APIs autenticadas.
 3. Toda ruta API debe validar entrada con Zod.
 4. Toda consulta real a Supabase debe respetar `clinic_id` y políticas RLS.
 5. No hardcodees secretos; usa `.env`.

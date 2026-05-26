@@ -1,10 +1,10 @@
-/** true cuando PUBLIC_DEMO_MODE=true (desarrollo local sin login obligatorio). */
+/** Modo demo desactivado: la app opera siempre en producción (Supabase + sesión). */
 export function isClientDemoMode(): boolean {
-  return import.meta.env.PUBLIC_DEMO_MODE === 'true';
+  return false;
 }
 
 export function isClientLiveMode(): boolean {
-  return !isClientDemoMode();
+  return true;
 }
 
 export function modeCopy(_demo: string, live: string): string {

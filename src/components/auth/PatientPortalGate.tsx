@@ -1,6 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { isClientDemoMode } from '@/lib/appMode';
-import { clearDemoSession, getStoredRole } from '@/lib/demoStore';
+import { clearDemoSession } from '@/lib/demoStore';
 import { Restricted } from './Restricted';
 import type { DemoRole } from '@/types/demo';
 
@@ -9,31 +8,13 @@ export function PatientPortalGate({ children }: { children: ReactNode }) {
   const [staffView, setStaffView] = useState(false);
   const [inspectBanner, setInspectBanner] = useState(false);
   const [current, setCurrent] = useState<DemoRole | null>(null);
-  const demo = isClientDemoMode();
 
   useEffect(() => {
     let cancelled = false;
     const sync = async () => {
-      if (demo) {
-        const stored = getStoredRole();
-        if (!cancelled) {
-          if (stored === 'admin') {
-            setStaffView(true);
-            setInspectBanner(false);
-            setCurrent('paciente');
-          } else {
-            setStaffView(false);
-            setInspectBanner(false);
-            setCurrent(stored === 'paciente' ? 'paciente' : null);
-          }
-          setReady(true);
-        }
-        return;
-      }
-
       clearDemoSession();
       try {
-        const pdpRes = await fetch('/api/portal-access/me', { credentials: 'include' });
+        const pdpRes = await fetch('/api/portal-access/me', { credentials: 'include', cache: 'no-store' });
         const pdpJson = (await pdpRes.json()) as { data?: { active?: boolean } };
         if (!cancelled && pdpRes.ok && pdpJson.data?.active) {
           setStaffView(true);
@@ -45,7 +26,7 @@ export function PatientPortalGate({ children }: { children: ReactNode }) {
         /* ignore */
       }
       try {
-        const meRes = await fetch('/api/auth/me', { credentials: 'include' });
+        const meRes = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
         const meJson = (await meRes.json()) as {
           data?: { role?: string; platformInspect?: boolean; inspectMode?: string };
         };
@@ -91,7 +72,7 @@ export function PatientPortalGate({ children }: { children: ReactNode }) {
       cancelled = true;
       window.removeEventListener('focus', onFocus);
     };
-  }, [demo]);
+  }, []);
 
   if (!ready) {
     return (
@@ -116,7 +97,7 @@ export function PatientPortalGate({ children }: { children: ReactNode }) {
   }
 
   if (current !== 'paciente') {
-    return <Restricted expected="paciente" current={current} live={!demo} />;
+    return <Restricted expected="paciente" current={current} live />;
   }
 
   return <>{children}</>;

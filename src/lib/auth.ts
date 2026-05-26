@@ -5,7 +5,7 @@ import type { LoginProductionResult } from '@/lib/auth/loginResolve';
 import { resolveProductionLogin, resolveProductionLoginWithPortal } from '@/lib/auth/loginResolve';
 import { getPlatformInspectSession } from '@/lib/auth/platformInspect';
 import { loginWithSupabaseProfile } from '@/lib/auth/productionLogin';
-import { hasSupabaseConfig, isDemoMode } from '@/lib/supabaseServer';
+import { hasSupabaseConfig } from '@/lib/supabaseServer';
 import type { PlatformRole } from '@/lib/platform/types';
 import type { LoginInput } from './validators';
 
@@ -139,36 +139,8 @@ export function getEffectiveSessionUser(cookies: CookieReader): SessionUser | nu
   };
 }
 
-/** Solo disponible con PUBLIC_DEMO_MODE=true */
-export function loginDemoUser(input: LoginInput): Omit<SessionUser, 'expiresAt'> | null {
-  if (!isDemoMode()) return null;
-
-  const adminEmail = import.meta.env.ADMIN_DEMO_EMAIL || 'admin@clinic.local';
-  const adminPassword = import.meta.env.ADMIN_DEMO_PASSWORD || 'admin12345';
-  const patientEmail = import.meta.env.PATIENT_DEMO_EMAIL || 'maria@example.com';
-  const patientPassword = import.meta.env.PATIENT_DEMO_PASSWORD || 'paciente123';
-
-  if (input.role === 'admin' && input.email === adminEmail && input.password === adminPassword) {
-    return {
-      role: 'admin',
-      email: adminEmail,
-      name: 'Administrador demo',
-      clinicId: 'demo-clinic',
-      sessionPortal: 'clinic'
-    };
-  }
-
-  if (input.role === 'patient' && input.email === patientEmail && input.password === patientPassword) {
-    return {
-      role: 'patient',
-      email: patientEmail,
-      name: 'Paciente demo',
-      clinicId: 'demo-clinic',
-      patientId: 'p-maria',
-      sessionPortal: 'patient'
-    };
-  }
-
+/** Desactivado: login siempre vía Supabase / credenciales de entorno. */
+export function loginDemoUser(_input: LoginInput): Omit<SessionUser, 'expiresAt'> | null {
   return null;
 }
 

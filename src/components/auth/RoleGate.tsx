@@ -1,6 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { isClientDemoMode } from '@/lib/appMode';
-import { clearDemoRoleHints, getStoredRole } from '@/lib/demoStore';
+import { clearDemoRoleHints } from '@/lib/demoStore';
 import { logoutSession } from '@/lib/session';
 import { Restricted } from './Restricted';
 import type { DemoRole } from '@/types/demo';
@@ -27,20 +26,11 @@ function mapMeToPortalRole(data: MeUser): DemoRole | null {
 export function RoleGate({ role, children }: { role: DemoRole; children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [current, setCurrent] = useState<DemoRole | null>(null);
-  const demo = isClientDemoMode();
 
   useEffect(() => {
     let cancelled = false;
 
     const sync = async () => {
-      if (demo) {
-        if (!cancelled) {
-          setCurrent(getStoredRole());
-          setReady(true);
-        }
-        return;
-      }
-
       clearDemoRoleHints();
       try {
         const res = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
@@ -70,14 +60,14 @@ export function RoleGate({ role, children }: { role: DemoRole; children: ReactNo
     const onStorage = () => void sync();
     const onFocus = () => void sync();
     window.addEventListener('storage', onStorage);
-    if (!demo) window.addEventListener('focus', onFocus);
+    window.addEventListener('focus', onFocus);
 
     return () => {
       cancelled = true;
       window.removeEventListener('storage', onStorage);
-      if (!demo) window.removeEventListener('focus', onFocus);
+      window.removeEventListener('focus', onFocus);
     };
-  }, [demo]);
+  }, []);
 
   if (!ready) {
     const label = role === 'admin' ? 'clínica' : 'paciente';
@@ -89,7 +79,7 @@ export function RoleGate({ role, children }: { role: DemoRole; children: ReactNo
   }
 
   if (current !== role) {
-    return <Restricted expected={role} current={current} live={!demo} />;
+    return <Restricted expected={role} current={current} live />;
   }
 
   return <>{children}</>;

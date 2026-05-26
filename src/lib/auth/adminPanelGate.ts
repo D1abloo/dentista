@@ -99,8 +99,9 @@ export function applyAdminPanelGateCookie(cookies: CookieWriter, maxAge = GATE_M
   });
 }
 
+/** Sin bypass: el panel clínica exige sesión o cookie de entrada válida. */
 export function isDemoGateBypass(): boolean {
-  return import.meta.env.PUBLIC_DEMO_MODE === 'true';
+  return false;
 }
 
 /** Rutas HTML del panel clínica (el login /login/admin es público). */

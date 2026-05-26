@@ -1,11 +1,10 @@
 import type { DemoRole } from '@/types/demo';
 import type { PortalChoiceId, PortalChoiceOption } from '@/lib/auth/portalChoices';
-import { isClientDemoMode } from '@/lib/appMode';
 import { isPatientPortalPath, isSafeInternalPath } from '@/lib/loginIntent';
 import { STORAGE_ACTIVE_CLINIC_ID, STORAGE_PATIENT_ID, STORAGE_STATE, STORAGE_TENANT_ID } from '@/lib/storage/keys';
 import { ensureAdminAccessBeforeRedirect } from '@/lib/clinicCenters';
 import { postLoginPathForUser } from '@/lib/auth/sessionPortal';
-import { clearDemoSession, getStoredRole } from '@/lib/demoStore';
+import { clearDemoSession } from '@/lib/demoStore';
 
 export type SessionUser = {
   role: 'admin' | 'patient' | 'super_admin';
@@ -52,12 +51,8 @@ function sessionRoleMatchesForced(userRole: string, forced: 'admin' | 'patient')
   return userRole === 'patient';
 }
 
-/** En LIVE ignora localStorage y usa cookie de sesión (/api/auth/me). */
+/** Usa cookie de sesión (/api/auth/me); sin roles en localStorage. */
 export async function resolvePortalRole(): Promise<DemoRole | null> {
-  if (isClientDemoMode()) {
-    return getStoredRole();
-  }
-
   clearDemoSession();
 
   try {
