@@ -22,6 +22,8 @@
   --ps-radius-lg: 1rem;
   --ps-shadow-sm: 0 1px 3px rgba(23, 59, 64, 0.06);
   --ps-shadow-md: 0 8px 24px rgba(23, 59, 64, 0.08);
+  --ps-shadow-lg: 0 24px 60px rgba(10, 55, 62, 0.14);
+  --ps-gradient-soft: linear-gradient(145deg, #f7fbff 0%, #edf8fa 55%, #f8fcfd 100%);
 }
 
 /* —— Shell (marco centrado, ancho editorial) —— */
@@ -150,17 +152,17 @@
   top: 0;
   z-index: 60;
   font-family: var(--ps-body);
-  background: var(--ps-glass);
-  border-bottom: 1px solid rgba(23, 59, 64, 0.08);
-  backdrop-filter: blur(10px) saturate(1.05);
-  -webkit-backdrop-filter: blur(10px) saturate(1.05);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.84);
+  border-bottom: 1px solid rgba(23, 59, 64, 0.06);
+  backdrop-filter: blur(12px) saturate(1.1);
+  -webkit-backdrop-filter: blur(12px) saturate(1.1);
+  box-shadow: 0 8px 24px rgba(8, 38, 42, 0.06);
 }
 
 .ps-header--scrolled {
-  background: rgba(255, 255, 255, 0.94);
-  border-bottom-color: rgba(23, 59, 64, 0.1);
-  box-shadow: 0 4px 16px rgba(23, 59, 64, 0.06);
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom-color: rgba(23, 59, 64, 0.11);
+  box-shadow: 0 14px 30px rgba(8, 38, 42, 0.1);
 }
 
 .ps-header--fade {
@@ -264,12 +266,13 @@
   font-weight: 600;
   color: var(--ps-ink);
   text-decoration: none;
-  transition: background 0.18s ease, color 0.18s ease;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
 }
 
 .ps-nav a:hover {
   color: var(--ps-teal-deep);
   background: var(--ps-mint);
+  transform: translateY(-1px);
 }
 
 .ps-nav a.ps-nav__link--active {
@@ -579,7 +582,7 @@
 /* Hero */
 .ps-hero {
   position: relative;
-  padding: clamp(1.25rem, 3vw, 2rem) 0 clamp(2rem, 4vw, 3rem);
+  padding: clamp(1.5rem, 3.5vw, 2.5rem) 0 clamp(2.5rem, 4.8vw, 4rem);
 }
 
 .ps-hero__glow {
@@ -587,8 +590,8 @@
   position: absolute;
   inset: 0 0 40%;
   background:
-    radial-gradient(ellipse 70% 55% at 15% 20%, rgba(22, 138, 148, 0.12), transparent 65%),
-    radial-gradient(ellipse 55% 45% at 88% 35%, rgba(23, 59, 64, 0.07), transparent 60%);
+    radial-gradient(ellipse 68% 52% at 12% 18%, rgba(22, 138, 148, 0.18), transparent 62%),
+    radial-gradient(ellipse 58% 44% at 86% 32%, rgba(15, 50, 56, 0.09), transparent 62%);
 }
 
 .ps-hero__frame {
@@ -758,8 +761,8 @@
 .ps-hero__title,
 .ps-hero h1 {
   margin: 0;
-  font-size: clamp(1.85rem, 3.8vw, 2.65rem);
-  font-weight: 700;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
   line-height: 1.1;
   color: var(--ps-ink);
 }
@@ -798,6 +801,11 @@
 
 .ps-hero__layout {
   position: relative;
+  border-radius: 1.6rem;
+  border: 1px solid rgba(22, 138, 148, 0.14);
+  background: var(--ps-gradient-soft);
+  box-shadow: var(--ps-shadow-lg);
+  padding: clamp(1rem, 2vw, 1.25rem);
 }
 
 .ps-hero-mocks {
@@ -1045,7 +1053,7 @@
 .ps-hero__lead {
   margin: 0.85rem 0 0;
   max-width: 38ch;
-  font-size: 0.96rem;
+  font-size: 1rem;
   line-height: 1.58;
   color: var(--ps-muted);
 }
@@ -1085,16 +1093,16 @@
 }
 
 .ps-stat {
-  padding: 0.75rem 0.9rem;
-  border-radius: var(--ps-radius);
-  background: var(--ps-surface);
-  border: 1px solid var(--ps-line);
+  padding: 0.85rem 0.95rem;
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(22, 138, 148, 0.16);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .ps-stat:hover {
   transform: translateY(-2px);
-  box-shadow: var(--ps-shadow-sm);
+  box-shadow: 0 10px 24px rgba(22, 138, 148, 0.12);
 }
 
 .ps-stat strong {
@@ -1172,7 +1180,7 @@
 
 /* Sections */
 .ps-section {
-  padding: clamp(2.5rem, 4.5vw, 4.5rem) 0;
+  padding: clamp(2.6rem, 4.8vw, 5.2rem) 0;
 }
 
 .ps-section--alt {
@@ -2314,7 +2322,7 @@
   position: relative;
   font-family: var(--ps-body);
   color: #f7fbfc;
-  background: linear-gradient(180deg, #173b40 0%, #0f2a2e 100%);
+  background: linear-gradient(180deg, #163b44 0%, #102d34 55%, #0a2227 100%);
   border-top: 1px solid rgba(124, 209, 190, 0.12);
 }
 
@@ -2490,8 +2498,9 @@
 .ps-footer__contact-card {
   padding: 1.15rem 1.2rem;
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(124, 209, 190, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(124, 209, 190, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .ps-footer__contact-card h3 {
@@ -3336,8 +3345,8 @@ body:has(.ps-header) .help-hub__support {
 .ps-mob-ex {
   position: relative;
   overflow: hidden;
-  padding: clamp(2.5rem, 5vw, 4rem) 0;
-  background: linear-gradient(180deg, #f8fcfd 0%, #eef7f9 48%, #f8fbfc 100%);
+  padding: clamp(2.8rem, 5.4vw, 4.6rem) 0;
+  background: linear-gradient(180deg, #f7fcff 0%, #ecf8fb 48%, #f7fbfd 100%);
   border-top: 1px solid rgba(23, 59, 64, 0.06);
 }
 
@@ -3446,18 +3455,18 @@ body:has(.ps-header) .help-hub__support {
   align-items: center;
   gap: 1.1rem;
   padding: clamp(1.15rem, 2vw, 1.5rem);
-  border-radius: 1.15rem;
+  border-radius: 1.25rem;
   background: #fff;
   border: 1px solid rgba(23, 59, 64, 0.08);
-  box-shadow: 0 10px 32px rgba(23, 59, 64, 0.07);
+  box-shadow: 0 12px 30px rgba(23, 59, 64, 0.1);
   transition:
     transform 0.22s ease,
     box-shadow 0.22s ease;
 }
 
 .ps-mob-ex__card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 40px rgba(23, 59, 64, 0.1);
+  transform: translateY(-6px);
+  box-shadow: 0 20px 44px rgba(23, 59, 64, 0.14);
 }
 
 .ps-mob-ex__card-meta {
@@ -3942,7 +3951,8 @@ body:has(.ps-header) .help-hub__support {
 .ps-acc-plat {
   position: relative;
   overflow: hidden;
-  padding: clamp(2rem, 4vw, 3.5rem) 0;
+  padding: clamp(2.35rem, 4.5vw, 4.1rem) 0;
+  background: linear-gradient(180deg, #f9fdff 0%, #f1fafb 52%, #f8fcfd 100%);
 }
 
 .ps-acc-plat__deco {
@@ -3981,7 +3991,7 @@ body:has(.ps-header) .help-hub__support {
 .ps-acc-plat__panel {
   border-radius: 1.25rem;
   padding: clamp(1.35rem, 2.8vw, 2.25rem);
-  box-shadow: 0 12px 40px rgba(23, 59, 64, 0.07);
+  box-shadow: 0 18px 44px rgba(23, 59, 64, 0.09);
 }
 
 .ps-acc-plat__panel--access {
@@ -4062,11 +4072,11 @@ body:has(.ps-header) .help-hub__support {
   align-items: flex-start;
   gap: 0.55rem;
   padding: clamp(1.1rem, 2vw, 1.45rem);
-  border-radius: 1rem;
+  border-radius: 1.1rem;
   background: #fff;
   border: 1px solid rgba(23, 59, 64, 0.09);
   border-top-width: 4px;
-  box-shadow: 0 6px 20px rgba(23, 59, 64, 0.05);
+  box-shadow: 0 10px 26px rgba(23, 59, 64, 0.08);
   transition:
     transform 0.22s ease,
     box-shadow 0.22s ease,
@@ -4086,8 +4096,8 @@ body:has(.ps-header) .help-hub__support {
 }
 
 .ps-acc-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 14px 32px rgba(23, 59, 64, 0.1);
+  transform: translateY(-6px);
+  box-shadow: 0 18px 36px rgba(23, 59, 64, 0.14);
 }
 
 .ps-acc-card--mint:hover {

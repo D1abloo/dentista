@@ -56,6 +56,23 @@ export function LandingHeroSection({ onRequestDemo }: Props) {
                   );
                 })}
               </ul>
+              <div className="ps-hero__stats ps-hero__anim ps-hero__anim--5" aria-label="Métricas destacadas">
+                <article className="ps-stat">
+                  <strong>24/7</strong>
+                  <span>Reserva con IA</span>
+                  <small>Disponible para pacientes en cualquier momento.</small>
+                </article>
+                <article className="ps-stat">
+                  <strong>4 áreas</strong>
+                  <span>Clínica conectada</span>
+                  <small>Recepción, doctores, administración y pacientes.</small>
+                </article>
+                <article className="ps-stat">
+                  <strong>1 panel</strong>
+                  <span>Visión completa</span>
+                  <small>Agenda, informes, facturación y portal sincronizados.</small>
+                </article>
+              </div>
             </div>
             <div className="ps-hero__stage">
               <LandingHeroMocks />
