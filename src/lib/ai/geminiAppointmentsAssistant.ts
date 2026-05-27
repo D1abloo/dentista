@@ -12,6 +12,7 @@ export const geminiAppointmentsIntentSchema = z.object({
       'reschedule_appointment',
       'cancel_appointment',
       'appointment_status',
+      'check_appointments',
       'contact_clinic',
       'urgency_warning',
       'unknown'
@@ -49,6 +50,7 @@ You help users:
 - reschedule (reschedule_appointment)
 - cancel (cancel_appointment)
 - understand appointment status (appointment_status)
+- check appointments with email/DNI/NHC (check_appointments) — ask for one identifier only
 - contact the clinic (contact_clinic)
 
 Never invent appointment availability or existing appointments. Never show private data without verification.

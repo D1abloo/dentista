@@ -10,6 +10,7 @@ import {
   getPatientAppointments,
   monitorPatientAppointmentsError
 } from '@/lib/services/patientAppointmentsPublic'
+import { lookupPublicAppointments } from '@/lib/services/publicAppointmentLookup'
 import {
   getAvailableSlotsForPublicBooking,
   getPublicClinics,
@@ -33,6 +34,8 @@ export type AppointmentsChatResult = {
   nextAppointment: Awaited<ReturnType<typeof getNextPatientAppointment>> | null
   readyForSummary: boolean
   requiresVerification: boolean
+  lookupPerformed?: boolean
+  requiresStrongVerification?: boolean
 }
 
 function intentToTab(intent: string): AppointmentsChatResult['activeTab'] {
@@ -40,7 +43,8 @@ function intentToTab(intent: string): AppointmentsChatResult['activeTab'] {
   if (
     intent === 'review_appointments' ||
     intent === 'next_appointment' ||
-    intent === 'appointment_status'
+    intent === 'appointment_status' ||
+    intent === 'check_appointments'
   ) {
     return 'mine'
   }
@@ -56,7 +60,8 @@ function intentToMode(intent: string): AppointmentsChatResult['mode'] {
       'next_appointment',
       'reschedule_appointment',
       'cancel_appointment',
-      'appointment_status'
+      'appointment_status',
+      'check_appointments'
     ].includes(intent)
   ) {
     return 'manage'
@@ -120,6 +125,47 @@ export async function handleAppointmentsChat(input: {
   let slots: Awaited<ReturnType<typeof getAvailableSlotsForPublicBooking>> = []
   let appointments: Awaited<ReturnType<typeof getPatientAppointments>> = []
   let nextAppointment: AppointmentsChatResult['nextAppointment'] = null
+
+  const manageIntents = [
+    'review_appointments',
+    'next_appointment',
+    'cancel_appointment',
+    'reschedule_appointment',
+    'appointment_status',
+    'check_appointments'
+  ]
+
+  const identifierLike =
+    input.message.trim().length >= 3 &&
+    (input.message.includes('@') || /^[0-9a-zA-Z@.\-_]+$/.test(input.message.trim()))
+
+  if (!identityVerified && manageIntents.includes(intent.intent) && identifierLike) {
+    try {
+      const lookup = await lookupPublicAppointments(input.message.trim())
+      return {
+        assistantMessage: lookup.message,
+        intent,
+        mode: 'manage',
+        activeTab: intent.intent === 'next_appointment' ? 'mine' : intentToTab(intent.intent),
+        bookingState,
+        assistantContext: {
+          ...nextContext,
+          mode: 'manage',
+          verificationToken: lookup.verificationToken,
+          verificationScope: lookup.verificationToken ? 'lookup' : undefined
+        },
+        slots: [],
+        appointments: lookup.appointments,
+        nextAppointment: lookup.appointments[0] ?? null,
+        readyForSummary: false,
+        requiresVerification: lookup.requiresExtraVerification,
+        lookupPerformed: true,
+        requiresStrongVerification: lookup.requiresStrongVerification
+      }
+    } catch {
+      /* continúa con flujo normal */
+    }
+  }
 
   const requiresVerification =
     intent.requires_identity_verification && !identityVerified
@@ -259,7 +305,11 @@ export async function handleAppointmentsChat(input: {
     mode,
     activeTab,
     bookingState: nextBookingState,
-    assistantContext: { ...nextContext, mode },
+    assistantContext: {
+      ...nextContext,
+      mode,
+      verificationScope: identityVerified ? assistantContext.verificationScope : undefined
+    },
     slots,
     appointments,
     nextAppointment,

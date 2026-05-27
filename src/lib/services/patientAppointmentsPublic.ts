@@ -90,7 +90,8 @@ export async function verifyPatientIdentity(input: {
     const token = signVerificationPayload({
       patientIds: [input.patientId],
       email: normalizeEmail(input.email),
-      exp: verificationExpMs()
+      exp: verificationExpMs(),
+      scope: 'full'
     })
     return { patientIds: [input.patientId], email: normalizeEmail(input.email), verificationToken: token }
   }
@@ -132,13 +133,23 @@ export async function verifyPatientIdentity(input: {
     metadata: { channel: 'ai_assistant', count: patientIds.length }
   })
 
-  const signed = signVerificationPayload({ patientIds, email, exp: verificationExpMs() })
+  const signed = signVerificationPayload({
+    patientIds,
+    email,
+    exp: verificationExpMs(),
+    scope: 'full'
+  })
   return { patientIds, email, verificationToken: signed, rawToken: raw }
 }
 
-async function assertVerification(verificationToken: string) {
+async function assertVerification(verificationToken: string, options?: { requireFullScope?: boolean }) {
   const payload = verifySignedPayload(verificationToken)
   if (!payload) throw new Error('Verificación expirada. Identifícate de nuevo.')
+  if (options?.requireFullScope && payload.scope === 'lookup') {
+    throw new Error(
+      'Para cancelar o cambiar una cita, verifica tu identidad con email y teléfono o inicia sesión en el Portal del Paciente.'
+    )
+  }
   return payload
 }
 
@@ -206,7 +217,9 @@ export async function cancelAppointmentPublic(input: {
   appointmentId: string
   clinicId: string
 }) {
-  const { patientIds, email } = await assertVerification(input.verificationToken)
+  const { patientIds, email } = await assertVerification(input.verificationToken, {
+    requireFullScope: true
+  })
   const db = requireDb()
 
   const { data: appointment, error } = await db
@@ -257,7 +270,9 @@ export async function rescheduleAppointmentPublic(input: {
   endsAt: string
   professionalId: string
 }) {
-  const { patientIds, email } = await assertVerification(input.verificationToken)
+  const { patientIds, email } = await assertVerification(input.verificationToken, {
+    requireFullScope: true
+  })
   const db = requireDb()
 
   const { data: appointment, error } = await db

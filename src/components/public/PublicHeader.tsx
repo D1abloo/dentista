@@ -7,11 +7,10 @@ import { handleLandingHashLink } from '@/lib/publicScroll';
 const NAV_LINKS = [
   { href: '/', label: 'Inicio', hash: false },
   { href: '/#funcionalidades', label: 'Funciones', hash: true },
-  { href: '/portal-paciente', label: 'Portal paciente', hash: false },
-  { href: '/login/admin', label: 'Panel clínica', hash: false },
-  { href: '/platform/login', label: 'Plataforma', hash: false },
+  { href: '/#como-funciona', label: 'Cómo funciona', hash: true },
   { href: '/#precios', label: 'Planes', hash: true },
-  { href: '/ayuda', label: 'Ayuda', hash: false }
+  { href: '/ayuda', label: 'Ayuda', hash: false },
+  { href: '/portal-paciente', label: 'Portal paciente', hash: false }
 ] as const;
 
 const MOBILE_EXTRA = { href: '/contacto', label: 'Contacto' } as const;
@@ -119,8 +118,8 @@ export function PublicHeader({ activeHref = '/', onWantDemo }: Props) {
         </nav>
 
         <div className="ps-header__actions">
-          <a href="/citas-con-ia" className="ps-btn ps-btn--outline ps-btn--sm ps-header__demo">
-            Asistente de citas
+          <a href="/citas-con-ia" className="ps-btn ps-btn--primary ps-btn--sm ps-header__demo">
+            Reservar con IA
           </a>
           <button
             type="button"
@@ -182,6 +181,9 @@ export function PublicHeader({ activeHref = '/', onWantDemo }: Props) {
             </a>
           </nav>
           <div className="ps-drawer__cta">
+            <a href="/citas-con-ia" className="ps-btn ps-btn--primary ps-btn--block" onClick={() => setOpen(false)}>
+              Reservar con IA
+            </a>
             <button type="button" className="ps-btn ps-btn--demo-outline ps-btn--block" onClick={wantDemoClick}>
               <Calendar className="h-3.5 w-3.5" aria-hidden />
               Solicitar demo

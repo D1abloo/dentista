@@ -629,9 +629,10 @@ export const aiBookingChatSchema = z.object({
 export const aiAssistantContextSchema = z.object({
   mode: z.enum(['book', 'manage', 'help']).default('book'),
   verificationToken: z.string().max(500).optional(),
+  verificationScope: z.enum(['lookup', 'full']).optional(),
   selectedAppointmentId: z.string().uuid().optional(),
   pendingIntent: z.string().max(80).optional()
-});
+})
 
 export const aiAssistantStateSchema = z.object({
   bookingState: aiBookingStateSchema.default({}),
@@ -652,11 +653,15 @@ export const aiAppointmentsChatSchema = z.object({
   assistantState: aiAssistantStateSchema.default({})
 });
 
+export const publicAppointmentLookupSchema = z.object({
+  identifier: z.string().min(3).max(160)
+})
+
 export const patientAppointmentsVerifySchema = z.object({
   email: z.string().email().max(160).optional(),
   phone: z.string().min(8).max(20).optional(),
   verificationToken: z.string().max(500).optional()
-});
+})
 
 export const patientAppointmentsListSchema = z.object({
   verificationToken: z.string().min(10).max(500),

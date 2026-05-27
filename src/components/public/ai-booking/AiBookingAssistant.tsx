@@ -12,7 +12,9 @@ import { ExistingAppointmentsList } from './ExistingAppointmentsList'
 import { ManageProgressSteps } from './ManageProgressSteps'
 import { NoAvailabilityPanel } from './NoAvailabilityPanel'
 import { PatientDetailsForm } from './PatientDetailsForm'
+import { AppointmentLookupForm } from './AppointmentLookupForm'
 import { PatientVerificationForm } from './PatientVerificationForm'
+import { VerificationRequiredCard } from './VerificationRequiredCard'
 import { QuickReplyChips } from './QuickReplyChips'
 import { SlotsPanel } from './SlotsPanel'
 import { SlotCard } from './SlotCard'
@@ -36,6 +38,7 @@ const STATUS_LABEL: Partial<Record<Flow['status'], string>> = {
   thinking: 'Pensando…',
   asking_followup: 'Pensando…',
   verifying_identity: 'Verificando identidad…',
+  checking_appointments: 'Buscando tus citas…',
   fetching_appointments: 'Buscando tus citas…',
   fetching_availability: 'Buscando huecos disponibles…',
   booking: 'Procesando…'
@@ -46,7 +49,8 @@ const isBusy = (status: Flow['status']) =>
   status === 'booking' ||
   status === 'fetching_availability' ||
   status === 'fetching_appointments' ||
-  status === 'verifying_identity'
+  status === 'verifying_identity' ||
+  status === 'checking_appointments'
 
 export function AiBookingAssistant({
   variant,
@@ -119,7 +123,7 @@ export function AiBookingAssistant({
             <div>
               <p className="ai-assistant__eyebrow">Asistente de citas con IA</p>
               <h2 className="ai-assistant__title">Asistente de citas</h2>
-              <p className="ai-assistant__subtitle">Reserva y gestión de citas</p>
+              <p className="ai-assistant__subtitle">Reserva, revisa o cambia tus citas de forma guiada.</p>
             </div>
             <span className="ai-assistant__pill">Online</span>
           </div>
@@ -208,8 +212,21 @@ export function AiBookingAssistant({
             <AiBookingErrorPanel message={flow.errorMessage} onRetry={() => void flow.handleRetry()} />
           ) : null}
 
-          {(flow.status === 'verifying_identity' || (flow.mode === 'manage' && !flow.identityVerified)) &&
-          flow.activeTab !== 'book' ? (
+          {flow.activeTab !== 'book' &&
+          (flow.mode === 'manage' || flow.activeTab === 'mine' || flow.activeTab === 'change') ? (
+            <AppointmentLookupForm
+              value={flow.lookupIdentifier}
+              onChange={flow.setLookupIdentifier}
+              onSubmit={() => void flow.handleLookupAppointments()}
+              loading={flow.status === 'checking_appointments'}
+              error={
+                flow.status === 'error' && flow.activeTab === 'mine' ? flow.errorMessage : undefined
+              }
+              compact={isWidget}
+            />
+          ) : null}
+
+          {flow.needsStrongVerification && flow.status === 'verifying_identity' ? (
             <PatientVerificationForm
               email={flow.verifyEmail}
               phone={flow.verifyPhone}
@@ -223,10 +240,31 @@ export function AiBookingAssistant({
             />
           ) : null}
 
+          {flow.needsStrongVerification && flow.status !== 'verifying_identity' ? (
+            <VerificationRequiredCard
+              onVerify={flow.handleRequestStrongVerification}
+              onLogin={() => undefined}
+            />
+          ) : null}
+
           {flow.status === 'no_appointments' ? (
             <section className="ai-empty">
-              <h3 className="ai-empty__title">No he encontrado citas próximas</h3>
-              <p className="ai-empty__text">No hay citas asociadas a tus datos con los filtros actuales.</p>
+              <h3 className="ai-empty__title">No hemos encontrado citas próximas</h3>
+              <p className="ai-empty__text">
+                No hemos encontrado citas próximas asociadas a esos datos.
+              </p>
+              <div className="ai-empty__actions">
+                <button
+                  type="button"
+                  className="ai-btn ai-btn--primary"
+                  onClick={() => void flow.handleSendMessage('Reservar nueva cita', 'book')}
+                >
+                  Reservar nueva cita
+                </button>
+                <a href="/contacto" className="ai-btn ai-btn--secondary">
+                  Contactar con la clínica
+                </a>
+              </div>
             </section>
           ) : null}
 

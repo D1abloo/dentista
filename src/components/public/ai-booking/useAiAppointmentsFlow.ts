@@ -55,14 +55,17 @@ export function useAiAppointmentsFlow(options: Options = {}) {
   const [errorMessage, setErrorMessage] = useState('')
   const [hasPortalAccount, setHasPortalAccount] = useState(false)
   const [patientForm, setPatientForm] = useState<PatientFormValue>(emptyPatient)
+  const [lookupIdentifier, setLookupIdentifier] = useState('')
   const [verifyEmail, setVerifyEmail] = useState('')
   const [verifyPhone, setVerifyPhone] = useState('')
+  const [needsStrongVerification, setNeedsStrongVerification] = useState(false)
   const [patientErrors, setPatientErrors] = useState<PatientFormErrors | null>(null)
   const [showAllSlots, setShowAllSlots] = useState(false)
   const [successKind, setSuccessKind] = useState<SuccessKind>(null)
   const [rescheduleMode, setRescheduleMode] = useState(false)
 
   const identityVerified = Boolean(assistantContext.verificationToken)
+  const hasFullVerification = assistantContext.verificationScope === 'full'
 
   const handleSendMessage = useCallback(
     async (value: string, tabOverride?: AssistantTab) => {
@@ -117,8 +120,17 @@ export function useAiAppointmentsFlow(options: Options = {}) {
         setAppointments((payload?.appointments ?? []) as PatientAppointment[])
         setNextAppointment(payload?.nextAppointment ?? null)
 
+        if (payload?.requiresStrongVerification) {
+          setNeedsStrongVerification(true)
+        }
+
         if (payload?.requiresVerification) {
           setStatus('verifying_identity')
+          return
+        }
+
+        if (payload?.lookupPerformed && !payload?.appointments?.length) {
+          setStatus('no_appointments')
           return
         }
 
@@ -143,6 +155,54 @@ export function useAiAppointmentsFlow(options: Options = {}) {
     [activeTab, assistantContext, bookingState, messages, mode, selectedAppointment, selectedSlot]
   )
 
+  const handleLookupAppointments = useCallback(async () => {
+    const identifier = lookupIdentifier.trim()
+    if (!identifier) return
+    setStatus('checking_appointments')
+    setErrorMessage('')
+    setActiveTab('mine')
+    setMode('manage')
+    try {
+      const response = await fetch('/api/public-appointments/lookup', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ identifier })
+      })
+      const json = await response.json()
+      if (!response.ok) throw new Error(json.error?.message ?? 'No se pudo consultar.')
+
+      const data = json.data
+      setMessages((prev) => [
+        ...prev,
+        { id: id('user'), role: 'user', text: `Consultar citas: ${identifier}` },
+        { id: id('assistant'), role: 'assistant', text: String(data?.message ?? '') }
+      ])
+
+      if (data?.requiresExtraVerification) {
+        setNeedsStrongVerification(true)
+        setStatus('verifying_identity')
+        return
+      }
+
+      if (data?.verificationToken) {
+        setAssistantContext((prev) => ({
+          ...prev,
+          verificationToken: data.verificationToken,
+          verificationScope: 'lookup',
+          mode: 'manage'
+        }))
+      }
+
+      const rows = (data?.appointments ?? []) as PatientAppointment[]
+      setAppointments(rows)
+      setNextAppointment(rows[0] ?? null)
+      setStatus(rows.length ? 'showing_existing_appointments' : 'no_appointments')
+    } catch (error) {
+      setStatus('error')
+      setErrorMessage(error instanceof Error ? error.message : 'No se pudo buscar tus citas.')
+    }
+  }, [lookupIdentifier])
+
   const handleVerifyIdentity = useCallback(async () => {
     setStatus('verifying_identity')
     setErrorMessage('')
@@ -156,7 +216,13 @@ export function useAiAppointmentsFlow(options: Options = {}) {
       if (!response.ok) throw new Error(json.error?.message ?? 'Verificación fallida.')
 
       const token = json.data?.verificationToken as string
-      setAssistantContext((prev) => ({ ...prev, verificationToken: token, mode: 'manage' }))
+      setAssistantContext((prev) => ({
+        ...prev,
+        verificationToken: token,
+        verificationScope: 'full',
+        mode: 'manage'
+      }))
+      setNeedsStrongVerification(false)
       setMode('manage')
       setStatus('identity_verified')
       setMessages((prev) => [
@@ -198,21 +264,37 @@ export function useAiAppointmentsFlow(options: Options = {}) {
     }))
   }, [])
 
-  const handleStartReschedule = useCallback((appointment: PatientAppointment) => {
-    handleSelectAppointment(appointment)
-    setRescheduleMode(true)
-    setActiveTab('change')
-    setMode('manage')
-    setSlots([])
-    setStatus('asking_followup')
-    void handleSendMessage(`Quiero cambiar mi cita del ${appointment.startsAt.slice(0, 10)}`, 'change')
-  }, [handleSelectAppointment, handleSendMessage])
+  const handleStartReschedule = useCallback(
+    (appointment: PatientAppointment) => {
+      handleSelectAppointment(appointment)
+      if (!hasFullVerification) {
+        setNeedsStrongVerification(true)
+        setStatus('verifying_identity')
+        return
+      }
+      setRescheduleMode(true)
+      setActiveTab('change')
+      setMode('manage')
+      setSlots([])
+      setStatus('asking_followup')
+      void handleSendMessage(`Quiero cambiar mi cita del ${appointment.startsAt.slice(0, 10)}`, 'change')
+    },
+    [handleSelectAppointment, handleSendMessage, hasFullVerification]
+  )
 
-  const handleStartCancel = useCallback((appointment: PatientAppointment) => {
-    handleSelectAppointment(appointment)
-    setActiveTab('change')
-    setStatus('confirming_cancel')
-  }, [handleSelectAppointment])
+  const handleStartCancel = useCallback(
+    (appointment: PatientAppointment) => {
+      handleSelectAppointment(appointment)
+      setActiveTab('change')
+      if (!hasFullVerification) {
+        setNeedsStrongVerification(true)
+        setStatus('verifying_identity')
+        return
+      }
+      setStatus('confirming_cancel')
+    },
+    [handleSelectAppointment, hasFullVerification]
+  )
 
   const handleConfirmCancel = useCallback(async () => {
     const appt = selectedAppointment
@@ -403,6 +485,8 @@ export function useAiAppointmentsFlow(options: Options = {}) {
     setPatientForm(emptyPatient())
     setVerifyEmail('')
     setVerifyPhone('')
+    setLookupIdentifier('')
+    setNeedsStrongVerification(false)
     setPatientErrors(null)
     setShowAllSlots(false)
     setSuccessKind(null)
@@ -436,7 +520,8 @@ export function useAiAppointmentsFlow(options: Options = {}) {
             if (v.data?.verificationToken) {
               setAssistantContext((prev) => ({
                 ...prev,
-                verificationToken: v.data.verificationToken
+                verificationToken: v.data.verificationToken,
+                verificationScope: 'full'
               }))
             }
           })
@@ -449,6 +534,11 @@ export function useAiAppointmentsFlow(options: Options = {}) {
     [messages]
   )
 
+  const handleRequestStrongVerification = useCallback(() => {
+    setNeedsStrongVerification(true)
+    setStatus('verifying_identity')
+  }, [])
+
   return {
     status,
     messages,
@@ -459,6 +549,12 @@ export function useAiAppointmentsFlow(options: Options = {}) {
     activeTab,
     mode,
     identityVerified,
+    hasFullVerification,
+    lookupIdentifier,
+    setLookupIdentifier,
+    needsStrongVerification,
+    handleLookupAppointments,
+    handleRequestStrongVerification,
     slots,
     appointments,
     nextAppointment,

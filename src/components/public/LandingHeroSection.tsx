@@ -26,19 +26,19 @@ export function LandingHeroSection({ onRequestDemo }: Props) {
                 <span className="ps-hero__highlight">citas, pacientes y facturación</span>
               </h1>
               <p className="ps-hero__lead ps-hero__anim ps-hero__anim--2">
-                Agenda, portal paciente, informes, documentos, facturas, pagos, consentimientos y soporte en una
+                AgendaClinic gestiona citas, pacientes, agenda, informes, facturación y portal del paciente en una
                 sola plataforma segura.
               </p>
               <div className="ps-hero__ctas ps-hero__anim ps-hero__anim--3">
-                <button type="button" className="ps-btn ps-btn--primary ps-btn--lg" onClick={onRequestDemo}>
-                  Solicitar demo para clínica
+                <a href="/citas-con-ia" className="ps-btn ps-btn--primary ps-btn--lg">
+                  Reservar con IA
                   <ArrowRight className="h-4 w-4" aria-hidden />
-                </button>
-                <a href="/citas-con-ia" className="ps-btn ps-btn--ink ps-btn--lg">
-                  Citas con IA
                 </a>
+                <button type="button" className="ps-btn ps-btn--ink ps-btn--lg" onClick={onRequestDemo}>
+                  Solicitar demo
+                </button>
                 <a href="/portal-paciente" className="ps-btn ps-btn--demo-outline ps-btn--lg">
-                  Entrar como paciente
+                  Entrar al portal paciente
                 </a>
               </div>
               <ul className="ps-hero__badges ps-hero__anim ps-hero__anim--4" aria-label="Funcionalidades destacadas">

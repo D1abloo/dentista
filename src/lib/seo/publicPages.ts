@@ -72,7 +72,7 @@ export const publicPageSeo: Record<string, PageSeo> = {
     path: '/citas-con-ia',
     title: 'Citas con IA | AgendaClinic',
     description:
-      'Reserva, revisa, cambia o cancela tus citas con el asistente de AgendaClinic. Consulta disponibilidad real y gestiona tus citas de forma segura.',
+      'Reserva, revisa, cambia o cancela tus citas con el asistente de AgendaClinic. Consulta tus próximas citas con email, DNI o NHC de forma segura.',
     keywords:
       'citas con ia, gestionar citas dental, asistente citas clínica, reservar cancelar cita online',
     ogTitle: 'Citas con IA · AgendaClinic',

@@ -33,7 +33,7 @@
 }
 
 .ps-shell--wide {
-  max-width: 84rem;
+  max-width: 90rem;
 }
 
 /* —— Buttons —— */
@@ -1172,7 +1172,7 @@
 
 /* Sections */
 .ps-section {
-  padding: clamp(2.5rem, 5vw, 3.25rem) 0;
+  padding: clamp(2.5rem, 4.5vw, 4.5rem) 0;
 }
 
 .ps-section--alt {

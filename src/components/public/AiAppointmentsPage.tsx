@@ -23,10 +23,14 @@ export function AiAppointmentsPage() {
             Asistente de citas con IA
           </span>
           <h1>Gestiona tus citas con ayuda de IA</h1>
-          <p>Reserva una nueva cita, revisa tus citas actuales o cambia un horario de forma segura.</p>
+          <p>Reserva, revisa o cambia tus citas de forma segura con el asistente de AgendaClinic.</p>
+          <div className="ai-page__subs">
+            <h2>Consulta tus próximas citas</h2>
+            <h2>Reserva una nueva cita</h2>
+          </div>
         </section>
 
-        <section className="ai-page__workspace">
+        <section className="ai-page__workspace" aria-label="Asistente de citas">
           <AiAppointmentsAssistant variant="page" flow={flow} showHeader={false} />
         </section>
       </main>

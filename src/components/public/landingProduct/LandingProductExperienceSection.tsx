@@ -58,6 +58,7 @@ export function LandingProductExperienceSection({ onRequestDemo }: Props) {
     <section id="funcionalidades" className="ps-prod-exp" aria-labelledby="ps-prod-exp-workflow-title">
       <div className="ps-shell ps-shell--wide">
         <div
+          id="como-funciona"
           className={`ps-prod-exp__block ps-prod-exp__block--workflow ps-reveal${revealClass(sectionR.visible)}`}
           ref={sectionR.ref}
         >

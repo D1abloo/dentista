@@ -4,6 +4,7 @@ export type AssistantUiState =
   | 'idle'
   | 'thinking'
   | 'asking_followup'
+  | 'checking_appointments'
   | 'verifying_identity'
   | 'identity_verified'
   | 'fetching_appointments'
@@ -57,9 +58,12 @@ export type BookingState = {
   }
 }
 
+export type VerificationScope = 'lookup' | 'full'
+
 export type AssistantContext = {
   mode: AssistantMode
   verificationToken?: string
+  verificationScope?: VerificationScope
   selectedAppointmentId?: string
   pendingIntent?: string
 }

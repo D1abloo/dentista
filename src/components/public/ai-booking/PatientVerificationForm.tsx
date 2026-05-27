@@ -25,7 +25,8 @@ export function PatientVerificationForm({
     <section className="ai-verify" aria-label="Identificación del paciente">
       <h3 className="ai-verify__title">Identificación</h3>
       <p className="ai-verify__text">
-        Para proteger tus datos, necesito identificarte antes de mostrar tus citas.
+        Para proteger tus datos, necesitamos verificar tu identidad antes de continuar. Introduce el email y el
+        teléfono asociados a tu ficha o inicia sesión en el Portal del Paciente.
       </p>
 
       <div className="ai-verify__options">

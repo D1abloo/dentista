@@ -16,13 +16,25 @@ export function createRawVerificationToken() {
   return randomBytes(24).toString('base64url')
 }
 
-export function signVerificationPayload(payload: { patientIds: string[]; email: string; exp: number }) {
+export type VerificationScope = 'lookup' | 'full'
+
+export function signVerificationPayload(payload: {
+  patientIds: string[]
+  email: string
+  exp: number
+  scope?: VerificationScope
+}) {
   const body = Buffer.from(JSON.stringify(payload)).toString('base64url')
   const sig = createHmac('sha256', secret()).update(body).digest('base64url')
   return `${body}.${sig}`
 }
 
-export function verifySignedPayload(token: string): { patientIds: string[]; email: string; exp: number } | null {
+export function verifySignedPayload(token: string): {
+  patientIds: string[]
+  email: string
+  exp: number
+  scope?: VerificationScope
+} | null {
   const [body, sig] = token.split('.')
   if (!body || !sig) return null
   const expected = createHmac('sha256', secret()).update(body).digest('base64url')
@@ -36,6 +48,7 @@ export function verifySignedPayload(token: string): { patientIds: string[]; emai
       patientIds: string[]
       email: string
       exp: number
+      scope?: VerificationScope
     }
     if (!parsed.exp || Date.now() > parsed.exp) return null
     if (!Array.isArray(parsed.patientIds) || !parsed.patientIds.length) return null
