@@ -7,6 +7,7 @@ import { CookieBanner } from './CookieBanner';
 import { LandingAccessPlatformSection } from './LandingAccessPlatformSection';
 import { LandingHeroSection } from './LandingHeroSection';
 import { LandingMobileShowcase } from './LandingMobileShowcase';
+import { LandingTrustStrip } from './LandingTrustStrip';
 import { LandingClosingSection } from './landingClosing/LandingClosingSection';
 import { LandingPricingExperienceSection } from './landingProduct/LandingPricingExperienceSection';
 import { LandingProductExperienceSection } from './landingProduct/LandingProductExperienceSection';
@@ -46,6 +47,7 @@ export function LandingPage() {
         ) : null}
 
         <LandingHeroSection onRequestDemo={() => openDemo('pro_clinica')} />
+        <LandingTrustStrip />
         <LandingMobileShowcase />
         <LandingAccessPlatformSection onRequestDemo={() => openDemo('pro_clinica')} />
 
