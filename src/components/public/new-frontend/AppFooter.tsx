@@ -1,4 +1,5 @@
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo'
+import { Linkedin, Mail } from 'lucide-react'
 import { ResponsiveContainer } from './ResponsiveContainer'
 
 const COLUMNS = [
@@ -6,8 +7,8 @@ const COLUMNS = [
     title: 'Producto',
     links: [
       { href: '/login/admin', label: 'Agenda clínica' },
-      { href: '/portal-paciente', label: 'Portal paciente' },
       { href: '/citas-con-ia', label: 'Citas con IA' },
+      { href: '/portal-paciente', label: 'Portal paciente' },
       { href: '/login/admin', label: 'Informes' },
       { href: '/login/admin', label: 'Facturación' },
       { href: '/login/admin', label: 'Pagos' }
@@ -39,8 +40,7 @@ const COLUMNS = [
       { href: '/terminos', label: 'Términos' },
       { href: '/privacidad', label: 'Privacidad' },
       { href: '/cookies', label: 'Cookies' },
-      { href: '/privacidad', label: 'Seguridad' },
-      { href: '/privacidad', label: 'Protección de datos' }
+      { href: '/privacidad', label: 'Seguridad' }
     ]
   },
   {
@@ -49,24 +49,33 @@ const COLUMNS = [
       { href: '/portal-paciente', label: 'Portal paciente' },
       { href: '/login/admin', label: 'Panel clínica' },
       { href: '/platform/login', label: 'Plataforma' },
-      { href: '/#planes', label: 'Solicitar demo' }
+      { href: '/contacto', label: 'Solicitar demo' }
     ]
   }
 ] as const
 
 export function AppFooter() {
   return (
-    <footer className="ac-footer">
+    <footer className="ac-footer ac-footer--light">
       <ResponsiveContainer wide className="ac-footer__grid">
         <div className="ac-footer__brand">
           <a href="/" className="ac-footer__logo">
             <DentistaWebpLockup placement="footer" context="footer" />
           </a>
+          <strong>AgendaClinic</strong>
           <span>Gestión inteligente de citas</span>
           <p>
             La plataforma para gestionar citas, pacientes, agenda, informes, documentos, facturación y portal del
-            paciente desde un entorno seguro.
+            paciente.
           </p>
+          <div className="ac-footer__social">
+            <a href="/contacto" aria-label="Contacto por email">
+              <Mail className="h-4 w-4" aria-hidden />
+            </a>
+            <a href="https://www.linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn AgendaClinic">
+              <Linkedin className="h-4 w-4" aria-hidden />
+            </a>
+          </div>
         </div>
         {COLUMNS.map((column) => (
           <section key={column.title} className="ac-footer__col" aria-label={column.title}>
