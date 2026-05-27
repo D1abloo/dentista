@@ -5,50 +5,66 @@ import { ResponsiveContainer } from './ResponsiveContainer'
 const STEPS = [
   {
     title: 'El paciente reserva',
-    description: 'Reserva online con IA o desde recepción.',
+    text: 'El paciente elige clínica, tratamiento, profesional, fecha y hora disponible.',
     Icon: UserRound,
-    detail:
-      'El paciente reserva desde web o asistente IA. Se registran motivo, preferencia de fecha y disponibilidad real.'
+    previewTitle: 'Reserva online conectada con disponibilidad real',
+    previewText:
+      'AgendaClinic solo muestra huecos disponibles, respetando horarios, citas ocupadas, bloqueos y profesionales activos.',
+    bullets: ['Disponibilidad real', 'Sin huecos duplicados', 'Bloqueos respetados', 'Confirmación automática o manual'],
+    cta: { href: '/login/admin', label: 'Ver agenda clínica' }
   },
   {
     title: 'La clínica organiza',
-    description: 'La agenda coordina recursos y profesionales.',
+    text: 'Recepción gestiona agenda, bloqueos horarios y disponibilidad.',
     Icon: ClipboardCheck,
-    detail:
-      'Recepción revisa conflictos, asigna profesional y activa recordatorios para reducir ausencias.'
+    previewTitle: 'Agenda clínica para recepción',
+    previewText: 'Organiza el día con vistas por profesional, bloqueos visibles y recordatorios automáticos.',
+    bullets: ['Vista día y semana', 'Bloqueos horarios', 'Recordatorios', 'Búsqueda rápida'],
+    cta: { href: '/login/admin', label: 'Acceder al panel' }
   },
   {
     title: 'El doctor documenta',
-    description: 'Todo el historial queda actualizado.',
+    text: 'El profesional crea informes odontológicos y adjunta documentos.',
     Icon: Stethoscope,
-    detail:
-      'El doctor completa informe, sube documentos y deja trazabilidad para próximas visitas.'
+    previewTitle: 'Informes y documentación clínica',
+    previewText: 'Plantillas, firma profesional e historial de visitas en un flujo unificado.',
+    bullets: ['Informes odontológicos', 'Plantillas', 'Firma profesional', 'Historial'],
+    cta: { href: '/login/admin', label: 'Ver módulo clínico' }
   },
   {
     title: 'Administración factura',
-    description: 'Facturas y cobros sincronizados.',
+    text: 'La clínica genera facturas PDF, registra pagos y comparte recibos.',
     Icon: CreditCard,
-    detail:
-      'Administración emite factura, registra pagos y controla saldos sin salir del flujo clínico.'
+    previewTitle: 'Facturación y pagos integrados',
+    previewText: 'Emite facturas, registra cobros y vincula cada pago con paciente y cita.',
+    bullets: ['Facturas PDF', 'Pagos y recibos', 'Reportes', 'Exportaciones'],
+    cta: { href: '/login/admin', label: 'Ver facturación' }
   },
   {
     title: 'El paciente lo consulta',
-    description: 'Acceso seguro desde su portal.',
+    text: 'Citas, informes, documentos, facturas y mensajes aparecen en el portal.',
     Icon: FileText,
-    detail:
-      'El paciente visualiza sus citas, documentos y facturas, con acceso protegido en portal privado.'
+    previewTitle: 'Portal del paciente conectado',
+    previewText: 'El paciente accede de forma segura a citas, documentos, facturas y consentimientos.',
+    bullets: ['Mis citas', 'Informes', 'Facturas', 'Mensajes'],
+    cta: { href: '/portal-paciente', label: 'Entrar al portal' }
   }
 ] as const
 
 export function WorkflowSection() {
   const [activeStep, setActiveStep] = useState(0)
+  const preview = STEPS[activeStep]
 
   return (
-    <section id="como-funciona" className="ac-section ac-section--light" aria-labelledby="ac-workflow-title">
+    <section id="como-funciona" className="ac-section ac-section--tint" aria-labelledby="ac-workflow-title">
       <ResponsiveContainer wide>
         <header className="ac-section__head">
           <p className="ac-kicker">Cómo funciona</p>
           <h2 id="ac-workflow-title">Así trabaja una clínica con AgendaClinic</h2>
+          <p>
+            Desde la reserva de cita hasta el informe, la factura y el portal del paciente, todo queda conectado en
+            una sola plataforma.
+          </p>
         </header>
 
         <div className="ac-workflow">
@@ -67,15 +83,32 @@ export function WorkflowSection() {
                   <Icon className="h-4 w-4" aria-hidden />
                 </span>
                 <strong>{step.title}</strong>
-                <small>{step.description}</small>
+                <small>{step.text}</small>
               </button>
             )
           })}
         </div>
 
         <article className="ac-workflow-preview" aria-live="polite">
-          <h3>{STEPS[activeStep]?.title}</h3>
-          <p>{STEPS[activeStep]?.detail}</p>
+          <div>
+            <h3>{preview.previewTitle}</h3>
+            <p>{preview.previewText}</p>
+            <ul>
+              {preview.bullets.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            <a href={preview.cta.href} className="ac-btn ac-btn--secondary">
+              {preview.cta.label}
+            </a>
+          </div>
+          <div className="ac-article__visual" aria-hidden>
+            <div className="ac-article__mock">
+              <span>{preview.title}</span>
+              <span>Paso {activeStep + 1} de 5</span>
+              <span>Vista conectada en tiempo real</span>
+            </div>
+          </div>
         </article>
       </ResponsiveContainer>
     </section>

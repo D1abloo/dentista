@@ -27,12 +27,11 @@ const ITEMS = [
 
 export function QuickAccessCards() {
   return (
-    <section id="funciones" className="ac-section ac-section--light" aria-labelledby="ac-quick-title">
+    <section id="funciones" className="ac-section ac-section--band" aria-labelledby="ac-quick-title">
       <ResponsiveContainer wide>
-        <header className="ac-section__head">
+        <header className="ac-section__head ac-section__head--center">
           <p className="ac-kicker">Acceso rápido</p>
-          <h2 id="ac-quick-title">Elige cómo entrar a AgendaClinic</h2>
-          <p>Pacientes, clínicas y plataforma trabajan con accesos diferenciados y seguros.</p>
+          <h2 id="ac-quick-title">Accede a AgendaClinic según tu perfil</h2>
         </header>
         <div className="ac-grid ac-grid--3">
           {ITEMS.map((item) => {
@@ -44,7 +43,7 @@ export function QuickAccessCards() {
                 </span>
                 <h3>{item.title}</h3>
                 <p>{item.text}</p>
-                <a href={item.href} className="ac-btn ac-btn--secondary">
+                <a href={item.href} className="ac-btn ac-btn--primary">
                   {item.cta}
                 </a>
               </article>

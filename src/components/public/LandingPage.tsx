@@ -1,16 +1,18 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CookieBanner } from './CookieBanner'
 import { type ProPlan } from './ProAccessForm'
-import { AiAppointmentsAssistant } from './new-frontend/AiAppointmentsAssistant'
+import { AiAppointmentsSection } from './new-frontend/AiAppointmentsSection'
 import { AppFooter } from './new-frontend/AppFooter'
 import { AppHeader } from './new-frontend/AppHeader'
+import { ArticleFeatureSection } from './new-frontend/ArticleFeatureSection'
 import { DemoFormModal } from './new-frontend/DemoFormModal'
+import { FinalCTA } from './new-frontend/FinalCTA'
 import { HelpPreviewSection } from './new-frontend/HelpPreviewSection'
 import { HeroSection } from './new-frontend/HeroSection'
 import { PricingSection } from './new-frontend/PricingSection'
 import { QuickAccessCards } from './new-frontend/QuickAccessCards'
-import { ResponsiveContainer } from './new-frontend/ResponsiveContainer'
 import { RoleModulesSection } from './new-frontend/RoleModulesSection'
+import { TrustStrip } from './new-frontend/TrustStrip'
 import { WorkflowSection } from './new-frontend/WorkflowSection'
 
 export function LandingPage() {
@@ -22,32 +24,27 @@ export function LandingPage() {
     setDemoOpen(true)
   }
 
+  useEffect(() => {
+    const hash = window.location.hash.replace('#', '')
+    if (hash === 'contacto-pro') setDemoOpen(true)
+    const q = new URLSearchParams(window.location.search).get('plan')
+    if (q === 'pro_multi' || q === 'pro_clinica') setPlan(q)
+  }, [])
+
   return (
     <>
       <AppHeader onOpenDemo={() => openDemo('pro_clinica')} />
       <main className="ac-landing">
         <HeroSection onOpenDemo={() => openDemo('pro_clinica')} />
+        <TrustStrip />
         <QuickAccessCards />
-        <AiAppointmentsAssistant />
+        <AiAppointmentsSection />
         <WorkflowSection />
+        <ArticleFeatureSection />
         <RoleModulesSection />
         <PricingSection onOpenDemo={openDemo} />
         <HelpPreviewSection />
-
-        <section className="ac-final-cta" aria-labelledby="ac-final-cta-title">
-          <ResponsiveContainer wide className="ac-final-cta__inner">
-            <h2 id="ac-final-cta-title">AgendaClinic te ayuda a operar mejor desde hoy</h2>
-            <p>Activa tu flujo de citas con IA y conecta a todo tu equipo clínico.</p>
-            <div className="ac-final-cta__actions">
-              <a href="/citas-con-ia" className="ac-btn ac-btn--primary">
-                Reservar con IA
-              </a>
-              <button type="button" className="ac-btn ac-btn--secondary" onClick={() => openDemo('pro_clinica')}>
-                Solicitar demo
-              </button>
-            </div>
-          </ResponsiveContainer>
-        </section>
+        <FinalCTA onOpenDemo={() => openDemo('pro_clinica')} />
       </main>
 
       <DemoFormModal open={demoOpen} plan={plan} onPlanChange={setPlan} onClose={() => setDemoOpen(false)} />

@@ -1,21 +1,23 @@
-import { BookOpenCheck, Building2, UserRound } from 'lucide-react'
+import { BookOpenCheck, Building2, CircleHelp, UserRound } from 'lucide-react'
 import { ResponsiveContainer } from './ResponsiveContainer'
 
 const CARDS = [
-  { title: 'Guías para pacientes', Icon: UserRound, text: 'Acceso, citas, documentos, facturas y portal.' },
-  { title: 'Guías para clínicas', Icon: Building2, text: 'Agenda, profesionales, informes y facturación.' },
-  { title: 'Guías para administradores', Icon: BookOpenCheck, text: 'Organizaciones, seguridad y auditoría.' }
+  { title: 'Guías para pacientes', text: 'Reservas, portal, documentos y facturas.', Icon: UserRound },
+  { title: 'Guías para clínicas', text: 'Agenda, pacientes, informes y facturación.', Icon: Building2 },
+  { title: 'Guías para administradores', text: 'Organizaciones, seguridad y auditoría.', Icon: BookOpenCheck },
+  { title: 'Preguntas frecuentes', text: 'Respuestas rápidas a dudas habituales.', Icon: CircleHelp }
 ] as const
 
 export function HelpPreviewSection() {
   return (
-    <section id="ayuda" className="ac-section ac-section--surface" aria-labelledby="ac-help-title">
+    <section id="ayuda" className="ac-section ac-section--band" aria-labelledby="ac-help-title">
       <ResponsiveContainer wide>
-        <header className="ac-section__head">
+        <header className="ac-section__head ac-section__head--center">
           <p className="ac-kicker">Centro de ayuda</p>
-          <h2 id="ac-help-title">¿Necesitas ayuda?</h2>
+          <h2 id="ac-help-title">Centro de ayuda AgendaClinic</h2>
+          <p>Encuentra guías para pacientes, clínicas y administradores.</p>
         </header>
-        <div className="ac-grid ac-grid--3">
+        <div className="ac-grid ac-grid--4">
           {CARDS.map((card) => {
             const Icon = card.Icon
             return (
@@ -30,7 +32,7 @@ export function HelpPreviewSection() {
           })}
         </div>
         <div className="ac-help__action">
-          <a href="/ayuda" className="ac-btn ac-btn--secondary">
+          <a href="/ayuda" className="ac-btn ac-btn--primary">
             Ir al centro de ayuda
           </a>
         </div>

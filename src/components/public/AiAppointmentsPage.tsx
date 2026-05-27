@@ -1,9 +1,10 @@
 import { useMemo } from 'react'
 import { MessageSquareHeart } from 'lucide-react'
-import { PublicFooter } from '@/components/public/PublicFooter'
-import { PublicHeader } from '@/components/public/PublicHeader'
 import { AiAppointmentsAssistant } from '@/components/public/ai-booking/AiBookingAssistant'
 import { useAiAppointmentsFlow } from '@/components/public/ai-booking/useAiAppointmentsFlow'
+import { AppFooter } from '@/components/public/new-frontend/AppFooter'
+import { AppHeader } from '@/components/public/new-frontend/AppHeader'
+import { ResponsiveContainer } from '@/components/public/new-frontend/ResponsiveContainer'
 
 export function AiAppointmentsPage() {
   const initialQuery = useMemo(() => {
@@ -15,26 +16,27 @@ export function AiAppointmentsPage() {
 
   return (
     <>
-      <PublicHeader activeHref="/citas-con-ia" />
-      <main className="ai-page">
-        <section className="ai-page__hero">
-          <span className="ai-page__badge">
-            <MessageSquareHeart className="h-4 w-4" aria-hidden />
-            Asistente de citas con IA
-          </span>
-          <h1>Gestiona tus citas con ayuda de IA</h1>
-          <p>Reserva, revisa o cambia tus citas de forma segura con el asistente de AgendaClinic.</p>
-          <div className="ai-page__subs">
-            <h2>Consulta tus próximas citas</h2>
-            <h2>Reserva una nueva cita</h2>
-          </div>
-        </section>
-
-        <section className="ai-page__workspace" aria-label="Asistente de citas">
-          <AiAppointmentsAssistant variant="page" flow={flow} showHeader={false} />
+      <AppHeader />
+      <main className="ac-landing">
+        <section className="ac-section ac-section--band">
+          <ResponsiveContainer wide>
+            <header className="ac-section__head">
+              <p className="ac-kicker ac-kicker--icon">
+                <MessageSquareHeart className="h-4 w-4" aria-hidden />
+                Asistente de citas con IA
+              </p>
+              <h1>Gestiona tus citas con ayuda de IA</h1>
+              <p>Reserva, revisa o cambia tus citas de forma segura con el asistente de AgendaClinic.</p>
+              <h2 className="sr-only">Consulta tus próximas citas</h2>
+              <h2 className="sr-only">Reserva una nueva cita</h2>
+            </header>
+            <div className="ac-ai-section__shell">
+              <AiAppointmentsAssistant variant="page" flow={flow} showHeader={false} />
+            </div>
+          </ResponsiveContainer>
         </section>
       </main>
-      <PublicFooter />
+      <AppFooter />
     </>
   )
 }

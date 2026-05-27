@@ -1,5 +1,5 @@
 import { Menu, Sparkles, X } from 'lucide-react'
-import { useState, type MouseEvent } from 'react'
+import { useEffect, useState, type MouseEvent } from 'react'
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo'
 import { LoginDropdown } from './LoginDropdown'
 import { ResponsiveContainer } from './ResponsiveContainer'
@@ -14,28 +14,36 @@ const NAV = [
 ] as const
 
 type Props = {
-  onOpenDemo: () => void
+  onOpenDemo?: () => void
 }
 
 export function AppHeader({ onOpenDemo }: Props) {
   const [open, setOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   const handleHashLink = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
     if (!href.startsWith('#')) return
     event.preventDefault()
-    const target = document.getElementById(href.slice(1))
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
+    document.getElementById(href.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     setOpen(false)
   }
 
   return (
-    <header className="ac-header">
+    <header className={`ac-header${scrolled ? ' is-scrolled' : ''}`}>
       <ResponsiveContainer wide className="ac-header__inner">
         <a href="#inicio" className="ac-header__brand" onClick={(e) => handleHashLink(e, '#inicio')}>
-          <DentistaWebpLockup placement="header" context="public" />
-          <span className="ac-header__claim">Gestión inteligente de citas</span>
+          <DentistaWebpLockup placement="header" context="public" showWordmark={false} />
+          <span className="ac-header__brand-text">
+            <strong>AgendaClinic</strong>
+            <span>Gestión inteligente de citas</span>
+          </span>
         </a>
 
         <nav className="ac-header__nav" aria-label="Navegación principal">
@@ -47,17 +55,18 @@ export function AppHeader({ onOpenDemo }: Props) {
         </nav>
 
         <div className="ac-header__actions">
+          <a href="/portal-paciente" className="ac-header__link">
+            Portal paciente
+          </a>
+          <LoginDropdown onNavigate={() => setOpen(false)} />
           <a href="/citas-con-ia" className="ac-btn ac-btn--primary">
             <Sparkles className="h-4 w-4" aria-hidden />
             Reservar con IA
           </a>
-          <button type="button" className="ac-btn ac-btn--secondary" onClick={onOpenDemo}>
-            Solicitar demo
-          </button>
-          <LoginDropdown />
           <button
             type="button"
             className="ac-header__menu-btn"
+            aria-expanded={open}
             aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
             onClick={() => setOpen((prev) => !prev)}
           >
@@ -74,22 +83,18 @@ export function AppHeader({ onOpenDemo }: Props) {
                 {item.label}
               </a>
             ))}
-            <a href="/portal-paciente" onClick={() => setOpen(false)}>
-              Portal paciente
-            </a>
-            <a href="/login/admin" onClick={() => setOpen(false)}>
-              Panel clínica
-            </a>
-            <a href="/platform/login" onClick={() => setOpen(false)}>
-              Plataforma
-            </a>
+            <a href="/portal-paciente">Portal paciente</a>
+            <a href="/login/admin">Panel clínica</a>
+            <a href="/platform/login">Plataforma</a>
             <div className="ac-header__mobile-cta">
-              <a href="/citas-con-ia" className="ac-btn ac-btn--primary" onClick={() => setOpen(false)}>
+              <a href="/citas-con-ia" className="ac-btn ac-btn--primary">
                 Reservar con IA
               </a>
-              <button type="button" className="ac-btn ac-btn--secondary" onClick={onOpenDemo}>
-                Solicitar demo
-              </button>
+              {onOpenDemo ? (
+                <button type="button" className="ac-btn ac-btn--secondary" onClick={onOpenDemo}>
+                  Solicitar demo
+                </button>
+              ) : null}
             </div>
           </ResponsiveContainer>
         </div>

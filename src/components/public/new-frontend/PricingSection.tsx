@@ -14,7 +14,7 @@ const PLANS: Array<{
     key: 'esencial',
     title: 'Esencial',
     price: 'Desde 79€/mes',
-    cta: 'Solicitar demo esencial',
+    cta: 'Empezar gratis',
     demoPlan: 'pro_clinica',
     bullets: ['Agenda básica', 'Portal paciente', 'Citas online']
   },
@@ -22,16 +22,16 @@ const PLANS: Array<{
     key: 'profesional',
     title: 'Profesional',
     price: 'Desde 149€/mes',
-    cta: 'Solicitar demo profesional',
+    cta: 'Probar 14 días gratis',
     demoPlan: 'pro_clinica',
     featured: true,
-    bullets: ['Asistente IA', 'Facturación', 'Documentos e informes']
+    bullets: ['Asistente IA', 'Facturación', 'Informes y documentos']
   },
   {
     key: 'multi-sede',
     title: 'Multi-sede',
     price: 'Desde 299€/mes',
-    cta: 'Solicitar demo multi-sede',
+    cta: 'Solicitar información',
     demoPlan: 'pro_multi',
     bullets: ['Varias clínicas', 'Gestión centralizada', 'Permisos por sede']
   },
@@ -39,7 +39,7 @@ const PLANS: Array<{
     key: 'enterprise',
     title: 'Enterprise',
     price: 'Personalizado',
-    cta: 'Hablar con ventas',
+    cta: 'Contactar ventas',
     demoPlan: 'pro_multi',
     bullets: ['Auditoría avanzada', 'Soporte prioritario', 'Monitorización']
   }
@@ -51,11 +51,11 @@ type Props = {
 
 export function PricingSection({ onOpenDemo }: Props) {
   return (
-    <section id="planes" className="ac-section ac-section--light" aria-labelledby="ac-pricing-title">
+    <section id="planes" className="ac-section" aria-labelledby="ac-pricing-title">
       <ResponsiveContainer wide>
-        <header className="ac-section__head">
+        <header className="ac-section__head ac-section__head--center">
           <p className="ac-kicker">Planes</p>
-          <h2 id="ac-pricing-title">Escala AgendaClinic al ritmo de tu clínica</h2>
+          <h2 id="ac-pricing-title">Elige cómo quieres empezar</h2>
         </header>
         <div className="ac-grid ac-grid--4">
           {PLANS.map((plan) => (

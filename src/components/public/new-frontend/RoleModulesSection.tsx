@@ -4,35 +4,42 @@ import { ResponsiveContainer } from './ResponsiveContainer'
 const MODULES = [
   {
     title: 'Recepción',
-    items: ['agenda', 'pacientes', 'bloqueos', 'recordatorios', 'búsqueda rápida'],
+    items: ['Agenda día, semana y mes', 'Pacientes y NHC', 'Bloqueos horarios', 'Recordatorios', 'Búsqueda rápida'],
     Icon: Users
   },
   {
     title: 'Doctores',
-    items: ['informes', 'documentos', 'firma profesional', 'historial', 'plantillas'],
+    items: ['Informes odontológicos', 'Plantillas clínicas', 'Documentos', 'Firma profesional', 'Historial de visitas'],
     Icon: Stethoscope
   },
   {
     title: 'Administración',
-    items: ['facturas', 'pagos', 'recibos', 'reportes', 'suscripciones'],
+    items: ['Facturas PDF', 'Pagos y recibos', 'Reportes', 'Suscripciones', 'Exportaciones'],
     Icon: Building2
   },
   {
     title: 'Pacientes',
-    items: ['reservar cita', 'mis citas', 'informes', 'documentos', 'facturas', 'consentimientos', 'mensajes'],
+    items: [
+      'Reservar cita',
+      'Mis citas',
+      'Mis informes',
+      'Mis documentos',
+      'Mis facturas',
+      'Consentimientos',
+      'Mensajes'
+    ],
     Icon: FileText
   }
 ] as const
 
 export function RoleModulesSection() {
   return (
-    <section className="ac-section ac-section--surface" aria-labelledby="ac-roles-title">
+    <section className="ac-section ac-section--tint" aria-labelledby="ac-roles-title">
       <ResponsiveContainer wide>
-        <header className="ac-section__head">
+        <header className="ac-section__head ac-section__head--center">
           <p className="ac-kicker">Módulos por rol</p>
-          <h2 id="ac-roles-title">Cada equipo trabaja con su espacio</h2>
+          <h2 id="ac-roles-title">Cada equipo tiene su espacio</h2>
         </header>
-
         <div className="ac-grid ac-grid--4">
           {MODULES.map((module) => {
             const Icon = module.Icon
