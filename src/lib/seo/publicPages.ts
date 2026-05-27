@@ -14,9 +14,9 @@ const k = BRAND_SEO.defaultKeywords;
 export const publicPageSeo: Record<string, PageSeo> = {
   '/': {
     path: '/',
-    title: 'AgendaClinic | Software dental para citas, pacientes y facturación',
+    title: 'AgendaClinic | Gestión inteligente de citas clínicas',
     description:
-      'Digitaliza tu clínica dental con AgendaClinic: agenda inteligente, ficha de pacientes, informes, documentos, facturas, pagos y portal del paciente con acceso seguro.',
+      'AgendaClinic permite gestionar citas, pacientes, agenda clínica, portal del paciente, informes, documentos, facturación y pagos desde una sola plataforma.',
     keywords: `${k}, AgendaClinic`,
     ogTitle: 'AgendaClinic — Software dental para clínicas modernas',
     ogDescription:
