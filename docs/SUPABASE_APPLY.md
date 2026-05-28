@@ -28,6 +28,7 @@ Si en Supabase **no has ejecutado ninguna migración**, sigue este orden en el *
 | 25 | `0036_invoice_fiscal_fields.sql` | **Sí** | Campos fiscales en facturas |
 | 26 | `0037_public_ai_booking.sql` | **Sí** | Reserva pública IA: `appointments.source`, settings `allow_public_ai_booking` |
 | 27 | `0038_patient_verification_ai_appointments.sql` | **Sí** | Tokens verificación paciente, `cancelled_at`, `rescheduled_from_id`, `visible_to_patient` |
+| 28 | `0039_rls_missing_tables.sql` | **Sí** | RLS en `organization_groups`, `patient_verification_tokens`; políticas en `staff_clinic_*` |
 
 ### Resumen rápido — modo PRO (`PUBLIC_DEMO_MODE=false`)
 

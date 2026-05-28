@@ -44,6 +44,10 @@
   - activación RLS en `tenants`, `patients`, `clinic_usage_daily`;
   - políticas explícitas en `rooms`, `reminders`, `appointment_events`, `clinic_subscriptions`, `patient_portal_access_*`, `platform_inspect_audit`;
   - backfill idempotente de `0030` (`audit_logs.event_type`, `login_events`).
+- **2026-05-28 (alerta Supabase `rls_disabled_in_public`):** migración `0039_rls_missing_tables.sql`:
+  - RLS + políticas en `organization_groups` y `patient_verification_tokens` (deny-all cliente; API con service role);
+  - políticas en `staff_clinic_assignments` y `staff_clinic_preferences` (super admin, staff propio, clínica actual).
+  - Verificación: `node --env-file=.env scripts/audit-db-security.mjs` → `issueCount: 0`.
 
 ## Sesiones demo
 
