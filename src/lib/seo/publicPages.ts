@@ -14,13 +14,13 @@ const k = BRAND_SEO.defaultKeywords;
 export const publicPageSeo: Record<string, PageSeo> = {
   '/': {
     path: '/',
-    title: 'AgendaClinic | Gestión inteligente de citas clínicas',
+    title: 'AgendaClinic | Gestión de citas online para clínicas dentales',
     description:
-      'AgendaClinic permite gestionar citas, pacientes, agenda clínica, portal del paciente, informes, documentos, facturación y pagos desde una sola plataforma.',
-    keywords: `${k}, AgendaClinic`,
-    ogTitle: 'AgendaClinic — Software dental para clínicas modernas',
+      'AgendaClinic ayuda a clínicas dentales a gestionar citas online, agenda clínica, disponibilidad real, portal del paciente, recordatorios, facturación y pagos.',
+    keywords: `${k}, AgendaClinic, citas dentales online`,
+    ogTitle: 'AgendaClinic — Citas online para clínicas dentales',
     ogDescription:
-      'Gestiona citas, pacientes, informes clínicos, facturación y comunicación con pacientes desde una sola plataforma en la nube.'
+      'Reserva online, consulta de citas, agenda clínica y portal del paciente para clínicas dentales.'
   },
   '/contacto': {
     path: '/contacto',

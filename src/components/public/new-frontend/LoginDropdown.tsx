@@ -14,7 +14,7 @@ const OPTIONS = [
     icon: Building2,
     tone: 'sky',
     title: 'Panel clínica',
-    text: 'Gestiona agenda, pacientes y facturación.'
+    text: 'Gestiona agenda, pacientes y citas.'
   },
   {
     href: '/platform/login',
