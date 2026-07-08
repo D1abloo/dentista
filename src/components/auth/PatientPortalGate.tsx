@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { clearDemoSession } from '@/lib/demoStore';
 import { Restricted } from './Restricted';
+import { AppLoader } from '@/components/ui/AppLoader';
 import type { DemoRole } from '@/types/demo';
 
 export function PatientPortalGate({ children }: { children: ReactNode }) {
@@ -75,11 +76,7 @@ export function PatientPortalGate({ children }: { children: ReactNode }) {
   }, []);
 
   if (!ready) {
-    return (
-      <main className="grid min-h-screen place-items-center bg-slate-50 text-sm font-bold text-dental-800">
-        Cargando portal del paciente…
-      </main>
-    );
+    return <AppLoader label="Cargando portal del paciente…" fullscreen />;
   }
 
   if (staffView) {

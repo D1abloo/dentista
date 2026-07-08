@@ -18,6 +18,7 @@ import { AdminNotificationBell } from './AdminNotificationBell';
 import { AdminTopbarUser } from './AdminTopbarUser';
 import { useAdminLiveRefresh } from '@/hooks/useAdminLiveRefresh';
 import { LogoMark } from '@/components/brand/Logo';
+import { AppLoader } from '@/components/ui/AppLoader';
 import { BRAND_NAME, BRAND_PANEL_CLINIC } from '@/lib/brand/identity';
 
 function logInspectNav(href: string, label: string) {
@@ -176,17 +177,13 @@ export function AdminShell({
   }
 
   if (live && dataSource === 'loading') {
-    return (
-      <main className="grid min-h-screen place-items-center bg-[#eef2f7] px-4 text-sm font-bold text-dental-800">
-        Cargando panel de clínica…
-      </main>
-    );
+    return <AppLoader label="Cargando panel de clínica…" fullscreen />
   }
 
   if (live && dataSource === 'empty') {
     return (
-      <main className="grid min-h-screen place-items-center bg-[#eef2f7] px-4">
-        <div className="max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-lg">
+      <main className="app-loader-screen app-loader-screen--fullscreen">
+        <div className="max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-lg df-state-card">
           <h1 className="font-display text-xl text-dental-950">No se pudo cargar la clínica</h1>
           <p className="mt-2 text-sm text-slate-600">
             Revisa tu sesión o vuelve a iniciar sesión. Si el problema continúa, contacta con soporte.

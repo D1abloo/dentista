@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { AppLoader } from '@/components/ui/AppLoader';
 
 type SessionRole = string | null;
 
@@ -42,11 +43,7 @@ export function PlatformGate({ children }: { children: ReactNode }) {
   }, []);
 
   if (!ready) {
-    return (
-      <main className="grid min-h-screen place-items-center bg-slate-50 text-sm font-bold text-[var(--ink)]">
-        Cargando panel de plataforma…
-      </main>
-    );
+    return <AppLoader label="Cargando panel de plataforma…" fullscreen />;
   }
 
   if (role !== 'super_admin') {

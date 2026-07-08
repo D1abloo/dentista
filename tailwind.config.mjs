@@ -28,8 +28,27 @@ export default {
         '3xl': '1.75rem'
       },
       fontFamily: {
-        sans: ['"Outfit"', '"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        display: ['"DM Serif Display"', 'Georgia', 'serif']
+        sans: ['"DM Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['"Fraunces"', 'Georgia', 'serif']
+      },
+      animation: {
+        'fade-up': 'df-fade-up 0.42s cubic-bezier(0.22, 1, 0.36, 1) both',
+        'fade-in': 'df-fade-in 0.22s ease both',
+        'scale-in': 'df-scale-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both'
+      },
+      keyframes: {
+        'df-fade-up': {
+          from: { opacity: '0', transform: 'translateY(12px)' },
+          to: { opacity: '1', transform: 'none' }
+        },
+        'df-fade-in': {
+          from: { opacity: '0' },
+          to: { opacity: '1' }
+        },
+        'df-scale-in': {
+          from: { opacity: '0', transform: 'scale(0.96) translateY(8px)' },
+          to: { opacity: '1', transform: 'none' }
+        }
       }
     }
   },

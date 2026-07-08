@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { clearDemoRoleHints } from '@/lib/demoStore';
 import { logoutSession } from '@/lib/session';
 import { Restricted } from './Restricted';
+import { AppLoader } from '@/components/ui/AppLoader';
 import type { DemoRole } from '@/types/demo';
 
 type MeUser = {
@@ -71,11 +72,7 @@ export function RoleGate({ role, children }: { role: DemoRole; children: ReactNo
 
   if (!ready) {
     const label = role === 'admin' ? 'clínica' : 'paciente';
-    return (
-      <main className="grid min-h-screen place-items-center bg-slate-50 text-sm font-bold text-dental-800">
-        Cargando portal {label}…
-      </main>
-    );
+    return <AppLoader label={`Cargando portal ${label}…`} fullscreen />;
   }
 
   if (current !== role) {

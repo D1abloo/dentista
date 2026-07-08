@@ -17,21 +17,21 @@ export function Modal({
 }) {
   if (!open) return null;
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <div className="modal-panel">
-        <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
-          <h2 id="modal-title" className="font-display text-xl text-dental-950">
+    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={onClose}>
+      <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-panel__head">
+          <h2 id="modal-title" className="modal-panel__title">
             {title}
           </h2>
-          <button type="button" onClick={onClose} className="rounded-xl p-2 hover:bg-slate-100" aria-label="Cerrar">
+          <button type="button" onClick={onClose} className="modal-panel__close" aria-label="Cerrar">
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="py-4">{children}</div>
-        {footer ? <div className="flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-4">{footer}</div> : null}
+        <div className="modal-panel__body">{children}</div>
+        {footer ? <div className="modal-panel__footer">{footer}</div> : null}
       </div>
     </div>
-  );
+  )
 }
 
 export function ConfirmModal({

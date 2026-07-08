@@ -12,10 +12,10 @@ export function Field({
   children: ReactNode;
 }) {
   return (
-    <label className={['grid gap-1.5 text-sm font-semibold text-slate-700', className].filter(Boolean).join(' ')}>
-      {label}
+    <label className={['df-field grid gap-1.5 text-sm font-semibold text-slate-700', className].filter(Boolean).join(' ')}>
+      <span className="df-field__label">{label}</span>
       {children}
-      {error ? <span className="text-xs font-bold text-rose-600">{error}</span> : null}
+      {error ? <span className="df-field__error" role="alert">{error}</span> : null}
     </label>
   );
 }
