@@ -21,8 +21,7 @@ import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
 import type { SessionUser } from '@/lib/session';
 import { PatientPortalPhoneMockup } from './PatientPortalPhoneMockup';
 import { PatientPortalRegisterForm } from './PatientPortalRegisterForm';
-import { PublicFooter } from './PublicFooter';
-import { PublicHeader } from './PublicHeader';
+import { PublicSiteShell } from './PublicSiteShell';
 
 type AuthTab = 'login' | 'register';
 
@@ -142,8 +141,7 @@ export function PatientPortalPublicPage() {
   }, []);
 
   return (
-    <>
-      <PublicHeader activeHref="/portal-paciente" />
+    <PublicSiteShell>
       <main className="ppp-v2">
         <section className="ppp-v2-hero" aria-labelledby="ppp-hero-title">
           <div className="ppp-v2-hero__bg" aria-hidden>
@@ -379,7 +377,6 @@ export function PatientPortalPublicPage() {
           </div>
         </section>
       </main>
-      <PublicFooter />
-    </>
+    </PublicSiteShell>
   );
 }

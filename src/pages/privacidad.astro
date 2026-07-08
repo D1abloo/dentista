@@ -1,16 +1,17 @@
 ---
-import AppLayout from '@/layouts/AppLayout.astro';
+import PublicLayout from '@/layouts/PublicLayout.astro';
 import { LegalPage } from '@/components/public/LegalPage';
 import { privacySections } from '@/lib/legal/content';
+import { publicBreadcrumb } from '@/lib/seo/breadcrumbs';
 import { seoLayoutProps } from '@/lib/seo/layoutProps';
 
 const seo = seoLayoutProps('/privacidad');
 ---
-<AppLayout {...seo}>
+<PublicLayout {...seo} structuredData={publicBreadcrumb({ name: 'Privacidad', path: '/privacidad' })}>
   <LegalPage
     client:load
     title="Política de privacidad"
     intro="Transparencia sobre cómo Estructura Web trata los datos en AgendaClinic conforme al Reglamento (UE) 2016/679 y la LOPDGDD."
     sections={privacySections}
   />
-</AppLayout>
+</PublicLayout>

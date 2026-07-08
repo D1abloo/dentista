@@ -1,10 +1,11 @@
 ---
-import AppLayout from '@/layouts/AppLayout.astro'
-import { AiAppointmentsPage } from '@/components/public/AiAppointmentsPage'
+import PublicLayout from '@/layouts/PublicLayout.astro'
+import { CitasConIaPage } from '@/components/public/citas-con-ia/CitasConIaPage'
+import { aiAssistantWebAppLd, publicBreadcrumb } from '@/lib/seo/breadcrumbs'
 import { seoLayoutProps } from '@/lib/seo/layoutProps'
 
 const seo = seoLayoutProps('/citas-con-ia')
 ---
-<AppLayout {...seo}>
-  <AiAppointmentsPage client:load />
-</AppLayout>
+<PublicLayout {...seo} structuredData={[publicBreadcrumb({ name: 'Citas con IA', path: '/citas-con-ia' }), aiAssistantWebAppLd]}>
+  <CitasConIaPage client:load />
+</PublicLayout>

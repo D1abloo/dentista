@@ -1,7 +1,5 @@
 import { LEGAL_ENTITY, type LegalSection } from '@/lib/legal/content';
-import { PublicFooter } from './PublicFooter';
-import { PublicHeader } from './PublicHeader';
-import { CookieBanner } from './CookieBanner';
+import { PublicSiteShell } from './PublicSiteShell';
 
 function LegalBody({ sections }: { sections: LegalSection[] }) {
   return (
@@ -57,15 +55,12 @@ export function LegalPage({
   sections: LegalSection[];
 }) {
   return (
-    <>
-      <PublicHeader />
-      <main className="legal-page shell">
+    <PublicSiteShell>
+      <main className="legal-page shell adb-section--band">
         <h1>{title}</h1>
         <p className="legal-page__intro">{intro}</p>
         <LegalBody sections={sections} />
       </main>
-      <PublicFooter />
-      <CookieBanner />
-    </>
+    </PublicSiteShell>
   );
 }

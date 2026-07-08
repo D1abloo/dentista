@@ -1,0 +1,38 @@
+/**
+ * Puente de tokens: alias legacy → design system (--df-*).
+ * Importar después de global.css y antes de hojas de componente.
+ */
+
+:root {
+  /* Public site / premium */
+  --ps-teal-deep: #0a6b74;
+  --ps-teal-hover: #168a94;
+  --ps-body: var(--df-font);
+  --ps-ink: var(--df-ink);
+  --ps-muted: var(--df-muted);
+  --ps-line: var(--df-line);
+  --ps-surface: var(--df-surface);
+  --ps-teal: var(--df-brand-solid);
+
+  /* AgendaClinic public premium (ac-*) */
+  --ac-teal: var(--df-brand-solid);
+  --ac-navy: var(--df-navy);
+  --ac-ink: var(--df-ink);
+  --ac-muted: var(--df-muted);
+  --ac-line: var(--df-line);
+  --ac-radius: var(--df-radius);
+
+  /* Asistente IA (ai-*) */
+  --ai-teal: #0e7c86;
+  --ai-teal-deep: var(--ps-teal-deep);
+  --ai-navy: var(--df-navy-deep);
+  --ai-border: var(--df-line-strong);
+  --ai-surface: var(--df-surface);
+  --ai-glass: var(--df-glass);
+  --ai-shadow: var(--df-shadow-lg);
+  --ai-shadow-soft: var(--df-shadow-sm);
+
+  /* Dental landing (adb-* hereda de df donde aplica) */
+  --adb-teal: var(--df-brand-solid);
+  --adb-navy: var(--df-navy);
+}

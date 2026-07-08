@@ -1,11 +1,11 @@
 ---
-import AppLayout from '@/layouts/AppLayout.astro';
+import PublicLayout from '@/layouts/PublicLayout.astro';
 import { LandingPage } from '@/components/DentistaApp';
 import { landingStructuredDataGraph } from '@/lib/seo/landingStructuredData';
 import { seoLayoutProps } from '@/lib/seo/layoutProps';
 
 const seo = seoLayoutProps('/');
 ---
-<AppLayout {...seo} structuredData={landingStructuredDataGraph}>
+<PublicLayout {...seo} structuredData={landingStructuredDataGraph}>
   <LandingPage client:load />
-</AppLayout>
+</PublicLayout>

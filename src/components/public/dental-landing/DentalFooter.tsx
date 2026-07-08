@@ -1,67 +1,7 @@
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo'
 import { Mail } from 'lucide-react'
+import { PUBLIC_FOOTER_COLUMNS } from '@/lib/public/routes'
 import { DentalContainer } from './DentalContainer'
-
-const COLS = [
-  {
-    title: 'Producto',
-    links: [
-      { href: '/citas-con-ia', label: 'Citas online' },
-      { href: '/login/admin', label: 'Agenda clínica' },
-      { href: '/portal-paciente', label: 'Portal paciente' },
-      { href: '/citas-con-ia', label: 'Citas con IA' },
-      { href: '/login/admin', label: 'Informes' },
-      { href: '/login/admin', label: 'Facturación' }
-    ]
-  },
-  {
-    title: 'Para pacientes',
-    links: [
-      { href: '/citas-con-ia', label: 'Reservar cita' },
-      { href: '#consulta-cita', label: 'Consultar cita' },
-      { href: '/citas-con-ia', label: 'Cambiar cita' },
-      { href: '/citas-con-ia', label: 'Cancelar cita' },
-      { href: '/portal-paciente', label: 'Portal paciente' }
-    ]
-  },
-  {
-    title: 'Para clínicas',
-    links: [
-      { href: '/login/admin', label: 'Agenda' },
-      { href: '/login/admin', label: 'Pacientes' },
-      { href: '/login/admin', label: 'Profesionales' },
-      { href: '/login/admin', label: 'Tratamientos' },
-      { href: '/login/admin', label: 'Facturación' },
-      { href: '/login/admin', label: 'Reportes' }
-    ]
-  },
-  {
-    title: 'Recursos',
-    links: [
-      { href: '/ayuda', label: 'Centro de ayuda' },
-      { href: '/ayuda', label: 'Preguntas frecuentes' },
-      { href: '/contacto', label: 'Contacto' },
-      { href: '/ayuda', label: 'Guías' }
-    ]
-  },
-  {
-    title: 'Legal',
-    links: [
-      { href: '/terminos', label: 'Términos' },
-      { href: '/privacidad', label: 'Privacidad' },
-      { href: '/cookies', label: 'Cookies' },
-      { href: '/privacidad', label: 'Seguridad' }
-    ]
-  },
-  {
-    title: 'Accesos',
-    links: [
-      { href: '/portal-paciente', label: 'Portal paciente' },
-      { href: '/login/admin', label: 'Panel clínica' },
-      { href: '/platform/login', label: 'Plataforma' }
-    ]
-  }
-] as const
 
 export const DentalFooter = () => (
   <footer className="adb-footer">
@@ -77,7 +17,7 @@ export const DentalFooter = () => (
           <Mail className="h-4 w-4" aria-hidden />
         </a>
       </div>
-      {COLS.map((col) => (
+      {PUBLIC_FOOTER_COLUMNS.map((col) => (
         <section key={col.title} aria-label={col.title}>
           <h3>{col.title}</h3>
           {col.links.map((link) => (

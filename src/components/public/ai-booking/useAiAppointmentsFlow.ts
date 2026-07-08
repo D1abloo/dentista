@@ -20,9 +20,15 @@ export { AI_APPOINTMENTS_QUICK_REPLIES, AI_BOOKING_QUICK_REPLIES } from './quick
 export const AI_APPOINTMENTS_INITIAL_MESSAGE =
   'Hola, soy el asistente de AgendaClinic. Puedo ayudarte a reservar una cita, revisar tus citas actuales o cambiar una cita existente. ¿Qué necesitas hacer?'
 
+const WELCOME_MESSAGE_ID = 'assistant-welcome'
+
 function id(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
 }
+
+const initialMessages = (): ChatEntry[] => [
+  { id: WELCOME_MESSAGE_ID, role: 'assistant', text: AI_APPOINTMENTS_INITIAL_MESSAGE }
+]
 
 const emptyPatient = (): PatientFormValue => ({
   fullName: '',
@@ -38,9 +44,7 @@ type Options = { initialQuery?: string }
 
 export function useAiAppointmentsFlow(options: Options = {}) {
   const [status, setStatus] = useState<AssistantUiState>('idle')
-  const [messages, setMessages] = useState<ChatEntry[]>([
-    { id: id('assistant'), role: 'assistant', text: AI_APPOINTMENTS_INITIAL_MESSAGE }
-  ])
+  const [messages, setMessages] = useState<ChatEntry[]>(initialMessages)
   const [chatInput, setChatInput] = useState('')
   const [bookingState, setBookingState] = useState<BookingState>({})
   const [assistantContext, setAssistantContext] = useState<AssistantContext>({ mode: 'book' })
@@ -69,7 +73,7 @@ export function useAiAppointmentsFlow(options: Options = {}) {
 
   const handleSendMessage = useCallback(
     async (value: string, tabOverride?: AssistantTab) => {
-      const text = value.trim()
+      const text = (value ?? '').trim()
       if (!text) return
 
       const nextConversation = [...messages, { id: id('user'), role: 'user' as const, text }]
@@ -82,6 +86,7 @@ export function useAiAppointmentsFlow(options: Options = {}) {
         const response = await fetch('/api/ai/appointments-chat', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
+          signal: AbortSignal.timeout(90_000),
           body: JSON.stringify({
             message: text,
             conversation: nextConversation.map((entry) => ({ role: entry.role, text: entry.text })),
@@ -145,11 +150,17 @@ export function useAiAppointmentsFlow(options: Options = {}) {
         } else if (payload?.readyForSummary) {
           setStatus('confirming_booking')
         } else {
-          setStatus('asking_followup')
+          setStatus('idle')
         }
       } catch (error) {
         setStatus('error')
-        setErrorMessage(error instanceof Error ? error.message : 'No se pudo contactar con el asistente.')
+        const message = error instanceof Error ? error.message : 'No se pudo contactar con el asistente.'
+        const timedOut = /timeout|aborted/i.test(message)
+        setErrorMessage(
+          timedOut
+            ? 'La consulta tardó demasiado. Comprueba tu conexión e inténtalo de nuevo.'
+            : message
+        )
       }
     },
     [activeTab, assistantContext, bookingState, messages, mode, selectedAppointment, selectedSlot]
@@ -468,7 +479,7 @@ export function useAiAppointmentsFlow(options: Options = {}) {
 
   const resetFlow = useCallback(() => {
     setStatus('idle')
-    setMessages([{ id: id('assistant'), role: 'assistant', text: AI_APPOINTMENTS_INITIAL_MESSAGE }])
+    setMessages(initialMessages())
     setBookingState({})
     setAssistantContext({ mode: 'book' })
     setActiveTab('book')

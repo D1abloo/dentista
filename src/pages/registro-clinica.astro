@@ -1,10 +1,11 @@
 ---
-import AppLayout from '@/layouts/AppLayout.astro';
+import PublicLayout from '@/layouts/PublicLayout.astro';
 import { ClinicRegistrationPage } from '@/components/public/ClinicRegistrationPage';
+import { publicBreadcrumb } from '@/lib/seo/breadcrumbs';
 import { seoLayoutProps } from '@/lib/seo/layoutProps';
 
 const seo = seoLayoutProps('/registro-clinica');
 ---
-<AppLayout {...seo}>
+<PublicLayout {...seo} structuredData={publicBreadcrumb({ name: 'Registro clínica', path: '/registro-clinica' })}>
   <ClinicRegistrationPage client:load />
-</AppLayout>
+</PublicLayout>

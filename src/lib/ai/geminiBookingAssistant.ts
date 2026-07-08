@@ -69,7 +69,7 @@ export function hasGeminiConfig() {
 }
 
 function getModelName() {
-  return env('GEMINI_MODEL') || 'gemini-1.5-pro'
+  return env('GEMINI_MODEL') || 'gemini-2.5-flash'
 }
 
 function fallbackIntent(message: string): GeminiBookingIntent {

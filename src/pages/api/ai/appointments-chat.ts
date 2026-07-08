@@ -2,8 +2,6 @@ import type { APIRoute } from 'astro'
 import { clientIp } from '@/lib/audit/sanitize'
 import { handleAppointmentsChat, monitorPatientAppointmentsError } from '@/lib/ai/appointmentsChatHandler'
 import { logAiBookingMonitor } from '@/lib/ai/bookingMonitoring'
-import { forwardAppointmentIntentToN8n, isN8nAutomationEnabled } from '@/lib/n8n/client'
-import { mapN8nResponseToChatResult } from '@/lib/n8n/mapChatResponse'
 import { fail, ok } from '@/lib/http'
 import { hasSupabaseConfig } from '@/lib/supabaseServer'
 import { aiAppointmentsChatSchema } from '@/lib/validators'
@@ -36,37 +34,19 @@ export const POST: APIRoute = async ({ request }) => {
     const parsed = aiAppointmentsChatSchema.safeParse(body)
     if (!parsed.success) return fail('Mensaje del chat inválido.', 422, parsed.error.flatten())
 
-    if (isN8nAutomationEnabled() && !request.headers.get('x-n8n-orchestrator')) {
-      const clinicId = parsed.data.assistantState.bookingState.clinicId
-      if (clinicId) {
-        const n8nPayload = {
-          userId: parsed.data.assistantState.assistantContext.verificationToken ? 'assistant-guest' : 'assistant-guest',
-          companyId: clinicId,
-          message: parsed.data.message,
-          channel: 'assistant' as const,
-          timezone: 'Europe/Madrid',
-          metadata: {
-            verificationToken: parsed.data.assistantState.assistantContext.verificationToken,
-            conversationId: `ai-${ip}`,
-            confirmation: parsed.data.assistantState.assistantContext.pendingIntent === 'confirm'
-          }
-        }
-        const n8nResult = await forwardAppointmentIntentToN8n(n8nPayload)
-        if (n8nResult) {
-          const mapped = mapN8nResponseToChatResult(n8nResult, {
-            bookingState: parsed.data.assistantState.bookingState,
-            assistantContext: parsed.data.assistantState.assistantContext
-          })
-          return ok(mapped, { orchestrator: 'n8n' })
-        }
-      }
-    }
-
     const result = await handleAppointmentsChat(parsed.data)
     return ok(result)
   } catch (error) {
     monitorPatientAppointmentsError('appointments-chat', error)
     await logAiBookingMonitor('ai.booking_failed', { scope: 'appointments-chat' })
-    return fail('No se pudo contactar con el asistente.', 500)
+    const detail = error instanceof Error ? error.message : String(error)
+    if (/fetch failed|ENOTFOUND|No hay clínicas|Supabase/i.test(detail)) {
+      return fail(
+        'No se pudo conectar con la base de datos. Revisa PUBLIC_SUPABASE_URL en .env (el proyecto Supabase no responde).',
+        503,
+        detail
+      )
+    }
+    return fail('No se pudo contactar con el asistente.', 500, detail)
   }
 }

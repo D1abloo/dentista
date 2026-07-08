@@ -77,13 +77,61 @@ export async function handleAppointmentsChat(input: {
   const { bookingState, assistantContext } = input.assistantState
   const identityVerified = Boolean(assistantContext.verificationToken)
 
-  const clinics = await getPublicClinics()
-  if (!clinics.length) throw new Error('No hay clínicas disponibles.')
+  let clinics: Awaited<ReturnType<typeof getPublicClinics>> = []
+  let treatments: Awaited<ReturnType<typeof getPublicTreatments>> = []
+  let professionals: Awaited<ReturnType<typeof getPublicProfessionals>> = []
+  let clinicId = bookingState.clinicId
 
-  const clinicId = bookingState.clinicId ?? clinics[0]?.id
-  const [treatments, professionals] = clinicId
-    ? await Promise.all([getPublicTreatments(clinicId), getPublicProfessionals(clinicId)])
-    : [[], []]
+  try {
+    clinics = await getPublicClinics()
+    if (!clinics.length) {
+      throw new Error('No hay clínicas activas configuradas.')
+    }
+    clinicId = bookingState.clinicId ?? clinics[0]?.id
+    if (clinicId) {
+      ;[treatments, professionals] = await Promise.all([
+        getPublicTreatments(clinicId),
+        getPublicProfessionals(clinicId)
+      ])
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    const isConnection =
+      /fetch failed|ENOTFOUND|ECONNREFUSED|Tenant\/user|not found/i.test(message)
+    const hint = isConnection
+      ? ' El proyecto Supabase configurado no responde (revisa PUBLIC_SUPABASE_URL en .env).'
+      : ''
+    return {
+      assistantMessage: `No puedo consultar la agenda en este momento.${hint} Puedes llamar a la clínica o usar el formulario de contacto.`,
+      intent: {
+        intent: 'book_appointment',
+        action: 'book',
+        treatment: null,
+        urgency: 'normal',
+        clinic_preference: null,
+        professional_preference: null,
+        date_preference: null,
+        time_preference: null,
+        patient_name: null,
+        patient_email: null,
+        patient_phone: null,
+        requires_identity_verification: false,
+        missing_fields: ['database'],
+        assistant_message: `No puedo consultar la agenda en este momento.${hint}`,
+        should_fetch_availability: false,
+        severe_symptoms: false
+      },
+      mode: 'book',
+      activeTab: 'book',
+      bookingState,
+      assistantContext: { ...assistantContext, mode: 'book' },
+      slots: [],
+      appointments: [],
+      nextAppointment: null,
+      readyForSummary: false,
+      requiresVerification: false
+    }
+  }
 
   const catalogSummary = [
     `Clínicas: ${clinics.map((c) => c.name).join(', ')}`,

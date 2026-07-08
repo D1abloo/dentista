@@ -1,10 +1,11 @@
 ---
-import AppLayout from '@/layouts/AppLayout.astro';
+import PublicLayout from '@/layouts/PublicLayout.astro';
 import { ContactPage } from '@/components/public/ContactPage';
+import { publicBreadcrumb } from '@/lib/seo/breadcrumbs';
 import { seoLayoutProps } from '@/lib/seo/layoutProps';
 
 const seo = seoLayoutProps('/contacto');
 ---
-<AppLayout {...seo}>
+<PublicLayout {...seo} structuredData={publicBreadcrumb({ name: 'Contacto', path: '/contacto' })}>
   <ContactPage client:load />
-</AppLayout>
+</PublicLayout>

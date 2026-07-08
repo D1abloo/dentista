@@ -1,10 +1,11 @@
 ---
-import AppLayout from '@/layouts/AppLayout.astro';
+import PublicLayout from '@/layouts/PublicLayout.astro';
 import { HelpCenterPage } from '@/components/help/HelpCenterPage';
+import { publicBreadcrumb } from '@/lib/seo/breadcrumbs';
 import { seoLayoutProps } from '@/lib/seo/layoutProps';
 
 const seo = seoLayoutProps('/ayuda');
 ---
-<AppLayout {...seo}>
+<PublicLayout {...seo} structuredData={publicBreadcrumb({ name: 'Centro de ayuda', path: '/ayuda' })}>
   <HelpCenterPage client:load />
-</AppLayout>
+</PublicLayout>

@@ -1,16 +1,17 @@
 ---
-import AppLayout from '@/layouts/AppLayout.astro';
+import PublicLayout from '@/layouts/PublicLayout.astro';
 import { LegalPage } from '@/components/public/LegalPage';
 import { termsSections } from '@/lib/legal/content';
+import { publicBreadcrumb } from '@/lib/seo/breadcrumbs';
 import { seoLayoutProps } from '@/lib/seo/layoutProps';
 
 const seo = seoLayoutProps('/terminos');
 ---
-<AppLayout {...seo}>
+<PublicLayout {...seo} structuredData={publicBreadcrumb({ name: 'Términos', path: '/terminos' })}>
   <LegalPage
     client:load
     title="Términos de uso"
     intro="Condiciones que regulan el acceso a AgendaClinic, los paneles de clínica y paciente, el alta de organizaciones y las obligaciones de cada parte."
     sections={termsSections}
   />
-</AppLayout>
+</PublicLayout>

@@ -101,7 +101,7 @@ function env(key: string) {
 }
 
 function getModelName() {
-  return env('GEMINI_MODEL') || 'gemini-1.5-pro'
+  return env('GEMINI_MODEL') || 'gemini-2.5-flash'
 }
 
 function fallbackIntent(message: string): GeminiAppointmentsIntent {
@@ -210,6 +210,27 @@ function fallbackIntent(message: string): GeminiAppointmentsIntent {
       missing_fields: [],
       assistant_message: 'Puedes contactar con la clínica desde la página de contacto o por teléfono.',
       should_fetch_availability: false,
+      severe_symptoms: false
+    }
+  }
+
+  if (/reservar.*(nueva )?cita|nueva cita|quiero (una )?cita|pedir cita/.test(lower)) {
+    return {
+      intent: 'book_appointment',
+      action: 'book',
+      treatment: 'revisión',
+      urgency: 'normal',
+      clinic_preference: null,
+      professional_preference: null,
+      date_preference: 'esta semana',
+      time_preference: 'any',
+      patient_name: null,
+      patient_email: null,
+      patient_phone: null,
+      requires_identity_verification: false,
+      missing_fields: [],
+      assistant_message: 'Busco huecos disponibles esta semana. Elige el horario que prefieras:',
+      should_fetch_availability: true,
       severe_symptoms: false
     }
   }

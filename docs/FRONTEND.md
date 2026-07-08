@@ -8,19 +8,29 @@ Frontend con **Astro** (páginas, SEO, API), **React** (portales y asistente IA)
 - Producto interno: **Dentista+ / DentalFlow**.
 - Modo recomendado: **LIVE** (`PUBLIC_DEMO_MODE=false`) con cookie `df_session`.
 
+## Layouts (Astro)
+
+| Layout | Uso | CSS |
+|--------|-----|-----|
+| `BaseLayout.astro` | Meta SEO + fuentes (sin CSS de zona) | — |
+| `PublicLayout.astro` | Marketing, legal, contacto, ayuda, IA | ~14 hojas públicas |
+| `PortalLayout.astro` | `/admin`, `/paciente`, `/platform`, `/login` | CSS portales |
+| `AppLayout.astro` | Alias de `PortalLayout` (compatibilidad) | Igual que portal |
+
+**Shell público React:** `PublicSiteShell` (DentalHeader + footer + cookies) en todas las páginas marketing.
+
+**Navegación:** `src/lib/public/routes.ts` — menú, footer y anclas home (`/#sección` fuera de `/`).
+
 ## Sitio público
 
 | Ruta | Componentes / notas |
 |------|---------------------|
-| `/` | `LandingPage`, hero, CTAs «Citas con IA», portal, demo clínica |
-| `/citas-con-ia` | `AiAppointmentsPage` — asistente completo (reserva + gestión) |
+| `/` | `LandingPage` + `PublicSiteShell` |
+| `/citas-con-ia` | `CitasConIaPage` → `AiAppointmentsChatSection` (isla mínima) |
 | `/reservar-con-ia` | Redirección 301 → `/citas-con-ia` |
-| `/reserva` | Flujo reserva público clásico |
-| `/contacto`, `/documentacion` | Contacto y ayuda |
-| `/registro-clinica`, `/registro-paciente` | Altas |
-| Legal | `/cookies`, `/privacidad`, `/terminos` |
-
-**Widget global:** `AiAppointmentsWidget` en `AppLayout` (todas las páginas públicas) — botón «Citas con IA», drawer premium.
+| `/reserva` | Redirección → `/portal-paciente` |
+| `/contacto`, `/ayuda` | `PublicSiteShell` + contenido |
+| `/portal-paciente`, registros, legal | `PublicSiteShell` unificado |
 
 ### Asistente de citas con IA (UI)
 
@@ -28,7 +38,7 @@ Frontend con **Astro** (páginas, SEO, API), **React** (portales y asistente IA)
 - **Pestañas:** Nueva cita · Mis citas · Cambiar · Ayuda
 - **Progreso:** 5 pasos (reserva) o 4 pasos (gestión con verificación)
 - **Panel lateral:** resumen de reserva, huecos reales, citas existentes, formularios
-- **Estilos:** `src/styles/ai-booking.css`
+- **Estilos:** `ai-booking.css` + tokens `--df-*` vía `design-tokens-bridge.css`
 - **Hook:** `useAiAppointmentsFlow` en `src/components/public/ai-booking/`
 
 ## Portal del paciente

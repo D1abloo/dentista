@@ -1,3 +1,4 @@
+import { useRef, useState, type FormEvent } from 'react'
 import { Bot, ExternalLink, X } from 'lucide-react'
 import { AiBookingErrorPanel } from './AiBookingErrorPanel'
 import { AiBookingSuccessView } from './AiBookingSuccessView'
@@ -61,7 +62,19 @@ export function AiBookingAssistant({
   onClose
 }: Props) {
   const isWidget = variant === 'widget'
+  const composerRef = useRef<HTMLInputElement>(null)
+  const [draft, setDraft] = useState('')
   const busy = isBusy(flow.status)
+
+  const handleComposerSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (busy) return
+    const text = (draft.trim() || composerRef.current?.value.trim() || (flow.chatInput ?? '').trim())
+    if (!text) return
+    setDraft('')
+    if (composerRef.current) composerRef.current.value = ''
+    void flow.handleSendMessage(text)
+  }
   const statusLabel = STATUS_LABEL[flow.status]
   const bookStep = getCurrentBookingStep(
     flow.status,
@@ -180,29 +193,29 @@ export function AiBookingAssistant({
             </p>
           ) : null}
 
-          <label htmlFor={inputId} className="sr-only">
-            Mensaje para el asistente de citas
-          </label>
-          <div className="ai-assistant__composer">
+          <form className="ai-assistant__composer" onSubmit={handleComposerSubmit} aria-label="Enviar mensaje al asistente">
+            <label htmlFor={inputId} className="sr-only">
+              Mensaje para el asistente de citas
+            </label>
             <input
+              ref={composerRef}
               id={inputId}
-              value={flow.chatInput}
-              onChange={(event) => flow.setChatInput(event.target.value)}
+              name="message"
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
               placeholder="Escribe tu consulta sobre citas…"
               disabled={busy}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') void flow.handleSendMessage(flow.chatInput)
-              }}
+              autoComplete="off"
             />
             <button
-              type="button"
+              type="submit"
               disabled={busy}
-              onClick={() => void flow.handleSendMessage(flow.chatInput)}
               className="ai-btn ai-btn--primary"
+              aria-disabled={busy}
             >
               Enviar
             </button>
-          </div>
+          </form>
         </section>
 
         <aside className="ai-assistant__panel" aria-label="Resumen y acciones">

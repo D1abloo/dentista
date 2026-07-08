@@ -22,9 +22,7 @@ import {
   resolveContactVariant,
   type ContactConsultType
 } from '@/lib/public/contactContent';
-import { PublicFooter } from './PublicFooter';
-import { PublicHeader } from './PublicHeader';
-import { CookieBanner } from './CookieBanner';
+import { PublicSiteShell } from './PublicSiteShell';
 
 export function ContactPage() {
   const contact = useMemo(() => getPublicContactInfo(), []);
@@ -103,8 +101,7 @@ export function ContactPage() {
   );
 
   return (
-    <>
-      <PublicHeader activeHref="/contacto" />
+    <PublicSiteShell>
       <main className="cp ps-page--contact">
         <section className="cp-hero shell" aria-labelledby="contact-hero-title">
           <div className="cp-hero__grid">
@@ -414,8 +411,6 @@ export function ContactPage() {
           </section>
         ) : null}
       </main>
-      <PublicFooter />
-      <CookieBanner />
-    </>
+    </PublicSiteShell>
   );
 }

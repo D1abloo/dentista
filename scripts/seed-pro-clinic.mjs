@@ -8,22 +8,12 @@
  * Uso: npm run seed:clinic
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createDbClient } from './lib/db-client.mjs';
 import { loadEnvFile } from './lib/load-env.mjs';
 
 loadEnvFile();
 
-const url = process.env.SUPABASE_URL || process.env.PUBLIC_SUPABASE_URL;
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!url || !serviceKey) {
-  console.error('Faltan SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en .env');
-  process.exit(1);
-}
-
-const db = createClient(url, serviceKey, {
-  auth: { autoRefreshToken: false, persistSession: false }
-});
+const db = createDbClient();
 
 const CLINIC = {
   slug: 'clinica-dental-nova',
@@ -369,6 +359,29 @@ async function ensurePlatformAdmin(authUserId, email, name) {
   });
 }
 
+async function ensureAvailabilityRules(clinicId) {
+  for (let weekday = 1; weekday <= 5; weekday += 1) {
+    const { data: existing } = await db
+      .from('availability_rules')
+      .select('id')
+      .eq('clinic_id', clinicId)
+      .eq('weekday', weekday)
+      .eq('starts_at', '09:00:00')
+      .maybeSingle();
+    if (existing?.id) continue;
+    const { error } = await db.from('availability_rules').insert({
+      clinic_id: clinicId,
+      dentist_id: null,
+      weekday,
+      starts_at: '09:00:00',
+      ends_at: '18:00:00',
+      slot_minutes: 30,
+      active: true
+    });
+    if (error) throw error;
+  }
+}
+
 async function seedAppointments(clinicId, patientProfileIds, dentistIds, treatmentIds) {
   const now = Date.now();
   const slots = [
@@ -435,6 +448,7 @@ async function main() {
   await ensureRooms(clinicId);
   const dentistIds = await ensureDentists(clinicId, tenantId);
   const treatmentIds = await ensureTreatments(clinicId, tenantId);
+  await ensureAvailabilityRules(clinicId);
 
   console.log(`✓ ${CLINIC.name} (${CLINIC.slug})`);
 

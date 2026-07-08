@@ -359,7 +359,10 @@ body {
 /* —— Buttons —— */
 .btn,
 .ui-btn,
-.adb-btn {
+.adb-btn,
+.ac-btn,
+.ai-btn,
+.ps-btn {
   position: relative;
   overflow: hidden;
   transition:
@@ -372,14 +375,21 @@ body {
 
 .btn--primary,
 .ui-btn--primary,
-.adb-btn--primary {
+.adb-btn--primary,
+.ac-btn--primary,
+.ai-btn--primary,
+.ps-btn--primary {
   background: var(--df-brand) !important;
   box-shadow: var(--df-shadow-brand) !important;
+  color: #fff !important;
 }
 
 .btn--primary:hover:not(:disabled),
 .ui-btn--primary:hover:not(:disabled),
-.adb-btn--primary:hover:not(:disabled) {
+.adb-btn--primary:hover:not(:disabled),
+.ac-btn--primary:hover:not(:disabled),
+.ai-btn--primary:hover:not(:disabled),
+.ps-btn--primary:hover:not(:disabled) {
   background: var(--df-brand-hover) !important;
   transform: translateY(-1px);
   box-shadow: 0 14px 36px rgba(14, 165, 233, 0.35) !important;
@@ -387,7 +397,10 @@ body {
 
 .btn--secondary,
 .ui-btn--secondary,
-.adb-btn--secondary {
+.adb-btn--secondary,
+.ac-btn--secondary,
+.ai-btn--secondary,
+.ps-btn--outline {
   background: var(--df-surface) !important;
   border: 1px solid var(--df-line-strong) !important;
   box-shadow: var(--df-shadow-xs) !important;
@@ -395,7 +408,10 @@ body {
 
 .btn--secondary:hover:not(:disabled),
 .ui-btn--secondary:hover:not(:disabled),
-.adb-btn--secondary:hover:not(:disabled) {
+.adb-btn--secondary:hover:not(:disabled),
+.ac-btn--secondary:hover:not(:disabled),
+.ai-btn--secondary:hover:not(:disabled),
+.ps-btn--outline:hover:not(:disabled) {
   border-color: rgba(14, 165, 233, 0.35) !important;
   transform: translateY(-1px);
   box-shadow: var(--df-shadow-sm) !important;
@@ -407,13 +423,17 @@ body {
 
 .ui-btn--ghost,
 .btn--ghost,
-.adb-btn--ghost {
+.adb-btn--ghost,
+.ac-btn--ghost,
+.ai-btn--ghost {
   background: transparent !important;
 }
 
 .ui-btn--ghost:hover:not(:disabled),
 .btn--ghost:hover:not(:disabled),
-.adb-btn--ghost:hover:not(:disabled) {
+.adb-btn--ghost:hover:not(:disabled),
+.ac-btn--ghost:hover:not(:disabled),
+.ai-btn--ghost:hover:not(:disabled) {
   background: rgba(14, 165, 233, 0.08) !important;
 }
 
@@ -424,9 +444,22 @@ body {
 
 .btn:focus-visible,
 .ui-btn:focus-visible,
-.adb-btn:focus-visible {
+.adb-btn:focus-visible,
+.ac-btn:focus-visible,
+.ai-btn:focus-visible,
+.ps-btn:focus-visible {
   outline: none;
   box-shadow: var(--df-focus) !important;
+}
+
+.ai-btn:disabled,
+.ac-btn:disabled,
+.adb-btn:disabled,
+.ps-btn:disabled,
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
 }
 
 .pub-menu-btn {

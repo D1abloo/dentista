@@ -15,9 +15,7 @@ import {
 } from 'lucide-react';
 import { Button, Field, Input, Textarea } from '@/components/ui';
 import { email, required } from '@/lib/validation';
-import { PublicFooter } from './PublicFooter';
-import { PublicHeader } from './PublicHeader';
-import { CookieBanner } from './CookieBanner';
+import { PublicSiteShell } from './PublicSiteShell';
 
 const STEPS = [
   { n: '01', title: 'Envía la solicitud', text: 'Datos del centro y del responsable. Sin pago inicial.' },
@@ -146,8 +144,7 @@ export function ClinicRegistrationPage() {
   }
 
   return (
-    <>
-      <PublicHeader activeHref="/registro-clinica" />
+    <PublicSiteShell>
       <main className="cp cr">
         <section className="cp-hero shell cr-hero">
           <div className="cp-hero__grid">
@@ -490,8 +487,6 @@ export function ClinicRegistrationPage() {
           </div>
         </section>
       </main>
-      <PublicFooter />
-      <CookieBanner />
-    </>
+    </PublicSiteShell>
   );
 }

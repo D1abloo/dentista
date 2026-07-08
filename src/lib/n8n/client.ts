@@ -30,15 +30,16 @@ export async function forwardAppointmentIntentToN8n(
       signal: AbortSignal.timeout(25_000)
     })
 
-    const text = await response.text()
-    let json: {
+    type N8nWebhookJson = {
       data?: N8nWebhookResponse
       reply?: string
       error?: { message?: string } | null
-    } | null = null
+    }
+    const text = await response.text()
+    let json: N8nWebhookJson | null = null
     if (text) {
       try {
-        json = JSON.parse(text) as typeof json
+        json = JSON.parse(text) as N8nWebhookJson
       } catch {
         logError('n8n.webhook.parse', { status: response.status, body: text.slice(0, 200) })
         return null

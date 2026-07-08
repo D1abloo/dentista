@@ -2,6 +2,8 @@
 
 Guía para publicar **DentalFlow / Dentista+** en un servidor Linux (Ubuntu/Debian) con **dominio**, **HTTPS** y **Supabase** como base de datos. El repositorio está optimizado para Vercel; en VPS se usa el adapter **Node standalone** incluido en `deploy/vps/`.
 
+**Primero en local:** configura Supabase y prueba todo con [`docs/LOCAL_DEV_VPS.md`](./LOCAL_DEV_VPS.md) (`npm run local:setup` → `npm run local:bootstrap`). El mismo `.env` (cambiando URLs) sirve en el VPS.
+
 ## Arquitectura recomendada
 
 ```mermaid
