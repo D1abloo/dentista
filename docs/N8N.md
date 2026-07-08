@@ -127,6 +127,42 @@ Ajusta `hoursBefore` en el nodo HTTP o duplica el workflow para 2h / 48h.
 
 ## Pruebas
 
+### Desarrollo local (3 terminales)
+
+**Terminal 1 — n8n**
+```bash
+npm run n8n:env          # una vez: añade variables al .env
+npm run n8n:dev          # UI en http://127.0.0.1:5678
+```
+
+**Terminal 2 — importar workflows** (con n8n ya arrancado)
+```bash
+npm run n8n:bootstrap    # importa los 3 JSON y publica Appointment Automation
+# Si n8n ya estaba corriendo antes del bootstrap, reinícialo (Ctrl+C → npm run n8n:dev)
+```
+
+**Terminal 3 — app**
+```bash
+CHOKIDAR_USEPOLLING=true npm run dev   # http://127.0.0.1:4321
+npm run test:n8n -- --live
+```
+
+| Servicio | URL |
+|----------|-----|
+| n8n UI | http://127.0.0.1:5678 |
+| Webhook citas | http://127.0.0.1:5678/webhook/appointments |
+| App + chat IA | http://127.0.0.1:4321/citas-con-ia |
+
+**Requisito para flujo completo:** `GEMINI_API_KEY` en `.env` (el nodo *Detect Intent* llama a `/api/ai/appointments-chat`).
+
+Prueba rápida del webhook:
+```bash
+curl -X POST "http://127.0.0.1:5678/webhook/appointments" \
+  -H "content-type: application/json" \
+  -H "x-n8n-webhook-token: local-n8n-webhook-secret-dev" \
+  -d '{"userId":"test","companyId":"UUID_CLINICA","message":"¿Hay hueco mañana?","channel":"assistant","timezone":"Europe/Madrid","metadata":{}}'
+```
+
 ### Automáticas (local)
 
 ```bash

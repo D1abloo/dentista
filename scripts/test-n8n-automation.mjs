@@ -15,7 +15,7 @@ loadEnvFile()
 
 const root = projectRoot
 const live = process.argv.includes('--live')
-const baseUrl = process.env.BASE_URL || process.env.PUBLIC_APP_URL || 'http://127.0.0.1:4321'
+const baseUrl = process.env.BASE_URL || process.env.APP_BASE_URL || 'http://127.0.0.1:4321'
 const serviceToken = process.env.N8N_SERVICE_TOKEN
 
 const workflow = JSON.parse(
