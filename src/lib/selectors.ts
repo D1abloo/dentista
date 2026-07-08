@@ -1,5 +1,5 @@
 import type { ClinicalReport, DemoState, Invoice, PatientDocument, Payment } from '@/types/demo';
-import { getStoredTenantId } from '@/lib/demoStore';
+import { getStoredTenantId } from '@/lib/demoSessionStorage';
 import { forTenant } from '@/lib/tenant';
 
 export function getPatientById(state: DemoState, patientId: string) {

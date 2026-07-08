@@ -30,22 +30,31 @@ export async function forwardAppointmentIntentToN8n(
       signal: AbortSignal.timeout(25_000)
     })
 
-    const json = (await response.json()) as {
+    const text = await response.text()
+    let json: {
       data?: N8nWebhookResponse
       reply?: string
       error?: { message?: string } | null
+    } | null = null
+    if (text) {
+      try {
+        json = JSON.parse(text) as typeof json
+      } catch {
+        logError('n8n.webhook.parse', { status: response.status, body: text.slice(0, 200) })
+        return null
+      }
     }
 
     if (!response.ok) {
       logError('n8n.webhook.http', { status: response.status, body: json })
       return {
         reply: 'No pude completar la automatización en este momento. Inténtalo de nuevo.',
-        error: json.error?.message ?? `HTTP ${response.status}`
+        error: json?.error?.message ?? `HTTP ${response.status}`
       }
     }
 
-    if (json.data) return json.data
-    if (json.reply) return { reply: json.reply, error: null }
+    if (json?.data) return json.data
+    if (json?.reply) return { reply: json.reply, error: null }
     return {
       reply: 'He recibido tu solicitud. ¿Puedes darme un poco más de detalle?',
       intent: 'clarify'

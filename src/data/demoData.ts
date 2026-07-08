@@ -336,5 +336,5 @@ export const demoSeed: DemoState = {
 export const DEMO_PATIENT_LOGIN_ID = DEMO_PATIENT_ID;
 export const demoState: DemoState = {
   ...demoSeed,
-  clinicNotifications: buildClinicNotificationsFromState(demoSeed)
+  clinicNotifications: buildClinicNotificationsFromState(demoSeed, TENANT_CENTRO)
 };

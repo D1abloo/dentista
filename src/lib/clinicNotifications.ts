@@ -10,7 +10,7 @@ import type {
 import { displayInvoiceId, effectiveStatus } from '@/lib/invoiceAdmin';
 import { displayPaymentId } from '@/lib/paymentAdmin';
 import { patientName } from '@/lib/selectors';
-import { getStoredTenantId } from '@/lib/demoStore';
+import { getStoredTenantId } from '@/lib/demoSessionStorage'
 import { todayIso } from '@/lib/format';
 import {
   dismissNotificationKey,

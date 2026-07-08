@@ -36,7 +36,7 @@ export const POST: APIRoute = async ({ request }) => {
     const parsed = aiAppointmentsChatSchema.safeParse(body)
     if (!parsed.success) return fail('Mensaje del chat inválido.', 422, parsed.error.flatten())
 
-    if (isN8nAutomationEnabled()) {
+    if (isN8nAutomationEnabled() && !request.headers.get('x-n8n-orchestrator')) {
       const clinicId = parsed.data.assistantState.bookingState.clinicId
       if (clinicId) {
         const n8nPayload = {

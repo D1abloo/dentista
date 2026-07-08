@@ -53,7 +53,10 @@
         "url": "={{$env.APP_BASE_URL}}/api/ai/appointments-chat",
         "sendHeaders": true,
         "headerParameters": {
-          "parameters": [{ "name": "content-type", "value": "application/json" }]
+          "parameters": [
+            { "name": "content-type", "value": "application/json" },
+            { "name": "x-n8n-orchestrator", "value": "1" }
+          ]
         },
         "sendBody": true,
         "specifyBody": "json",

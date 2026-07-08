@@ -1,5 +1,5 @@
 import type { DemoState, Tenant } from '@/types/demo';
-import { getStoredPatientId, getStoredTenantId } from '@/lib/demoStore';
+import { getStoredPatientId, getStoredTenantId } from '@/lib/demoSessionStorage';
 
 export { DEMO_TENANTS, TENANT_CENTRO, TENANT_NORTE, TENANT_SUR } from '@/lib/tenantIds';
 

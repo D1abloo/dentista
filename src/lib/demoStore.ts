@@ -1,4 +1,11 @@
-import { demoSeed, DEMO_PATIENT_LOGIN_ID } from '@/data/demoData';
+import { demoSeed } from '@/data/demoData'
+import {
+  DEMO_PATIENT_LOGIN_ID,
+  getStoredPatientId,
+  getStoredRole,
+  getStoredTenantId,
+  isEphemeralSession
+} from '@/lib/demoSessionStorage'
 import { createEmptyDemoState } from '@/lib/emptyState';
 import { isClinicSlotTaken } from '@/lib/appointments';
 import { todayIso } from '@/lib/format';
@@ -51,10 +58,13 @@ import type {
   AdminNote
 } from '@/types/demo';
 
-export function isEphemeralSession(): boolean {
-  if (typeof window === 'undefined') return false;
-  return localStorage.getItem(STORAGE_EPHEMERAL) === '1';
-}
+export {
+  DEMO_PATIENT_LOGIN_ID,
+  getStoredPatientId,
+  getStoredRole,
+  getStoredTenantId,
+  isEphemeralSession
+} from '@/lib/demoSessionStorage'
 
 export function getInitialState(): DemoState {
   return createEmptyDemoState();
@@ -68,30 +78,6 @@ export function persistState(state: DemoState) {
 
 export function resetState(): DemoState {
   return resetPersistedState();
-}
-
-export function getStoredRole(): DemoRole | null {
-  if (typeof window === 'undefined') return null;
-  if (!isClientDemoMode()) return null;
-  const role = localStorage.getItem(STORAGE_ROLE);
-  return role === 'admin' || role === 'paciente' ? role : null;
-}
-
-export function getStoredTenantId(): string {
-  if (typeof window === 'undefined') return TENANT_CENTRO;
-  if (!isClientDemoMode()) {
-    return localStorage.getItem(STORAGE_TENANT_ID) || '';
-  }
-  return localStorage.getItem(STORAGE_TENANT_ID) || TENANT_CENTRO;
-}
-
-export function getStoredPatientId(): string {
-  if (typeof window === 'undefined') return DEMO_PATIENT_LOGIN_ID;
-  if (!isClientDemoMode()) {
-    return localStorage.getItem(STORAGE_PATIENT_ID) || '';
-  }
-  if (getStoredRole() !== 'paciente') return DEMO_PATIENT_LOGIN_ID;
-  return localStorage.getItem(STORAGE_PATIENT_ID) || DEMO_PATIENT_LOGIN_ID;
 }
 
 export function setDemoSession(session: DemoSession) {
