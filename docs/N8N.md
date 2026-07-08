@@ -1,84 +1,79 @@
 # n8n — Automatización de citas
 
-Integración de **n8n** como orquestador conversacional. El backend AgendaClinic sigue siendo la **fuente de verdad** para disponibilidad, permisos, conflictos y persistencia.
+Integración de **n8n** como orquestador conversacional. El backend AgendaClinic sigue siendo la **fuente de verdad**.
 
-## Arquitectura
+## Workflows (importar los 3)
 
-```
-Usuario → App (portal / panel / asistente)
-       → POST /api/appointments/intent
-       → Webhook n8n POST /webhook/appointments
-       → n8n detecta intención + confirma si aplica
-       → API backend (Bearer N8N_SERVICE_TOKEN + cabeceras actor)
-       → Supabase + auditoría
-       → Respuesta natural al usuario
-```
+| Archivo | Nombre | Función |
+|---------|--------|---------|
+| `n8n/workflows/appointment-automation.json` | **Appointment Automation** | Webhook principal + confirmaciones + notificaciones |
+| `n8n/workflows/appointment-reminders-cron.json` | **Appointment Reminders Cron** | Recordatorios 24h antes (cada hora) |
+| `n8n/workflows/appointment-error-handler.json` | **Appointment Error Handler** | Alertas admin + auditoría de errores |
 
-**n8n NO** confirma ni cancela citas sin pasar por el backend con `confirm: true`.
+Orden recomendado: importar **Error Handler** primero, luego **Automation** y **Reminders Cron** (referencian el error workflow).
 
-## Variables de entorno (servidor)
+## Variables de entorno
+
+### App (servidor)
 
 ```bash
-# URL pública del webhook n8n (producción o tunnel en dev)
 N8N_APPOINTMENTS_WEBHOOK_URL="https://n8n.tu-dominio.com/webhook/appointments"
-
-# Secreto app → n8n (cabecera x-n8n-webhook-token)
-N8N_WEBHOOK_SECRET="genera-un-secreto-largo"
-
-# Token n8n → backend (Authorization: Bearer)
-N8N_SERVICE_TOKEN="genera-otro-secreto-largo"
+N8N_WEBHOOK_SECRET="secreto-app-a-n8n"
+N8N_SERVICE_TOKEN="secreto-n8n-a-backend"
+N8N_ADMIN_EMAIL="admin@tu-clinica.com"   # alertas de fallo
 ```
 
-En n8n (variables de entorno del contenedor/host):
+### n8n
 
 ```bash
 APP_BASE_URL="https://tu-app.vercel.app"
 N8N_SERVICE_TOKEN="mismo-valor-que-en-la-app"
+N8N_WEBHOOK_SECRET="mismo-valor-que-en-la-app"
 ```
 
-## Workflow
+### Google Calendar (opcional en n8n)
 
-Importar `n8n/workflows/appointment-automation.json` en n8n con nombre **Appointment Automation**.
+1. Tras **Calendar Payload**, añade nodo **Google Calendar → Create Event**.
+2. Mapea `summary`, `start.dateTime`, `end.dateTime`, `location` del payload.
+3. Credenciales OAuth en n8n (no en el repo).
 
-Webhook: `POST /webhook/appointments`
+## Endpoints citas (n8n → backend)
 
-Payload:
+| Método | Ruta |
+|--------|------|
+| POST | `/api/appointments/intent` |
+| GET | `/api/appointments/availability` |
+| POST | `/api/appointments` (`confirm: true`) |
+| GET | `/api/appointments` |
+| GET | `/api/appointments/{id}` |
+| POST | `/api/appointments/{id}/cancel` |
+| POST | `/api/appointments/{id}/reschedule` |
+| POST | `/api/appointments/audit-log` |
 
-```json
-{
-  "userId": "uuid-perfil",
-  "companyId": "uuid-clinica",
-  "message": "Quiero una cita mañana a las 10",
-  "channel": "assistant",
-  "timezone": "Europe/Madrid",
-  "metadata": {
-    "verificationToken": "opcional-asistente-publico",
-    "confirmation": false
-  }
-}
-```
-
-## Endpoints backend (para n8n)
+## Endpoints notificaciones y cron (n8n → backend)
 
 | Método | Ruta | Uso |
 |--------|------|-----|
-| POST | `/api/appointments/intent` | Entrada desde la app |
-| GET | `/api/appointments/availability` | Disponibilidad real |
-| POST | `/api/appointments` | Crear (requiere `confirm: true`) |
-| GET | `/api/appointments` | Listar citas con permisos |
-| GET | `/api/appointments/{id}` | Detalle |
-| POST | `/api/appointments/{id}/cancel` | Cancelar (`confirm: true`) |
-| POST | `/api/appointments/{id}/reschedule` | Reprogramar (`confirm: true`) |
-| POST | `/api/appointments/audit-log` | Auditoría del workflow |
+| POST | `/api/n8n/notify/created` | Email paciente + aviso staff + payload calendario |
+| POST | `/api/n8n/notify/cancelled` | Email cancelación + staff |
+| POST | `/api/n8n/notify/staff` | Aviso profesional/grupo |
+| POST | `/api/n8n/notify/admin-alert` | Email admin si falla workflow |
+| GET | `/api/n8n/reminders/due?hoursBefore=24` | Citas con recordatorio pendiente |
+| POST | `/api/n8n/reminders/send` | Enviar recordatorios por IDs |
+| POST | `/api/n8n/calendar/event` | Payload para Google Calendar |
 
-### Autenticación n8n → backend
+Todos requieren `Authorization: Bearer N8N_SERVICE_TOKEN`.
 
-```
-Authorization: Bearer <N8N_SERVICE_TOKEN>
-x-automation-user-id: <profileId>
-x-automation-company-id: <clinicId>
-x-automation-channel: assistant|portal|panel|whatsapp|email
-```
+## Flujo principal
+
+1. Usuario escribe en asistente/portal/panel.
+2. App → `POST /api/appointments/intent` → webhook n8n.
+3. n8n detecta intención (vía backend Gemini).
+4. Si falta datos → pregunta solo lo necesario.
+5. Si requiere acción destructiva → `needsConfirmation: true`.
+6. Tras confirmar → backend crea/cancela/reprograma con validación real.
+7. n8n dispara notificaciones (email, staff, calendario).
+8. Auditoría en `audit_logs`.
 
 ## Intenciones
 
@@ -88,44 +83,37 @@ x-automation-channel: assistant|portal|panel|whatsapp|email
 - `cancel_appointment`
 - `reschedule_appointment`
 
-## Permisos
+## Recordatorios automáticos
 
-- **Paciente**: solo sus citas (`patientId` = perfil).
-- **Dentista/agente**: citas de su `dentistId` o clínica según `agendaScope`.
-- **Admin clínica**: toda la clínica (`companyId`).
-- **Aislamiento**: ningún actor accede a otra `companyId`.
+El workflow **Appointment Reminders Cron**:
 
-## Reglas de negocio (backend)
+- Se ejecuta cada hora.
+- Consulta citas en ventana ±1h respecto a `hoursBefore=24`.
+- Envía email al paciente.
+- Registra auditoría.
 
-- Validación de hueco libre antes de crear/reprogramar.
-- Comprobación de solapes en BD (anti doble reserva).
-- No cancelar citas completadas ni ajenas.
-- Zona horaria por defecto: `Europe/Madrid`.
-- Auditoría en `audit_logs` (`module: n8n_automation`).
+Ajusta `hoursBefore` en el nodo HTTP o duplica el workflow para 2h / 48h.
 
-## Automatizaciones adicionales en n8n
+## Manejo de errores
 
-Añadir nodos después de crear/cancelar:
+- `settings.errorWorkflow` apunta a **Appointment Error Handler**.
+- Envía email a `N8N_ADMIN_EMAIL`.
+- Registra `n8n.workflow.error` en auditoría.
+- La app sigue operativa (fallback Gemini si n8n cae en chat).
 
-- Email confirmación (`/api/notifications/appointment`)
-- Recordatorio programado (Cron + GET citas próximas)
-- Aviso cancelación a staff
-- Calendario externo (Google Calendar node)
-- Error workflow → POST audit-log `level: error` + email admin
+## Seguridad
 
-## Fallback
-
-Si n8n no responde:
-
-- `/api/appointments/intent` → HTTP 502
-- `/api/ai/appointments-chat` → fallback a Gemini directo (`handleAppointmentsChat`)
+- Token de servicio en todas las llamadas n8n → API.
+- Cabeceras `x-automation-user-id` + `x-automation-company-id` para permisos.
+- Sin secretos en frontend.
+- Aislamiento multi-clínica en backend.
 
 ## Pruebas
 
 ```bash
 npm run check
 npm run smoke
-node --test scripts/unit/n8n-appointments.mjs
+npm run test:unit
 ```
 
-Casos manuales: disponibilidad libre/ocupada, doble reserva, cancelación propia/ajena, roles paciente/admin/dentista, fallo n8n (apagar webhook).
+Manual: crear cita → email confirmación; cancelar → aviso staff; cron recordatorios; desactivar n8n → fallback chat.

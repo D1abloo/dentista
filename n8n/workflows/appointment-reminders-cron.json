@@ -1,0 +1,147 @@
+{
+  "name": "Appointment Reminders Cron",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "hours", "hoursInterval": 1 }]
+        }
+      },
+      "id": "cron",
+      "name": "Every Hour",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 200]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.APP_BASE_URL}}/api/n8n/reminders/due",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "hoursBefore", "value": "24" },
+            { "name": "limit", "value": "100" }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{$env.N8N_SERVICE_TOKEN}}" }
+          ]
+        }
+      },
+      "id": "fetch-due",
+      "name": "Fetch Due Reminders",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [240, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{$json.data?.length || 0}}",
+              "rightValue": 0,
+              "operator": { "type": "number", "operation": "gt" }
+            }
+          ]
+        }
+      },
+      "id": "if-any",
+      "name": "Any Due?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [480, 200]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "id": "split",
+      "name": "Split Appointments",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 3.1,
+      "position": [700, 120]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.APP_BASE_URL}}/api/n8n/reminders/send",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{$env.N8N_SERVICE_TOKEN}}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ clinicId: $json.clinicId, appointmentIds: [$json.appointmentId], channel: 'email' }) }}"
+      },
+      "id": "send-reminder",
+      "name": "Send Reminder Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [920, 120]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.APP_BASE_URL}}/api/appointments/audit-log",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{$env.N8N_SERVICE_TOKEN}}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ clinicId: $json.clinicId || 'global', action: 'reminder.cron.completed', workflow: 'Appointment Reminders Cron', message: 'Recordatorios procesados', level: 'info', channel: 'email' }) }}"
+      },
+      "id": "audit",
+      "name": "Audit Cron",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1140, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.APP_BASE_URL}}/api/n8n/notify/admin-alert",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{$env.N8N_SERVICE_TOKEN}}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ workflow: 'Appointment Reminders Cron', message: $json.error?.message || 'Error en cron de recordatorios', error: JSON.stringify($json) }) }}"
+      },
+      "id": "admin-alert",
+      "name": "Admin Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1140, 380]
+    }
+  ],
+  "connections": {
+    "Every Hour": { "main": [[{ "node": "Fetch Due Reminders", "type": "main", "index": 0 }]] },
+    "Fetch Due Reminders": { "main": [[{ "node": "Any Due?", "type": "main", "index": 0 }]] },
+    "Any Due?": {
+      "main": [
+        [{ "node": "Split Appointments", "type": "main", "index": 0 }],
+        [{ "node": "Audit Cron", "type": "main", "index": 0 }]
+      ]
+    },
+    "Split Appointments": { "main": [[{ "node": "Send Reminder Email", "type": "main", "index": 0 }]] },
+    "Send Reminder Email": { "main": [[{ "node": "Audit Cron", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "errorWorkflow": "Appointment Error Handler" },
+  "meta": { "templateCredsSetupCompleted": false }
+}

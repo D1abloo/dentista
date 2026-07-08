@@ -1,0 +1,72 @@
+{
+  "name": "Appointment Error Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "error-trigger",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const execution = $json.execution || {};\nconst workflow = execution.workflow?.name || 'unknown';\nconst error = execution.error?.message || $json.error?.message || 'Error desconocido';\nconst lastNode = execution.lastNodeExecuted || 'unknown';\nreturn [{ json: { workflow, error, lastNode, raw: $json } }];"
+      },
+      "id": "normalize",
+      "name": "Normalize Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [240, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.APP_BASE_URL}}/api/n8n/notify/admin-alert",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{$env.N8N_SERVICE_TOKEN}}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ workflow: $json.workflow, message: 'Fallo en automatización de citas', error: $json.error, metadata: { lastNode: $json.lastNode } }) }}"
+      },
+      "id": "admin-email",
+      "name": "Email Admin",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.APP_BASE_URL}}/api/appointments/audit-log",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{$env.N8N_SERVICE_TOKEN}}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ clinicId: 'platform', action: 'workflow.error', workflow: $json.workflow, message: $json.error, level: 'error', channel: 'panel' }) }}"
+      },
+      "id": "audit",
+      "name": "Audit Error",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 200]
+    }
+  ],
+  "connections": {
+    "Error Trigger": { "main": [[{ "node": "Normalize Error", "type": "main", "index": 0 }]] },
+    "Normalize Error": { "main": [[{ "node": "Email Admin", "type": "main", "index": 0 }]] },
+    "Email Admin": { "main": [[{ "node": "Audit Error", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": { "templateCredsSetupCompleted": false }
+}

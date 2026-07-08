@@ -8,22 +8,44 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "webhook-trigger",
+      "id": "webhook",
       "name": "Webhook Trigger",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [0, 0],
+      "position": [0, 300],
       "webhookId": "appointments"
     },
     {
       "parameters": {
-        "jsCode": "const body = $json.body ?? $json;\nconst required = ['userId', 'companyId', 'message', 'channel'];\nfor (const key of required) {\n  if (!body[key]) throw new Error(`Campo obligatorio: ${key}`);\n}\nreturn [{ json: { ...body, timezone: body.timezone || 'Europe/Madrid' } }];"
+        "jsCode": "const body = $json.body ?? $json;\nconst required = ['userId', 'companyId', 'message', 'channel'];\nfor (const key of required) {\n  if (!body[key]) throw new Error(`Campo obligatorio: ${key}`);\n}\nconst ctx = {\n  ...body,\n  timezone: body.timezone || 'Europe/Madrid',\n  confirmation: Boolean(body.metadata?.confirmation),\n  verificationToken: body.metadata?.verificationToken || null\n};\nreturn [{ json: ctx }];"
       },
-      "id": "validate-payload",
+      "id": "validate",
       "name": "Validate Payload",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [240, 0]
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.APP_BASE_URL}}/api/appointments/intent",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "content-type", "value": "application/json" },
+            { "name": "x-n8n-webhook-token", "value": "={{$env.N8N_WEBHOOK_SECRET}}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ message: $json.message, channel: $json.channel, timezone: $json.timezone, companyId: $json.companyId, confirmation: $json.confirmation, verificationToken: $json.verificationToken }) }}"
+      },
+      "id": "intent-proxy",
+      "name": "Proxy Intent (optional)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 300],
+      "disabled": true
     },
     {
       "parameters": {
@@ -31,20 +53,27 @@
         "url": "={{$env.APP_BASE_URL}}/api/ai/appointments-chat",
         "sendHeaders": true,
         "headerParameters": {
-          "parameters": [
-            { "name": "content-type", "value": "application/json" }
-          ]
+          "parameters": [{ "name": "content-type", "value": "application/json" }]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"message\": $json.message, \"conversation\": [], \"assistantState\": {\"bookingState\": {\"clinicId\": $json.companyId}, \"assistantContext\": {\"mode\": \"book\", \"verificationToken\": $json.metadata?.verificationToken}}}"
+        "jsonBody": "={{ JSON.stringify({ message: $('Validate Payload').item.json.message, conversation: [], assistantState: { bookingState: { clinicId: $('Validate Payload').item.json.companyId }, assistantContext: { mode: 'book', verificationToken: $('Validate Payload').item.json.verificationToken } } }) }}"
       },
       "id": "detect-intent",
-      "name": "Detect Intent (Gemini via backend)",
+      "name": "Detect Intent",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [480, 0],
-      "notes": "Opcional: sustituir por nodo OpenAI/Gemini directo. El backend ya interpreta intención si se usa /api/appointments/intent."
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $('Validate Payload').item.json;\nconst ai = $json.data ?? $json;\nconst raw = ai.intent?.intent || ai.intent || 'unknown';\nconst map = {\n  book_appointment: 'create_appointment',\n  review_appointments: 'get_appointments',\n  next_appointment: 'get_appointments',\n  check_appointments: 'get_appointments',\n  cancel_appointment: 'cancel_appointment',\n  reschedule_appointment: 'reschedule_appointment',\n  appointment_status: 'get_appointments'\n};\nconst intent = map[raw] || raw;\nconst needsConfirmation = ['create_appointment', 'cancel_appointment', 'reschedule_appointment'].includes(intent) && !src.confirmation;\nlet reply = ai.assistantMessage || ai.reply || 'He procesado tu solicitud.';\nif (needsConfirmation) {\n  if (intent === 'create_appointment') reply = `${reply}\\n\\n¿Quieres confirmar la cita?`;\n  if (intent === 'cancel_appointment') reply = `${reply}\\n\\n¿Quieres cancelarla?`;\n  if (intent === 'reschedule_appointment') reply = `${reply}\\n\\n¿Confirmas el nuevo horario?`;\n}\nreturn [{ json: { ...src, intent, needsConfirmation, reply, ai } }];"
+      },
+      "id": "map-intent",
+      "name": "Map Intent + Confirmation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 300]
     },
     {
       "parameters": {
@@ -52,10 +81,9 @@
           "values": [
             {
               "conditions": {
-                "combinator": "and",
                 "conditions": [
                   {
-                    "leftValue": "={{$json.data?.intent?.intent || $json.intent}}",
+                    "leftValue": "={{$json.intent}}",
                     "rightValue": "check_availability",
                     "operator": { "type": "string", "operation": "equals" }
                   }
@@ -66,10 +94,9 @@
             },
             {
               "conditions": {
-                "combinator": "and",
                 "conditions": [
                   {
-                    "leftValue": "={{$json.data?.intent?.intent || $json.intent}}",
+                    "leftValue": "={{$json.intent}}",
                     "rightValue": "create_appointment",
                     "operator": { "type": "string", "operation": "equals" }
                   }
@@ -80,10 +107,9 @@
             },
             {
               "conditions": {
-                "combinator": "and",
                 "conditions": [
                   {
-                    "leftValue": "={{$json.data?.intent?.intent || $json.intent}}",
+                    "leftValue": "={{$json.intent}}",
                     "rightValue": "get_appointments",
                     "operator": { "type": "string", "operation": "equals" }
                   }
@@ -94,10 +120,9 @@
             },
             {
               "conditions": {
-                "combinator": "and",
                 "conditions": [
                   {
-                    "leftValue": "={{$json.data?.intent?.intent || $json.intent}}",
+                    "leftValue": "={{$json.intent}}",
                     "rightValue": "cancel_appointment",
                     "operator": { "type": "string", "operation": "equals" }
                   }
@@ -108,10 +133,9 @@
             },
             {
               "conditions": {
-                "combinator": "and",
                 "conditions": [
                   {
-                    "leftValue": "={{$json.data?.intent?.intent || $json.intent}}",
+                    "leftValue": "={{$json.intent}}",
                     "rightValue": "reschedule_appointment",
                     "operator": { "type": "string", "operation": "equals" }
                   }
@@ -124,35 +148,50 @@
         },
         "options": { "fallbackOutput": "extra" }
       },
-      "id": "switch-intent",
+      "id": "route",
       "name": "Route Intent",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
-      "position": [720, 0]
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{$json.needsConfirmation}}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "true" }
+            }
+          ]
+        }
+      },
+      "id": "if-confirm-create",
+      "name": "Needs Confirmation?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1100, 180]
     },
     {
       "parameters": {
         "method": "GET",
         "url": "={{$env.APP_BASE_URL}}/api/appointments/availability",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
-            { "name": "clinicId", "value": "={{$('Validate Payload').item.json.companyId}}" },
-            { "name": "treatmentId", "value": "={{$json.treatmentId}}" },
-            { "name": "fromDate", "value": "={{$json.date}}" },
-            { "name": "toDate", "value": "={{$json.date}}" },
-            { "name": "time", "value": "={{$json.time}}" }
+            { "name": "clinicId", "value": "={{$json.companyId}}" },
+            { "name": "treatmentId", "value": "={{$json.ai?.bookingState?.treatmentId || ''}}" },
+            { "name": "fromDate", "value": "={{$json.ai?.bookingState?.date || new Date().toISOString().slice(0,10)}}" },
+            { "name": "toDate", "value": "={{$json.ai?.bookingState?.date || new Date().toISOString().slice(0,10)}}" }
           ]
         },
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             { "name": "Authorization", "value": "=Bearer {{$env.N8N_SERVICE_TOKEN}}" },
-            { "name": "x-automation-user-id", "value": "={{$('Validate Payload').item.json.userId}}" },
-            { "name": "x-automation-company-id", "value": "={{$('Validate Payload').item.json.companyId}}" },
-            { "name": "x-automation-channel", "value": "={{$('Validate Payload').item.json.channel}}" }
+            { "name": "x-automation-user-id", "value": "={{$json.userId}}" },
+            { "name": "x-automation-company-id", "value": "={{$json.companyId}}" },
+            { "name": "x-automation-channel", "value": "={{$json.channel}}" }
           ]
         }
       },
@@ -160,12 +199,12 @@
       "name": "GET Availability",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [980, -160]
+      "position": [1100, 20]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "={{$env.APP_BASE_URL}}/api/appointments/audit-log",
+        "url": "={{$env.APP_BASE_URL}}/api/n8n/notify/created",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -175,57 +214,140 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"clinicId\": $('Validate Payload').item.json.companyId, \"action\": \"workflow.completed\", \"channel\": $('Validate Payload').item.json.channel, \"workflow\": \"Appointment Automation\", \"message\": \"Automatización finalizada\"}"
+        "jsonBody": "={{ JSON.stringify({ clinicId: $('Map Intent + Confirmation').item.json.companyId, appointmentId: $json.data?.id || $json.data?.appointmentId, channel: $('Map Intent + Confirmation').item.json.channel }) }}"
       },
-      "id": "audit-log",
+      "id": "notify-created",
+      "name": "Email + Staff Created",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1320, 260]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.APP_BASE_URL}}/api/n8n/calendar/event",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{$env.N8N_SERVICE_TOKEN}}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ clinicId: $('Map Intent + Confirmation').item.json.companyId, appointmentId: $('Email + Staff Created').item.json.data?.patientNotify ? $('Map Intent + Confirmation').item.json.ai?.assistantContext?.selectedAppointmentId : ($json.data?.id || '') }) }}"
+      },
+      "id": "calendar-payload",
+      "name": "Calendar Payload",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1540, 260],
+      "notes": "Conecta nodo Google Calendar después mapeando summary/start/end/location"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.APP_BASE_URL}}/api/n8n/notify/cancelled",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{$env.N8N_SERVICE_TOKEN}}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ clinicId: $json.companyId, appointmentId: $json.ai?.assistantContext?.selectedAppointmentId, channel: $json.channel, reason: 'Cancelada por el usuario' }) }}"
+      },
+      "id": "notify-cancelled",
+      "name": "Notify Cancelled",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1320, 420]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.APP_BASE_URL}}/api/appointments/audit-log",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{$env.N8N_SERVICE_TOKEN}}" },
+            { "name": "content-type", "value": "application/json" },
+            { "name": "x-automation-user-id", "value": "={{$('Map Intent + Confirmation').item.json.userId}}" },
+            { "name": "x-automation-company-id", "value": "={{$('Map Intent + Confirmation').item.json.companyId}}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ clinicId: $('Map Intent + Confirmation').item.json.companyId, action: 'workflow.completed', channel: $('Map Intent + Confirmation').item.json.channel, workflow: 'Appointment Automation', message: 'Automatización finalizada', level: 'info' }) }}"
+      },
+      "id": "audit",
       "name": "Audit Log",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1220, 0]
+      "position": [1760, 300]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={\"data\": {\"reply\": $json.data?.assistantMessage || $json.reply || 'He procesado tu solicitud.', \"intent\": $json.intent, \"needsConfirmation\": $json.needsConfirmation || false, \"data\": $json.data || {}}, \"error\": null, \"meta\": {}}"
+        "responseBody": "={{ JSON.stringify({ data: { reply: $('Map Intent + Confirmation').item.json.reply, intent: $('Map Intent + Confirmation').item.json.intent, needsConfirmation: $('Map Intent + Confirmation').item.json.needsConfirmation, data: $json.data || {} }, error: null, meta: { workflow: 'Appointment Automation' } }) }}"
       },
       "id": "respond",
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1460, 0]
+      "position": [1980, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.APP_BASE_URL}}/api/n8n/notify/admin-alert",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{$env.N8N_SERVICE_TOKEN}}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ workflow: 'Appointment Automation', message: $json.error?.message || 'Error en workflow', error: JSON.stringify($json), clinicId: $('Validate Payload').item.json.companyId }) }}"
+      },
+      "id": "admin-alert",
+      "name": "Admin Alert on Error",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1760, 520]
     }
   ],
   "connections": {
-    "Webhook Trigger": {
-      "main": [[{ "node": "Validate Payload", "type": "main", "index": 0 }]]
-    },
-    "Validate Payload": {
-      "main": [[{ "node": "Detect Intent (Gemini via backend)", "type": "main", "index": 0 }]]
-    },
-    "Detect Intent (Gemini via backend)": {
-      "main": [[{ "node": "Route Intent", "type": "main", "index": 0 }]]
-    },
+    "Webhook Trigger": { "main": [[{ "node": "Validate Payload", "type": "main", "index": 0 }]] },
+    "Validate Payload": { "main": [[{ "node": "Detect Intent", "type": "main", "index": 0 }]] },
+    "Detect Intent": { "main": [[{ "node": "Map Intent + Confirmation", "type": "main", "index": 0 }]] },
+    "Map Intent + Confirmation": { "main": [[{ "node": "Route Intent", "type": "main", "index": 0 }]] },
     "Route Intent": {
       "main": [
         [{ "node": "GET Availability", "type": "main", "index": 0 }],
+        [{ "node": "Needs Confirmation?", "type": "main", "index": 0 }],
         [{ "node": "Audit Log", "type": "main", "index": 0 }],
-        [{ "node": "Audit Log", "type": "main", "index": 0 }],
-        [{ "node": "Audit Log", "type": "main", "index": 0 }],
+        [{ "node": "Notify Cancelled", "type": "main", "index": 0 }],
         [{ "node": "Audit Log", "type": "main", "index": 0 }],
         [{ "node": "Audit Log", "type": "main", "index": 0 }]
       ]
     },
-    "GET Availability": {
-      "main": [[{ "node": "Audit Log", "type": "main", "index": 0 }]]
+    "Needs Confirmation?": {
+      "main": [
+        [{ "node": "Audit Log", "type": "main", "index": 0 }],
+        [{ "node": "Email + Staff Created", "type": "main", "index": 0 }]
+      ]
     },
-    "Audit Log": {
-      "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]]
-    }
+    "GET Availability": { "main": [[{ "node": "Audit Log", "type": "main", "index": 0 }]] },
+    "Email + Staff Created": { "main": [[{ "node": "Calendar Payload", "type": "main", "index": 0 }]] },
+    "Calendar Payload": { "main": [[{ "node": "Audit Log", "type": "main", "index": 0 }]] },
+    "Notify Cancelled": { "main": [[{ "node": "Audit Log", "type": "main", "index": 0 }]] },
+    "Audit Log": { "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]] }
   },
-  "settings": {
-    "executionOrder": "v1"
-  },
-  "meta": {
-    "templateCredsSetupCompleted": false
-  }
+  "settings": { "executionOrder": "v1", "errorWorkflow": "Appointment Error Handler" },
+  "meta": { "templateCredsSetupCompleted": false }
 }

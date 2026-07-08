@@ -1076,6 +1076,53 @@ export type AppointmentAutomationRescheduleInput = z.infer<
 >;
 export type AppointmentAutomationAuditInput = z.infer<typeof appointmentAutomationAuditSchema>;
 
+export const n8nNotifyCreatedSchema = z.object({
+  clinicId: z.string().min(1),
+  appointmentId: z.string().min(1),
+  channel: n8nAppointmentChannelSchema.optional()
+});
+
+export const n8nNotifyCancelledSchema = z.object({
+  clinicId: z.string().min(1),
+  appointmentId: z.string().min(1),
+  channel: n8nAppointmentChannelSchema.optional(),
+  reason: z.string().max(500).optional()
+});
+
+export const n8nNotifyStaffSchema = z.object({
+  clinicId: z.string().min(1),
+  appointmentId: z.string().min(1),
+  kind: z.enum(['created', 'cancelled', 'rescheduled']).default('created'),
+  channel: n8nAppointmentChannelSchema.optional(),
+  reason: z.string().max(500).optional()
+});
+
+export const n8nAdminAlertSchema = z.object({
+  clinicId: z.string().min(1).optional(),
+  workflow: z.string().min(2).max(120).default('Appointment Automation'),
+  message: z.string().min(2).max(1000),
+  error: z.string().max(2000).optional(),
+  metadata: z.record(z.unknown()).optional()
+});
+
+export const n8nRemindersDueQuerySchema = z.object({
+  clinicId: z.string().min(1).optional(),
+  hoursBefore: z.coerce.number().int().min(1).max(72).default(24),
+  limit: z.coerce.number().int().min(1).max(200).default(100)
+});
+
+export const n8nRemindersSendSchema = z.object({
+  clinicId: z.string().min(1),
+  appointmentIds: z.array(z.string().min(1)).min(1),
+  channel: z.enum(['email', 'whatsapp', 'sms']).default('email'),
+  template: z.string().max(1000).optional()
+});
+
+export const n8nCalendarEventSchema = z.object({
+  clinicId: z.string().min(1),
+  appointmentId: z.string().min(1)
+});
+
 export type ClinicQuery = z.infer<typeof clinicQuerySchema>;
 export type PatientQuery = z.infer<typeof patientQuerySchema>;
 export type AvailabilityQuery = z.infer<typeof availabilityQuerySchema>;
