@@ -34,12 +34,12 @@
     "guides:capture": "node scripts/capture-guide-screenshots.mjs"
   },
   "dependencies": {
-    "@astrojs/react": "^4.2.0",
+    "@astrojs/react": "^4.4.2",
     "@astrojs/tailwind": "^6.0.2",
-    "@astrojs/vercel": "^8.2.11",
+    "@astrojs/vercel": "^9.0.5",
     "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.49.1",
-    "astro": "^5.5.0",
+    "astro": "^5.18.2",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "ioredis": "^5.6.0",

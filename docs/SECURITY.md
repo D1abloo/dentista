@@ -71,12 +71,18 @@ Este repositorio no implementa asesoría legal. Antes de operar con pacientes re
 
 ### Pendiente de aprobación (cambios con breaking changes)
 
-| Paquete | Severidad | Fix propuesto | Recomendación |
-|---------|-----------|---------------|---------------|
-| `nodemailer` | high | `9.0.3` | **Aprobar** tras probar SMTP en staging (mitigación parcial ya activa en v8). |
-| `@astrojs/vercel` + `path-to-regexp` | high | `@astrojs/vercel@11` | **Aprobar solo si producción es Vercel**; si usas VPS, posponer. |
-| `@astrojs/node` | moderate | `@astrojs/node@11` | **Aprobar** si SSR Node (`build:vps` / `start:vps`) es producción. |
-| `astro` | high | `7.x` | **No aprobar aún** — salto mayor; planificar sprint de upgrade Astro 5→7 con regresión completa. |
+**Entorno de producción:** Vercel PaaS · Astro + React · `@astrojs/vercel` en `astro.config.mjs`.
+
+| Paquete | Severidad | Fix propuesto | Recomendación (Vercel) |
+|---------|-----------|---------------|------------------------|
+| `astro` + `@astrojs/vercel` | high | Astro **7.0.6** + `@astrojs/vercel@11` | **Recomendado** — única vía para cerrar GHSA-mr6q-rp88-fx84 y XSS en core Astro. Planificar sprint con `npm run build`, `vercel-build` y smoke en preview. |
+| `nodemailer` | high | `9.0.3` | **Recomendado** tras probar SMTP en staging (mitigación parcial ya activa en v8). |
+| `@astrojs/node` | moderate | `@astrojs/node@11` | **Posponer** — solo `devDependency` para `build:vps`; no afecta Vercel. |
+
+### Aplicado en rama Astro 5 (Vercel, sin major)
+
+- `astro@5.18.2`, `@astrojs/vercel@9.0.5`, `@astrojs/react@4.4.2` — último parche compatible Astro 5; `npm run build` OK.
+- Los avisos `npm audit` high en `astro`/`@astrojs/vercel` **persisten** hasta el salto a Astro 7.
 
 ### Verificación Supabase
 
