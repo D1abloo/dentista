@@ -19,7 +19,14 @@ const resendKey = process.env.RESEND_API_KEY;
 if (host && user && pass) {
   const port = Number(process.env.SMTP_PORT ?? 465);
   const secure = process.env.SMTP_SECURE !== 'false';
-  const transport = nodemailer.createTransport({ host, port, secure, auth: { user, pass } });
+  const transport = nodemailer.createTransport({
+    host,
+    port,
+    secure,
+    auth: { user, pass },
+    disableFileAccess: true,
+    disableUrlAccess: true
+  });
   await transport.verify();
   const info = await transport.sendMail({
     from: process.env.SMTP_FROM || process.env.EMAIL_FROM || user,

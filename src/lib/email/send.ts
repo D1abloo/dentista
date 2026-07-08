@@ -39,7 +39,10 @@ async function sendViaSmtp(input: SendMailInput): Promise<void> {
     auth: {
       user: import.meta.env.SMTP_USER,
       pass: import.meta.env.SMTP_PASS
-    }
+    },
+    // Mitiga GHSA-p6gq-j5cr-w38f hasta migrar a nodemailer 9.x
+    disableFileAccess: true,
+    disableUrlAccess: true
   });
 
   if (!smtpVerified) {

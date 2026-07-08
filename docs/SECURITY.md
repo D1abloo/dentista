@@ -60,3 +60,24 @@
 ## Datos personales
 
 Este repositorio no implementa asesoría legal. Antes de operar con pacientes reales, revisa normativa local aplicable a salud, protección de datos, consentimiento y retención de historias clínicas.
+
+## Dependencias — estado tras auditoría (2026-07)
+
+### Aplicado de forma segura
+
+- `npm audit fix` (sin `--force`): toolchain dev actualizado; **8** avisos restantes requieren majors.
+- `nodemailer`: `disableFileAccess` + `disableUrlAccess` en `src/lib/email/send.ts` (mitigación GHSA-p6gq-j5cr-w38f sin romper API).
+- Supabase RLS: migración `0039_rls_missing_tables.sql` (verificar con `qa:db-security` cuando `DATABASE_URL` sea válida).
+
+### Pendiente de aprobación (cambios con breaking changes)
+
+| Paquete | Severidad | Fix propuesto | Recomendación |
+|---------|-----------|---------------|---------------|
+| `nodemailer` | high | `9.0.3` | **Aprobar** tras probar SMTP en staging (mitigación parcial ya activa en v8). |
+| `@astrojs/vercel` + `path-to-regexp` | high | `@astrojs/vercel@11` | **Aprobar solo si producción es Vercel**; si usas VPS, posponer. |
+| `@astrojs/node` | moderate | `@astrojs/node@11` | **Aprobar** si SSR Node (`build:vps` / `start:vps`) es producción. |
+| `astro` | high | `7.x` | **No aprobar aún** — salto mayor; planificar sprint de upgrade Astro 5→7 con regresión completa. |
+
+### Verificación Supabase
+
+Si el linter de Supabase sigue alertando: ejecutar `0039` en SQL Editor y refrescar Linter. Localmente: actualizar `DATABASE_URL` en `.env` si el proyecto fue pausado o rotado.
