@@ -33,9 +33,26 @@ N8N_WEBHOOK_SECRET="mismo-valor-que-en-la-app"
 
 ### Google Calendar (opcional en n8n)
 
-1. Tras **Calendar Payload**, añade nodo **Google Calendar → Create Event**.
-2. Mapea `summary`, `start.dateTime`, `end.dateTime`, `location` del payload.
-3. Credenciales OAuth en n8n (no en el repo).
+El workflow **Appointment Automation** ya incluye:
+
+1. **Calendar Payload** — obtiene `summary`, `start`, `end`, `location` del backend.
+2. **Calendar Enabled?** — solo crea evento si `GOOGLE_CALENDAR_ENABLED=true`.
+3. **Google Calendar Create** — nodo OAuth2 (configurar credencial en n8n).
+4. **Audit Calendar** — registra `calendar.event_created` en auditoría.
+
+Variables en n8n:
+
+```bash
+GOOGLE_CALENDAR_ENABLED=true
+GOOGLE_CALENDAR_ID=primary   # o ID de calendario de la clínica
+```
+
+Pasos en n8n:
+
+1. Importa `appointment-automation.json`.
+2. Abre **Google Calendar Create** → credenciales → **Create New** → Google OAuth2.
+3. Autoriza la cuenta de la clínica.
+4. Activa el workflow y prueba una cita confirmada.
 
 ## Endpoints citas (n8n → backend)
 
@@ -110,10 +127,60 @@ Ajusta `hoursBefore` en el nodo HTTP o duplica el workflow para 2h / 48h.
 
 ## Pruebas
 
+### Automáticas (local)
+
 ```bash
 npm run check
 npm run smoke
 npm run test:unit
+npm run test:n8n
 ```
 
-Manual: crear cita → email confirmación; cancelar → aviso staff; cron recordatorios; desactivar n8n → fallback chat.
+`test:n8n` valida la estructura del workflow (incl. Google Calendar) sin servidor.
+
+**Con servidor en marcha** (`npm run dev` en otra terminal) y `N8N_SERVICE_TOKEN` en `.env`:
+
+```bash
+npm run test:n8n -- --live
+```
+
+Comprueba: 403 sin token, 422 en payloads inválidos, rutas n8n protegidas.
+
+### Manual — backend (curl)
+
+Sustituye `TOKEN` y `BASE` (ej. `http://127.0.0.1:4321` o tu URL Vercel).
+
+```bash
+# Sin token → 403
+curl -s -o /dev/null -w "%{http_code}\n" -X POST "$BASE/api/n8n/notify/created" \
+  -H "content-type: application/json" \
+  -d '{"clinicId":"...","appointmentId":"..."}'
+
+# Con token — payload calendario (cita real en BD)
+curl -s -X POST "$BASE/api/n8n/calendar/event" \
+  -H "Authorization: Bearer TOKEN" \
+  -H "content-type: application/json" \
+  -d '{"clinicId":"UUID_CLINICA","appointmentId":"UUID_CITA"}'
+
+# Recordatorios pendientes (24h)
+curl -s "$BASE/api/n8n/reminders/due?hoursBefore=24&clinicId=UUID_CLINICA" \
+  -H "Authorization: Bearer TOKEN"
+```
+
+### Manual — n8n
+
+1. Importa los 3 workflows y configura `APP_BASE_URL`, `N8N_SERVICE_TOKEN`, `N8N_WEBHOOK_SECRET`.
+2. Activa **Appointment Automation** y copia la URL del webhook.
+3. En la app, define `N8N_APPOINTMENTS_WEBHOOK_URL` con esa URL.
+4. **Disponibilidad:** chat en `/citas-con-ia` → “¿hay hueco el martes?”.
+5. **Crear cita:** confirma cuando pida `needsConfirmation` → revisa email staff y evento en Google Calendar (si está activo).
+6. **Cancelar:** pide cancelar una cita verificada → revisa **Notify Cancelled**.
+7. **Cron:** ejecuta manualmente **Appointment Reminders Cron** en n8n → comprueba emails.
+8. **Error:** desactiva `APP_BASE_URL` incorrecto → debe disparar **Appointment Error Handler** y email a `N8N_ADMIN_EMAIL`.
+9. **Fallback:** quita `N8N_APPOINTMENTS_WEBHOOK_URL` en la app → el chat sigue con Gemini directo.
+
+### Manual — Google Calendar
+
+1. `GOOGLE_CALENDAR_ENABLED=true` en n8n.
+2. Credencial OAuth en el nodo **Google Calendar Create**.
+3. Tras crear cita confirmada, revisa el calendario y el log **Audit Calendar** en ejecuciones n8n.

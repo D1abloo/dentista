@@ -18,7 +18,7 @@ function baseUrl() {
   return import.meta.env.PUBLIC_APP_URL?.trim() || 'http://localhost:4321'
 }
 
-async function loadAppointmentBundle(appointmentId: string, clinicId: string) {
+export async function loadAppointmentBundle(appointmentId: string, clinicId: string) {
   if (!hasSupabaseConfig()) throw new Error('Supabase no configurado.')
   const db = getSupabaseAdmin()
   const { data: row, error } = await db
@@ -86,9 +86,9 @@ export async function notifyAppointmentCreatedByAutomation(input: {
   const time = format(parseISO(appt.startsAt), 'HH:mm')
 
   const channels = [
-    appt.patientEmail ? 'email' as const : null,
-    appt.patientPhone ? 'whatsapp' as const : null
-  ].filter(Boolean)
+    appt.patientEmail ? ('email' as const) : null,
+    appt.patientPhone ? ('whatsapp' as const) : null
+  ].filter((channel): channel is 'email' | 'whatsapp' => channel !== null)
 
   const patientNotify = channels.length
     ? await sendAppointmentNotifications(

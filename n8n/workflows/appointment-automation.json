@@ -214,7 +214,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ clinicId: $('Map Intent + Confirmation').item.json.companyId, appointmentId: $json.data?.id || $json.data?.appointmentId, channel: $('Map Intent + Confirmation').item.json.channel }) }}"
+        "jsonBody": "={{ JSON.stringify({ clinicId: $('Map Intent + Confirmation').item.json.companyId, appointmentId: $json.appointmentId || $json.data?.id || $json.data?.appointmentId, channel: $('Map Intent + Confirmation').item.json.channel }) }}"
       },
       "id": "notify-created",
       "name": "Email + Staff Created",
@@ -235,14 +235,83 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ clinicId: $('Map Intent + Confirmation').item.json.companyId, appointmentId: $('Email + Staff Created').item.json.data?.patientNotify ? $('Map Intent + Confirmation').item.json.ai?.assistantContext?.selectedAppointmentId : ($json.data?.id || '') }) }}"
+        "jsonBody": "={{ JSON.stringify({ clinicId: $('Map Intent + Confirmation').item.json.companyId, appointmentId: $('Email + Staff Created').item.json.meta?.appointmentId || $('Email + Staff Created').item.json.data?.calendar?.summary }) }}"
       },
       "id": "calendar-payload",
       "name": "Calendar Payload",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1540, 260],
-      "notes": "Conecta nodo Google Calendar después mapeando summary/start/end/location"
+      "position": [1540, 260]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{$env.GOOGLE_CALENDAR_ENABLED}}",
+              "rightValue": "true",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ]
+        }
+      },
+      "id": "if-calendar",
+      "name": "Calendar Enabled?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1760, 260]
+    },
+    {
+      "parameters": {
+        "resource": "event",
+        "operation": "create",
+        "calendar": {
+          "__rl": true,
+          "value": "={{$env.GOOGLE_CALENDAR_ID || 'primary'}}",
+          "mode": "id"
+        },
+        "start": "={{$json.data.start.dateTime}}",
+        "end": "={{$json.data.end.dateTime}}",
+        "additionalFields": {
+          "summary": "={{$json.data.summary}}",
+          "description": "={{$json.data.description}}",
+          "location": "={{$json.data.location}}",
+          "timeZone": "Europe/Madrid"
+        }
+      },
+      "id": "google-calendar",
+      "name": "Google Calendar Create",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.2,
+      "position": [1980, 200],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "CONFIGURE_GOOGLE_CALENDAR_CREDENTIAL",
+          "name": "Google Calendar — Clínica"
+        }
+      },
+      "notes": "Credencial OAuth2 en n8n. Variables: GOOGLE_CALENDAR_ENABLED=true, GOOGLE_CALENDAR_ID=primary"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.APP_BASE_URL}}/api/appointments/audit-log",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{$env.N8N_SERVICE_TOKEN}}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ clinicId: $('Map Intent + Confirmation').item.json.companyId, action: 'calendar.event_created', workflow: 'Appointment Automation', message: 'Evento creado en Google Calendar', level: 'info', channel: $('Map Intent + Confirmation').item.json.channel, metadata: { googleEventId: $json.id || $json.data?.id } }) }}"
+      },
+      "id": "audit-calendar",
+      "name": "Audit Calendar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2200, 200]
     },
     {
       "parameters": {
@@ -286,18 +355,18 @@
       "name": "Audit Log",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1760, 300]
+      "position": [2200, 300]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ data: { reply: $('Map Intent + Confirmation').item.json.reply, intent: $('Map Intent + Confirmation').item.json.intent, needsConfirmation: $('Map Intent + Confirmation').item.json.needsConfirmation, data: $json.data || {} }, error: null, meta: { workflow: 'Appointment Automation' } }) }}"
+        "responseBody": "={{ JSON.stringify({ data: { reply: $('Map Intent + Confirmation').item.json.reply, intent: $('Map Intent + Confirmation').item.json.intent, needsConfirmation: $('Map Intent + Confirmation').item.json.needsConfirmation, data: $json.data || {}, calendarEventId: $('Google Calendar Create').item?.json?.id || null }, error: null, meta: { workflow: 'Appointment Automation' } }) }}"
       },
       "id": "respond",
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1980, 300]
+      "position": [2420, 300]
     },
     {
       "parameters": {
@@ -318,7 +387,7 @@
       "name": "Admin Alert on Error",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1760, 520]
+      "position": [2420, 520]
     }
   ],
   "connections": {
@@ -344,7 +413,15 @@
     },
     "GET Availability": { "main": [[{ "node": "Audit Log", "type": "main", "index": 0 }]] },
     "Email + Staff Created": { "main": [[{ "node": "Calendar Payload", "type": "main", "index": 0 }]] },
-    "Calendar Payload": { "main": [[{ "node": "Audit Log", "type": "main", "index": 0 }]] },
+    "Calendar Payload": { "main": [[{ "node": "Calendar Enabled?", "type": "main", "index": 0 }]] },
+    "Calendar Enabled?": {
+      "main": [
+        [{ "node": "Google Calendar Create", "type": "main", "index": 0 }],
+        [{ "node": "Audit Log", "type": "main", "index": 0 }]
+      ]
+    },
+    "Google Calendar Create": { "main": [[{ "node": "Audit Calendar", "type": "main", "index": 0 }]] },
+    "Audit Calendar": { "main": [[{ "node": "Audit Log", "type": "main", "index": 0 }]] },
     "Notify Cancelled": { "main": [[{ "node": "Audit Log", "type": "main", "index": 0 }]] },
     "Audit Log": { "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]] }
   },

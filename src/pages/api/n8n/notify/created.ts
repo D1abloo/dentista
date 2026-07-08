@@ -14,7 +14,10 @@ export const POST: APIRoute = async (context) => {
     const parsed = n8nNotifyCreatedSchema.safeParse(body)
     if (!parsed.success) return fail('Payload inválido.', 422, parsed.error.flatten())
     const data = await notifyAppointmentCreatedByAutomation(parsed.data)
-    return ok(data, { message: 'Confirmación enviada al paciente y staff.' })
+    return ok(data, {
+      message: 'Confirmación enviada al paciente y staff.',
+      appointmentId: parsed.data.appointmentId
+    })
   } catch (error) {
     return fail('No se pudo enviar la confirmación.', 500, error instanceof Error ? error.message : error)
   }
