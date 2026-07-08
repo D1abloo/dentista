@@ -65,24 +65,21 @@ Este repositorio no implementa asesoría legal. Antes de operar con pacientes re
 
 ### Aplicado de forma segura
 
-- `npm audit fix` (sin `--force`): toolchain dev actualizado; **8** avisos restantes requieren majors.
-- `nodemailer`: `disableFileAccess` + `disableUrlAccess` en `src/lib/email/send.ts` (mitigación GHSA-p6gq-j5cr-w38f sin romper API).
+- `npm audit fix` (sin `--force`): toolchain dev actualizado.
+- `nodemailer@9.0.3` + `disableFileAccess` + `disableUrlAccess` en `src/lib/email/send.ts`.
 - Supabase RLS: migración `0039_rls_missing_tables.sql` (verificar con `qa:db-security` cuando `DATABASE_URL` sea válida).
 
-### Pendiente de aprobación (cambios con breaking changes)
+### Upgrade Astro 7 + nodemailer 9 (2026-07, Vercel)
 
-**Entorno de producción:** Vercel PaaS · Astro + React · `@astrojs/vercel` en `astro.config.mjs`.
+- `astro@7.0.6`, `@astrojs/vercel@11.0.2`, `@astrojs/react@6`, `@astrojs/node@11` (dev/VPS)
+- `@astrojs/tailwind@6` con `legacy-peer-deps` (integración deprecada; migrar a `@tailwindcss/vite` en sprint futuro)
+- `overrides.path-to-regexp@^8.4.0` para cerrar GHSA en `@vercel/routing-utils`
+- `.npmrc`: `legacy-peer-deps=true` para installs reproducibles en CI/Vercel
+- Verificación: `npm audit` → 0 vulnerabilidades; `npm run build`, `npm run check`, `npm run smoke` OK
 
-| Paquete | Severidad | Fix propuesto | Recomendación (Vercel) |
-|---------|-----------|---------------|------------------------|
-| `astro` + `@astrojs/vercel` | high | Astro **7.0.6** + `@astrojs/vercel@11` | **Recomendado** — única vía para cerrar GHSA-mr6q-rp88-fx84 y XSS en core Astro. Planificar sprint con `npm run build`, `vercel-build` y smoke en preview. |
-| `nodemailer` | high | `9.0.3` | **Recomendado** tras probar SMTP en staging (mitigación parcial ya activa en v8). |
-| `@astrojs/node` | moderate | `@astrojs/node@11` | **Posponer** — solo `devDependency` para `build:vps`; no afecta Vercel. |
+### Pendiente (no bloqueante)
 
-### Aplicado en rama Astro 5 (Vercel, sin major)
-
-- `astro@5.18.2`, `@astrojs/vercel@9.0.5`, `@astrojs/react@4.4.2` — último parche compatible Astro 5; `npm run build` OK.
-- Los avisos `npm audit` high en `astro`/`@astrojs/vercel` **persisten** hasta el salto a Astro 7.
+- Migrar Tailwind v3 + `@astrojs/tailwind` → `@tailwindcss/vite` (Tailwind 4) cuando se retire la integración legacy.
 
 ### Verificación Supabase
 
