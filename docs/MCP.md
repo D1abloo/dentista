@@ -103,6 +103,8 @@ GEMINI_MODEL="gemini-1.5-pro"
 
 Endpoint principal: `POST /api/ai/appointments-chat` (`POST /api/ai/booking-chat` es alias legacy). La clave nunca debe exponerse al cliente. Sin `GEMINI_API_KEY`, el servidor usa clasificación local de intención; huecos y citas siempre salen de Supabase.
 
+Con n8n configurado (`N8N_APPOINTMENTS_WEBHOOK_URL`), el asistente puede delegar el flujo conversacional al workflow **Appointment Automation**; ver `docs/N8N.md`.
+
 ## Política de secretos
 
 - Nunca commitear `.env`.

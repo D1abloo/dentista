@@ -80,6 +80,20 @@ Chat → intención review | next | cancel | reschedule
      → list / cancel / reschedule con revalidación de huecos
 ```
 
+### Orquestación n8n (opcional)
+
+Cuando `N8N_APPOINTMENTS_WEBHOOK_URL` está configurado:
+
+```txt
+App → POST /api/appointments/intent → webhook n8n
+n8n → intención + confirmación explícita
+    → GET/POST /api/appointments/* (Bearer N8N_SERVICE_TOKEN)
+    → backend valida permisos y disponibilidad real
+    → POST /api/appointments/audit-log
+```
+
+Ver `docs/N8N.md`. El backend sigue siendo la fuente de verdad; n8n no persiste citas sin `confirm: true`.
+
 ### Componentes UI
 
 - `src/components/public/ai-booking/` — `AiAppointmentsAssistant`, hook `useAiAppointmentsFlow`

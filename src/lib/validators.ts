@@ -956,6 +956,126 @@ export const portalAccessAuditSchema = z.object({
   resourceId: z.string().max(120).optional()
 });
 
+export const n8nAppointmentChannelSchema = z.enum([
+  'portal',
+  'panel',
+  'assistant',
+  'whatsapp',
+  'email'
+]);
+
+export const appointmentAutomationIntentSchema = z.object({
+  message: z.string().min(1).max(2000),
+  channel: n8nAppointmentChannelSchema.default('assistant'),
+  timezone: z.string().default('Europe/Madrid'),
+  companyId: z.string().min(1).optional(),
+  clinicId: z.string().min(1).optional(),
+  conversationId: z.string().max(120).optional(),
+  confirmation: z.boolean().optional(),
+  pendingIntent: z
+    .enum([
+      'check_availability',
+      'create_appointment',
+      'get_appointments',
+      'cancel_appointment',
+      'reschedule_appointment'
+    ])
+    .optional(),
+  pendingPayload: z.record(z.unknown()).optional(),
+  verificationToken: z.string().max(4000).optional()
+});
+
+export const appointmentAutomationAvailabilitySchema = z.object({
+  clinicId: z.string().min(1),
+  treatmentId: z.string().min(1),
+  professionalId: z.string().min(1).optional(),
+  dentistId: z.string().min(1).optional(),
+  fromDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  toDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  time: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  preferredTime: z.enum(['morning', 'afternoon', 'any']).default('any'),
+  timezone: z.string().default('Europe/Madrid')
+});
+
+export const appointmentAutomationListSchema = z.object({
+  clinicId: z.string().min(1),
+  dentistId: z.string().min(1).optional(),
+  upcomingOnly: z.coerce.boolean().optional(),
+  pastOnly: z.coerce.boolean().optional(),
+  timezone: z.string().default('Europe/Madrid')
+});
+
+export const appointmentAutomationCreateSchema = appointmentSchema.extend({
+  channel: n8nAppointmentChannelSchema.optional(),
+  timezone: z.string().default('Europe/Madrid'),
+  confirm: z.literal(true, {
+    errorMap: () => ({ message: 'Debes confirmar la reserva antes de crear la cita.' })
+  })
+});
+
+export const appointmentAutomationRescheduleSchema = z
+  .object({
+    clinicId: z.string().min(1),
+    appointmentId: z.string().min(1),
+    startsAt: z.string().datetime({ offset: true }),
+    endsAt: z.string().datetime({ offset: true }),
+    dentistId: z.string().min(1).optional(),
+    roomName: z.string().min(1).optional(),
+    notes: z.string().max(1000).optional(),
+    channel: n8nAppointmentChannelSchema.optional(),
+    timezone: z.string().default('Europe/Madrid'),
+    confirm: z.literal(true, {
+      errorMap: () => ({ message: 'Debes confirmar el cambio antes de reprogramar.' })
+    })
+  })
+  .superRefine((value, ctx) => {
+    if (parseISO(value.startsAt) >= parseISO(value.endsAt)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['endsAt'],
+        message: 'La hora de fin debe ser posterior al inicio.'
+      });
+    }
+  });
+
+export const appointmentAutomationCancelSchema = z.object({
+  clinicId: z.string().min(1),
+  reason: z.string().max(500).optional(),
+  channel: n8nAppointmentChannelSchema.optional(),
+  confirm: z.literal(true, {
+    errorMap: () => ({ message: 'Debes confirmar antes de cancelar la cita.' })
+  })
+});
+
+export const appointmentAutomationAuditSchema = z.object({
+  clinicId: z.string().min(1),
+  userId: z.string().min(1).optional(),
+  tenantId: z.string().min(1).optional(),
+  role: z.string().max(40).optional(),
+  action: z.string().min(2).max(120),
+  channel: n8nAppointmentChannelSchema.optional(),
+  workflow: z.string().max(120).optional(),
+  resourceType: z.string().max(80).optional(),
+  resourceId: z.string().max(120).optional(),
+  message: z.string().max(1000).optional(),
+  level: z.enum(['info', 'warn', 'error']).default('info'),
+  metadata: z.record(z.unknown()).optional()
+});
+
+function parseISO(value: string) {
+  return new Date(value)
+}
+
+export type AppointmentAutomationIntentInput = z.infer<typeof appointmentAutomationIntentSchema>;
+export type AppointmentAutomationAvailabilityInput = z.infer<
+  typeof appointmentAutomationAvailabilitySchema
+>;
+export type AppointmentAutomationCreateInput = z.infer<typeof appointmentAutomationCreateSchema>;
+export type AppointmentAutomationRescheduleInput = z.infer<
+  typeof appointmentAutomationRescheduleSchema
+>;
+export type AppointmentAutomationAuditInput = z.infer<typeof appointmentAutomationAuditSchema>;
+
 export type ClinicQuery = z.infer<typeof clinicQuerySchema>;
 export type PatientQuery = z.infer<typeof patientQuerySchema>;
 export type AvailabilityQuery = z.infer<typeof availabilityQuerySchema>;

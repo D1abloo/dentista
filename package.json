@@ -14,7 +14,7 @@
     "check": "astro check && npm run lint:light",
     "lint:light": "node scripts/lint-light.mjs",
     "smoke": "node scripts/smoke-test.mjs",
-    "test:unit": "node --test scripts/unit/agenda-security.mjs",
+    "test:unit": "node --test scripts/unit/agenda-security.mjs scripts/unit/n8n-appointments.mjs",
     "qa:audit": "node scripts/e2e-qa-audit.mjs",
     "qa:live": "node scripts/e2e-live-full.mjs",
     "qa:db-security": "node scripts/audit-db-security.mjs",
