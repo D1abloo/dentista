@@ -6,18 +6,18 @@ type Props = {
 
 export function FinalCTA({ onOpenDemo }: Props) {
   return (
-    <section className="ac-final-cta" aria-labelledby="ac-final-cta-title">
+    <section className="ac-final-cta ac-final-cta--docfav" aria-labelledby="ac-final-cta-title">
       <ResponsiveContainer wide className="ac-final-cta__inner">
-        <h2 id="ac-final-cta-title">Empieza a gestionar tus citas con AgendaClinic</h2>
-        <p>Reserva online, agenda clínica, portal paciente y facturación en una sola plataforma.</p>
+        <h2 id="ac-final-cta-title">Empieza hoy con tu clínica en orden. Comienza a crecer hoy.</h2>
+        <p>Sin tarjeta · Sin permanencia · Soporte en español</p>
         <div className="ac-final-cta__actions">
-          <a href="/citas-con-ia" className="ac-btn ac-btn--secondary">
+          <button type="button" className="ac-btn ac-btn--secondary ac-btn--pill" onClick={onOpenDemo}>
+            Empezar ahora gratis
+          </button>
+          <a href="/citas-con-ia" className="ac-btn ac-btn--ghost ac-btn--pill">
             Reservar con IA
           </a>
-          <button type="button" className="ac-btn ac-btn--ghost" onClick={onOpenDemo}>
-            Solicitar demo
-          </button>
-          <a href="#planes" className="ac-btn ac-btn--ghost">
+          <a href="/#planes" className="ac-btn ac-btn--ghost ac-btn--pill">
             Ver planes
           </a>
         </div>

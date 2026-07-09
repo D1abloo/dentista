@@ -102,7 +102,7 @@ export function ContactPage() {
 
   return (
     <PublicSiteShell>
-      <main className="cp ps-page--contact">
+      <main className="cp ps-page--contact ac-page" id="main-content">
         <section className="cp-hero shell" aria-labelledby="contact-hero-title">
           <div className="cp-hero__grid">
             <div className="cp-hero__copy">

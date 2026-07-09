@@ -145,7 +145,7 @@ export function ClinicRegistrationPage() {
 
   return (
     <PublicSiteShell>
-      <main className="cp cr">
+      <main className="cp cr ac-page" id="main-content">
         <section className="cp-hero shell cr-hero">
           <div className="cp-hero__grid">
             <div className="cp-hero__copy">

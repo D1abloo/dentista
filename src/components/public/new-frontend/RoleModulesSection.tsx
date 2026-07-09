@@ -42,7 +42,7 @@ const MODULES = [
 
 export function RoleModulesSection() {
   return (
-    <section className="ac-section" aria-labelledby="ac-roles-title">
+    <section id="para-clinicas" className="ac-section" aria-labelledby="ac-roles-title">
       <ResponsiveContainer wide>
         <header className="ac-section__head ac-section__head--center">
           <p className="ac-kicker">Módulos por rol</p>

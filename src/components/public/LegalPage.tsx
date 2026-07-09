@@ -56,7 +56,7 @@ export function LegalPage({
 }) {
   return (
     <PublicSiteShell>
-      <main className="legal-page shell adb-section--band">
+      <main className="legal-page shell ac-page ac-page--legal" id="main-content">
         <h1>{title}</h1>
         <p className="legal-page__intro">{intro}</p>
         <LegalBody sections={sections} />

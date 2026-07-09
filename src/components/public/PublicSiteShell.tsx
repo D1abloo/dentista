@@ -1,21 +1,24 @@
 import type { ReactNode } from 'react'
 import { CookieBanner } from './CookieBanner'
-import { DentalFooter } from './dental-landing/DentalFooter'
-import { DentalHeader } from './dental-landing/DentalHeader'
+import { AppFooter } from './new-frontend/AppFooter'
+import { AppHeader } from './new-frontend/AppHeader'
 
 type Props = {
   children: ReactNode
   onOpenDemo?: () => void
 }
 
-/** Shell único para todas las páginas públicas: header dental, contenido, footer y cookies. */
+/** Shell único del sitio público: header, contenido, footer y cookies. */
 export function PublicSiteShell({ children, onOpenDemo }: Props) {
   return (
-    <>
-      <DentalHeader onOpenDemo={onOpenDemo} />
+    <div className="ac-site">
+      <a href="#main-content" className="ac-skip">
+        Saltar al contenido
+      </a>
+      <AppHeader onOpenDemo={onOpenDemo} />
       {children}
-      <DentalFooter />
+      <AppFooter />
       <CookieBanner />
-    </>
+    </div>
   )
 }

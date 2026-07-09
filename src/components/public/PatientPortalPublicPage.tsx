@@ -142,7 +142,7 @@ export function PatientPortalPublicPage() {
 
   return (
     <PublicSiteShell>
-      <main className="ppp-v2">
+      <main className="ppp-v2 ac-page" id="main-content">
         <section className="ppp-v2-hero" aria-labelledby="ppp-hero-title">
           <div className="ppp-v2-hero__bg" aria-hidden>
             <span className="ppp-v2-hero__glow" />

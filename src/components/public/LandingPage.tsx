@@ -1,18 +1,16 @@
 import { useEffect, useState } from 'react'
 import { type ProPlan } from './ProAccessForm'
+import { AiAppointmentsSection } from './new-frontend/AiAppointmentsSection'
+import { BenefitsSection } from './new-frontend/BenefitsSection'
 import { DemoFormModal } from './new-frontend/DemoFormModal'
-import { BookingWorkflowSection } from './dental-landing/BookingWorkflowSection'
-import { ClinicFeaturesSection } from './dental-landing/ClinicFeaturesSection'
-import { ClinicManagementSection } from './dental-landing/ClinicManagementSection'
-import { DentalAiSection } from './dental-landing/DentalAiSection'
-import { DentalFinalCta } from './dental-landing/DentalFinalCta'
-import { DentalHero } from './dental-landing/DentalHero'
-import { DentalPricingSection } from './dental-landing/DentalPricingSection'
-import { HelpFaqSection } from './dental-landing/HelpFaqSection'
-import { PatientExperienceSection } from './dental-landing/PatientExperienceSection'
-import { PublicLookupSection } from './dental-landing/PublicLookupSection'
-import { QuickAppointmentActions } from './dental-landing/QuickAppointmentActions'
-import { SecuritySection } from './dental-landing/SecuritySection'
+import { FaqSection } from './new-frontend/FaqSection'
+import { FinalCTA } from './new-frontend/FinalCTA'
+import { HeroSection } from './new-frontend/HeroSection'
+import { ModulesTabSection } from './new-frontend/ModulesTabSection'
+import { PainPointsSection } from './new-frontend/PainPointsSection'
+import { PricingSection } from './new-frontend/PricingSection'
+import { SecurityTrustSection } from './new-frontend/SecurityTrustSection'
+import { TestimonialsSection } from './new-frontend/TestimonialsSection'
 import { PublicSiteShell } from './PublicSiteShell'
 
 export function LandingPage() {
@@ -33,19 +31,17 @@ export function LandingPage() {
 
   return (
     <PublicSiteShell onOpenDemo={() => openDemo('pro_clinica')}>
-      <main className="adb-landing">
-        <DentalHero onOpenDemo={() => openDemo('pro_clinica')} />
-        <QuickAppointmentActions />
-        <PublicLookupSection />
-        <DentalAiSection />
-        <ClinicFeaturesSection />
-        <BookingWorkflowSection />
-        <PatientExperienceSection />
-        <ClinicManagementSection />
-        <SecuritySection />
-        <DentalPricingSection onOpenDemo={openDemo} />
-        <HelpFaqSection />
-        <DentalFinalCta onOpenDemo={() => openDemo('pro_clinica')} />
+      <main className="ac-landing ac-landing--docfav" id="main-content">
+        <HeroSection onOpenDemo={() => openDemo('pro_clinica')} />
+        <PainPointsSection />
+        <BenefitsSection onOpenDemo={() => openDemo('pro_clinica')} />
+        <ModulesTabSection />
+        <AiAppointmentsSection />
+        <SecurityTrustSection />
+        <TestimonialsSection onOpenDemo={() => openDemo('pro_clinica')} />
+        <PricingSection onOpenDemo={openDemo} />
+        <FaqSection />
+        <FinalCTA onOpenDemo={() => openDemo('pro_clinica')} />
       </main>
       <DemoFormModal open={demoOpen} plan={plan} onPlanChange={setPlan} onClose={() => setDemoOpen(false)} />
     </PublicSiteShell>

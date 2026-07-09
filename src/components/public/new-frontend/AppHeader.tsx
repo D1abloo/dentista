@@ -1,17 +1,14 @@
 import { Menu, Sparkles, X } from 'lucide-react'
 import { useEffect, useState, type MouseEvent } from 'react'
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo'
+import {
+  PUBLIC_HEADER_CTA,
+  PUBLIC_PRIMARY_NAV,
+  hrefForNavItem,
+  scrollToSection
+} from '@/lib/public/routes'
 import { LoginDropdown } from './LoginDropdown'
 import { ResponsiveContainer } from './ResponsiveContainer'
-
-const NAV = [
-  { href: '#inicio', label: 'Inicio' },
-  { href: '#funciones', label: 'Funciones' },
-  { href: '#como-funciona', label: 'Cómo funciona' },
-  { href: '#citas-ia', label: 'Citas con IA' },
-  { href: '#planes', label: 'Planes' },
-  { href: '#ayuda', label: 'Ayuda' }
-] as const
 
 type Props = {
   onOpenDemo?: () => void
@@ -20,25 +17,32 @@ type Props = {
 export function AppHeader({ onOpenDemo }: Props) {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [pathname, setPathname] = useState('/')
 
   useEffect(() => {
+    setPathname(window.location.pathname)
     const onScroll = () => setScrolled(window.scrollY > 8)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const handleHashLink = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
+  const isHome = pathname === '/' || pathname === ''
+
+  const handleNavClick = (event: MouseEvent<HTMLAnchorElement>, href: string, sectionId?: string) => {
+    if (!sectionId || !isHome) return
     if (!href.startsWith('#')) return
     event.preventDefault()
-    document.getElementById(href.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    scrollToSection(sectionId)
     setOpen(false)
   }
 
+  const lookupHref = isHome ? `#${PUBLIC_HEADER_CTA.lookup.sectionId}` : `/#${PUBLIC_HEADER_CTA.lookup.sectionId}`
+
   return (
-    <header className={`ac-header${scrolled ? ' is-scrolled' : ''}`}>
+    <header className={`ac-header ac-header--docfav${scrolled ? ' is-scrolled' : ''}`}>
       <ResponsiveContainer wide className="ac-header__inner">
-        <a href="#inicio" className="ac-header__brand" onClick={(e) => handleHashLink(e, '#inicio')}>
+        <a href="/" className="ac-header__brand">
           <DentistaWebpLockup placement="header" context="public" showWordmark={false} />
           <span className="ac-header__brand-text">
             <strong>AgendaClinic</strong>
@@ -47,21 +51,29 @@ export function AppHeader({ onOpenDemo }: Props) {
         </a>
 
         <nav className="ac-header__nav" aria-label="Navegación principal">
-          {NAV.map((item) => (
-            <a key={item.href} href={item.href} onClick={(e) => handleHashLink(e, item.href)}>
-              {item.label}
-            </a>
-          ))}
+          {PUBLIC_PRIMARY_NAV.map((item) => {
+            const href = hrefForNavItem(item, pathname)
+            const sectionId = item.type === 'hash' ? item.sectionId : undefined
+            return (
+              <a
+                key={item.label}
+                href={href}
+                onClick={(e) => handleNavClick(e, href, sectionId)}
+              >
+                {item.label}
+              </a>
+            )
+          })}
         </nav>
 
         <div className="ac-header__actions">
-          <a href="/portal-paciente" className="ac-header__link">
-            Portal paciente
+          <a href={lookupHref} className="ac-header__link">
+            {PUBLIC_HEADER_CTA.lookup.label}
           </a>
           <LoginDropdown onNavigate={() => setOpen(false)} />
-          <a href="/citas-con-ia" className="ac-btn ac-btn--primary">
+          <a href={PUBLIC_HEADER_CTA.book.path} className="ac-btn ac-btn--primary">
             <Sparkles className="h-4 w-4" aria-hidden />
-            Reservar con IA
+            {PUBLIC_HEADER_CTA.book.label}
           </a>
           <button
             type="button"
@@ -78,17 +90,21 @@ export function AppHeader({ onOpenDemo }: Props) {
       {open ? (
         <div className="ac-header__mobile" role="dialog" aria-modal="true" aria-label="Menú móvil">
           <ResponsiveContainer className="ac-header__mobile-inner">
-            {NAV.map((item) => (
-              <a key={item.href} href={item.href} onClick={(e) => handleHashLink(e, item.href)}>
-                {item.label}
-              </a>
-            ))}
-            <a href="/portal-paciente">Portal paciente</a>
+            {PUBLIC_PRIMARY_NAV.map((item) => {
+              const href = hrefForNavItem(item, pathname)
+              const sectionId = item.type === 'hash' ? item.sectionId : undefined
+              return (
+                <a key={item.label} href={href} onClick={(e) => handleNavClick(e, href, sectionId)}>
+                  {item.label}
+                </a>
+              )
+            })}
+            <a href={lookupHref}>{PUBLIC_HEADER_CTA.lookup.label}</a>
             <a href="/login/admin">Panel clínica</a>
             <a href="/platform/login">Plataforma</a>
             <div className="ac-header__mobile-cta">
-              <a href="/citas-con-ia" className="ac-btn ac-btn--primary">
-                Reservar con IA
+              <a href={PUBLIC_HEADER_CTA.book.path} className="ac-btn ac-btn--primary">
+                {PUBLIC_HEADER_CTA.book.label}
               </a>
               {onOpenDemo ? (
                 <button type="button" className="ac-btn ac-btn--secondary" onClick={onOpenDemo}>

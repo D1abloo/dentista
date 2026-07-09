@@ -5,7 +5,7 @@ import { AiAppointmentsChatSection } from '@/components/public/citas-con-ia/AiAp
 export function CitasConIaPage() {
   return (
     <PublicSiteShell>
-      <main className="adb-landing">
+      <main className="ac-landing ac-page" id="main-content">
         <AiAppointmentsChatSection />
       </main>
     </PublicSiteShell>

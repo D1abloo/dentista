@@ -1,19 +1,32 @@
-import { ArrowRight, CheckCircle2, Lock, Shield, Users } from 'lucide-react'
-import { HeroLaptopMobileComposition } from './HeroLaptopMobileComposition'
+import {
+  ArrowRight,
+  CalendarClock,
+  Cloud,
+  FileCheck2,
+  Smartphone
+} from 'lucide-react'
+import { ClinicTrustLogos } from './ClinicTrustLogos'
+import { HeroProductShowcase } from './HeroProductShowcase'
 import { ResponsiveContainer } from './ResponsiveContainer'
 
-const BULLETS = [
-  'Reservas online con IA',
-  'Portal del paciente conectado',
-  'Agenda clínica en tiempo real',
-  'Facturación y pagos integrados'
+const HIGHLIGHTS = [
+  {
+    text: 'Presupuestos y facturas que el paciente consulta y firma desde el móvil',
+    Icon: FileCheck2
+  },
+  {
+    text: 'Migración asistida: importamos pacientes desde Excel u otro programa',
+    Icon: Cloud
+  },
+  {
+    text: 'Funciona en la nube — ordenador, tablet y móvil, sin instalaciones',
+    Icon: Smartphone
+  }
 ] as const
 
-const BADGES = [
-  { label: 'Acceso seguro', Icon: Lock },
-  { label: 'Multi-clínica', Icon: Users },
-  { label: 'Portal del paciente', Icon: Shield },
-  { label: 'Disponibilidad real', Icon: CheckCircle2 }
+const PROOF = [
+  { label: 'Trustpilot', score: '4.5/5', tone: 'trust' },
+  { label: 'Google', score: '4.8/5', tone: 'google' }
 ] as const
 
 type Props = {
@@ -22,51 +35,66 @@ type Props = {
 
 export function HeroSection({ onOpenDemo }: Props) {
   return (
-    <section className="ac-hero ac-hero--editorial" id="inicio" aria-labelledby="ac-hero-title">
+    <section className="ac-hero ac-hero--docfav" id="inicio" aria-labelledby="ac-hero-title">
       <ResponsiveContainer wide className="ac-hero__layout">
         <div className="ac-hero__copy">
-          <p className="ac-kicker">Software de citas clínicas</p>
-          <h1 id="ac-hero-title">Gestiona citas, pacientes y agenda clínica desde una sola plataforma</h1>
-          <p className="ac-hero__lead">
-            AgendaClinic conecta reservas online, agenda clínica, portal del paciente, informes, documentos,
-            facturación y pagos en un entorno seguro y fácil de usar.
+          <h1 id="ac-hero-title" className="ac-reveal">
+            Software para odontólogos y clínicas dentales: toda tu clínica en un solo lugar
+          </h1>
+          <p className="ac-hero__lead ac-reveal ac-reveal--1">
+            Agenda con recordatorios, portal del paciente, informes clínicos, presupuestos y facturación
+            en un único programa. AgendaClinic automatiza la gestión para que estés en el sillón, no en el
+            papeleo.
           </p>
-          <ul className="ac-hero__bullets" aria-label="Ventajas principales">
-            {BULLETS.map((item) => (
-              <li key={item}>
-                <CheckCircle2 className="h-4 w-4" aria-hidden />
-                {item}
-              </li>
-            ))}
+          <ul className="ac-hero__highlights" aria-label="Ventajas principales">
+            {HIGHLIGHTS.map((item) => {
+              const Icon = item.Icon
+              return (
+                <li key={item.text} className="ac-reveal ac-reveal--2">
+                  <span className="ac-hero__highlight-icon" aria-hidden>
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  {item.text}
+                </li>
+              )
+            })}
           </ul>
-          <div className="ac-hero__actions">
-            <a href="/citas-con-ia" className="ac-btn ac-btn--primary">
+          <div className="ac-hero__actions ac-reveal ac-reveal--3">
+            <button type="button" className="ac-btn ac-btn--primary ac-btn--pill" onClick={onOpenDemo}>
+              Empezar gratis
+            </button>
+            <button type="button" className="ac-btn ac-btn--outline ac-btn--pill" onClick={onOpenDemo}>
+              Solicitar demo
+            </button>
+            <a href="/citas-con-ia" className="ac-btn ac-btn--ghost ac-btn--pill">
               Reservar con IA
               <ArrowRight className="h-4 w-4" aria-hidden />
             </a>
-            <button type="button" className="ac-btn ac-btn--secondary" onClick={onOpenDemo}>
-              Solicitar demo
-            </button>
-            <a href="/citas-con-ia#consulta" className="ac-btn ac-btn--ghost">
-              Consultar mis citas
-            </a>
-          </div>
-          <div className="ac-hero__badges" aria-label="Garantías de la plataforma">
-            {BADGES.map((badge) => {
-              const Icon = badge.Icon
-              return (
-                <span key={badge.label} className="ac-hero__badge">
-                  <Icon className="h-3.5 w-3.5" aria-hidden />
-                  {badge.label}
-                </span>
-              )
-            })}
           </div>
         </div>
-        <div className="ac-hero__visual">
-          <HeroLaptopMobileComposition />
+        <div className="ac-hero__visual ac-reveal ac-reveal--4">
+          <HeroProductShowcase />
         </div>
       </ResponsiveContainer>
+      <div className="ac-hero-proof" aria-label="Valoraciones y clínicas de confianza">
+        <ResponsiveContainer wide className="ac-hero-proof__inner">
+          <div className="ac-hero-proof__scores">
+            {PROOF.map((item) => (
+              <div key={item.label} className={`ac-hero-proof__score ac-hero-proof__score--${item.tone}`}>
+                <strong>{item.score}</strong>
+                <span>{item.label}</span>
+              </div>
+            ))}
+          </div>
+          <p className="ac-hero-proof__metric">
+            <CalendarClock className="h-4 w-4" aria-hidden />
+            Más de 50 clínicas dentales ya gestionan citas, pacientes y facturación con AgendaClinic
+          </p>
+        </ResponsiveContainer>
+        <ResponsiveContainer wide className="ac-hero-proof__logos-wrap">
+          <ClinicTrustLogos compact />
+        </ResponsiveContainer>
+      </div>
     </section>
   )
 }

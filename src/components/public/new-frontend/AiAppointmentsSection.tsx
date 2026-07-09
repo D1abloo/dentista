@@ -23,7 +23,7 @@ export function AiAppointmentsSection() {
   const flow = useAiAppointmentsFlow()
 
   return (
-    <section id="citas-ia" className="ac-section ac-section--band" aria-labelledby="ac-ai-section-title">
+    <section id="citas-online" className="ac-section ac-section--band" aria-labelledby="ac-ai-section-title">
       <ResponsiveContainer wide>
         <div className="ac-ai-split">
           <aside className="ac-ai-split__copy">
@@ -48,7 +48,7 @@ export function AiAppointmentsSection() {
                 ))}
               </div>
             </div>
-            <div className="ac-lookup-card" id="consulta">
+            <div className="ac-lookup-card" id="consulta-cita">
               <h3>
                 <Search className="h-4 w-4" aria-hidden />
                 Consulta rápida de citas
