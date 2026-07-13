@@ -33,6 +33,7 @@ import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { useTenant } from '@/hooks/useTenant';
 import { email, phone, required } from '@/lib/validation';
+import { isTokenFeaturesEnabled } from '@/lib/featureFlags';
 import { Button, Field, Input, Modal, Textarea } from '@/components/ui';
 import { formatNhcDisplay } from '@/lib/nhc';
 import { CreatePatientModal } from './CreatePatientModal';
@@ -130,7 +131,7 @@ function ActionMenu({ row, onPick }: { row: PatientRow; onPick: (action: string)
     { id: 'documento', label: 'Subir documento' },
     { id: 'informe', label: 'Crear informe' },
     { id: 'pago', label: 'Registrar pago' },
-    { id: 'portal', label: 'Abrir portal' }
+    ...(isTokenFeaturesEnabled() ? [{ id: 'portal', label: 'Abrir portal' }] : [])
   ];
 
   return (
@@ -423,9 +424,11 @@ export function AdminPatients() {
               <button type="button" className="pt-quick-btn" onClick={() => runAction('pago', selected)}>
                 Registrar pago
               </button>
-              <button type="button" className="pt-quick-btn pt-quick-btn--teal" onClick={() => runAction('portal', selected)}>
-                <Shield className="h-4 w-4" /> Acceso portal
-              </button>
+              {isTokenFeaturesEnabled() ? (
+                <button type="button" className="pt-quick-btn pt-quick-btn--teal" onClick={() => runAction('portal', selected)}>
+                  <Shield className="h-4 w-4" /> Acceso portal
+                </button>
+              ) : null}
             </div>
           </aside>
         ) : null}

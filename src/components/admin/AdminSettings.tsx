@@ -28,6 +28,7 @@ import {
   type SettingsTabId
 } from '@/lib/settingsForm';
 import type { AppSettings } from '@/types/demo';
+import { isTokenFeaturesEnabled } from '@/lib/featureFlags';
 import { Modal } from '@/components/ui';
 import { AdminStaffPortalProfile } from './portalAccess';
 
@@ -212,7 +213,7 @@ export function AdminSettings() {
     { k: 'Intervalo citas', v: `${form.slotIntervalMinutes} minutos` },
     { k: 'IVA por defecto', v: `${form.vatRate ?? 21}%` },
     { k: 'Serie factura', v: form.invoiceSeries ?? 'FAC' },
-    { k: 'Token portal', v: maskPortalToken() }
+    ...(isTokenFeaturesEnabled() ? [{ k: 'Token portal', v: maskPortalToken() }] : [])
   ];
 
   function renderMarcaCard() {
@@ -396,7 +397,9 @@ export function AdminSettings() {
             <h2>Seguridad</h2>
             <p className="set-card__sub">Acceso y credenciales del personal.</p>
             <p className="text-sm font-semibold text-slate-600 m-0">
-              Los tokens de acceso al portal del paciente se gestionan en la sección «Acceso PdP» del menú lateral.
+              {isTokenFeaturesEnabled()
+                ? 'Los tokens de acceso al portal del paciente se gestionan en la sección «Acceso PdP» del menú lateral.'
+                : 'El acceso al portal del paciente se realiza con email y contraseña o desde gestión clínica.'}
             </p>
           </section>
           <AdminStaffPortalProfile />

@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { requireStaffSession } from '@/lib/api/guards';
 import { fail, ok } from '@/lib/http';
+import { isPortalTokenLoginEnabled } from '@/lib/featureFlags';
 import { logError } from '@/lib/logger';
 import {
   createPortalAccessToken,
@@ -53,6 +54,9 @@ export const GET: APIRoute = async (context) => {
 };
 
 export const POST: APIRoute = async (context) => {
+  if (!isPortalTokenLoginEnabled()) {
+    return fail('La generación de tokens de acceso está desactivada temporalmente.', 503);
+  }
   if (!hasSupabaseConfig()) return fail('Servicio no disponible.', 503);
   const gate = await requireStaffSession(context);
   if (gate.response) return gate.response;

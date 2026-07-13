@@ -1,39 +1,53 @@
-import { useEffect, useState } from 'react';
-import { STORAGE_PATIENT_ID } from '@/lib/storage/keys';
-import { Button, Card, Field, Input } from '@/components/ui';
+import { useEffect, useState } from 'react'
+import { isPortalTokenLoginEnabled } from '@/lib/featureFlags'
+import { Button, Card, Field, Input } from '@/components/ui'
 
 export function PortalAccessEntry({ initialToken }: { initialToken?: string }) {
-  const [token, setToken] = useState(initialToken ?? '');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const tokenLoginEnabled = isPortalTokenLoginEnabled()
+  const [token, setToken] = useState(initialToken ?? '')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (initialToken) void activate(initialToken);
+    if (!tokenLoginEnabled) return
+    if (initialToken) void activate(initialToken)
     // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al montar con token en URL
-  }, [initialToken]);
+  }, [initialToken, tokenLoginEnabled])
 
   async function activate(raw: string) {
-    setBusy(true);
-    setError(null);
+    setBusy(true)
+    setError(null)
     try {
       const res = await fetch('/api/portal-access/exchange', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ token: raw.trim() })
-      });
+      })
       const json = (await res.json()) as {
-        data?: { redirectTo?: string; patientId?: string };
-        error?: { message?: string };
-      };
-      if (!res.ok) throw new Error(json.error?.message ?? 'Token no válido');
-      if (json.data?.patientId) localStorage.setItem(STORAGE_PATIENT_ID, json.data.patientId);
-      window.location.href = json.data?.redirectTo ?? '/paciente';
+        data?: { redirectTo?: string; patientId?: string }
+        error?: { message?: string }
+      }
+      if (!res.ok) throw new Error(json.error?.message ?? 'Token no válido')
+      window.location.href = json.data?.redirectTo ?? '/paciente'
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'No se pudo validar el token.');
+      setError(e instanceof Error ? e.message : 'No se pudo validar el token.')
     } finally {
-      setBusy(false);
+      setBusy(false)
     }
+  }
+
+  if (!tokenLoginEnabled) {
+    return (
+      <Card title="Acceso al portal del paciente">
+        <p className="mb-4 text-sm text-slate-600">
+          El acceso con token está desactivado temporalmente. Inicia sesión con tu email y contraseña.
+        </p>
+        <Button onClick={() => { window.location.href = '/login/paciente' }}>
+          Ir al login de paciente
+        </Button>
+      </Card>
+    )
   }
 
   return (
@@ -53,5 +67,5 @@ export function PortalAccessEntry({ initialToken }: { initialToken?: string }) {
         {busy ? 'Validando…' : 'Entrar'}
       </Button>
     </Card>
-  );
+  )
 }

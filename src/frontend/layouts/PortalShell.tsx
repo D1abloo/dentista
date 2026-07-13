@@ -1,8 +1,13 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { LogOut, Menu, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { cn } from '@/frontend/lib/cn'
 import { Button } from '@/frontend/ds'
-import { PortalSwitcherV2 } from '@/frontend/features/shared/PortalSwitcherV2'
+import { useSidebarState } from '@/frontend/shell/hooks/useSidebarState'
+import { useMediaQuery } from '@/frontend/shell/hooks/useMediaQuery'
+import { PortalBrand } from '@/frontend/shell/components/PortalBrand'
+import { ShellSidebarNav, type PortalNavGroup } from '@/frontend/shell/components/ShellSidebar'
+import { ShellTopbar } from '@/frontend/shell/components/ShellTopbar'
+import '@/frontend/platform/styles/tokens.css'
 
 export type PortalNavItem = {
   href: string
@@ -11,131 +16,147 @@ export type PortalNavItem = {
   active?: boolean
 }
 
+export type { PortalNavGroup }
+
 type PortalShellProps = {
   brand: string
   subtitle?: string
   nav: PortalNavItem[]
+  navGroups?: PortalNavGroup[]
+  pageTitle?: string
+  breadcrumbRoot?: { label: string; href: string }
+  sidebarStorageKey?: string
   userLabel?: string
   children: ReactNode
   onLogout: () => void
   showPortalSwitcher?: boolean
   topSlot?: ReactNode
+  searchPlaceholder?: string
 }
 
 export const PortalShell = ({
   brand,
   subtitle,
   nav,
+  navGroups,
+  pageTitle,
+  breadcrumbRoot = { label: 'Panel', href: '#' },
+  sidebarStorageKey = 'ac_portal_sidebar_collapsed',
   userLabel,
   children,
   onLogout,
   showPortalSwitcher = true,
-  topSlot
+  topSlot,
+  searchPlaceholder
 }: PortalShellProps) => {
+  const { collapsed, toggle, ready } = useSidebarState(sidebarStorageKey)
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
   const [drawer, setDrawer] = useState(false)
-  const [path, setPath] = useState('')
 
   useEffect(() => {
-    setPath(window.location.pathname)
-  }, [])
+    if (isDesktop) setDrawer(false)
+  }, [isDesktop])
 
-  const NavList = ({ onPick }: { onPick?: () => void }) => (
-    <ul className="space-y-1">
-      {nav.map((item) => {
-        const Icon = item.icon
-        const active = item.active ?? (path === item.href || path.startsWith(`${item.href}/`))
-        return (
-          <li key={item.href}>
-            <a
-              href={item.href}
-              onClick={onPick}
-              aria-current={active ? 'page' : undefined}
-              className={cn(
-                'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition',
-                active
-                  ? 'bg-brand-600 text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-              )}
-            >
-              <Icon className="h-4 w-4 shrink-0" aria-hidden />
-              {item.label}
-            </a>
-          </li>
-        )
-      })}
-    </ul>
-  )
+  if (!ready) {
+    return <div className="pf-shell min-h-dvh animate-pulse bg-slate-100" aria-busy="true" />
+  }
+
+  const title = pageTitle ?? brand
+  const root = breadcrumbRoot.href === '#' ? { label: brand, href: nav[0]?.href ?? '/' } : breadcrumbRoot
 
   return (
-    <div className="min-h-dvh bg-slate-50">
+    <div className="pf-shell flex min-h-dvh">
       <a href="#portal-main" className="nx-skip">
         Ir al contenido del panel
       </a>
 
-      <div className="flex min-h-dvh">
-        <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white lg:block">
-          <div className="flex h-16 items-center border-b border-slate-100 px-4">
-            <div>
-              <p className="font-display text-sm font-semibold text-ink">{brand}</p>
-              {subtitle ? <p className="text-xs text-slate-500">{subtitle}</p> : null}
-            </div>
+      <aside
+        className={cn(
+          'fixed inset-y-0 left-0 z-[var(--pf-z-sidebar)] hidden border-r border-slate-800/50 lg:block',
+          'transition-[width] duration-[var(--pf-duration-slow)] ease-out',
+          collapsed ? 'w-[var(--pf-sidebar-collapsed)]' : 'w-[var(--pf-sidebar-width)]'
+        )}
+        style={{ background: 'var(--pf-sidebar-bg)' }}
+        aria-label="Barra lateral"
+      >
+        <div className="flex h-full flex-col">
+          <div
+            className={cn(
+              'flex h-[var(--pf-topbar-height)] items-center border-b border-white/10 px-3',
+              collapsed ? 'justify-center' : 'px-4'
+            )}
+          >
+            <PortalBrand brand={brand} subtitle={subtitle} collapsed={collapsed} />
           </div>
-          <nav className="p-3" aria-label="Panel">
-            <NavList />
-          </nav>
-        </aside>
+          <ShellSidebarNav collapsed={collapsed} nav={nav} navGroups={navGroups} />
+        </div>
+      </aside>
 
-        {drawer ? (
-          <div className="fixed inset-0 z-50 lg:hidden" role="presentation">
-            <button
-              type="button"
-              className="absolute inset-0 bg-slate-900/40"
-              aria-label="Cerrar menú"
-              onClick={() => setDrawer(false)}
-            />
-            <aside className="relative z-10 flex h-full w-72 flex-col bg-white shadow-xl">
-              <div className="flex h-16 items-center justify-between border-b px-4">
-                <span className="font-semibold text-ink">{brand}</span>
-                <Button variant="ghost" size="sm" onClick={() => setDrawer(false)} aria-label="Cerrar">
-                  <X className="h-5 w-5" />
-                </Button>
-              </div>
-              <nav className="flex-1 overflow-y-auto p-3">
-                <NavList onPick={() => setDrawer(false)} />
-              </nav>
-            </aside>
-          </div>
-        ) : null}
-
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="lg:hidden"
-              onClick={() => setDrawer(true)}
-              aria-label="Abrir menú"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-            {topSlot}
-            <div className="ml-auto flex items-center gap-2">
-              {showPortalSwitcher ? <PortalSwitcherV2 /> : null}
-              {userLabel ? (
-                <span className="hidden text-sm text-slate-600 sm:inline">{userLabel}</span>
-              ) : null}
-              <Button variant="ghost" size="sm" onClick={onLogout} aria-label="Cerrar sesión">
-                <LogOut className="h-4 w-4" aria-hidden />
-                <span className="hidden sm:inline">Salir</span>
+      {drawer ? (
+        <div className="fixed inset-0 z-[var(--pf-z-drawer)] lg:hidden" role="presentation">
+          <button
+            type="button"
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            aria-label="Cerrar menú"
+            onClick={() => setDrawer(false)}
+          />
+          <aside
+            className="relative z-10 flex h-full w-[var(--pf-sidebar-width)] flex-col shadow-2xl"
+            style={{
+              background: 'var(--pf-sidebar-bg)',
+              animation: 'pfSlideInLeft 280ms var(--pf-ease-spring) both'
+            }}
+          >
+            <div className="flex justify-end p-2">
+              <Button variant="ghost" size="sm" onClick={() => setDrawer(false)} aria-label="Cerrar menú">
+                <X className="h-5 w-5 text-white" />
               </Button>
             </div>
-          </header>
-
-          <main id="portal-main" className="flex-1 p-4 sm:p-6 lg:p-8">
-            {children}
-          </main>
+            <div className="px-4 pb-2">
+              <PortalBrand brand={brand} subtitle={subtitle} />
+            </div>
+            <ShellSidebarNav
+              collapsed={false}
+              nav={nav}
+              navGroups={navGroups}
+              onNavigate={() => setDrawer(false)}
+            />
+          </aside>
         </div>
+      ) : null}
+
+      <div
+        className={cn(
+          'flex min-w-0 flex-1 flex-col transition-[margin] duration-[var(--pf-duration-slow)] ease-out',
+          collapsed ? 'lg:ml-[var(--pf-sidebar-collapsed)]' : 'lg:ml-[var(--pf-sidebar-width)]'
+        )}
+      >
+        <ShellTopbar
+          pageTitle={title}
+          breadcrumbRoot={root}
+          collapsed={collapsed}
+          onToggleSidebar={toggle}
+          onOpenDrawer={() => setDrawer(true)}
+          onLogout={onLogout}
+          userLabel={userLabel}
+          showPortalSwitcher={showPortalSwitcher}
+          topSlot={topSlot}
+          searchPlaceholder={searchPlaceholder}
+        />
+        <main id="portal-main" className="mx-auto w-full max-w-[var(--pf-content-max)] flex-1">
+          {children}
+        </main>
       </div>
+
+      <style>{`
+        @keyframes pfSlideInLeft {
+          from { transform: translateX(-100%); opacity: 0.9; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          aside[style*='pfSlideInLeft'] { animation: none !important; }
+        }
+      `}</style>
     </div>
   )
 }

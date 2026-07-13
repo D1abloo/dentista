@@ -2,6 +2,7 @@ import type { DemoRole } from '@/types/demo';
 import { Button } from '@/components/ui';
 import { clearDemoSession } from '@/lib/demoStore';
 import { loginPath } from '@/lib/loginIntent';
+import { isPortalTokenLoginEnabled } from '@/lib/featureFlags';
 
 function goToLogin(href: string) {
   clearDemoSession();
@@ -49,16 +50,18 @@ export function Restricted({
         <h1 className="mt-2 font-display text-2xl text-dental-950">Acceso solo para pacientes</h1>
         <p className="mt-3 text-sm text-slate-600">
           {current === 'admin'
-            ? 'Como personal de clínica puedes usar el portal del paciente desde Gestión clínica o con un token autorizado.'
-            : 'Inicia sesión con email y contraseña de paciente, o solicita un token en administración.'}
+            ? 'Como personal de clínica puedes usar el portal del paciente desde Gestión clínica.'
+            : 'Inicia sesión con tu email y contraseña de paciente.'}
         </p>
         <div className="mt-6 flex flex-wrap gap-2">
           <Button type="button" onClick={() => goToLogin(loginHref)}>
             Ir al login de paciente
           </Button>
-          <a href="/paciente/acceso" className="no-underline">
-            <Button tone="secondary">Acceso con token</Button>
-          </a>
+          {isPortalTokenLoginEnabled() ? (
+            <a href="/paciente/acceso" className="no-underline">
+              <Button tone="secondary">Acceso con token</Button>
+            </a>
+          ) : null}
           <a href="/">
             <Button tone="secondary">Volver al inicio</Button>
           </a>

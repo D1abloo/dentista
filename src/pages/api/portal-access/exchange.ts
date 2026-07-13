@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createPortalAccessCookie, portalAccessCookieName } from '@/lib/auth/portalAccess';
 import { requireStaffSession } from '@/lib/api/guards';
+import { isPortalTokenLoginEnabled } from '@/lib/featureFlags';
 import { fail, ok } from '@/lib/http';
 import { logError } from '@/lib/logger';
 import { exchangePortalToken } from '@/lib/services/portalAccess';
@@ -10,6 +11,9 @@ import { portalAccessExchangeSchema } from '@/lib/validators';
 export const prerender = false;
 
 export const POST: APIRoute = async (context) => {
+  if (!isPortalTokenLoginEnabled()) {
+    return fail('El acceso con token está desactivado. Usa el login de paciente.', 503);
+  }
   if (!hasSupabaseConfig()) return fail('Servicio no disponible.', 503);
   const gate = await requireStaffSession(context);
   if (gate.response) return gate.response;

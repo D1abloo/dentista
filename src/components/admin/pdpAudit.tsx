@@ -4,6 +4,7 @@ import { Badge, Button, Card, Empty, Field, PageHeader, Select } from '@/compone
 import { useNotice } from '@/hooks/useNotice';
 import { useStaffContext } from '@/hooks/useStaffContext';
 import { canViewPdpAudit } from '@/lib/adminNav';
+import { isTokenFeaturesEnabled } from '@/lib/featureFlags';
 import { exportCsv } from '@/lib/demoStore';
 import { portalAuditEventLabel } from '@/lib/portalAccessLabels';
 
@@ -94,8 +95,9 @@ export function AdminPdpAudit() {
           subtitle="Solo visible en administración. Los pacientes no ven este historial."
         />
         <p className="mb-4 text-sm text-slate-600">
-          Aquí se registran las acciones del personal cuando entra al portal del paciente con token o acceso
-          autorizado. Filtra por profesional y exporta para auditoría interna.
+          {isTokenFeaturesEnabled()
+            ? 'Aquí se registran las acciones del personal cuando entra al portal del paciente con acceso autorizado. Filtra por profesional y exporta para auditoría interna.'
+            : 'Aquí se registran las acciones del personal en el portal del paciente. Filtra por profesional y exporta para auditoría interna.'}
         </p>
         <div className="flex flex-wrap items-end gap-3">
           <Field label="Profesional">

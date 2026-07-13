@@ -1,8 +1,8 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { cn } from '@/frontend/lib/cn'
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline'
-type Size = 'sm' | 'md' | 'lg'
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline' | 'success'
+type Size = 'sm' | 'md' | 'lg' | 'icon'
 
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: Variant
@@ -14,19 +14,24 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantClass: Record<Variant, string> = {
   primary:
-    'bg-brand-600 text-white shadow-sm hover:bg-brand-700 active:bg-brand-800 disabled:bg-brand-300',
+    'bg-gradient-to-b from-brand-500 to-brand-700 text-white shadow-sm shadow-brand-900/15 hover:from-brand-600 hover:to-brand-800 active:scale-[0.98] disabled:from-brand-300 disabled:to-brand-400',
   secondary:
-    'bg-slate-100 text-slate-900 hover:bg-slate-200 active:bg-slate-300 disabled:bg-slate-50 disabled:text-slate-400',
-  ghost: 'bg-transparent text-slate-700 hover:bg-slate-100 active:bg-slate-200',
-  danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800 disabled:bg-red-300',
+    'bg-white text-slate-900 ring-1 ring-slate-200 hover:bg-slate-50 hover:ring-slate-300 active:scale-[0.98] disabled:bg-slate-50 disabled:text-slate-400',
+  ghost:
+    'bg-transparent text-slate-700 hover:bg-slate-100 active:bg-slate-200 active:scale-[0.98]',
+  danger:
+    'bg-red-600 text-white hover:bg-red-700 active:bg-red-800 active:scale-[0.98] disabled:bg-red-300',
+  success:
+    'bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800 active:scale-[0.98] disabled:bg-emerald-300',
   outline:
-    'border border-slate-300 bg-white text-slate-900 hover:border-brand-400 hover:bg-brand-50'
+    'border border-slate-300 bg-white text-slate-900 hover:border-brand-400 hover:bg-brand-50 active:scale-[0.98]'
 }
 
 const sizeClass: Record<Size, string> = {
   sm: 'h-9 px-3 text-sm gap-1.5',
   md: 'h-11 px-4 text-sm gap-2',
-  lg: 'h-12 px-5 text-base gap-2'
+  lg: 'h-12 px-5 text-base gap-2',
+  icon: 'h-10 w-10 p-0'
 }
 
 export const Button = ({
@@ -42,17 +47,19 @@ export const Button = ({
   ...props
 }: ButtonProps) => {
   const isDisabled = disabled || loading
+  const isIconOnly = size === 'icon' || (!children && (leftIcon || rightIcon))
+
   return (
     <button
       type={type}
       disabled={isDisabled}
       aria-busy={loading || undefined}
       className={cn(
-        'inline-flex items-center justify-center rounded-xl font-semibold transition-colors',
+        'inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-[180ms] ease-out',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2',
-        'disabled:cursor-not-allowed',
+        'disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100',
         variantClass[variant],
-        sizeClass[size],
+        isIconOnly ? sizeClass.icon : sizeClass[size],
         className
       )}
       {...props}
@@ -65,7 +72,7 @@ export const Button = ({
       ) : (
         leftIcon
       )}
-      <span>{children}</span>
+      {children ? <span>{children}</span> : null}
       {!loading && rightIcon}
     </button>
   )

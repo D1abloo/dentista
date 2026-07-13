@@ -8,6 +8,7 @@ import { canViewPdpAudit } from '@/lib/adminNav';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useTenant } from '@/hooks/useTenant';
 import { patientsForTenant } from '@/lib/tenant';
+import { isTokenFeaturesEnabled } from '@/lib/featureFlags';
 
 type TokenRow = {
   id: string;
@@ -123,6 +124,18 @@ export function AdminPortalAccess() {
 
   const linkedDentists = dentists.filter((d) => d.profileId);
 
+  if (!isTokenFeaturesEnabled()) {
+    return (
+      <Card>
+        <PageHeader
+          title="Acceso al portal del paciente"
+          subtitle="El acceso mediante tokens está desactivado temporalmente. Usa el login de paciente o el acceso desde gestión clínica."
+        />
+        <Button onClick={() => { window.location.href = '/login/paciente' }}>Ir al login de paciente</Button>
+      </Card>
+    );
+  }
+
   return (
     <div className="grid gap-4">
       <Card>
@@ -217,10 +230,25 @@ export function AdminPortalAccess() {
 
 /** Perfil del profesional para entrar con token propio (sin mostrar auditoría). */
 export function AdminStaffPortalProfile() {
+  const tokensEnabled = isTokenFeaturesEnabled();
   const staffPortal = usePortalAccess();
   const { staff, loading: staffLoading } = useStaffContext();
   const [tokenInput, setTokenInput] = useState('');
   const { setNotice } = useNotice();
+
+  if (!tokensEnabled) {
+    return (
+      <Card>
+        <PageHeader title="Portal del paciente" subtitle="Acceso con sesión" />
+        <p className="text-sm text-slate-600">
+          El acceso mediante tokens está desactivado. Usa «Portal paciente» en la barra superior o el login de paciente.
+        </p>
+        <Button className="mt-3" onClick={() => { window.location.href = '/paciente/gestion-clinica' }}>
+          Ir a gestión clínica
+        </Button>
+      </Card>
+    );
+  }
 
   async function openWithToken(raw?: string) {
     const token = (raw ?? tokenInput).trim();

@@ -1,4 +1,5 @@
 import type { AdminView } from '@/components/admin/nav';
+import { isTokenFeaturesEnabled } from '@/lib/featureFlags';
 
 const PDP_AUDIT_ROLES = new Set(['clinic_admin', 'admin', 'owner']);
 const PROFESSIONAL_PROFILE_ROLES = new Set(['clinic_admin', 'admin', 'owner', 'dentist']);
@@ -21,6 +22,7 @@ export function canViewProfessionalProfiles(role: string | undefined) {
 }
 
 export function isNavItemVisible(view: AdminView, role: string | undefined) {
+  if (view === 'acceso-portal' && !isTokenFeaturesEnabled()) return false;
   if (view === 'auditoria-pdp' || view === 'monitorizacion') return canViewPdpAudit(role);
   if (view === 'profesionales') return canViewProfessionalProfiles(role);
   if (view === 'usuarios') return canManageClinicUsers(role);

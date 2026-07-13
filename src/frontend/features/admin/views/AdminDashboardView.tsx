@@ -15,7 +15,7 @@ const Kpi = ({
   value: string
   icon: typeof Users
 }) => (
-  <Card className="flex gap-4">
+  <Card className="pf-card pf-card--lift flex gap-4 p-5">
     <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-100 text-brand-700">
       <Icon className="h-5 w-5" aria-hidden />
     </span>
@@ -48,7 +48,7 @@ export const AdminDashboardView = () => {
         <Kpi label="Cobrado" value={money(revenue)} icon={Euro} />
       </div>
 
-      <Card>
+      <Card className="pf-card p-5">
         <h2 className="font-semibold text-ink">Próximas citas</h2>
         <ul className="mt-4 divide-y divide-slate-100">
           {appointments.slice(0, 6).map((appt) => (

@@ -1,0 +1,151 @@
+/* AgendaClinic SaaS — Premium 2026 tokens */
+:root {
+  --pf-sidebar-width: 17rem;
+  --pf-sidebar-collapsed: 4.5rem;
+  --pf-topbar-height: 4.25rem;
+  --pf-content-max: 88rem;
+  --pf-z-sidebar: 40;
+  --pf-z-drawer: 50;
+  --pf-z-modal: 60;
+  --pf-z-toast: 70;
+  --pf-duration-fast: 150ms;
+  --pf-duration: 200ms;
+  --pf-duration-slow: 280ms;
+  --pf-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --pf-ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Navy sidebar + cyan accent */
+  --pf-sidebar-bg: linear-gradient(180deg, #0f172a 0%, #0c1222 100%);
+  --pf-sidebar-solid: #0f172a;
+  --pf-sidebar-border: rgb(255 255 255 / 0.06);
+  --pf-sidebar-text: #cbd5e1;
+  --pf-sidebar-muted: #64748b;
+  --pf-sidebar-active: linear-gradient(135deg, #0891b2 0%, #059669 100%);
+  --pf-sidebar-hover: rgb(255 255 255 / 0.05);
+
+  --pf-surface: #ffffff;
+  --pf-surface-muted: #f0f9ff;
+  --pf-surface-subtle: #f8fafc;
+  --pf-content-bg: #f0f4f8;
+  --pf-border: #e2e8f0;
+  --pf-border-strong: #cbd5e1;
+  --pf-text: #0c1222;
+  --pf-text-muted: #475569;
+  --pf-accent: #0891b2;
+  --pf-accent-emerald: #059669;
+  --pf-shadow-sm: 0 1px 2px rgb(12 18 34 / 0.04);
+  --pf-shadow-md: 0 8px 24px rgb(12 18 34 / 0.08);
+  --pf-shadow-lg: 0 20px 48px rgb(12 18 34 / 0.12);
+  --pf-shadow-glow: 0 0 0 1px rgb(8 145 178 / 0.08), 0 8px 24px rgb(8 145 178 / 0.12);
+}
+
+@keyframes pfSlideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0.95;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --pf-duration-fast: 0ms;
+    --pf-duration: 0ms;
+    --pf-duration-slow: 0ms;
+  }
+  .pf-animate-in,
+  .pf-stagger > * {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  [style*='pfSlideInRight'] {
+    animation: none !important;
+  }
+}
+
+.pf-shell {
+  min-height: 100dvh;
+  background: var(--pf-content-bg);
+}
+
+.pf-animate-in {
+  animation: pfFadeUp var(--pf-duration-slow) var(--pf-ease-spring) both;
+}
+
+.pf-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.pf-stagger > *:nth-child(2) { animation-delay: 40ms; }
+.pf-stagger > *:nth-child(3) { animation-delay: 80ms; }
+.pf-stagger > *:nth-child(4) { animation-delay: 120ms; }
+.pf-stagger > *:nth-child(5) { animation-delay: 160ms; }
+.pf-stagger > *:nth-child(6) { animation-delay: 200ms; }
+
+@keyframes pfFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pf-card {
+  border-radius: 1rem;
+  border: 1px solid var(--pf-border);
+  background: var(--pf-surface);
+  box-shadow: var(--pf-shadow-sm);
+  transition:
+    box-shadow var(--pf-duration) var(--pf-ease),
+    transform var(--pf-duration) var(--pf-ease),
+    border-color var(--pf-duration) var(--pf-ease);
+}
+
+.pf-card:hover {
+  box-shadow: var(--pf-shadow-md);
+}
+
+.pf-card--lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--pf-shadow-glow);
+}
+
+.pf-glass {
+  background: rgb(255 255 255 / 0.82);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--pf-border);
+}
+
+.pf-table-row {
+  transition: background-color var(--pf-duration-fast) var(--pf-ease);
+}
+
+.pf-table-row:hover {
+  background: #f8fafc;
+}
+
+.pf-sidebar-tooltip {
+  position: absolute;
+  left: calc(100% + 0.5rem);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 60;
+  white-space: nowrap;
+  border-radius: 0.5rem;
+  background: #0c1222;
+  color: #fff;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--pf-duration-fast) var(--pf-ease);
+}
+
+.group:hover .pf-sidebar-tooltip {
+  opacity: 1;
+}

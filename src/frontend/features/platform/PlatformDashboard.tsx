@@ -10,7 +10,9 @@ import {
   Users
 } from 'lucide-react'
 import { PortalShell } from '@/frontend/layouts/PortalShell'
-import { Card, Container, PageHeader, PageState, Skeleton } from '@/frontend/ds'
+import { Container, PageHeader, PageState, Skeleton } from '@/frontend/ds'
+import type { PlatformDashboardPayload } from '@/lib/platform/dashboardTypes'
+import { PlatformOverviewBody } from './PlatformOverviewBody'
 
 const nav = [
   { href: '/platform', label: 'Resumen', icon: LayoutDashboard },
@@ -43,12 +45,8 @@ const PlatformDashboardInner = () => {
         {metrics.status === 'error' ? (
           <PageState variant="error" title="Error al cargar" description={metrics.error} />
         ) : null}
-        {metrics.status === 'success' ? (
-          <Card>
-            <pre className="overflow-x-auto text-xs text-slate-700">
-              {JSON.stringify(metrics.data, null, 2)}
-            </pre>
-          </Card>
+        {metrics.status === 'success' && metrics.data ? (
+          <PlatformOverviewBody data={metrics.data as PlatformDashboardPayload} />
         ) : null}
       </Container>
     </PortalShell>
