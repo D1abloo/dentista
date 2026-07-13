@@ -129,7 +129,6 @@ function AppointmentEvent({
   appt,
   state,
   treatment,
-  dentist,
   onConfirm,
   onCancel,
   onReschedule,
@@ -138,7 +137,6 @@ function AppointmentEvent({
   appt: Appointment;
   state: DemoState;
   treatment: string;
-  dentist: string;
   onConfirm: () => void;
   onCancel: () => void;
   onReschedule: () => void;
@@ -162,9 +160,8 @@ function AppointmentEvent({
       <header className="agd-event__head">
         <div className="agd-event__title-wrap">
           <strong>{patientName(state, appt.patientId)}</strong>
-          <span className="agd-event__meta">
-            {treatment} · {dentist}
-          </span>
+          <span className="agd-event__meta">{treatment}</span>
+          <span className="agd-event__time-range">{appt.time}</span>
         </div>
         <div className="agd-event__head-actions">
           <span className={`agd-event__status agd-event__status--${appt.status}`}>{statusLabel(appt.status)}</span>
@@ -280,7 +277,6 @@ export function AgendaDayCalendar({
                       appt={appt}
                       state={state}
                       treatment={treatments.find((t) => t.id === appt.treatmentId)?.name ?? 'Consulta'}
-                      dentist={dentists.find((d) => d.id === appt.dentistId)?.fullName ?? 'Profesional'}
                       onConfirm={() => onConfirm(appt)}
                       onCancel={() => onCancel(appt)}
                       onReschedule={() => onReschedule(appt)}

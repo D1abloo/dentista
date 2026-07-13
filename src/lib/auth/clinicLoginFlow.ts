@@ -1,9 +1,14 @@
-import { loginDemoUser } from '@/lib/auth';
+import { loginDemoUser, loginSuperAdminForClinicPanel } from '@/lib/auth';
 import { authenticateCredentials } from '@/lib/auth/portalChoices';
 import {
   isPlatformAppAdminAuthUser,
+  isPlatformAppAdminEmail,
   loginPlatformAppAdminForClinicPanel
 } from '@/lib/auth/platformClinicAccess';
+import {
+  isEnvSuperAdminCredentials,
+  loadSuperAdminIdentityByEmail
+} from '@/lib/auth/superAdminCredentials';
 import { pickProfileForLogin } from '@/lib/auth/profilePick';
 import { resolveProductionLogin } from '@/lib/auth/loginResolve';
 import { isPortalChoiceLogin, type LoginProductionResult } from '@/lib/auth/loginResolve';
@@ -18,12 +23,28 @@ export async function loginClinicAdminOnly(input: LoginInput): Promise<LoginProd
   const demo = loginDemoUser(input);
   if (demo) return demo;
 
+  const envClinicUser = loginSuperAdminForClinicPanel(input);
+  if (envClinicUser) return envClinicUser;
+
   if (!hasSupabaseConfig()) return null;
+
+  if (isEnvSuperAdminCredentials(input.email, input.password)) {
+    const envIdentity = await loadSuperAdminIdentityByEmail(input.email);
+    if (envIdentity) {
+      const clinicUser = await loginPlatformAppAdminForClinicPanel(envIdentity);
+      if (clinicUser) return clinicUser;
+    }
+  }
 
   const identity = await authenticateCredentials(input.email, input.password);
   if (!identity) return null;
 
   if (await isPlatformAppAdminAuthUser(identity.authUserId)) {
+    const platformUser = await loginPlatformAppAdminForClinicPanel(identity);
+    if (platformUser) return platformUser;
+  }
+
+  if (await isPlatformAppAdminEmail(identity.email)) {
     const platformUser = await loginPlatformAppAdminForClinicPanel(identity);
     if (platformUser) return platformUser;
   }

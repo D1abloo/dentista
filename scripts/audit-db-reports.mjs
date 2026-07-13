@@ -3,18 +3,13 @@
  * Auditoría Supabase: clinical_reports, columnas y prueba de inserción.
  * Uso: node --env-file=.env scripts/audit-db-reports.mjs
  */
-import { createClient } from '@supabase/supabase-js';
+import { createDbClient } from './lib/db-client.mjs';
 import { readFileSync } from 'node:fs';
+import { loadEnvFile } from './lib/load-env.mjs';
 
-const url = process.env.PUBLIC_SUPABASE_URL;
-const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+loadEnvFile();
 
-if (!url || !key || url.includes('YOUR_')) {
-  console.error('Falta PUBLIC_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en .env');
-  process.exit(1);
-}
-
-const db = createClient(url, key, { auth: { persistSession: false } });
+const db = createDbClient();
 
 const report = { ok: true, issues: [], info: {} };
 

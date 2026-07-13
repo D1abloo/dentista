@@ -1,10 +1,11 @@
 import type { APIRoute } from 'astro';
 import { createSessionToken, getEffectiveSessionUser, sessionCookieName } from '@/lib/auth';
-import { applyAdminPanelGateCookie } from '@/lib/auth/adminPanelGate';
+import { applyAdminPanelGateCookie, adminPanelGateCookieName } from '@/lib/auth/adminPanelGate';
 import { shouldGrantAdminGateCookie } from '@/lib/auth/clinicPanelAccess';
 import { AccountNotActivatedError } from '@/lib/auth/accountErrors';
 import { completePortalLogin } from '@/lib/auth/loginComplete';
 import { getIdentityFromSession } from '@/lib/auth/portalChoices';
+import { platformInspectCookieName } from '@/lib/auth/platformInspect';
 import { isCookieSecure, okWithCookies } from '@/lib/auth/cookieResponse';
 import { fail } from '@/lib/http';
 import { logError } from '@/lib/logger';
@@ -51,7 +52,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     if (shouldGrantAdminGateCookie(sessionUser)) {
       applyAdminPanelGateCookie(cookies, maxAge);
+    } else {
+      cookies.delete(adminPanelGateCookieName, { path: '/' });
     }
+
+    cookies.delete(platformInspectCookieName, { path: '/' });
 
     const redirect = await resolvePortalSwitchDestination(sessionUser);
     return okWithCookies(cookies, { redirect }, { message: 'Portal seleccionado.' });

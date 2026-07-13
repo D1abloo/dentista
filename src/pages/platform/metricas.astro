@@ -1,11 +1,7 @@
 ---
-
 import AppLayout from '@/layouts/AppLayout.astro';
-import { PlatformMetrics } from '@/components/platform/PlatformMetrics';
-import { PlatformGate } from '@/components/platform/PlatformGate';
+import { PlatformApp } from '@/components/DentistaApp';
 ---
-<AppLayout title="Métricas · Plataforma AgendaClinic">
-  <PlatformGate client:load>
-    <PlatformMetrics client:load />
-  </PlatformGate>
+<AppLayout title="Metricas · Plataforma AgendaClinic">
+  <PlatformApp view="metricas" client:load />
 </AppLayout>

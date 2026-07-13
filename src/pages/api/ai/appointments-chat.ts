@@ -34,7 +34,10 @@ export const POST: APIRoute = async ({ request }) => {
     const parsed = aiAppointmentsChatSchema.safeParse(body)
     if (!parsed.success) return fail('Mensaje del chat inválido.', 422, parsed.error.flatten())
 
-    const result = await handleAppointmentsChat(parsed.data)
+    const result = await handleAppointmentsChat({
+      ...parsed.data,
+      selection: parsed.data.selection
+    })
     return ok(result)
   } catch (error) {
     monitorPatientAppointmentsError('appointments-chat', error)

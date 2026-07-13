@@ -2929,12 +2929,77 @@ body:has(.ps-header) .help-hub__support {
 .ps-cookie__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
+  align-items: center;
+  gap: 0.65rem 0.85rem;
+  width: 100%;
+}
+
+@media (min-width: 900px) {
+  .ps-cookie__actions {
+    width: auto;
+    max-width: 34rem;
+    justify-content: flex-end;
+  }
+}
+
+.ps-cookie__copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.ps-cookie__detail {
+  margin-top: 0.85rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(124, 209, 190, 0.22);
+  background: rgba(255, 255, 255, 0.04);
+  display: grid;
+  gap: 0.55rem;
+}
+
+.ps-cookie__detail p {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.ps-cookie__actions-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.ps-cookie__actions-sep {
+  display: block;
+  width: 1px;
+  align-self: stretch;
+  min-height: 2rem;
+  background: rgba(255, 255, 255, 0.18);
+  flex-shrink: 0;
+}
+
+@media (max-width: 599px) {
+  .ps-cookie__actions-sep {
+    display: none;
+  }
+
+  .ps-cookie__actions-group {
+    width: 100%;
+  }
+
+  .ps-cookie__actions-group--accept {
+    padding-top: 0.35rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
 }
 
 .ps-cookie__actions button {
   font-family: var(--ps-body);
   border-radius: 999px;
+  padding: 0.5rem 0.95rem;
+  min-height: 2.25rem;
 }
 
 .ps-cookie__actions .btn--primary {

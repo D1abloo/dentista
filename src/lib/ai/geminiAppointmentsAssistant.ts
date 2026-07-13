@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI, SchemaType, type ResponseSchema } from '@google/generative-ai'
 import { z } from 'zod'
+import { getLearningContextSummary, recordConversationTurn } from '@/lib/ai/conversationLearning'
 import { logError } from '@/lib/logger'
 import { hasGeminiConfig } from '@/lib/ai/geminiBookingAssistant'
 
@@ -20,6 +21,9 @@ export const geminiAppointmentsIntentSchema = z.object({
     .default('unknown'),
   action: z.string().nullable().optional(),
   treatment: z.string().nullable().optional(),
+  treatment_id: z.string().uuid().nullable().optional(),
+  clinic_id: z.string().uuid().nullable().optional(),
+  professional_id: z.string().uuid().nullable().optional(),
   urgency: z.enum(['low', 'normal', 'high']).default('normal'),
   clinic_preference: z.string().nullable().optional(),
   professional_preference: z.string().nullable().optional(),
@@ -36,7 +40,8 @@ export const geminiAppointmentsIntentSchema = z.object({
   missing_fields: z.array(z.string()).default([]),
   assistant_message: z.string().min(1),
   should_fetch_availability: z.boolean().default(false),
-  severe_symptoms: z.boolean().default(false)
+  severe_symptoms: z.boolean().default(false),
+  user_message_summary: z.string().nullable().optional()
 })
 
 export type GeminiAppointmentsIntent = z.infer<typeof geminiAppointmentsIntentSchema>
@@ -53,14 +58,22 @@ You help users:
 - check appointments with email/DNI/NHC (check_appointments) — ask for one identifier only
 - contact the clinic (contact_clinic)
 
-Never invent appointment availability or existing appointments. Never show private data without verification.
-For review_appointments, next_appointment, cancel_appointment, reschedule_appointment, appointment_status: set requires_identity_verification=true until patient is verified.
+CRITICAL RULES:
+- Never invent appointment availability or existing appointments.
+- Never show private data without verification.
+- Map free-text to the catalog: use treatment_id, clinic_id, professional_id when you can match an item from the JSON catalog.
+- Understand synonyms and colloquial Spanish (ej. "limpieza" → Limpieza dental profesional, "blanquear" → Blanqueamiento LED, "me duele" → Urgencia dental).
+- Learn from conversation history and session patterns to infer intent even with short or informal messages.
+- When the user selects or mentions a catalog item, fill treatment_id/clinic_id/professional_id AND the human-readable name fields.
+- For review_appointments, next_appointment, cancel_appointment, reschedule_appointment, appointment_status: set requires_identity_verification=true until patient is verified.
+- assistant_message must guide the user and mention the next step; suggest tapping an option when missing_fields is not empty.
+- user_message_summary: one short Spanish phrase summarizing what the user meant (for learning).
 
 Return JSON only with all fields. Supported intents listed above.
 
 missing_fields examples: treatment, clinic_preference, professional_preference, date_preference, time_preference, patient_name, patient_email, patient_phone, patient_identity, appointment_selection.
 
-should_fetch_availability=true only for booking/reschedule when enough booking fields are known.`
+should_fetch_availability=true only for booking/reschedule when clinic_id, treatment_id and date_preference are known.`
 
 const RESPONSE_SCHEMA: ResponseSchema = {
   type: SchemaType.OBJECT,
@@ -68,6 +81,9 @@ const RESPONSE_SCHEMA: ResponseSchema = {
     intent: { type: SchemaType.STRING },
     action: { type: SchemaType.STRING, nullable: true },
     treatment: { type: SchemaType.STRING, nullable: true },
+    treatment_id: { type: SchemaType.STRING, nullable: true },
+    clinic_id: { type: SchemaType.STRING, nullable: true },
+    professional_id: { type: SchemaType.STRING, nullable: true },
     urgency: { type: SchemaType.STRING },
     clinic_preference: { type: SchemaType.STRING, nullable: true },
     professional_preference: { type: SchemaType.STRING, nullable: true },
@@ -84,7 +100,8 @@ const RESPONSE_SCHEMA: ResponseSchema = {
     missing_fields: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
     assistant_message: { type: SchemaType.STRING },
     should_fetch_availability: { type: SchemaType.BOOLEAN },
-    severe_symptoms: { type: SchemaType.BOOLEAN }
+    severe_symptoms: { type: SchemaType.BOOLEAN },
+    user_message_summary: { type: SchemaType.STRING, nullable: true }
   },
   required: [
     'intent',
@@ -104,8 +121,59 @@ function getModelName() {
   return env('GEMINI_MODEL') || 'gemini-2.5-flash'
 }
 
-function fallbackIntent(message: string): GeminiAppointmentsIntent {
+function normalize(text: string) {
+  return text
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .trim()
+}
+
+type CatalogTreatment = { id: string; name: string; clinic_id?: string }
+
+function matchTreatmentFromCatalog(
+  message: string,
+  treatments: CatalogTreatment[]
+): { name: string; id: string } | null {
+  const lower = normalize(message)
+  for (const t of treatments) {
+    const name = normalize(t.name)
+    if (lower.includes(name) || name.includes(lower)) return { name: t.name, id: t.id }
+  }
+  const synonyms: Array<{ re: RegExp; pick: (list: CatalogTreatment[]) => CatalogTreatment | undefined }> = [
+    { re: /limpieza|higiene|sarro/, pick: (list) => list.find((t) => /limpieza/i.test(t.name)) },
+    { re: /blanque|blanco|estetic/, pick: (list) => list.find((t) => /blanque/i.test(t.name)) },
+    { re: /revision|revisar|control|chequeo/, pick: (list) => list.find((t) => /revisi/i.test(t.name)) },
+    { re: /dolor|urgencia|muela|duele|emergencia/, pick: (list) => list.find((t) => /urgencia/i.test(t.name)) },
+    { re: /cita de (.+)/, pick: (list) => {
+      const m = lower.match(/cita de (.+)/)
+      if (!m?.[1]) return undefined
+      const q = normalize(m[1])
+      return list.find((t) => normalize(t.name).includes(q) || q.includes(normalize(t.name)))
+    }}
+  ]
+  for (const rule of synonyms) {
+    if (!rule.re.test(lower)) continue
+    const hit = rule.pick(treatments)
+    if (hit) return { name: hit.name, id: hit.id }
+  }
+  return null
+}
+
+function fallbackIntent(
+  message: string,
+  catalog?: { treatments?: CatalogTreatment[] }
+): GeminiAppointmentsIntent {
   const lower = message.toLowerCase()
+  const treatments = catalog?.treatments ?? []
+  const matched = matchTreatmentFromCatalog(message, treatments)
+
+  const baseExtras = {
+    treatment_id: matched?.id ?? null,
+    clinic_id: null,
+    professional_id: null,
+    user_message_summary: message.slice(0, 80)
+  }
 
   if (/ver mis citas|mis citas|revisar citas/.test(lower)) {
     return {
@@ -123,9 +191,10 @@ function fallbackIntent(message: string): GeminiAppointmentsIntent {
       requires_identity_verification: true,
       missing_fields: ['patient_identity'],
       assistant_message:
-        'Para proteger tus datos, necesito identificarte antes de mostrar tus citas.',
+        'Para proteger tus datos, necesito identificarte antes de mostrar tus citas. Puedes usar una de las opciones siguientes.',
       should_fetch_availability: false,
-      severe_symptoms: false
+      severe_symptoms: false,
+      ...baseExtras
     }
   }
 
@@ -147,7 +216,8 @@ function fallbackIntent(message: string): GeminiAppointmentsIntent {
       assistant_message:
         'Para proteger tus datos, necesito identificarte antes de mostrar tu próxima cita.',
       should_fetch_availability: false,
-      severe_symptoms: false
+      severe_symptoms: false,
+      ...baseExtras
     }
   }
 
@@ -168,7 +238,8 @@ function fallbackIntent(message: string): GeminiAppointmentsIntent {
       missing_fields: ['patient_identity', 'appointment_selection'],
       assistant_message: 'Para cancelar una cita, primero identifícate y selecciona la cita.',
       should_fetch_availability: false,
-      severe_symptoms: false
+      severe_symptoms: false,
+      ...baseExtras
     }
   }
 
@@ -189,7 +260,8 @@ function fallbackIntent(message: string): GeminiAppointmentsIntent {
       missing_fields: ['patient_identity', 'appointment_selection'],
       assistant_message: 'Selecciona la cita que quieres cambiar después de identificarte.',
       should_fetch_availability: false,
-      severe_symptoms: false
+      severe_symptoms: false,
+      ...baseExtras
     }
   }
 
@@ -210,61 +282,135 @@ function fallbackIntent(message: string): GeminiAppointmentsIntent {
       missing_fields: [],
       assistant_message: 'Puedes contactar con la clínica desde la página de contacto o por teléfono.',
       should_fetch_availability: false,
-      severe_symptoms: false
+      severe_symptoms: false,
+      ...baseExtras
     }
   }
 
-  if (/reservar.*(nueva )?cita|nueva cita|quiero (una )?cita|pedir cita/.test(lower)) {
+  if (/cualquier profesional|me da igual el profesional|sin preferencia de profesional/.test(lower)) {
     return {
       intent: 'book_appointment',
       action: 'book',
-      treatment: 'revisión',
+      treatment: matched?.name ?? null,
+      treatment_id: matched?.id ?? null,
+      clinic_id: null,
+      professional_id: null,
+      professional_preference: 'cualquier',
       urgency: 'normal',
       clinic_preference: null,
-      professional_preference: null,
-      date_preference: 'esta semana',
-      time_preference: 'any',
+      date_preference: /mañana/.test(lower) ? 'mañana' : /esta semana/.test(lower) ? 'esta semana' : 'esta semana',
+      time_preference: /tarde/.test(lower) ? 'afternoon' : /mañana/.test(lower) ? 'morning' : 'any',
       patient_name: null,
       patient_email: null,
       patient_phone: null,
       requires_identity_verification: false,
-      missing_fields: [],
-      assistant_message: 'Busco huecos disponibles esta semana. Elige el horario que prefieras:',
-      should_fetch_availability: true,
-      severe_symptoms: false
+      missing_fields: matched ? [] : ['treatment'],
+      assistant_message: matched
+        ? 'Perfecto. Busco huecos con cualquier profesional. Elige día u horario:'
+        : 'Elige primero el tratamiento que necesitas:',
+      should_fetch_availability: Boolean(matched),
+      severe_symptoms: false,
+      user_message_summary: 'Sin preferencia de profesional'
     }
   }
 
-  const treatment = /limpieza/.test(lower)
-    ? 'limpieza dental'
+  if (/reservar|nueva cita|quiero (una )?cita|pedir cita/.test(lower) && !matched) {
+    const names = treatments.map((t) => t.name).slice(0, 4).join(', ')
+    return {
+      intent: 'book_appointment',
+      action: 'book',
+      treatment: null,
+      treatment_id: null,
+      clinic_id: null,
+      professional_id: null,
+      urgency: 'normal',
+      clinic_preference: null,
+      professional_preference: null,
+      date_preference: null,
+      time_preference: null,
+      patient_name: null,
+      patient_email: null,
+      patient_phone: null,
+      requires_identity_verification: false,
+      missing_fields: ['treatment'],
+      assistant_message: names
+        ? `¿Qué tratamiento necesitas? Puedes elegir: ${names}.`
+        : '¿Qué tratamiento o motivo de la cita necesitas?',
+      should_fetch_availability: false,
+      severe_symptoms: false,
+      user_message_summary: 'Quiere reservar cita'
+    }
+  }
+
+  const treatmentName = matched?.name ?? (/limpieza/.test(lower)
+    ? treatments.find((t) => /limpieza/i.test(t.name))?.name ?? 'limpieza dental'
     : /revisión|revision/.test(lower)
-      ? 'revisión'
-      : /dolor|muela/.test(lower)
-        ? 'dolor dental'
-        : null
-  const date = /mañana/.test(lower) ? 'mañana' : /esta semana/.test(lower) ? 'esta semana' : null
+      ? treatments.find((t) => /revisi/i.test(t.name))?.name ?? 'revisión'
+      : /dolor|muela|urgencia/.test(lower)
+        ? treatments.find((t) => /urgencia/i.test(t.name))?.name ?? 'urgencia dental'
+        : /blanque/.test(lower)
+          ? treatments.find((t) => /blanque/i.test(t.name))?.name ?? null
+          : null)
+
+  const treatmentId =
+    matched?.id ??
+    (treatmentName ? treatments.find((t) => t.name === treatmentName)?.id ?? null : null)
+
+  const professionalPref = /prefiero cita con|con el doctor|con la doctora|con dr\.? /i.test(message)
+    ? message.replace(/.*prefiero cita con\s*/i, '').trim()
+    : /cualquier profesional|me da igual/.test(lower)
+      ? 'cualquier'
+      : null
+
+  const date = /hoy/.test(lower)
+    ? 'hoy'
+    : /mañana/.test(lower)
+      ? 'mañana'
+      : /proxima semana|próxima semana/.test(lower)
+        ? 'próxima semana'
+        : /esta semana|cuanto antes|lo antes posible/.test(lower)
+          ? 'esta semana'
+          : null
 
   return {
     intent: 'book_appointment',
     action: 'book',
-    treatment,
-    urgency: /dolor/.test(lower) ? 'high' : 'normal',
+    treatment: treatmentName,
+    treatment_id: treatmentId,
+    clinic_id: null,
+    professional_id: null,
+    urgency: /dolor|urgencia/.test(lower) ? 'high' : 'normal',
     clinic_preference: null,
-    professional_preference: null,
+    professional_preference: professionalPref,
     date_preference: date,
-    time_preference: /tarde/.test(lower) ? 'afternoon' : 'any',
+    time_preference: /por la tarde|tarde/.test(lower)
+      ? 'afternoon'
+      : /por la mañana|mañanas/.test(lower)
+        ? 'morning'
+        : 'any',
     patient_name: null,
     patient_email: null,
     patient_phone: null,
     requires_identity_verification: false,
-    missing_fields: treatment ? (date ? [] : ['date_preference']) : ['treatment'],
-    assistant_message: treatment
+    missing_fields: treatmentName
       ? date
-        ? 'Buscaré huecos disponibles. ¿Alguna preferencia de profesional?'
-        : '¿Qué día te viene mejor?'
-      : '¿Qué tratamiento o motivo de la cita necesitas?',
-    should_fetch_availability: Boolean(treatment && date),
-    severe_symptoms: false
+        ? professionalPref
+          ? []
+          : ['professional_preference']
+        : ['date_preference']
+      : ['treatment'],
+    assistant_message: treatmentName
+      ? date
+        ? professionalPref
+          ? 'Busco huecos disponibles. Elige el horario que prefieras:'
+          : '¿Tienes preferencia de profesional o te da igual?'
+        : '¿Qué día te viene mejor? Puedes elegir una opción:'
+      : treatments.length
+        ? `Elige un tratamiento de la lista o dime cuál necesitas: ${treatments.map((t) => t.name).join(', ')}.`
+        : '¿Qué tratamiento o motivo de la cita necesitas?',
+    should_fetch_availability: Boolean(treatmentName && date && (professionalPref === 'cualquier' || professionalPref)),
+    severe_symptoms: /dolor fuerte|no aguanto|sangra mucho/.test(lower),
+    user_message_summary: treatmentName ? `Cita de ${treatmentName}` : message.slice(0, 80)
   }
 }
 
@@ -272,10 +418,24 @@ export async function interpretAppointmentsMessage(input: {
   message: string
   conversation: Array<{ role: 'user' | 'assistant'; text: string }>
   catalogSummary: string
+  catalogJson?: string
   currentStateSummary: string
   identityVerified: boolean
-}): Promise<GeminiAppointmentsIntent> {
-  if (!hasGeminiConfig()) return fallbackIntent(input.message)
+  catalogTreatments?: CatalogTreatment[]
+}): Promise<{ intent: GeminiAppointmentsIntent; usedGemini: boolean }> {
+  const catalog = { treatments: input.catalogTreatments ?? [] }
+  if (!hasGeminiConfig()) {
+    const intent = fallbackIntent(input.message, catalog)
+    await recordConversationTurn({
+      userMessage: input.message,
+      intent: intent.intent,
+      treatmentLabel: intent.treatment,
+      matchedTreatmentId: intent.treatment_id,
+      usedGemini: false,
+      missingFields: intent.missing_fields
+    })
+    return { intent, usedGemini: false }
+  }
 
   try {
     const genAI = new GoogleGenerativeAI(env('GEMINI_API_KEY'))
@@ -291,31 +451,65 @@ export async function interpretAppointmentsMessage(input: {
 
     const prompt = [
       `Paciente verificado: ${input.identityVerified ? 'sí' : 'no'}`,
-      'Catálogo:',
-      input.catalogSummary,
-      'Estado:',
+      'Catálogo JSON (usa IDs exactos cuando coincidan):',
+      input.catalogJson ?? input.catalogSummary,
+      'Aprendizaje de sesión:',
+      getLearningContextSummary(),
+      'Estado actual:',
       input.currentStateSummary,
-      'Mensaje:',
+      'Mensaje del paciente:',
       input.message
     ].join('\n')
 
     const result = await model.generateContent({
       contents: [...history, { role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
-        temperature: 0.35,
+        temperature: 0.3,
         responseMimeType: 'application/json',
         responseSchema: RESPONSE_SCHEMA
       }
     })
 
     const parsed = geminiAppointmentsIntentSchema.safeParse(JSON.parse(result.response.text()))
-    if (!parsed.success) return fallbackIntent(input.message)
-    if (input.identityVerified && parsed.data.requires_identity_verification) {
-      return { ...parsed.data, requires_identity_verification: false }
+    if (!parsed.success) {
+      const intent = fallbackIntent(input.message, catalog)
+      await recordConversationTurn({
+        userMessage: input.message,
+        intent: intent.intent,
+        treatmentLabel: intent.treatment,
+        matchedTreatmentId: intent.treatment_id,
+        usedGemini: false,
+        missingFields: intent.missing_fields
+      })
+      return { intent, usedGemini: false }
     }
-    return parsed.data
+
+    let intent = parsed.data
+    if (input.identityVerified && intent.requires_identity_verification) {
+      intent = { ...intent, requires_identity_verification: false }
+    }
+
+    await recordConversationTurn({
+      userMessage: input.message,
+      intent: intent.intent,
+      treatmentLabel: intent.treatment,
+      matchedTreatmentId: intent.treatment_id,
+      usedGemini: true,
+      missingFields: intent.missing_fields
+    })
+
+    return { intent, usedGemini: true }
   } catch (error) {
     logError('gemini.appointments.call', error)
-    return fallbackIntent(input.message)
+    const intent = fallbackIntent(input.message, catalog)
+    await recordConversationTurn({
+      userMessage: input.message,
+      intent: intent.intent,
+      treatmentLabel: intent.treatment,
+      matchedTreatmentId: intent.treatment_id,
+      usedGemini: false,
+      missingFields: intent.missing_fields
+    })
+    return { intent, usedGemini: false }
   }
 }

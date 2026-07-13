@@ -2,7 +2,7 @@
 
 ## Objetivo del repositorio
 
-Construir **Dentista+ / AgendaClinic**, una app SaaS premium para gestión de citas dentales. Debe ser responsive 100%, operar en modo producción (Supabase, sesión real, persistencia de cada acción) y escalar con Astro, React, Supabase y Redis cache opcional.
+Construir **Dentista+ / AgendaClinic**, una app SaaS premium para gestión de citas dentales. Debe ser responsive 100%, operar en modo producción (PostgreSQL directo, sesión real, persistencia de cada acción) y escalar con Astro, React y Redis cache opcional.
 
 Incluye **asistente de citas con IA** (Gemini Pro en servidor): reserva pública, consulta de citas propias, próxima cita, reprogramación y cancelación con verificación de identidad.
 
@@ -18,9 +18,9 @@ Incluye **asistente de citas con IA** (Gemini Pro en servidor): reserva pública
 ## Reglas de trabajo
 
 1. Mantén TypeScript estricto.
-2. Modo demo desactivado en producción: no usar `localStorage` ni semillas ficticias como fuente de verdad; datos y acciones vía Supabase y APIs autenticadas.
+2. Modo demo desactivado en producción: no usar `localStorage` ni semillas ficticias como fuente de verdad; datos y acciones vía PostgreSQL y APIs autenticadas.
 3. Toda ruta API debe validar entrada con Zod.
-4. Toda consulta real a Supabase debe respetar `clinic_id` y políticas RLS.
+4. Toda consulta real a PostgreSQL debe respetar `clinic_id` y políticas RLS.
 5. No hardcodees secretos; usa `.env`.
 6. Mantén UX premium: cards redondeadas, estados visibles, responsive mobile-first.
 7. Antes de terminar una tarea, ejecuta o deja preparado:
@@ -37,7 +37,7 @@ Incluye **asistente de citas con IA** (Gemini Pro en servidor): reserva pública
 
 - Astro SSR para páginas y endpoints.
 - React para dashboards y componentes dinámicos.
-- Supabase Auth + PostgreSQL + RLS + Storage.
+- PostgreSQL directo (`pg`) + esquema `auth.users` con `pgcrypto`.
 - Redis cache opcional para métricas, disponibilidad y queries frecuentes.
 - Fallback de cache en memoria para desarrollo sin Redis.
 - Provider de notificaciones intercambiable: mock, WhatsApp, email, SMS.

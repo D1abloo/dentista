@@ -1,3 +1,4 @@
+import { openAiAppointmentsWidget } from '@/lib/public/aiWidget'
 import {
   ArrowRight,
   CalendarClock,
@@ -66,10 +67,14 @@ export function HeroSection({ onOpenDemo }: Props) {
             <button type="button" className="ac-btn ac-btn--outline ac-btn--pill" onClick={onOpenDemo}>
               Solicitar demo
             </button>
-            <a href="/citas-con-ia" className="ac-btn ac-btn--ghost ac-btn--pill">
-              Reservar con IA
+            <button
+              type="button"
+              className="ac-btn ac-btn--ghost ac-btn--pill"
+              onClick={() => openAiAppointmentsWidget()}
+            >
+              Reservar cita
               <ArrowRight className="h-4 w-4" aria-hidden />
-            </a>
+            </button>
           </div>
         </div>
         <div className="ac-hero__visual ac-reveal ac-reveal--4">

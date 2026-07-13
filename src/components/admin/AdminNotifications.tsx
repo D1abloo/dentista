@@ -37,6 +37,7 @@ import { useCountUp } from '@/hooks/useCountUp';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import type { ClinicNotification, ClinicNotificationCategory, NotificationPrefs } from '@/types/demo';
+import { AdminEmptyState, AdminFilterBar } from './ui';
 
 const FILTERS: { id: NotificationListFilter; label: string }[] = [
   { id: 'todas', label: 'Todas' },
@@ -263,32 +264,23 @@ export function AdminNotifications() {
         ))}
       </div>
 
-      <div className="ntf-chips-row">
-        {FILTERS.map((f) => (
-          <button
-            key={f.id}
-            type="button"
-            className={`ntf-chip${filter === f.id ? ' ntf-chip--active' : ''}`}
-            onClick={() => setFilter(f.id)}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
+      <AdminFilterBar options={FILTERS} value={filter} onChange={setFilter} ariaLabel="Filtrar notificaciones" />
 
       <div className="ntf-layout">
         <section className="ntf-list">
           {!ready ? (
             <div className="ntf-skeleton" />
           ) : filtered.length === 0 ? (
-            <div className="ntf-empty">
-              <Bell className="h-10 w-10 text-teal-600" />
-              <h2>No tienes notificaciones pendientes</h2>
-              <p>Cuando tus pacientes soliciten citas, realicen pagos, consulten documentos o haya facturas pendientes, aparecerán aquí.</p>
-              <button type="button" className="ntf-btn-primary" onClick={() => setConfigOpen(true)}>
-                Configurar avisos
-              </button>
-            </div>
+            <AdminEmptyState
+              title="No tienes notificaciones pendientes"
+              description="Cuando tus pacientes soliciten citas, realicen pagos, consulten documentos o haya facturas pendientes, aparecerán aquí."
+              icon={Bell}
+              action={
+                <button type="button" className="ntf-btn-primary" onClick={() => setConfigOpen(true)}>
+                  Configurar avisos
+                </button>
+              }
+            />
           ) : (
             filtered.map((n) => (
               <article

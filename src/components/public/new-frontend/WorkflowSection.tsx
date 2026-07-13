@@ -1,3 +1,4 @@
+import { openAiAppointmentsWidget } from '@/lib/public/aiWidget'
 import { ClipboardCheck, CreditCard, FileText, Stethoscope, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import { ResponsiveContainer } from './ResponsiveContainer'
@@ -7,12 +8,12 @@ const STEPS = [
     title: 'El paciente reserva',
     text: 'El paciente elige clínica, tratamiento, profesional, fecha y hora disponible.',
     Icon: UserRound,
-    mini: 'Reserva online · IA',
+    mini: 'Reserva online',
     previewTitle: 'Reserva online conectada con disponibilidad real',
     previewText:
       'AgendaClinic solo muestra huecos disponibles, respetando horarios, citas ocupadas, bloqueos y profesionales activos.',
     bullets: ['Disponibilidad real', 'Sin huecos duplicados', 'Bloqueos respetados', 'Confirmación automática o manual'],
-    cta: { href: '/citas-con-ia', label: 'Reservar con IA' }
+    cta: { label: 'Reservar cita', widget: true as const }
   },
   {
     title: 'La clínica organiza',
@@ -107,9 +108,15 @@ export function WorkflowSection() {
                 <li key={item}>{item}</li>
               ))}
             </ul>
-            <a href={preview.cta.href} className="ac-btn ac-btn--primary">
-              {preview.cta.label}
-            </a>
+            {'widget' in preview.cta ? (
+              <button type="button" className="ac-btn ac-btn--primary" onClick={() => openAiAppointmentsWidget()}>
+                {preview.cta.label}
+              </button>
+            ) : (
+              <a href={preview.cta.href} className="ac-btn ac-btn--primary">
+                {preview.cta.label}
+              </a>
+            )}
           </div>
           <div className="ac-workflow-preview__visual" role="img" aria-label={preview.previewTitle}>
             <div className="ac-workflow-preview__screen">

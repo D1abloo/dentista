@@ -1,6 +1,7 @@
-import { Menu, Sparkles, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { useEffect, useState, type MouseEvent } from 'react'
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo'
+import { openAiAppointmentsWidget } from '@/lib/public/aiWidget'
 import {
   PUBLIC_HEADER_CTA,
   PUBLIC_PRIMARY_NAV,
@@ -30,6 +31,12 @@ export function AppHeader({ onOpenDemo }: Props) {
   const isHome = pathname === '/' || pathname === ''
 
   const handleNavClick = (event: MouseEvent<HTMLAnchorElement>, href: string, sectionId?: string) => {
+    if (sectionId === 'citas-online') {
+      event.preventDefault()
+      openAiAppointmentsWidget()
+      setOpen(false)
+      return
+    }
     if (!sectionId || !isHome) return
     if (!href.startsWith('#')) return
     event.preventDefault()
@@ -37,7 +44,17 @@ export function AppHeader({ onOpenDemo }: Props) {
     setOpen(false)
   }
 
-  const lookupHref = isHome ? `#${PUBLIC_HEADER_CTA.lookup.sectionId}` : `/#${PUBLIC_HEADER_CTA.lookup.sectionId}`
+  const handleBookClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    openAiAppointmentsWidget()
+    setOpen(false)
+  }
+
+  const handleLookupClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    openAiAppointmentsWidget()
+    setOpen(false)
+  }
 
   return (
     <header className={`ac-header ac-header--docfav${scrolled ? ' is-scrolled' : ''}`}>
@@ -67,14 +84,13 @@ export function AppHeader({ onOpenDemo }: Props) {
         </nav>
 
         <div className="ac-header__actions">
-          <a href={lookupHref} className="ac-header__link">
+          <button type="button" className="ac-header__link" onClick={handleLookupClick}>
             {PUBLIC_HEADER_CTA.lookup.label}
-          </a>
+          </button>
           <LoginDropdown onNavigate={() => setOpen(false)} />
-          <a href={PUBLIC_HEADER_CTA.book.path} className="ac-btn ac-btn--primary">
-            <Sparkles className="h-4 w-4" aria-hidden />
+          <button type="button" className="ac-btn ac-btn--primary" onClick={handleBookClick}>
             {PUBLIC_HEADER_CTA.book.label}
-          </a>
+          </button>
           <button
             type="button"
             className="ac-header__menu-btn"
@@ -99,13 +115,15 @@ export function AppHeader({ onOpenDemo }: Props) {
                 </a>
               )
             })}
-            <a href={lookupHref}>{PUBLIC_HEADER_CTA.lookup.label}</a>
+            <button type="button" onClick={handleLookupClick}>
+              {PUBLIC_HEADER_CTA.lookup.label}
+            </button>
             <a href="/login/admin">Panel clínica</a>
             <a href="/platform/login">Plataforma</a>
             <div className="ac-header__mobile-cta">
-              <a href={PUBLIC_HEADER_CTA.book.path} className="ac-btn ac-btn--primary">
+              <button type="button" className="ac-btn ac-btn--primary" onClick={handleBookClick}>
                 {PUBLIC_HEADER_CTA.book.label}
-              </a>
+              </button>
               {onOpenDemo ? (
                 <button type="button" className="ac-btn ac-btn--secondary" onClick={onOpenDemo}>
                   Solicitar demo

@@ -56,7 +56,7 @@ function PatientPortalPhone() {
         </div>
         <footer className="ac-hero-phone__foot">
           <Sparkles className="h-3 w-3" aria-hidden />
-          Consulta con IA
+          Reservar cita
         </footer>
       </div>
     </div>

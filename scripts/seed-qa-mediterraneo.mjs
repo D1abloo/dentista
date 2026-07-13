@@ -4,27 +4,19 @@
  * Nombres comerciales del grupo Mediterráneo, sin compartir tenant_id.
  * Uso: npm run seed:qa-mediterraneo
  */
-import { createClient } from '@supabase/supabase-js';
+import { createDbClient } from './lib/db-client.mjs';
 import { loadEnvFile } from './lib/load-env.mjs';
 
 loadEnvFile();
 
-const url = process.env.SUPABASE_URL || process.env.PUBLIC_SUPABASE_URL;
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const PASSWORD = process.env.SUPER_ADMIN_PASSWORD || process.env.CLINIC_DEFAULT_PASSWORD;
 
-if (!url || !serviceKey) {
-  console.error('Faltan SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en .env');
-  process.exit(1);
-}
 if (!PASSWORD || PASSWORD.length < 6) {
   console.error('Define SUPER_ADMIN_PASSWORD o CLINIC_DEFAULT_PASSWORD (mín. 6 caracteres).');
   process.exit(1);
 }
 
-const db = createClient(url, serviceKey, {
-  auth: { autoRefreshToken: false, persistSession: false }
-});
+const db = createDbClient();
 
 const CLINICS = [
   { name: 'Clínica Dental Mediterráneo Centro', city: 'Valencia', phone: '+34 961 100 101', slugKey: 'mediterraneo-centro' },

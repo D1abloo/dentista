@@ -11,10 +11,12 @@ import { getStoredTenantId, settingsFor } from '@/lib/demoStore';
 import { AdminSearch } from './AdminSearch';
 import { adminNav } from './nav';
 import { adminCompactNav } from './adminCompactNav';
+import { adminCompactNavGroups, adminFullNavGroups, groupNavItems } from './admin-nav-groups';
 import { isNavItemVisible } from '@/lib/adminNav';
 import { useStaffContext } from '@/hooks/useStaffContext';
 import { ClinicBranchSwitcher } from './ClinicBranchSwitcher';
 import { AdminNotificationBell } from './AdminNotificationBell';
+import { PortalSwitcher } from '@/components/shared/PortalSwitcher';
 import { AdminTopbarUser } from './AdminTopbarUser';
 import { useAdminLiveRefresh } from '@/hooks/useAdminLiveRefresh';
 import { LogoMark } from '@/components/brand/Logo';
@@ -55,6 +57,7 @@ function AdminRail({
 }) {
   const navSource = compact ? adminCompactNav : adminNav;
   const visibleNav = navSource.filter((item) => isNavItemVisible(item.view, staffRole));
+  const navGroups = groupNavItems(visibleNav, compact ? adminCompactNavGroups : adminFullNavGroups);
   const cls =
     variant === 'drawer'
       ? `portal-rail portal-rail--admin portal-rail--drawer${compact ? ' portal-rail--compact' : ''}`
@@ -75,30 +78,40 @@ function AdminRail({
           <p className="admin-org-card__user">{userLabel}</p>
         </div>
       ) : null}
-      <nav className="portal-rail__nav flex-1 overflow-y-auto">
-        {visibleNav.map((item) => {
-          const active = path === item.href || (item.href !== '/admin' && path.startsWith(item.href));
-          const notify = item.view === 'notificaciones' && unreadNotifications > 0;
-          return (
-            <a
-              key={`${item.href}-${item.label}`}
-              href={item.href}
-              onClick={() => {
-                if (platformInspect) logInspectNav(item.href, item.label);
-                onNav();
-              }}
-              className={`rail-link rail-link--admin${active ? ' rail-link--active' : ''}${notify ? ' rail-link--has-unread' : ''}`}
-              title={item.label}
-            >
-              <span className="rail-link__icon-wrap">
-                <item.icon className="h-5 w-5" />
-                {notify ? <span className="rail-link__dot" aria-label="Avisos pendientes" /> : null}
-              </span>
-              <span className="rail-link__text">{item.label}</span>
-            </a>
-          );
-        })}
+      <nav className="portal-rail__nav admin-rail-nav flex-1 overflow-y-auto" aria-label="Navegación del panel">
+        {navGroups.map(({ group, items }) => (
+          <div key={group.id} className="admin-nav-group">
+            <p className="admin-nav-group__label">{group.label}</p>
+            <ul className="admin-nav-group__list">
+              {items.map((item) => {
+                const active = path === item.href || (item.href !== '/admin' && path.startsWith(item.href));
+                const notify = item.view === 'notificaciones' && unreadNotifications > 0;
+                return (
+                  <li key={`${item.href}-${item.label}`}>
+                    <a
+                      href={item.href}
+                      onClick={() => {
+                        if (platformInspect) logInspectNav(item.href, item.label);
+                        onNav();
+                      }}
+                      className={`rail-link rail-link--admin${active ? ' rail-link--active' : ''}${notify ? ' rail-link--has-unread' : ''}`}
+                      title={item.label}
+                      aria-current={active ? 'page' : undefined}
+                    >
+                      <span className="rail-link__icon-wrap">
+                        <item.icon className="h-5 w-5" />
+                        {notify ? <span className="rail-link__dot" aria-label="Avisos pendientes" /> : null}
+                      </span>
+                      <span className="rail-link__text">{item.label}</span>
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
       </nav>
+      <PortalSwitcher variant="rail" />
       <button type="button" className="admin-logout-btn mt-2" onClick={onLogout}>
         <LogOut className="h-4 w-4" /> Cerrar sesión
       </button>
@@ -272,6 +285,7 @@ export function AdminShell({
           )}
 
           <div className="admin-topbar__tools">
+            <PortalSwitcher />
             <AdminNotificationBell />
             {!dashboardToolbar ? (
               <div className="hidden md:block">

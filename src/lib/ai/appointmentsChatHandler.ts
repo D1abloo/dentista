@@ -5,6 +5,7 @@ import {
   resolveBookingContext
 } from '@/lib/ai/bookingIntentResolver'
 import { logAiBookingMonitor } from '@/lib/ai/bookingMonitoring'
+import { buildCatalogJson, buildSuggestedOptions, type SuggestedOption } from '@/lib/ai/suggestedOptions'
 import {
   getNextPatientAppointment,
   getPatientAppointments,
@@ -24,7 +25,7 @@ type AssistantState = z.infer<typeof aiAssistantStateSchema>
 
 export type AppointmentsChatResult = {
   assistantMessage: string
-  intent: Awaited<ReturnType<typeof interpretAppointmentsMessage>>
+  intent: Awaited<ReturnType<typeof interpretAppointmentsMessage>>['intent']
   mode: 'book' | 'manage' | 'help'
   activeTab: 'book' | 'mine' | 'change' | 'help'
   bookingState: AssistantState['bookingState']
@@ -36,6 +37,13 @@ export type AppointmentsChatResult = {
   requiresVerification: boolean
   lookupPerformed?: boolean
   requiresStrongVerification?: boolean
+  catalog?: {
+    clinics: Awaited<ReturnType<typeof getPublicClinics>>
+    treatments: Awaited<ReturnType<typeof getPublicTreatments>>
+    professionals: Awaited<ReturnType<typeof getPublicProfessionals>>
+  }
+  suggestedOptions: SuggestedOption[]
+  usedGemini?: boolean
 }
 
 function intentToTab(intent: string): AppointmentsChatResult['activeTab'] {
@@ -73,21 +81,27 @@ export async function handleAppointmentsChat(input: {
   message: string
   conversation: Array<{ role: 'user' | 'assistant'; text: string }>
   assistantState: AssistantState
+  selection?: {
+    clinicId?: string
+    treatmentId?: string
+    professionalId?: string
+  }
 }): Promise<AppointmentsChatResult> {
   const { bookingState, assistantContext } = input.assistantState
   const identityVerified = Boolean(assistantContext.verificationToken)
+  const selection = input.selection
 
   let clinics: Awaited<ReturnType<typeof getPublicClinics>> = []
   let treatments: Awaited<ReturnType<typeof getPublicTreatments>> = []
   let professionals: Awaited<ReturnType<typeof getPublicProfessionals>> = []
-  let clinicId = bookingState.clinicId
+  let clinicId = selection?.clinicId ?? bookingState.clinicId
 
   try {
     clinics = await getPublicClinics()
     if (!clinics.length) {
       throw new Error('No hay clínicas activas configuradas.')
     }
-    clinicId = bookingState.clinicId ?? clinics[0]?.id
+    clinicId = selection?.clinicId ?? bookingState.clinicId ?? clinics[0]?.id
     if (clinicId) {
       ;[treatments, professionals] = await Promise.all([
         getPublicTreatments(clinicId),
@@ -99,7 +113,7 @@ export async function handleAppointmentsChat(input: {
     const isConnection =
       /fetch failed|ENOTFOUND|ECONNREFUSED|Tenant\/user|not found/i.test(message)
     const hint = isConnection
-      ? ' El proyecto Supabase configurado no responde (revisa PUBLIC_SUPABASE_URL en .env).'
+      ? ' La base de datos no responde (revisa DATABASE_URL en .env).'
       : ''
     return {
       assistantMessage: `No puedo consultar la agenda en este momento.${hint} Puedes llamar a la clínica o usar el formulario de contacto.`,
@@ -129,18 +143,41 @@ export async function handleAppointmentsChat(input: {
       appointments: [],
       nextAppointment: null,
       readyForSummary: false,
-      requiresVerification: false
+      requiresVerification: false,
+      suggestedOptions: [],
+      catalog: { clinics: [], treatments: [], professionals: [] }
     }
   }
 
+  const catalogJson = buildCatalogJson({ clinics, treatments, professionals })
   const catalogSummary = [
     `Clínicas: ${clinics.map((c) => c.name).join(', ')}`,
     `Tratamientos: ${treatments.map((t) => t.name).join(', ') || '—'}`,
     `Profesionales: ${professionals.map((p) => p.fullName).join(', ') || '—'}`
   ].join('\n')
 
+  const seededBookingState = {
+    ...bookingState,
+    clinicId: selection?.clinicId ?? bookingState.clinicId,
+    treatmentId: selection?.treatmentId ?? bookingState.treatmentId,
+    professionalId: selection?.professionalId ?? bookingState.professionalId,
+    treatmentName:
+      selection?.treatmentId != null
+        ? treatments.find((t) => t.id === selection.treatmentId)?.name ?? bookingState.treatmentName
+        : bookingState.treatmentName,
+    professionalName:
+      selection?.professionalId != null
+        ? professionals.find((p) => p.id === selection.professionalId)?.fullName ??
+          bookingState.professionalName
+        : bookingState.professionalName,
+    clinicName:
+      selection?.clinicId != null
+        ? clinics.find((c) => c.id === selection.clinicId)?.name ?? bookingState.clinicName
+        : bookingState.clinicName
+  }
+
   const currentStateSummary = JSON.stringify({
-    bookingState,
+    bookingState: seededBookingState,
     assistantContext: {
       mode: assistantContext.mode,
       verified: identityVerified,
@@ -150,10 +187,12 @@ export async function handleAppointmentsChat(input: {
 
   await logAiBookingMonitor('ai.booking_started', {})
 
-  const intent = await interpretAppointmentsMessage({
+  const { intent, usedGemini } = await interpretAppointmentsMessage({
     message: input.message,
     conversation: input.conversation,
     catalogSummary,
+    catalogJson,
+    catalogTreatments: treatments.map((t) => ({ id: t.id, name: t.name, clinic_id: t.clinicId })),
     currentStateSummary,
     identityVerified
   })
@@ -195,7 +234,7 @@ export async function handleAppointmentsChat(input: {
         intent,
         mode: 'manage',
         activeTab: intent.intent === 'next_appointment' ? 'mine' : intentToTab(intent.intent),
-        bookingState,
+        bookingState: seededBookingState,
         assistantContext: {
           ...nextContext,
           mode: 'manage',
@@ -208,7 +247,18 @@ export async function handleAppointmentsChat(input: {
         readyForSummary: false,
         requiresVerification: lookup.requiresExtraVerification,
         lookupPerformed: true,
-        requiresStrongVerification: lookup.requiresStrongVerification
+        requiresStrongVerification: lookup.requiresStrongVerification,
+        catalog: { clinics, treatments, professionals },
+        suggestedOptions: buildSuggestedOptions({
+          mode: 'manage',
+          clinics,
+          treatments,
+          professionals,
+          bookingState: seededBookingState,
+          intent,
+          identityVerified: Boolean(lookup.verificationToken)
+        }),
+        usedGemini
       }
     } catch {
       /* continúa con flujo normal */
@@ -226,13 +276,24 @@ export async function handleAppointmentsChat(input: {
       intent,
       mode: 'manage',
       activeTab: activeTab === 'book' ? 'mine' : activeTab,
-      bookingState,
+      bookingState: seededBookingState,
       assistantContext: nextContext,
       slots: [],
       appointments: [],
       nextAppointment: null,
       readyForSummary: false,
-      requiresVerification: true
+      requiresVerification: true,
+      catalog: { clinics, treatments, professionals },
+      suggestedOptions: buildSuggestedOptions({
+        mode: 'manage',
+        clinics,
+        treatments,
+        professionals,
+        bookingState: seededBookingState,
+        intent,
+        identityVerified: false
+      }),
+      usedGemini
     }
   }
 
@@ -276,11 +337,14 @@ export async function handleAppointmentsChat(input: {
     professionalPreference: intent.professional_preference,
     datePreference: intent.date_preference,
     timePreference: intent.time_preference ?? undefined,
-    currentClinicId: bookingState.clinicId ?? clinicId
+    currentClinicId: seededBookingState.clinicId ?? clinicId,
+    clinicId: intent.clinic_id ?? selection?.clinicId ?? seededBookingState.clinicId,
+    treatmentId: intent.treatment_id ?? selection?.treatmentId ?? seededBookingState.treatmentId,
+    professionalId: intent.professional_id ?? selection?.professionalId ?? seededBookingState.professionalId
   })
 
   const nextBookingState = {
-    ...bookingState,
+    ...seededBookingState,
     clinicId: resolved.clinicId ?? bookingState.clinicId,
     clinicName: resolved.clinicName,
     treatmentId: resolved.treatmentId ?? bookingState.treatmentId,
@@ -295,7 +359,7 @@ export async function handleAppointmentsChat(input: {
     patientDni: intent.patient_dni ?? bookingState.patientDni,
     reason: intent.reason ?? bookingState.reason ?? intent.treatment ?? undefined,
     notes: intent.notes ?? bookingState.notes,
-    datePreferenceLabel: intent.date_preference ?? bookingState.datePreferenceLabel,
+    datePreferenceLabel: intent.date_preference ?? seededBookingState.datePreferenceLabel,
     timePreferenceLabel:
       intent.time_preference === 'morning'
         ? 'Por la mañana'
@@ -347,6 +411,17 @@ export async function handleAppointmentsChat(input: {
       patientPhone: nextBookingState.patientPhone
     })
 
+  const suggestedOptions = buildSuggestedOptions({
+    mode,
+    clinics,
+    treatments,
+    professionals,
+    bookingState: nextBookingState,
+    intent,
+    identityVerified,
+    hasSlots: slots.length > 0
+  })
+
   return {
     assistantMessage,
     intent,
@@ -362,7 +437,10 @@ export async function handleAppointmentsChat(input: {
     appointments,
     nextAppointment,
     readyForSummary,
-    requiresVerification: false
+    requiresVerification: false,
+    catalog: { clinics, treatments, professionals },
+    suggestedOptions,
+    usedGemini
   }
 }
 

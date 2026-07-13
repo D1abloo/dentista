@@ -3,6 +3,7 @@ import type { LucideIcon } from 'lucide-react';
 import { LogOut, Menu, Shield } from 'lucide-react';
 import { DentistaWebpLockup } from '@/components/brand/DentistaWebpLogo';
 import { useLogout } from '@/components/auth/RoleGate';
+import { PortalSwitcher } from '@/components/shared/PortalSwitcher';
 import { logPortalAudit, usePortalAccess } from '@/hooks/usePortalAccess';
 import { usePatient } from '@/hooks/usePatient';
 import { PatientIdentity } from './PatientIdentity';
@@ -116,9 +117,12 @@ export function PatientShell({
               <PatientIdentity patient={patient} size="sm" className="patient-topbar__identity" />
             </div>
           </div>
-          <button type="button" className="pub-menu-btn lg:hidden" onClick={() => setOpen(true)} aria-label="Menú">
-            <Menu className="h-5 w-5" />
-          </button>
+          <div className="patient-topbar__actions">
+            <PortalSwitcher />
+            <button type="button" className="pub-menu-btn lg:hidden" onClick={() => setOpen(true)} aria-label="Menú">
+              <Menu className="h-5 w-5" />
+            </button>
+          </div>
         </header>
         <main className="portal-body portal-body--corp portal-body--patient">
           {portalAccess.active ? (

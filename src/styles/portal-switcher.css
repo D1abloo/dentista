@@ -1,0 +1,250 @@
+/* Selector de portales — admin, paciente y plataforma (solo multi-rol / super admin) */
+
+.portal-switch {
+  position: relative;
+}
+
+.portal-switch__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0f2742;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(15, 39, 66, 0.06);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.portal-switch__trigger:hover:not(:disabled) {
+  border-color: rgba(13, 148, 136, 0.45);
+  background: rgba(13, 148, 136, 0.08);
+}
+
+.portal-switch__trigger:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.35);
+}
+
+.portal-switch__label {
+  max-width: 5.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.portal-switch__chev {
+  transition: transform 0.18s ease;
+  color: #64748b;
+}
+
+.portal-switch--open .portal-switch__chev {
+  transform: rotate(180deg);
+}
+
+.portal-switch__panel {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  z-index: 120;
+  width: min(92vw, 18.5rem);
+  padding: 0.65rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 12px 40px rgba(15, 39, 66, 0.14);
+  animation: portal-switch-in 0.2s ease both;
+}
+
+@keyframes portal-switch-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.portal-switch__panel-title {
+  margin: 0 0 0.45rem;
+  padding: 0 0.35rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.portal-switch__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.portal-switch__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.portal-switch__item:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.portal-switch__item--active {
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.12) 0%, rgba(21, 101, 168, 0.08) 100%);
+  border-color: rgba(13, 148, 136, 0.28);
+}
+
+.portal-switch__item-icon {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.65rem;
+  background: rgba(13, 148, 136, 0.12);
+  color: #0d9488;
+  flex-shrink: 0;
+}
+
+.portal-switch__item-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.portal-switch__item-text strong {
+  display: block;
+  font-size: 0.78rem;
+  color: #0f2742;
+}
+
+.portal-switch__item-text small {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.65rem;
+  line-height: 1.35;
+  color: #64748b;
+}
+
+.portal-switch__badge {
+  flex-shrink: 0;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(5, 150, 105, 0.12);
+  color: #059669;
+  font-size: 0.58rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Variante sidebar (panel clínica) */
+.portal-switch-rail {
+  margin: 0.65rem 0.5rem 0.35rem;
+  padding: 0.65rem;
+  border-radius: 12px;
+  border: 1px solid rgba(13, 148, 136, 0.22);
+  background: linear-gradient(145deg, rgba(13, 148, 136, 0.08) 0%, #ffffff 100%);
+}
+
+.portal-switch-rail__title {
+  margin: 0 0 0.45rem;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #0d9488;
+}
+
+.portal-switch-rail__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.portal-switch-rail__btn {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #0f2742;
+  font-size: 0.72rem;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.portal-switch-rail__btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: #e2e8f0;
+}
+
+.portal-switch-rail__btn--active {
+  background: #ffffff;
+  border-color: rgba(13, 148, 136, 0.35);
+  color: #0d9488;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.12);
+}
+
+.portal--platform .portal-switch__trigger,
+.portal--patient .portal-switch__trigger {
+  border-color: #dbeafe;
+}
+
+.portal--patient .patient-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.portal--patient .patient-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 639px) {
+  .portal-switch__label {
+    display: none;
+  }
+
+  .portal-switch__trigger {
+    padding: 0.45rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-switch__panel {
+    animation: none;
+  }
+}

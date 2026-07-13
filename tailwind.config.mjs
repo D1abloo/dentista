@@ -4,53 +4,48 @@ export default {
   theme: {
     extend: {
       colors: {
-        dental: {
-          50: '#effaff',
-          100: '#dcf5ff',
-          200: '#b8ebff',
-          300: '#7bddff',
-          400: '#35c7f4',
-          500: '#0eaddd',
-          600: '#0189bb',
-          700: '#066e97',
-          800: '#0b5c7d',
-          900: '#0e4c68',
-          950: '#082f43'
+        brand: {
+          50: '#ecfdf8',
+          100: '#d1faf0',
+          200: '#a7f3e0',
+          300: '#6ee7cb',
+          400: '#34d3b4',
+          500: '#14b8a0',
+          600: '#0d9488',
+          700: '#0f766e',
+          800: '#115e59',
+          900: '#134e4a',
+          950: '#042f2e'
         },
-        mint: '#2fd4a8',
-        ink: '#07142f'
+        ink: '#0c1222'
       },
       boxShadow: {
-        premium: '0 24px 80px rgba(7,20,47,0.10)',
-        card: '0 16px 45px rgba(15, 23, 42, 0.08)'
+        soft: '0 8px 30px rgb(12 18 34 / 0.08)',
+        lift: '0 20px 50px rgb(12 18 34 / 0.12)'
       },
       borderRadius: {
-        '3xl': '1.75rem'
+        '2xl': '1rem',
+        '3xl': '1.25rem'
       },
       fontFamily: {
-        sans: ['"DM Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['"Instrument Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         display: ['"Fraunces"', 'Georgia', 'serif']
       },
       animation: {
-        'fade-up': 'df-fade-up 0.42s cubic-bezier(0.22, 1, 0.36, 1) both',
-        'fade-in': 'df-fade-in 0.22s ease both',
-        'scale-in': 'df-scale-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both'
+        'fade-up': 'nx-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both',
+        'fade-in': 'nx-fade-in 0.25s ease both'
       },
       keyframes: {
-        'df-fade-up': {
-          from: { opacity: '0', transform: 'translateY(12px)' },
+        'nx-fade-up': {
+          from: { opacity: '0', transform: 'translateY(16px)' },
           to: { opacity: '1', transform: 'none' }
         },
-        'df-fade-in': {
+        'nx-fade-in': {
           from: { opacity: '0' },
           to: { opacity: '1' }
-        },
-        'df-scale-in': {
-          from: { opacity: '0', transform: 'scale(0.96) translateY(8px)' },
-          to: { opacity: '1', transform: 'none' }
         }
       }
     }
   },
   plugins: []
-};
+}

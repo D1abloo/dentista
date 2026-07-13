@@ -1,10 +1,24 @@
-export { LandingPage } from '@/components/public/LandingPage';
-export { PatientPortalPublicPage } from '@/components/public/PatientPortalPublicPage';
-export { LoginPage } from '@/components/auth/LoginPage';
-export { LoginHubPage } from '@/components/auth/LoginHubPage';
-export { UnifiedLoginPage } from '@/components/auth/UnifiedLoginPage';
-export { AdminLoginPage } from '@/components/auth/AdminLoginPage';
-export { PatientLoginPage } from '@/components/auth/PatientLoginPage';
-export { PatientApp } from '@/components/patient/PatientApp';
-export { AdminApp } from '@/components/admin/AdminApp';
-export { EnterPortalChoicePage } from '@/components/auth/EnterPortalChoicePage';
+export { LandingPage } from '@/frontend/features/public/LandingPage'
+export { CitasConIaPage } from '@/frontend/features/public/CitasConIaPage'
+export { ContactPage } from '@/frontend/features/public/ContactPage'
+export { HelpPage } from '@/frontend/features/public/HelpPage'
+export { LegalPage } from '@/frontend/features/public/LegalPage'
+export { PatientPortalPublicPage } from '@/frontend/features/public/PatientPortalPublicPage'
+
+export { LoginPage } from '@/components/auth/LoginPage'
+export { LoginHubPage } from '@/components/auth/LoginHubPage'
+export { UnifiedLoginPage, AdminLoginPage, PlatformLoginPage } from '@/frontend/features/auth/LoginPages'
+export { EnterPortalChoicePage } from '@/frontend/features/auth/EnterPortalChoicePage'
+export { PatientLoginPage } from '@/components/auth/PatientLoginPage'
+export { PatientRegistrationPage } from '@/components/auth/PatientRegistrationPage'
+export { ChangePasswordPage } from '@/components/auth/ChangePasswordPage'
+export { ActivationPage } from '@/components/auth/ActivationPage'
+export { ClinicRegistrationPage } from '@/components/public/ClinicRegistrationPage'
+
+export { PatientApp } from '@/frontend/features/patient/PatientApp'
+export { AdminApp } from '@/frontend/features/admin/AdminApp'
+export { PlatformApp } from '@/frontend/features/platform/PlatformApp'
+export { PlatformDashboard } from '@/frontend/features/platform/PlatformDashboard'
+
+export { ClinicCenterPickerPage } from '@/components/admin/ClinicCenterPickerPage'
+export { PortalAccessEntry } from '@/components/patient/PortalAccessEntry'

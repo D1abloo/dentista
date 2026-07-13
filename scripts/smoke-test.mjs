@@ -97,7 +97,7 @@ for (const path of panelPages) {
 }
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
-for (const dep of ['astro', 'react', '@supabase/supabase-js', 'ioredis', 'zod']) {
+for (const dep of ['astro', 'react', 'pg', 'ioredis', 'zod']) {
   if (!pkg.dependencies[dep]) {
     console.error(`Falta dependencia ${dep}`);
     process.exit(1);

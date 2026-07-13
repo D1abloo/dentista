@@ -80,7 +80,7 @@ export const DentalHeader = ({ onOpenDemo }: Props) => {
             {PUBLIC_HEADER_CTA.lookup.label}
           </a>
           <LoginDropdown onNavigate={() => setOpen(false)} />
-          <a href={PUBLIC_HEADER_CTA.book.path} className="adb-btn adb-btn--primary">
+          <a href={PUBLIC_HEADER_CTA.book.href} className="adb-btn adb-btn--primary">
             <Sparkles className="h-4 w-4" aria-hidden />
             {PUBLIC_HEADER_CTA.book.label}
           </a>
@@ -124,7 +124,7 @@ export const DentalHeader = ({ onOpenDemo }: Props) => {
               Panel clínica
             </a>
             <div className="adb-header__mobile-cta">
-              <a href={PUBLIC_HEADER_CTA.book.path} className="adb-btn adb-btn--primary">
+              <a href={PUBLIC_HEADER_CTA.book.href} className="adb-btn adb-btn--primary">
                 {PUBLIC_HEADER_CTA.book.label}
               </a>
               {onOpenDemo ? (

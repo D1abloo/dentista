@@ -1,59 +1,7 @@
 ---
-/**
- * Layout portales: admin, paciente, platform, login y rutas privadas.
- * Sin CSS de landing pública (ver PublicLayout.astro).
- */
+/** Layout portales v2 — admin, paciente, platform, login. */
 import '../styles/global.css';
-import '../styles/design-tokens-bridge.css';
-import '../styles/premium-design-system.css';
-import '../styles/dental-saas.css';
-import '../styles/app-ui.css';
-import '../styles/admin-topbar.css';
-import '../styles/agenda.css';
-import '../styles/help-hub.css';
-import '../styles/corporate-portals.css';
-import '../styles/patient-home.css';
-import '../styles/patient-book.css';
-import '../styles/patient-reports.css';
-import '../styles/patient-documents.css';
-import '../styles/patient-invoices.css';
-import '../styles/patient-payments.css';
-import '../styles/patient-history.css';
-import '../styles/patient-messages.css';
-import '../styles/patient-consents.css';
-import '../styles/patient-profile.css';
-import '../styles/patient-portal-unified.css';
-import '../styles/admin-clinical-ops.css';
-import '../styles/admin-dashboard.css';
-import '../styles/admin-agenda.css';
-import '../styles/admin-patients.css';
-import '../styles/admin-documents.css';
-import '../styles/admin-invoices.css';
-import '../styles/admin-payments.css';
-import '../styles/admin-reports.css';
-import '../styles/admin-clinical-reports.css';
-import '../styles/admin-settings.css';
-import '../styles/admin-notifications.css';
-import '../styles/admin-layout.css';
-import '../styles/platform-overview.css';
-import '../styles/platform-organizations.css';
-import '../styles/platform-clinics.css';
-import '../styles/platform-users.css';
-import '../styles/platform-incidents.css';
-import '../styles/platform-isolation.css';
-import '../styles/platform-registrations.css';
-import '../styles/platform-history.css';
-import '../styles/platform-subscriptions.css';
-import '../styles/platform-support.css';
-import '../styles/platform-metrics.css';
-import '../styles/platform-settings.css';
-import '../styles/platform-security.css';
-import '../styles/platform-audit.css';
-import '../styles/platform-monitoring.css';
-import '../styles/login-panels.css';
-import '../styles/platform-login.css';
-import '../styles/clinic-login.css';
-import { AiAppointmentsWidget } from '@/components/public/AiAppointmentsWidget';
+import '../styles/v2/index.css';
 import { isPrivatePath } from '@/lib/seo/siteConfig';
 import BaseLayout from './BaseLayout.astro';
 
@@ -62,5 +10,4 @@ const isPrivate = isPrivatePath(Astro.url.pathname);
 ---
 <BaseLayout {...props}>
   <slot />
-  {!isPrivate ? <AiAppointmentsWidget slot="body-end" client:load /> : null}
 </BaseLayout>

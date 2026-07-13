@@ -1,37 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
-import { isLocalPostgresMode, patchLocalAuthAdmin } from '@/lib/localPostgres/auth';
-
-/** Modo demo desactivado: persistencia y APIs siempre en Supabase cuando está configurado. */
-export const isDemoMode = () => false;
-
-const isConfiguredValue = (value: string | undefined) => Boolean(value && !value.includes('YOUR_') && !value.includes('YOUR_PROJECT'));
-
-export const isLocalPostgres = () => isLocalPostgresMode();
-
-export const hasSupabaseConfig = () =>
-  isConfiguredValue(import.meta.env.PUBLIC_SUPABASE_URL) &&
-  isConfiguredValue(import.meta.env.PUBLIC_SUPABASE_ANON_KEY) &&
-  isConfiguredValue(import.meta.env.SUPABASE_SERVICE_ROLE_KEY);
-
-export function getSupabaseAdmin() {
-  if (!hasSupabaseConfig()) {
-    throw new Error('Servicio no configurado. Completa las variables de entorno.');
-  }
-
-  const client = createClient(
-    import.meta.env.PUBLIC_SUPABASE_URL,
-    import.meta.env.SUPABASE_SERVICE_ROLE_KEY,
-    {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false
-      }
-    }
-  );
-
-  if (isLocalPostgres()) {
-    patchLocalAuthAdmin(client);
-  }
-
-  return client;
-}
+export {
+  getDbAdmin,
+  getSupabaseAdmin,
+  hasDatabaseConfig,
+  hasSupabaseConfig,
+  isDemoMode,
+  isLocalPostgres,
+  getPgPool
+} from '@/lib/db/client'

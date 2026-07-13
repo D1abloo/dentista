@@ -67,6 +67,8 @@ export function mapN8nResponseToChatResult(
     readyForSummary: Boolean(n8n.data?.readyForSummary),
     requiresVerification: Boolean(n8n.data?.requiresVerification),
     lookupPerformed: Boolean(n8n.data?.lookupPerformed),
-    requiresStrongVerification: Boolean(n8n.data?.requiresStrongVerification)
+    requiresStrongVerification: Boolean(n8n.data?.requiresStrongVerification),
+    suggestedOptions: [],
+    catalog: { clinics: [], treatments: [], professionals: [] }
   }
 }

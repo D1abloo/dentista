@@ -40,6 +40,7 @@ import { statusLabel, money } from '@/lib/format';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { useTenant } from '@/hooks/useTenant';
+import { AdminEmptyState } from './ui';
 import { Modal } from '@/components/ui';
 
 const TREAT_COLORS = ['#2d8b7d', '#22c55e', '#3b82f6', '#8b5cf6', '#f97316'];
@@ -270,13 +271,16 @@ export function AdminReports() {
             />
           </div>
         </header>
-        <div className="rep-empty">
-          <p>No hay datos para este periodo.</p>
-          <p>Prueba con otro rango de fechas o selecciona otra clínica.</p>
-          <button type="button" className="rep-btn-primary" style={{ marginTop: '0.75rem' }} onClick={clearFilters}>
-            Limpiar filtros
-          </button>
-        </div>
+        <AdminEmptyState
+          title="No hay datos para este periodo"
+          description="Prueba con otro rango de fechas o selecciona otra clínica."
+          icon={BarChart3}
+          action={
+            <button type="button" className="rep-btn-primary" onClick={clearFilters}>
+              Limpiar filtros
+            </button>
+          }
+        />
       </div>
     );
   }

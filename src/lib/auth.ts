@@ -145,16 +145,35 @@ export function loginDemoUser(_input: LoginInput): Omit<SessionUser, 'expiresAt'
 }
 
 export function loginSuperAdmin(input: LoginInput): Omit<SessionUser, 'expiresAt'> | null {
-  const email = import.meta.env.SUPER_ADMIN_EMAIL;
-  const password = import.meta.env.SUPER_ADMIN_PASSWORD;
+  const email = import.meta.env.SUPER_ADMIN_EMAIL ?? process.env.SUPER_ADMIN_EMAIL;
+  const password = import.meta.env.SUPER_ADMIN_PASSWORD ?? process.env.SUPER_ADMIN_PASSWORD;
   if (!email || !password) return null;
   if (input.role !== 'super_admin') return null;
   if (input.email !== email || input.password !== password) return null;
   return {
     role: 'super_admin',
     email,
-    name: import.meta.env.SUPER_ADMIN_NAME || 'Super Admin Dentista+',
+    name: import.meta.env.SUPER_ADMIN_NAME || process.env.SUPER_ADMIN_NAME || 'Super Admin Dentista+',
     sessionPortal: 'platform'
+  };
+}
+
+/** Super admin del .env entrando al panel clínica (sin depender de Supabase Auth/REST). */
+export function loginSuperAdminForClinicPanel(
+  input: LoginInput
+): Omit<SessionUser, 'expiresAt'> | null {
+  const email = import.meta.env.SUPER_ADMIN_EMAIL ?? process.env.SUPER_ADMIN_EMAIL;
+  const password = import.meta.env.SUPER_ADMIN_PASSWORD ?? process.env.SUPER_ADMIN_PASSWORD;
+  if (!email || !password) return null;
+  if (input.role !== 'admin') return null;
+  if (input.email.trim().toLowerCase() !== email.trim().toLowerCase() || input.password !== password) {
+    return null;
+  }
+  return {
+    role: 'super_admin',
+    email: email.trim().toLowerCase(),
+    name: import.meta.env.SUPER_ADMIN_NAME || process.env.SUPER_ADMIN_NAME || 'Super Admin Dentista+',
+    sessionPortal: 'clinic'
   };
 }
 

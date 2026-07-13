@@ -9,6 +9,7 @@ export type AiBookingMonitorEvent =
   | 'ai.appointment_confirmed'
   | 'ai.appointment_review'
   | 'ai.booking_failed'
+  | 'ai.conversation_turn'
 
 export async function logAiBookingMonitor(
   eventType: AiBookingMonitorEvent,

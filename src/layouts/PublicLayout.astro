@@ -1,26 +1,13 @@
 ---
-/** CSS público: marketing, legal, contacto, ayuda, portal público e IA. */
+/** Frontend v2 — CSS único + Tailwind (sin hojas legacy). */
 import '../styles/global.css';
-import '../styles/design-tokens-bridge.css';
-import '../styles/premium-design-system.css';
-import '../styles/app-ui.css';
-import '../styles/public-front.css';
-import '../styles/public-site.css';
-import '../styles/ac-public-premium.css';
-import '../styles/ac-clinical-editorial.css';
-import '../styles/ac-docfav-landing.css';
-import '../styles/patient-portal-public.css';
-import '../styles/help-hub.css';
-import '../styles/login-panels.css';
-import '../styles/clinic-login.css';
-import '../styles/landing-pro.css';
-import '../styles/ai-booking.css';
-import { AiAppointmentsWidget } from '@/components/public/AiAppointmentsWidget';
+import '../styles/v2/index.css';
+import { AiWidgetV2 } from '@/frontend/features/ai/AiWidgetV2';
 import BaseLayout from './BaseLayout.astro';
 
 const props = Astro.props;
 ---
 <BaseLayout {...props}>
   <slot />
-  <AiAppointmentsWidget slot="body-end" client:load />
+  <AiWidgetV2 slot="body-end" client:load />
 </BaseLayout>

@@ -13,11 +13,11 @@ const FAQS = [
   },
   {
     q: '¿Hay prueba gratuita para evaluar el software?',
-    a: 'Sí. Puedes solicitar una demo o prueba gratuita para probar agenda, portal del paciente, informes, facturación y el asistente de citas con IA antes de contratar.'
+    a: 'Sí. Puedes solicitar una demo o prueba gratuita para probar agenda, portal del paciente, informes y facturación antes de contratar.'
   },
   {
-    q: '¿El asistente de citas con IA inventa huecos o citas?',
-    a: 'No. El asistente consulta disponibilidad real del backend y nunca expone datos sensibles sin verificación. Gemini Pro opera solo en servidor.'
+    q: '¿El asistente de citas inventa huecos o citas?',
+    a: 'No. El asistente consulta disponibilidad real del backend y nunca expone datos sensibles sin verificación. La inteligencia artificial opera solo en servidor.'
   },
   {
     q: '¿Funciona en móvil y tablet?',

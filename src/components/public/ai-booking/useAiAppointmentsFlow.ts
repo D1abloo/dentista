@@ -1,6 +1,11 @@
+import { buildSuggestedOptions, type SuggestedOption } from '@/lib/ai/suggestedOptions'
+import type {
+  PublicBookingClinic,
+  PublicBookingProfessional,
+  PublicBookingTreatment
+} from '@/lib/services/publicAiBooking'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { validatePatientForm } from './patientValidation'
-import { AI_APPOINTMENTS_QUICK_REPLIES } from './quickReplies'
 import type {
   AssistantContext,
   AssistantMode,
@@ -18,7 +23,7 @@ import type { PatientFormErrors } from './patientValidation'
 export { AI_APPOINTMENTS_QUICK_REPLIES, AI_BOOKING_QUICK_REPLIES } from './quickReplies'
 
 export const AI_APPOINTMENTS_INITIAL_MESSAGE =
-  'Hola, soy el asistente de AgendaClinic. Puedo ayudarte a reservar una cita, revisar tus citas actuales o cambiar una cita existente. ¿Qué necesitas hacer?'
+  'Hola, soy el asistente de AgendaClinic. Puedo ayudarte a reservar, consultar o cambiar tu cita sin escribir mucho: elige una opción de la lista o dime qué necesitas.'
 
 const WELCOME_MESSAGE_ID = 'assistant-welcome'
 
@@ -67,12 +72,22 @@ export function useAiAppointmentsFlow(options: Options = {}) {
   const [showAllSlots, setShowAllSlots] = useState(false)
   const [successKind, setSuccessKind] = useState<SuccessKind>(null)
   const [rescheduleMode, setRescheduleMode] = useState(false)
+  const [catalog, setCatalog] = useState<{
+    clinics: PublicBookingClinic[]
+    treatments: PublicBookingTreatment[]
+    professionals: PublicBookingProfessional[]
+  }>({ clinics: [], treatments: [], professionals: [] })
+  const [suggestedOptions, setSuggestedOptions] = useState<SuggestedOption[]>([])
 
   const identityVerified = Boolean(assistantContext.verificationToken)
   const hasFullVerification = assistantContext.verificationScope === 'full'
 
   const handleSendMessage = useCallback(
-    async (value: string, tabOverride?: AssistantTab) => {
+    async (
+      value: string,
+      tabOverride?: AssistantTab,
+      selection?: { clinicId?: string; treatmentId?: string; professionalId?: string }
+    ) => {
       const text = (value ?? '').trim()
       if (!text) return
 
@@ -90,6 +105,7 @@ export function useAiAppointmentsFlow(options: Options = {}) {
           body: JSON.stringify({
             message: text,
             conversation: nextConversation.map((entry) => ({ role: entry.role, text: entry.text })),
+            selection,
             assistantState: {
               bookingState: {
                 ...bookingState,
@@ -124,6 +140,8 @@ export function useAiAppointmentsFlow(options: Options = {}) {
         setSlots((payload?.slots ?? []) as SlotOption[])
         setAppointments((payload?.appointments ?? []) as PatientAppointment[])
         setNextAppointment(payload?.nextAppointment ?? null)
+        if (payload?.catalog) setCatalog(payload.catalog)
+        setSuggestedOptions((payload?.suggestedOptions ?? []) as SuggestedOption[])
 
         if (payload?.requiresStrongVerification) {
           setNeedsStrongVerification(true)
@@ -143,6 +161,12 @@ export function useAiAppointmentsFlow(options: Options = {}) {
 
         if (payload?.slots?.length) {
           setStatus('showing_slots')
+        } else if (
+          payload?.intent?.should_fetch_availability &&
+          payload?.bookingState?.treatmentId &&
+          !payload?.slots?.length
+        ) {
+          setStatus('no_availability')
         } else if (payload?.appointments?.length) {
           setStatus('showing_existing_appointments')
         } else if (payload?.nextAppointment) {
@@ -164,6 +188,17 @@ export function useAiAppointmentsFlow(options: Options = {}) {
       }
     },
     [activeTab, assistantContext, bookingState, messages, mode, selectedAppointment, selectedSlot]
+  )
+
+  const handleSelectOption = useCallback(
+    (option: SuggestedOption) => {
+      void handleSendMessage(option.message, undefined, {
+        clinicId: option.clinicId,
+        treatmentId: option.treatmentId,
+        professionalId: option.professionalId
+      })
+    },
+    [handleSendMessage]
   )
 
   const handleLookupAppointments = useCallback(async () => {
@@ -502,6 +537,8 @@ export function useAiAppointmentsFlow(options: Options = {}) {
     setShowAllSlots(false)
     setSuccessKind(null)
     setRescheduleMode(false)
+    setCatalog({ clinics: [], treatments: [], professionals: [] })
+    setSuggestedOptions([])
   }, [])
 
   const handleRetry = useCallback(() => {
@@ -515,6 +552,30 @@ export function useAiAppointmentsFlow(options: Options = {}) {
     void handleSendMessage(query)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options.initialQuery])
+
+  useEffect(() => {
+    fetch('/api/public/ai-booking')
+      .then((res) => res.json())
+      .then((json) => {
+        const data = json.data
+        if (!data?.clinics?.length) return
+        const nextCatalog = {
+          clinics: data.clinics as PublicBookingClinic[],
+          treatments: (data.treatments ?? []) as PublicBookingTreatment[],
+          professionals: (data.professionals ?? []) as PublicBookingProfessional[]
+        }
+        setCatalog(nextCatalog)
+        setSuggestedOptions(
+          buildSuggestedOptions({
+            mode: 'book',
+            ...nextCatalog,
+            bookingState: {},
+            welcome: true
+          })
+        )
+      })
+      .catch(() => undefined)
+  }, [])
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -586,7 +647,10 @@ export function useAiAppointmentsFlow(options: Options = {}) {
     successKind,
     rescheduleMode,
     showHelpCard,
+    catalog,
+    suggestedOptions,
     handleSendMessage,
+    handleSelectOption,
     handleVerifyIdentity,
     handleSelectAppointment,
     handleStartReschedule,

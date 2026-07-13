@@ -79,20 +79,40 @@ export function resolveBookingContext(input: {
   datePreference?: string | null
   timePreference?: string | null
   currentClinicId?: string
+  clinicId?: string | null
+  treatmentId?: string | null
+  professionalId?: string | null
 }): ResolvedBookingContext {
+  const clinicById = input.clinicId
+    ? input.clinics.find((c) => c.id === input.clinicId)
+    : undefined
+
   const clinic =
+    clinicById ??
     fuzzyMatchName(input.clinicPreference, input.clinics.map((c) => ({ id: c.id, name: c.name }))) ??
     (input.currentClinicId ? input.clinics.find((c) => c.id === input.currentClinicId) : input.clinics[0])
 
-  const treatment = fuzzyMatchName(
-    input.treatmentQuery,
-    input.treatments.map((t) => ({ id: t.id, name: t.name }))
-  )
+  const treatmentById = input.treatmentId
+    ? input.treatments.find((t) => t.id === input.treatmentId)
+    : undefined
 
-  const professional = fuzzyMatchName(
-    input.professionalPreference,
-    input.professionals.map((p) => ({ id: p.id, name: p.fullName }))
-  )
+  const treatment =
+    treatmentById ??
+    fuzzyMatchName(
+      input.treatmentQuery,
+      input.treatments.map((t) => ({ id: t.id, name: t.name }))
+    )
+
+  const professionalById = input.professionalId
+    ? input.professionals.find((p) => p.id === input.professionalId)
+    : undefined
+
+  const professional =
+    professionalById ??
+    fuzzyMatchName(
+      input.professionalPreference,
+      input.professionals.map((p) => ({ id: p.id, name: p.fullName }))
+    )
 
   const clinicRow =
     clinic ??
@@ -106,7 +126,10 @@ export function resolveBookingContext(input: {
     treatmentId: treatment?.id,
     treatmentName: treatment?.name,
     professionalId: professional?.id,
-    professionalName: professional?.name,
+    professionalName:
+      professional && 'fullName' in professional
+        ? professional.fullName
+        : professional?.name,
     dateRange: resolveDateRange(input.datePreference),
     preferredTime: resolvePreferredTime(input.timePreference)
   }

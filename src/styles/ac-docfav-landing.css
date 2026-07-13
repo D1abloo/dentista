@@ -870,3 +870,103 @@
     right: 0;
   }
 }
+
+/* —— Promo IA (sin chat embebido) —— */
+.ac-ai-promo__card {
+  display: grid;
+  gap: 1.5rem;
+  align-items: center;
+  padding: clamp(1.25rem, 2.5vw, 1.75rem);
+  border: 1px solid var(--df-line);
+  border-radius: 1.15rem;
+  background: linear-gradient(135deg, #fff 0%, #f0fdfa 100%);
+}
+
+.ac-ai-promo__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.ac-ai-promo__visual {
+  display: none;
+}
+
+.ac-ai-promo__mock {
+  position: relative;
+  min-height: 14rem;
+  border-radius: 1rem;
+  background: linear-gradient(160deg, #ecfdf5 0%, #f8fafc 100%);
+  border: 1px dashed rgba(13, 148, 136, 0.25);
+}
+
+.ac-ai-promo__mock-panel {
+  position: absolute;
+  right: 1.5rem;
+  bottom: 3.5rem;
+  width: 72%;
+  padding: 0.85rem;
+  border-radius: 0.85rem;
+  background: #fff;
+  border: 1px solid var(--df-line);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.1);
+  animation: ac-showcase-rise 0.6s ease both;
+}
+
+.ac-ai-promo__mock-panel header {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--df-teal-dark);
+}
+
+.ac-ai-promo__mock-panel p {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  color: var(--df-muted);
+}
+
+.ac-ai-promo__mock-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.55rem;
+}
+
+.ac-ai-promo__mock-chips span {
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: rgba(13, 148, 136, 0.1);
+  color: var(--df-teal-dark);
+}
+
+.ac-ai-promo__mock-fab {
+  position: absolute;
+  right: 0.85rem;
+  bottom: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(135deg, #14b8a6, var(--df-teal-dark));
+  box-shadow: 0 12px 28px rgba(13, 148, 136, 0.35);
+}
+
+@media (min-width: 900px) {
+  .ac-ai-promo__card {
+    grid-template-columns: 1fr 0.9fr;
+  }
+
+  .ac-ai-promo__visual {
+    display: block;
+  }
+}

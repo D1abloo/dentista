@@ -14,6 +14,7 @@ import { ExternalLink, LogOut, Menu, Shield } from 'lucide-react';
 import { LogoMark } from '@/components/brand/Logo';
 import { BRAND_NAME, BRAND_TAGLINE_PLATFORM } from '@/lib/brand/identity';
 import { useLogout } from '@/components/auth/RoleGate';
+import { PortalSwitcher } from '@/components/shared/PortalSwitcher';
 import { platformNavSections } from './nav';
 
 export function PlatformShell({ title, subtitle, headerActions, children, hideHeader, exclusiveSidebarFooter }: PlatformShellProps) {
@@ -105,6 +106,7 @@ export function PlatformShell({ title, subtitle, headerActions, children, hideHe
               {subtitle ? <p className="portal-top__sub">{subtitle}</p> : null}
             </div>
             <div className="plt-top__right">
+              <PortalSwitcher />
               {headerActions}
               <a href="/platform/configuracion" className="plt-btn plt-btn--ghost plt-btn--sm no-underline hidden sm:inline-flex">
                 Configuración

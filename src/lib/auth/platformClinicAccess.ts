@@ -75,10 +75,19 @@ export async function loginPlatformAppAdminForClinicPanel(
   identity: AuthenticatedIdentity
 ): Promise<Omit<SessionUser, 'expiresAt'> | null> {
   if (!hasSupabaseConfig()) return null;
-  if (!(await isPlatformAppAdminAuthUser(identity.authUserId))) return null;
+  const envAdmin = isEnvSuperAdminEmail(identity.email);
+  const tableAdmin = await isPlatformAppAdminAuthUser(identity.authUserId);
+  if (!envAdmin && !tableAdmin) return null;
   const db = getSupabaseAdmin();
 
-  const platformSession = await loginPlatformAdmin(db, identity.authUserId, identity.email);
+  const platformSession = envAdmin
+    ? {
+        role: 'super_admin' as const,
+        email: identity.email,
+        name: import.meta.env.SUPER_ADMIN_NAME || process.env.SUPER_ADMIN_NAME || 'Super Admin',
+        sessionPortal: 'platform' as const
+      }
+    : await loginPlatformAdmin(db, identity.authUserId, identity.email);
   if (!platformSession) return null;
 
   const staffRow = pickProfileForLogin(identity.profiles, 'admin');

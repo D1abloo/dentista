@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --nx-brand-50: #ecfdf8;
+    --nx-brand-100: #d1faf0;
+    --nx-brand-200: #a7f3e0;
+    --nx-brand-300: #6ee7cb;
+    --nx-brand-400: #34d3b4;
+    --nx-brand-500: #14b8a0;
+    --nx-brand-600: #0d9488;
+    --nx-brand-700: #0f766e;
+    --nx-brand-800: #115e59;
+    --nx-brand-900: #134e4a;
+
+    --nx-ink: #0c1222;
+    --nx-ink-muted: #475569;
+    --nx-ink-subtle: #64748b;
+    --nx-surface: #ffffff;
+    --nx-surface-raised: #f8fafc;
+    --nx-surface-sunken: #f1f5f9;
+    --nx-border: #e2e8f0;
+    --nx-border-strong: #cbd5e1;
+
+    --nx-radius-sm: 0.5rem;
+    --nx-radius-md: 0.75rem;
+    --nx-radius-lg: 1rem;
+    --nx-radius-xl: 1.25rem;
+    --nx-radius-2xl: 1.5rem;
+
+    --nx-shadow-sm: 0 1px 2px rgb(12 18 34 / 0.05);
+    --nx-shadow-md: 0 8px 24px rgb(12 18 34 / 0.08);
+    --nx-shadow-lg: 0 20px 50px rgb(12 18 34 / 0.12);
+
+    --nx-focus: 0 0 0 3px rgb(20 184 162 / 0.35);
+    --nx-font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    --nx-font-display: 'Fraunces', Georgia, serif;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    @apply bg-white text-slate-900 antialiased;
+    font-family: var(--nx-font-sans);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--nx-brand-500);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: rgb(20 184 162 / 0.2);
+  }
+}
+
+@layer components {
+  .nx-skip {
+    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:shadow-lg;
+  }
+}

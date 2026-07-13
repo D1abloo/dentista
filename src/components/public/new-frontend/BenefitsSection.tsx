@@ -31,7 +31,7 @@ const BENEFITS = [
   },
   {
     title: 'Reservas sin llamadas',
-    text: 'Portal y asistente IA para que el paciente reserve, cambie o confirme su cita 24/7.',
+    text: 'Portal y asistente para que el paciente reserve, cambie o confirme su cita 24/7.',
     Icon: Sparkles
   },
   {
@@ -47,8 +47,9 @@ type Props = {
 
 export function BenefitsSection({ onOpenDemo }: Props) {
   return (
-    <section className="ac-section ac-section--tint" aria-labelledby="ac-benefits-title">
+    <section className="ac-section ac-section--tint" id="citas-online" aria-labelledby="ac-benefits-title">
       <ResponsiveContainer wide>
+        <div id="consulta-cita" className="ac-benefits-anchor" aria-hidden />
         <header className="ac-section__head ac-section__head--center">
           <h2 id="ac-benefits-title">Lo que cambia cuando gestionas tu clínica desde un único programa</h2>
         </header>

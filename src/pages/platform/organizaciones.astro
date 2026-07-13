@@ -1,11 +1,7 @@
 ---
-
 import AppLayout from '@/layouts/AppLayout.astro';
-import { PlatformOrganizations } from '@/components/platform/PlatformOrganizations';
-import { PlatformGate } from '@/components/platform/PlatformGate';
+import { PlatformApp } from '@/components/DentistaApp';
 ---
 <AppLayout title="Organizaciones · Plataforma AgendaClinic">
-  <PlatformGate client:load>
-    <PlatformOrganizations client:load />
-  </PlatformGate>
+  <PlatformApp view="organizaciones" client:load />
 </AppLayout>

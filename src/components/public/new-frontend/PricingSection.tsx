@@ -25,11 +25,11 @@ const PLANS: Array<{
     key: 'profesional',
     title: 'Profesional',
     price: 'Desde 149€/mes',
-    desc: 'Gestión completa con IA, informes, documentos y facturación integrada.',
+    desc: 'Gestión completa con informes, documentos y facturación integrada.',
     cta: 'Probar 14 días gratis',
     demoPlan: 'pro_clinica',
     featured: true,
-    bullets: ['Asistente IA de citas', 'Informes y documentos', 'Facturación y pagos', 'Soporte prioritario']
+    bullets: ['Asistente de citas', 'Informes y documentos', 'Facturación y pagos', 'Soporte prioritario']
   },
   {
     key: 'multi-sede',

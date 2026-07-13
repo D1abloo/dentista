@@ -1,11 +1,11 @@
 ---
 import PublicLayout from '@/layouts/PublicLayout.astro';
-import { HelpCenterPage } from '@/components/help/HelpCenterPage';
+import { HelpPage } from '@/components/DentistaApp';
 import { publicBreadcrumb } from '@/lib/seo/breadcrumbs';
 import { seoLayoutProps } from '@/lib/seo/layoutProps';
 
 const seo = seoLayoutProps('/ayuda');
 ---
 <PublicLayout {...seo} structuredData={publicBreadcrumb({ name: 'Centro de ayuda', path: '/ayuda' })}>
-  <HelpCenterPage client:load />
+  <HelpPage client:load />
 </PublicLayout>

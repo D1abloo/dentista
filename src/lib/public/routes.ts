@@ -13,9 +13,11 @@ export const PUBLIC_PRIMARY_NAV: PublicNavItem[] = [
   { label: 'Ayuda', type: 'path', path: '/ayuda' }
 ]
 
+export const PUBLIC_WIDGET_CITAS_HREF = '#widget-citas' as const
+
 export const PUBLIC_HEADER_CTA = {
   lookup: { label: 'Consultar cita', sectionId: 'consulta-cita' },
-  book: { label: 'Reservar cita', path: '/citas-con-ia' }
+  book: { label: 'Reservar cita', href: PUBLIC_WIDGET_CITAS_HREF }
 } as const
 
 export type PublicFooterColumn = {
@@ -27,10 +29,9 @@ export const PUBLIC_FOOTER_COLUMNS: PublicFooterColumn[] = [
   {
     title: 'Producto',
     links: [
-      { label: 'Citas online', href: '/citas-con-ia' },
+      { label: 'Reservar cita', href: PUBLIC_WIDGET_CITAS_HREF },
       { label: 'Agenda clínica', href: '/login/admin' },
       { label: 'Portal paciente', href: '/portal-paciente' },
-      { label: 'Citas con IA', href: '/citas-con-ia' },
       { label: 'Informes', href: '/login/admin' },
       { label: 'Facturación', href: '/login/admin' }
     ]
@@ -38,10 +39,10 @@ export const PUBLIC_FOOTER_COLUMNS: PublicFooterColumn[] = [
   {
     title: 'Para pacientes',
     links: [
-      { label: 'Reservar cita', href: '/citas-con-ia' },
-      { label: 'Consultar cita', href: '/#consulta-cita' },
-      { label: 'Cambiar cita', href: '/citas-con-ia' },
-      { label: 'Cancelar cita', href: '/citas-con-ia' },
+      { label: 'Reservar cita', href: PUBLIC_WIDGET_CITAS_HREF },
+      { label: 'Consultar cita', href: PUBLIC_WIDGET_CITAS_HREF },
+      { label: 'Cambiar cita', href: PUBLIC_WIDGET_CITAS_HREF },
+      { label: 'Cancelar cita', href: PUBLIC_WIDGET_CITAS_HREF },
       { label: 'Portal paciente', href: '/portal-paciente' }
     ]
   },

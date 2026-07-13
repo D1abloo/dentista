@@ -901,6 +901,14 @@
   line-height: 1.3;
 }
 
+.agd-event__time-range {
+  display: block;
+  margin-top: 0.12rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #475569;
+}
+
 .agd-event__head-actions {
   display: flex;
   align-items: center;

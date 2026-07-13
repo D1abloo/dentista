@@ -6,23 +6,14 @@
  * Uso: npm run seed:clinics-network
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createDbClient } from './lib/db-client.mjs';
 import { loadEnvFile } from './lib/load-env.mjs';
 
 loadEnvFile();
 
-const url = process.env.SUPABASE_URL || process.env.PUBLIC_SUPABASE_URL;
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const PASSWORD = process.env.CLINIC_DEFAULT_PASSWORD || process.env.SUPER_ADMIN_PASSWORD || 'DemoClinic2026!';
 
-if (!url || !serviceKey) {
-  console.error('Faltan SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en .env');
-  process.exit(1);
-}
-
-const db = createClient(url, serviceKey, {
-  auth: { autoRefreshToken: false, persistSession: false }
-});
+const db = createDbClient();
 
 const STANDALONE = [
   { slug: 'demo-alba-dental', name: 'Clínica Dental Alba', city: 'Zaragoza', dr: ['Dra. Elena Alba', 'Dr. Pablo Mora'] },

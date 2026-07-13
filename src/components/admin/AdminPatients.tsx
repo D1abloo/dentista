@@ -37,6 +37,7 @@ import { Button, Field, Input, Modal, Textarea } from '@/components/ui';
 import { formatNhcDisplay } from '@/lib/nhc';
 import { CreatePatientModal } from './CreatePatientModal';
 import { ImportPatientsModal } from './ImportPatientsModal';
+import { AdminEmptyState } from './ui';
 
 function initials(name: string) {
   return name
@@ -350,7 +351,16 @@ export function AdminPatients() {
               </article>
             ))
           ) : (
-            <p className="pt-empty">No hay pacientes que coincidan con la búsqueda o el filtro.</p>
+            <AdminEmptyState
+              title="Sin pacientes en este listado"
+              description="No hay pacientes que coincidan con la búsqueda o el filtro activo. Prueba otro término o crea un nuevo expediente."
+              icon={Users}
+              action={
+                <Button type="button" onClick={() => setCreateOpen(true)}>
+                  <Plus className="h-4 w-4" /> Nuevo paciente
+                </Button>
+              }
+            />
           )}
         </div>
 

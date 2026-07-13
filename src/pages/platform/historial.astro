@@ -1,11 +1,7 @@
 ---
-
 import AppLayout from '@/layouts/AppLayout.astro';
-import { PlatformRegistrationHistory } from '@/components/platform/PlatformRegistrationHistory';
-import { PlatformGate } from '@/components/platform/PlatformGate';
+import { PlatformApp } from '@/components/DentistaApp';
 ---
 <AppLayout title="Historial · Plataforma AgendaClinic">
-  <PlatformGate client:load>
-    <PlatformRegistrationHistory client:load />
-  </PlatformGate>
+  <PlatformApp view="historial" client:load />
 </AppLayout>

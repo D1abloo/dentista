@@ -34,7 +34,7 @@ export const adminCompactNav: AdminCompactNavItem[] = [
   { href: '/admin/profesionales', label: 'Perfiles', icon: UserRound, view: 'profesionales' },
   { href: '/admin/facturas', label: 'Facturación', icon: Receipt, view: 'facturas' },
   { href: '/admin/pagos', label: 'Pagos', icon: CreditCard, view: 'pagos' },
-  { href: '/admin/reportes', label: 'Estadísticas', icon: BarChart3, view: 'reportes' },
+  { href: '/admin/reportes', label: 'Reportes', icon: BarChart3, view: 'reportes' },
   { href: '/admin/notificaciones', label: 'Notificaciones', icon: Bell, view: 'notificaciones' },
   { href: '/admin/configuracion', label: 'Ajustes', icon: Settings, view: 'configuracion' }
 ];

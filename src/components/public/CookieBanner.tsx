@@ -1,29 +1,29 @@
-import { useEffect, useState } from 'react';
-import { STORAGE_COOKIES } from '@/lib/storage/keys';
+import { useEffect, useState } from 'react'
+import { STORAGE_COOKIES } from '@/lib/storage/keys'
 
-type Pref = 'accepted' | 'rejected' | 'essential';
+type Pref = 'accepted' | 'rejected' | 'essential'
 
 export function CookieBanner() {
-  const [pref, setPref] = useState<Pref | null>(null);
-  const [configOpen, setConfigOpen] = useState(false);
+  const [pref, setPref] = useState<Pref | null>(null)
+  const [configOpen, setConfigOpen] = useState(false)
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_COOKIES) as Pref | null;
-    if (saved) setPref(saved);
-  }, []);
+    const saved = localStorage.getItem(STORAGE_COOKIES) as Pref | null
+    if (saved) setPref(saved)
+  }, [])
 
-  function save(value: Pref) {
-    localStorage.setItem(STORAGE_COOKIES, value);
-    setPref(value);
-    setConfigOpen(false);
+  const save = (value: Pref) => {
+    localStorage.setItem(STORAGE_COOKIES, value)
+    setPref(value)
+    setConfigOpen(false)
   }
 
-  if (pref) return null;
+  if (pref) return null
 
   return (
     <div className="ps-cookie" role="dialog" aria-label="Preferencias de cookies" aria-modal="false">
       <div className="ps-shell ps-cookie__inner">
-        <div>
+        <div className="ps-cookie__copy">
           <p className="ps-cookie__title">Tu privacidad en AgendaClinic</p>
           <p className="ps-cookie__text">
             Usamos cookies y almacenamiento local estrictamente necesarios para la sesión, la seguridad y recordar esta
@@ -31,9 +31,9 @@ export function CookieBanner() {
             <a href="/cookies">política de cookies</a> y la <a href="/privacidad">política de privacidad</a>.
           </p>
           {configOpen ? (
-            <div className="lp-cookie__detail" style={{ marginTop: '0.65rem', fontSize: '0.75rem', opacity: 0.85 }}>
+            <div className="ps-cookie__detail">
               <p>
-                <strong>Aceptar:</strong> cookies esenciales y, cuando existan, cookies de mejora autorizadas.
+                <strong>Aceptar todas:</strong> cookies esenciales y, cuando existan, cookies de mejora autorizadas.
               </p>
               <p>
                 <strong>Solo esenciales:</strong> sesión, preferencia de cookies y funciones imprescindibles.
@@ -44,21 +44,34 @@ export function CookieBanner() {
             </div>
           ) : null}
         </div>
-        <div className="ps-cookie__actions">
-          <button type="button" className="btn btn--ghost btn--sm" onClick={() => setConfigOpen((v) => !v)}>
-            {configOpen ? 'Ocultar' : 'Personalizar'}
-          </button>
-          <button type="button" className="btn btn--outline btn--sm" onClick={() => save('rejected')}>
-            Rechazar opcionales
-          </button>
-          <button type="button" className="btn btn--outline btn--sm" onClick={() => save('essential')}>
-            Solo esenciales
-          </button>
-          <button type="button" className="btn btn--primary btn--sm" onClick={() => save('accepted')}>
-            Aceptar todas
-          </button>
+
+        <div className="ps-cookie__actions" role="group" aria-label="Acciones de cookies">
+          <div className="ps-cookie__actions-group ps-cookie__actions-group--config">
+            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setConfigOpen((v) => !v)}>
+              {configOpen ? 'Ocultar opciones' : 'Personalizar'}
+            </button>
+          </div>
+
+          <span className="ps-cookie__actions-sep" aria-hidden />
+
+          <div className="ps-cookie__actions-group ps-cookie__actions-group--reject">
+            <button type="button" className="btn btn--outline btn--sm" onClick={() => save('rejected')}>
+              Rechazar opcionales
+            </button>
+            <button type="button" className="btn btn--outline btn--sm" onClick={() => save('essential')}>
+              Solo esenciales
+            </button>
+          </div>
+
+          <span className="ps-cookie__actions-sep" aria-hidden />
+
+          <div className="ps-cookie__actions-group ps-cookie__actions-group--accept">
+            <button type="button" className="btn btn--primary btn--sm" onClick={() => save('accepted')}>
+              Aceptar todas
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  );
+  )
 }

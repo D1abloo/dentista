@@ -1,3 +1,4 @@
+import { openAiAppointmentsWidget } from '@/lib/public/aiWidget'
 import { ResponsiveContainer } from './ResponsiveContainer'
 
 type Props = {
@@ -14,9 +15,9 @@ export function FinalCTA({ onOpenDemo }: Props) {
           <button type="button" className="ac-btn ac-btn--secondary ac-btn--pill" onClick={onOpenDemo}>
             Empezar ahora gratis
           </button>
-          <a href="/citas-con-ia" className="ac-btn ac-btn--ghost ac-btn--pill">
-            Reservar con IA
-          </a>
+          <button type="button" className="ac-btn ac-btn--ghost ac-btn--pill" onClick={() => openAiAppointmentsWidget()}>
+            Reservar cita
+          </button>
           <a href="/#planes" className="ac-btn ac-btn--ghost ac-btn--pill">
             Ver planes
           </a>

@@ -1,19 +1,21 @@
 import type { SessionUser } from '@/lib/auth';
 import type { ClinicProfileRow } from '@/lib/auth/profilePick';
 import { isPatientActivated } from '@/lib/auth/patientActivation';
+import { authenticateSuperAdminEnvFallback } from '@/lib/auth/superAdminCredentials';
+import {
+  isPlatformAppAdminAuthUser,
+  isPlatformAppAdminEmail
+} from '@/lib/auth/platformClinicAccess';
 import { getSupabaseAdmin, hasSupabaseConfig } from '@/lib/supabaseServer';
 import { signInWithEmailPassword } from '@/lib/supabaseAuth';
 
 const STAFF_ROLES = new Set(['admin', 'owner', 'clinic_admin', 'dentist', 'receptionist']);
 
-export type PortalChoiceId = 'admin' | 'patient' | 'platform';
+import type { PortalChoiceOption } from '@/lib/auth/portalSwitcherOptions';
+import { SUPER_ADMIN_PORTAL_OPTIONS } from '@/lib/auth/portalSwitcherOptions';
 
-export type PortalChoiceOption = {
-  id: PortalChoiceId;
-  label: string;
-  description: string;
-  href: string;
-};
+export type { PortalChoiceId, PortalChoiceOption } from '@/lib/auth/portalSwitcherOptions';
+export { SUPER_ADMIN_PORTAL_OPTIONS };
 
 export type AuthenticatedIdentity = {
   authUserId: string;
@@ -25,8 +27,21 @@ export async function authenticateCredentials(
   email: string,
   password: string
 ): Promise<AuthenticatedIdentity | null> {
-  const { data: authData, error } = await signInWithEmailPassword(email, password);
-  if (error || !authData.user) return null;
+  let authData: { user: { id: string } | null } | null = null
+  let error: { message?: string } | null = null
+  try {
+    const result = await signInWithEmailPassword(email, password)
+    authData = result.data
+    error = result.error
+  } catch (err) {
+    error = { message: err instanceof Error ? err.message : 'Error de autenticación' }
+  }
+
+  if (error || !authData?.user) {
+    const envIdentity = await authenticateSuperAdminEnvFallback(email, password)
+    if (envIdentity) return envIdentity
+    return null
+  }
 
   const admin = getSupabaseAdmin();
   const { data: profiles, error: profileError } = await admin
@@ -62,7 +77,12 @@ export async function listPortalChoices(identity: AuthenticatedIdentity): Promis
     .eq('active', true)
     .maybeSingle();
 
-  if (platformRow) {
+  const isPlatformAdmin =
+    Boolean(platformRow) ||
+    (await isPlatformAppAdminAuthUser(identity.authUserId)) ||
+    (await isPlatformAppAdminEmail(identity.email));
+
+  if (isPlatformAdmin) {
     options.push({
       id: 'platform',
       label: 'Plataforma AgendaClinic',
@@ -74,7 +94,7 @@ export async function listPortalChoices(identity: AuthenticatedIdentity): Promis
   const staff = identity.profiles.filter((p) => STAFF_ROLES.has(p.role));
   const patients = identity.profiles.filter((p) => p.role === 'patient' && isPatientActivated(p));
 
-  if (platformRow) {
+  if (isPlatformAdmin) {
     options.push({
       id: 'admin',
       label: 'Panel administrativo',
@@ -107,6 +127,43 @@ export async function listPortalChoices(identity: AuthenticatedIdentity): Promis
     break;
   }
 
+  return options;
+}
+
+export async function isPlatformAdminIdentity(identity: AuthenticatedIdentity): Promise<boolean> {
+  const admin = getSupabaseAdmin();
+  const { data: platformRow } = await admin
+    .from('platform_admins')
+    .select('id')
+    .eq('auth_user_id', identity.authUserId)
+    .eq('active', true)
+    .maybeSingle();
+
+  return (
+    Boolean(platformRow) ||
+    (await isPlatformAppAdminAuthUser(identity.authUserId)) ||
+    (await isPlatformAppAdminEmail(identity.email))
+  );
+}
+
+/** Selector multi-portal: super admin, admin plataforma o usuario con ≥2 portales. */
+export async function canUsePortalSwitcher(
+  user: SessionUser,
+  identity: AuthenticatedIdentity | null
+): Promise<boolean> {
+  if (user.role === 'super_admin') return true;
+  if (!identity) return false;
+  if (await isPlatformAdminIdentity(identity)) return true;
+  const options = await listPortalChoices(identity);
+  return options.length >= 2;
+}
+
+export function resolvePortalSwitcherOptions(
+  user: SessionUser,
+  options: PortalChoiceOption[]
+): PortalChoiceOption[] {
+  if (options.length >= 2) return options;
+  if (user.role === 'super_admin') return SUPER_ADMIN_PORTAL_OPTIONS;
   return options;
 }
 

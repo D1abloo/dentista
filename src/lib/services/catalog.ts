@@ -1,6 +1,7 @@
 import { addMinutes, formatISO, parseISO } from 'date-fns';
 import { adminModules, availabilitySlots, clinicLocations, dentists, integrations, patients, rolePermissions, rooms, systemLogs, treatments } from '../data';
 import { getCached, invalidateCache } from '../cache';
+import { resolveClinicId } from './clinicIdResolve';
 import { getSupabaseAdmin, hasSupabaseConfig, isDemoMode } from '../supabaseServer';
 import type { AdminModule, AvailabilitySlot, ClinicLocation, Dentist, Integration, Patient, RolePermission, Room, SystemLog, Treatment } from '../types';
 import type { AvailabilityQuery, PatientQuery } from '../validators';
@@ -60,14 +61,15 @@ export async function createTreatmentRecord(input: {
 }
 
 export async function listTreatments(clinicId: string): Promise<Treatment[]> {
-  return getCached(`clinic:${clinicId}:treatments`, ttl(), async () => {
+  const resolvedId = await resolveClinicId(clinicId)
+  return getCached(`clinic:${resolvedId}:treatments`, ttl(), async () => {
     if (isDemoMode() || !hasSupabaseConfig()) return treatments.filter((item) => item.clinicId === clinicId);
 
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
       .from('treatments')
       .select('id, clinic_id, name, duration_minutes, price_cents, category, description')
-      .eq('clinic_id', clinicId)
+      .eq('clinic_id', resolvedId)
       .eq('active', true)
       .order('name');
 
@@ -86,14 +88,15 @@ export async function listTreatments(clinicId: string): Promise<Treatment[]> {
 }
 
 export async function listDentists(clinicId: string): Promise<Dentist[]> {
-  return getCached(`clinic:${clinicId}:dentists`, ttl(), async () => {
+  const resolvedId = await resolveClinicId(clinicId)
+  return getCached(`clinic:${resolvedId}:dentists`, ttl(), async () => {
     if (isDemoMode() || !hasSupabaseConfig()) return dentists.filter((item) => item.clinicId === clinicId);
 
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
       .from('dentists')
       .select('id, clinic_id, name, specialty, rating, reviews_count, active')
-      .eq('clinic_id', clinicId)
+      .eq('clinic_id', resolvedId)
       .eq('active', true)
       .order('name');
 
@@ -113,10 +116,11 @@ export async function listDentists(clinicId: string): Promise<Dentist[]> {
 }
 
 export async function listRooms(clinicId: string): Promise<Room[]> {
+  const resolvedId = await resolveClinicId(clinicId)
   if (isDemoMode() || !hasSupabaseConfig()) return rooms.filter((item) => item.clinicId === clinicId);
 
   const supabase = getSupabaseAdmin();
-  const { data, error } = await supabase.from('rooms').select('id, clinic_id, name, active').eq('clinic_id', clinicId).order('name');
+  const { data, error } = await supabase.from('rooms').select('id, clinic_id, name, active').eq('clinic_id', resolvedId).order('name');
   if (error) throw error;
   return (data ?? []).map((row) => ({
     id: row.id,
@@ -128,13 +132,14 @@ export async function listRooms(clinicId: string): Promise<Room[]> {
 }
 
 export async function listLocations(clinicId: string): Promise<ClinicLocation[]> {
-  return getCached(`clinic:${clinicId}:locations`, ttl(), async () => {
+  const resolvedId = await resolveClinicId(clinicId)
+  return getCached(`clinic:${resolvedId}:locations`, ttl(), async () => {
     if (isDemoMode() || !hasSupabaseConfig()) return clinicLocations.filter((item) => item.clinicId === clinicId);
 
-    const rooms = await listRooms(clinicId);
+    const rooms = await listRooms(resolvedId);
     return rooms.map((room, index) => ({
       id: room.id,
-      clinicId,
+      clinicId: resolvedId,
       name: `Clínica ${index + 1}`,
       shortName: (['Centro', 'Norte', 'Sur'][index] ?? 'Centro') as ClinicLocation['shortName'],
       address: 'Configura la dirección en ajustes de clínica',

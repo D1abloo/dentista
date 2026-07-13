@@ -1,0 +1,551 @@
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/**
+ * Dentista+ — Admin design system
+ * Capa visual unificada para el panel clínico (SaaS médico premium).
+ */
+
+.portal--admin {
+  --adm-bg: #f4f7fb;
+  --adm-surface: #ffffff;
+  --adm-surface-muted: #f8fafc;
+  --adm-border: #e2e8f0;
+  --adm-border-strong: #cbd5e1;
+  --adm-text: #0f2742;
+  --adm-text-muted: #64748b;
+  --adm-teal: #0d9488;
+  --adm-teal-soft: rgba(13, 148, 136, 0.1);
+  --adm-blue: #1565a8;
+  --adm-blue-soft: rgba(21, 101, 168, 0.1);
+  --adm-amber: #d97706;
+  --adm-amber-soft: rgba(217, 119, 6, 0.12);
+  --adm-green: #059669;
+  --adm-green-soft: rgba(5, 150, 105, 0.12);
+  --adm-red: #dc2626;
+  --adm-red-soft: rgba(220, 38, 38, 0.1);
+  --adm-purple: #7c3aed;
+  --adm-purple-soft: rgba(124, 58, 237, 0.1);
+  --adm-shadow-sm: 0 1px 2px rgba(15, 39, 66, 0.05);
+  --adm-shadow: 0 4px 18px rgba(15, 39, 66, 0.07);
+  --adm-shadow-lg: 0 12px 40px rgba(15, 39, 66, 0.1);
+  --adm-radius: 14px;
+  --adm-radius-sm: 10px;
+  --adm-focus: 0 0 0 3px rgba(13, 148, 136, 0.35);
+}
+
+.portal--admin:not(.portal--admin-compact) {
+  --admin-rail-w: 15.25rem;
+}
+
+.portal--admin .portal-body {
+  background:
+    radial-gradient(ellipse 80% 50% at 100% 0%, rgba(13, 148, 136, 0.04), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 0% 100%, rgba(21, 101, 168, 0.03), transparent 50%),
+    var(--adm-bg);
+}
+
+/* —— Sidebar agrupada —— */
+.admin-rail-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-right: 0.15rem;
+  scrollbar-width: thin;
+}
+
+.admin-nav-group {
+  margin-bottom: 0.15rem;
+}
+
+.admin-nav-group__label {
+  margin: 0.55rem 0.35rem 0.25rem;
+  padding: 0 0.35rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.admin-nav-group__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+.portal-rail--compact .admin-nav-group__label {
+  font-size: 0.58rem;
+  margin-top: 0.45rem;
+}
+
+.portal--admin .rail-link--admin {
+  border-radius: var(--adm-radius-sm);
+  border: 1px solid transparent;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.15s ease;
+}
+
+.portal--admin .rail-link--admin:hover:not(.rail-link--active) {
+  background: rgba(255, 255, 255, 0.65);
+  border-color: var(--adm-border);
+}
+
+.portal--admin .rail-link--admin.rail-link--active {
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.14) 0%, rgba(21, 101, 168, 0.08) 100%);
+  border-color: rgba(13, 148, 136, 0.25);
+  box-shadow: var(--adm-shadow-sm);
+  font-weight: 600;
+}
+
+.portal--admin .rail-link--admin:focus-visible {
+  outline: none;
+  box-shadow: var(--adm-focus);
+}
+
+.portal--admin .admin-org-card {
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius);
+  box-shadow: var(--adm-shadow-sm);
+}
+
+/* —— Page header (módulos) —— */
+.adm-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  margin-bottom: var(--admin-gap, 0.65rem);
+}
+
+.adm-page-header__crumb {
+  margin: 0 0 0.15rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--adm-teal);
+}
+
+.adm-page-header__title {
+  margin: 0;
+  font-family: 'Fraunces', var(--display), Georgia, serif;
+  font-size: clamp(1.15rem, 2vw, 1.45rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--adm-text);
+  line-height: 1.15;
+}
+
+.adm-page-header__sub {
+  margin: 0.25rem 0 0;
+  max-width: 42rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--adm-text-muted);
+}
+
+.adm-page-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* —— Section cards —— */
+.adm-section {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius);
+  box-shadow: var(--adm-shadow-sm);
+  overflow: hidden;
+}
+
+.adm-section__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem 0.75rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--adm-border);
+  background: linear-gradient(180deg, #ffffff 0%, var(--adm-surface-muted) 100%);
+}
+
+.adm-section__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--adm-text);
+}
+
+.adm-section__sub {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  color: var(--adm-text-muted);
+}
+
+.adm-section__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.adm-section__body {
+  padding: 0.85rem 1rem 1rem;
+}
+
+.adm-section__body--flush {
+  padding: 0;
+}
+
+/* —— KPI cards (reutilizable) —— */
+.portal--admin .adm-kpi {
+  animation: adm-fade-up 0.45s ease both;
+}
+
+@keyframes adm-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* —— Filter bar —— */
+.adm-filter-bar {
+  margin-bottom: 0.65rem;
+}
+
+.adm-filter-bar__scroll {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.adm-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--adm-border);
+  border-radius: 999px;
+  background: var(--adm-surface);
+  color: var(--adm-text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.adm-filter-chip:hover {
+  border-color: var(--adm-border-strong);
+  color: var(--adm-text);
+}
+
+.adm-filter-chip:focus-visible {
+  outline: none;
+  box-shadow: var(--adm-focus);
+}
+
+.adm-filter-chip--active {
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.12) 0%, rgba(21, 101, 168, 0.08) 100%);
+  border-color: rgba(13, 148, 136, 0.35);
+  color: var(--adm-teal);
+}
+
+.adm-filter-chip--danger.adm-filter-chip--active {
+  background: var(--adm-red-soft);
+  border-color: rgba(220, 38, 38, 0.35);
+  color: var(--adm-red);
+}
+
+.adm-filter-chip__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: rgba(15, 39, 66, 0.08);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.adm-filter-chip--active .adm-filter-chip__count {
+  background: rgba(13, 148, 136, 0.18);
+}
+
+/* —— Status badges —— */
+.adm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.adm-badge--dot::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.adm-badge--neutral {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.adm-badge--info {
+  background: var(--adm-blue-soft);
+  color: var(--adm-blue);
+}
+
+.adm-badge--success,
+.adm-badge--paid {
+  background: var(--adm-green-soft);
+  color: var(--adm-green);
+}
+
+.adm-badge--warning,
+.adm-badge--pending {
+  background: var(--adm-amber-soft);
+  color: var(--adm-amber);
+}
+
+.adm-badge--danger,
+.adm-badge--overdue {
+  background: var(--adm-red-soft);
+  color: var(--adm-red);
+}
+
+.adm-badge--draft {
+  background: var(--adm-purple-soft);
+  color: var(--adm-purple);
+}
+
+/* —— Empty states unificados —— */
+.adm-empty,
+.portal--admin .pt-empty,
+.portal--admin .ntf-empty,
+.portal--admin .rep-empty,
+.portal--admin .cr-empty,
+.portal--admin .inv-preview-util__empty,
+.portal--admin .adm-panel__empty,
+.portal--admin .ui-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 2rem 1.25rem;
+  text-align: center;
+  border: 1px dashed var(--adm-border-strong);
+  border-radius: var(--adm-radius);
+  background: linear-gradient(180deg, var(--adm-surface) 0%, var(--adm-surface-muted) 100%);
+  color: var(--adm-text-muted);
+}
+
+.adm-empty__icon {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 12px;
+  background: var(--adm-teal-soft);
+  color: var(--adm-teal);
+  margin-bottom: 0.25rem;
+}
+
+.adm-empty__title,
+.portal--admin .ui-empty__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--adm-text);
+}
+
+.adm-empty__text,
+.portal--admin .ui-empty__text {
+  margin: 0;
+  max-width: 28rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.adm-empty__action {
+  margin-top: 0.5rem;
+}
+
+/* —— Data tables —— */
+.adm-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+  background: var(--adm-surface);
+}
+
+.adm-table-wrap--sticky thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--adm-surface-muted);
+}
+
+.adm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.adm-table th {
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--adm-text-muted);
+  border-bottom: 1px solid var(--adm-border);
+}
+
+.adm-table td {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--adm-border);
+  color: var(--adm-text);
+  vertical-align: middle;
+}
+
+.adm-table tbody tr:hover td {
+  background: rgba(13, 148, 136, 0.04);
+}
+
+.adm-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* —— Unificación de chips/badges en módulos existentes —— */
+.portal--admin .pt-kpi,
+.portal--admin .inv-kpi,
+.portal--admin .pay-kpi,
+.portal--admin .ntf-kpi,
+.portal--admin .rep-kpi {
+  border-radius: var(--adm-radius);
+  border: 1px solid var(--adm-border);
+  box-shadow: var(--adm-shadow-sm);
+  background: var(--adm-surface);
+}
+
+.portal--admin .pt-badge,
+.portal--admin .inv-status,
+.portal--admin .pay-status,
+.portal--admin .ntf-priority {
+  border-radius: 999px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* —— Formularios y focus —— */
+.portal--admin input:focus-visible,
+.portal--admin select:focus-visible,
+.portal--admin textarea:focus-visible,
+.portal--admin button:focus-visible {
+  outline: none;
+  box-shadow: var(--adm-focus);
+}
+
+/* —— Loading skeleton —— */
+.adm-skeleton {
+  background: linear-gradient(90deg, #eef2f7 0%, #f8fafc 50%, #eef2f7 100%);
+  background-size: 200% 100%;
+  animation: adm-shimmer 1.2s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+@keyframes adm-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.adm-kpi--loading .adm-kpi__value {
+  color: transparent;
+  background: linear-gradient(90deg, #eef2f7 0%, #f8fafc 50%, #eef2f7 100%);
+  background-size: 200% 100%;
+  animation: adm-shimmer 1.2s ease-in-out infinite;
+  border-radius: 6px;
+  min-height: 1.5rem;
+}
+
+/* —— Topbar refinements —— */
+.portal--admin .admin-topbar {
+  backdrop-filter: blur(8px);
+}
+
+.portal--admin .admin-topbar__search .admin-search__input,
+.portal--admin .admin-search__input {
+  border-radius: 999px;
+  border-color: var(--adm-border);
+  background: var(--adm-surface);
+}
+
+/* —— Module panels —— */
+.portal--admin .adm-panel,
+.portal--admin .ntf-module__panel,
+.portal--admin .inv-panel,
+.portal--admin .pt-panel {
+  border-radius: var(--adm-radius);
+  border: 1px solid var(--adm-border);
+  box-shadow: var(--adm-shadow-sm);
+  background: var(--adm-surface);
+}
+
+/* —— Responsive rail —— */
+@media (max-width: 1023px) {
+  .portal-rail--drawer .admin-nav-group__label {
+    padding-left: 0.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal--admin .adm-kpi,
+  .adm-skeleton,
+  .adm-kpi--loading .adm-kpi__value {
+    animation: none;
+  }
+}
+

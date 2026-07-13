@@ -17,7 +17,8 @@ import { AppointmentLookupForm } from './AppointmentLookupForm'
 import { PatientVerificationForm } from './PatientVerificationForm'
 import { VerificationRequiredCard } from './VerificationRequiredCard'
 import { QuickReplyChips } from './QuickReplyChips'
-import { SlotsPanel } from './SlotsPanel'
+import { AiBookingSlotCalendar } from './AiBookingSlotCalendar'
+import { useAiChatAutoScroll } from './useAiChatAutoScroll'
 import { SlotCard } from './SlotCard'
 import { AppointmentCard } from './AppointmentCard'
 import { getCurrentBookingStep } from './bookingSteps'
@@ -65,6 +66,15 @@ export function AiBookingAssistant({
   const composerRef = useRef<HTMLInputElement>(null)
   const [draft, setDraft] = useState('')
   const busy = isBusy(flow.status)
+  const panelHasSlots = flow.slots.length > 0
+  const { messagesRef, chatRef, panelRef, bodyRef } = useAiChatAutoScroll({
+    messagesLength: flow.messages.length,
+    suggestedCount: flow.suggestedOptions.length,
+    slotsCount: flow.slots.length,
+    status: flow.status,
+    panelActive: panelHasSlots,
+    scrollBody: isWidget
+  })
 
   const handleComposerSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -125,8 +135,13 @@ export function AiBookingAssistant({
   const showBookProgress = flow.mode === 'book' || flow.activeTab === 'book'
   const showManageProgress = flow.mode === 'manage' && flow.activeTab !== 'book'
 
+  const showSlotCalendar =
+    flow.slots.length > 0 && !['collecting_patient_data', 'confirming_cancel'].includes(flow.status)
+
   return (
-    <div className={`ai-assistant${isWidget ? ' ai-assistant--widget' : ' ai-assistant--page'}`}>
+    <div
+      className={`ai-assistant${isWidget ? ' ai-assistant--widget' : ' ai-assistant--page'}${showSlotCalendar ? ' ai-assistant--has-calendar' : ''}`}
+    >
       {showHeader ? (
         <header className="ai-assistant__header">
           <div className="ai-assistant__brand">
@@ -134,14 +149,14 @@ export function AiBookingAssistant({
               <Bot className="h-5 w-5" />
             </span>
             <div>
-              <p className="ai-assistant__eyebrow">Asistente de citas con IA</p>
+              <p className="ai-assistant__eyebrow">Asistente de citas</p>
               <h2 className="ai-assistant__title">Asistente de citas</h2>
               <p className="ai-assistant__subtitle">Reserva, revisa o cambia tus citas de forma guiada.</p>
             </div>
             <span className="ai-assistant__pill">Online</span>
           </div>
           <div className="ai-assistant__header-actions">
-            {expandHref ? (
+            {expandHref && !isWidget ? (
               <a href={expandHref} className="ai-assistant__icon-btn" title="Abrir en pantalla completa">
                 <ExternalLink className="h-4 w-4" aria-hidden />
                 <span className="sr-only">Abrir en pantalla completa</span>
@@ -153,7 +168,9 @@ export function AiBookingAssistant({
               </button>
             ) : null}
           </div>
-          <AppointmentIntentTabs activeTab={flow.activeTab} onTabChange={flow.handleTabChange} />
+          {!isWidget ? (
+            <AppointmentIntentTabs activeTab={flow.activeTab} onTabChange={flow.handleTabChange} />
+          ) : null}
           {showBookProgress ? <BookingProgressSteps currentStep={bookStep} compact={isWidget} /> : null}
           {showManageProgress ? (
             <ManageProgressSteps
@@ -164,25 +181,50 @@ export function AiBookingAssistant({
             />
           ) : null}
         </header>
-      ) : (
+      ) : showBookProgress || showManageProgress ? (
         <div className="ai-assistant__progress-only">
-          <AppointmentIntentTabs activeTab={flow.activeTab} onTabChange={flow.handleTabChange} />
           {showBookProgress ? <BookingProgressSteps currentStep={bookStep} compact={isWidget} /> : null}
+          {showManageProgress ? (
+            <ManageProgressSteps
+              status={flow.status}
+              context={flow.assistantContext}
+              hasAppointments={!!flow.appointments.length}
+              compact={isWidget}
+            />
+          ) : null}
         </div>
-      )}
+      ) : null}
 
-      <div className="ai-assistant__body">
-        <section className="ai-assistant__chat" aria-label="Conversación">
-          <div className="ai-assistant__messages" aria-live="polite" aria-relevant="additions">
+      <div ref={bodyRef} className="ai-assistant__body">
+        <section ref={chatRef} className="ai-assistant__chat" aria-label="Conversación">
+          <div
+            ref={messagesRef}
+            className="ai-assistant__messages"
+            aria-live="polite"
+            aria-relevant="additions"
+          >
             {flow.messages.map((message) => (
               <ChatMessage key={message.id} message={message} />
             ))}
             {flow.showHelpCard ? <AiHelpContextCard /> : null}
+
+            {showSlotCalendar ? (
+              <div className="ai-chat-calendar" aria-label="Huecos disponibles">
+                <AiBookingSlotCalendar
+                  slots={flow.slots}
+                  onSelect={flow.handleSelectSlot}
+                  selectLabel={flow.rescheduleMode ? 'Cambiar a este hueco' : 'Reservar este hueco'}
+                  compact={isWidget}
+                />
+              </div>
+            ) : null}
           </div>
 
           <QuickReplyChips
-            options={AI_APPOINTMENTS_QUICK_REPLIES}
+            suggested={flow.suggestedOptions}
+            options={flow.suggestedOptions.length ? [] : AI_APPOINTMENTS_QUICK_REPLIES}
             onSelect={(value) => void flow.handleSendMessage(value)}
+            onSelectOption={(option) => flow.handleSelectOption(option)}
             disabled={busy}
           />
 
@@ -218,7 +260,7 @@ export function AiBookingAssistant({
           </form>
         </section>
 
-        <aside className="ai-assistant__panel" aria-label="Resumen y acciones">
+        <aside ref={panelRef} className="ai-assistant__panel" aria-label="Resumen y acciones">
           <BookingContextSummary bookingState={flow.bookingState} collapsible={isWidget} />
 
           {flow.status === 'error' ? (
@@ -339,17 +381,6 @@ export function AiBookingAssistant({
               onSearchOtherProfessional={() => void flow.handleSendMessage('Buscar otro profesional')}
               onFirstAvailable={() => void flow.handleSendMessage('Buscar el primer hueco disponible')}
               onContactClinic={() => undefined}
-            />
-          ) : null}
-
-          {flow.slots.length &&
-          !['collecting_patient_data', 'confirming_cancel'].includes(flow.status) ? (
-            <SlotsPanel
-              slots={flow.slots}
-              showAll={flow.showAllSlots}
-              onToggleShowAll={() => flow.setShowAllSlots((v) => !v)}
-              onSelect={flow.handleSelectSlot}
-              selectLabel={flow.rescheduleMode ? 'Cambiar a este hueco' : 'Reservar este hueco'}
             />
           ) : null}
 

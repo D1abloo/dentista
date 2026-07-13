@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { type ProPlan } from './ProAccessForm'
-import { AiAppointmentsSection } from './new-frontend/AiAppointmentsSection'
 import { BenefitsSection } from './new-frontend/BenefitsSection'
 import { DemoFormModal } from './new-frontend/DemoFormModal'
 import { FaqSection } from './new-frontend/FaqSection'
@@ -11,6 +10,8 @@ import { PainPointsSection } from './new-frontend/PainPointsSection'
 import { PricingSection } from './new-frontend/PricingSection'
 import { SecurityTrustSection } from './new-frontend/SecurityTrustSection'
 import { TestimonialsSection } from './new-frontend/TestimonialsSection'
+import { WorkflowSection } from './new-frontend/WorkflowSection'
+import { AiAppointmentsSection } from './new-frontend/AiAppointmentsSection'
 import { PublicSiteShell } from './PublicSiteShell'
 
 export function LandingPage() {
@@ -36,6 +37,7 @@ export function LandingPage() {
         <PainPointsSection />
         <BenefitsSection onOpenDemo={() => openDemo('pro_clinica')} />
         <ModulesTabSection />
+        <WorkflowSection />
         <AiAppointmentsSection />
         <SecurityTrustSection />
         <TestimonialsSection onOpenDemo={() => openDemo('pro_clinica')} />

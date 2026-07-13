@@ -69,22 +69,6 @@ const MODULES = [
     variant: 'billing' as const
   },
   {
-    key: 'ia',
-    tab: 'Citas con IA',
-    kicker: 'Citas con IA',
-    title: 'Asistente de citas con IA: reserva y consulta sin esperas',
-    text: 'El paciente reserva, consulta o cambia citas conversando con el asistente. Disponibilidad real del backend.',
-    bullets: [
-      'Reserva guiada con huecos reales',
-      'Consulta con email, DNI o NHC',
-      'Reprogramación y cancelación verificada',
-      'Gemini Pro solo en servidor',
-      'Sin inventar citas ni disponibilidad'
-    ],
-    cta: { href: '/citas-con-ia', label: 'Probar asistente IA' },
-    variant: 'portal' as const
-  },
-  {
     key: 'seguridad',
     tab: 'Seguridad',
     kicker: 'Seguridad',

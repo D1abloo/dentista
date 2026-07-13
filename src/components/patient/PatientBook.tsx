@@ -22,7 +22,6 @@ import {
   calendarDentistId,
   clinicsForPatient,
   findNextAvailableSlot,
-  formatSlotsHeader,
   mergedDaySlots,
   nextSlotLabel,
   professionalAvailabilityHint,
@@ -31,7 +30,11 @@ import {
   type BookStep
 } from '@/lib/patient/bookingFlow';
 import { BookingDayCalendar } from '@/components/shared/BookingDayCalendar';
-import { SlotCalendar } from '@/components/shared/SlotCalendar';
+import {
+  ClinicColorScheduleCalendar,
+  type ScheduleCalendarProfessional,
+  type ScheduleCalendarSlot
+} from '@/components/shared/ClinicColorScheduleCalendar';
 import { useDemoStore } from '@/hooks/useDemoStore';
 import { useNotice } from '@/hooks/useNotice';
 import { usePatientMutations } from '@/hooks/usePatientMutations';
@@ -130,7 +133,52 @@ export function PatientBook() {
     return daySlotMap(state, { ...opts, dentistId: did });
   }, [state, clinicId, dentistId, activeCabinet, date, treatmentId, dentists]);
 
-  const slots = useMemo(() => slotCells.filter((s) => s.selectable).map((s) => s.time), [slotCells]);
+  const scheduleProfessionals = useMemo((): ScheduleCalendarProfessional[] => {
+    const list =
+      dentistId === ANY_DENTIST_ID
+        ? dentists
+        : dentists.filter((d) => d.id === dentistId || d.id === calendarDentistId(dentistId, dentists));
+    return list.map((d) => ({
+      id: d.id,
+      fullName: d.fullName,
+      photoUrl: resolveDentistPhotoUrl(d) ?? undefined,
+      specialty: d.specialty
+    }));
+  }, [dentistId, dentists]);
+
+  const scheduleSlots = useMemo((): ScheduleCalendarSlot[] => {
+    if (!date || !treatmentId || !clinicId) return [];
+    const duration = treatment?.durationMinutes ?? 30;
+    const title = treatment?.name ?? 'Consulta';
+    const rows: ScheduleCalendarSlot[] = [];
+
+    for (const pro of scheduleProfessionals) {
+      const cells = daySlotMap(state, {
+        clinicId,
+        cabinetId: activeCabinet,
+        date,
+        treatmentId,
+        dentistId: pro.id
+      });
+      for (const cell of cells.filter((c) => c.selectable)) {
+        const startsAt = new Date(`${date}T${cell.time}:00`).toISOString();
+        const endsAt = new Date(new Date(startsAt).getTime() + duration * 60_000).toISOString();
+        rows.push({
+          id: `${pro.id}-${cell.time}`,
+          startsAt,
+          endsAt,
+          professionalId: pro.id,
+          professionalName: pro.fullName,
+          professionalPhotoUrl: pro.photoUrl,
+          title,
+          subtitle: 'Hueco disponible',
+          colorKey: treatmentId,
+          statusLabel: 'Disponible para reservar'
+        });
+      }
+    }
+    return rows;
+  }, [activeCabinet, clinicId, date, scheduleProfessionals, state, treatment, treatmentId]);
 
   const nextHint = useMemo(() => {
     if (!clinicId || !treatmentId || !dentistId) return null;
@@ -508,7 +556,7 @@ export function PatientBook() {
               {!treatmentId || !dentistId ? (
                 <p className="pb-field-err">Completa tratamiento y profesional antes de elegir fecha.</p>
               ) : (
-                <div className="pb-date-layout">
+                <div className="pb-date-layout pb-date-layout--color-cal">
                   <div>
                     <BookingDayCalendar
                       state={state}
@@ -525,59 +573,55 @@ export function PatientBook() {
                   </div>
                   <div>
                     {date ? (
-                      <>
-                        <p className="text-sm font-bold text-slate-700 m-0">{formatSlotsHeader(date)}</p>
-                        {slotCells.length ? (
-                          <div className="mt-2">
-                            <SlotCalendar
-                              slots={slotCells}
-                              value={time}
-                              onChange={(t) => {
-                                const cell = slotCells.find((s) => s.time === t);
-                                if (cell?.status === 'bloqueado') {
-                                  const msg = 'Este horario no está disponible. Elige otro hueco.';
-                                  setErrors({ time: msg });
-                                  setNotice({ type: 'error', message: msg });
-                                  return;
-                                }
-                                if (cell && !cell.selectable) {
-                                  const msg = 'Este horario ya está ocupado. Elige otro hueco.';
-                                  setErrors({ time: msg });
-                                  setNotice({ type: 'error', message: msg });
-                                  return;
-                                }
-                                setTime(t);
-                                setErrors((e) => {
-                                  const next = { ...e };
-                                  delete next.time;
-                                  return next;
-                                });
-                              }}
-                            />
-                          </div>
-                        ) : (
-                          <div className="pb-empty-slots mt-2">
-                            <h4 className="m-0 text-sm font-extrabold">No hay horarios disponibles</h4>
-                            <p className="text-xs text-slate-500 mt-1">Prueba con otro día, profesional o tratamiento.</p>
-                            <button type="button" className="pb-btn pb-btn--outline mt-3" onClick={searchNextSlot}>
-                              Buscar siguiente hueco
-                            </button>
-                          </div>
-                        )}
-                        {nextHint ? (
-                          <p className="pb-slot-hint">
-                            <Clock className="h-4 w-4" aria-hidden />
-                            Próximo hueco disponible: {nextHint}
-                          </p>
-                        ) : null}
-                        <button type="button" className="pb-link-btn mt-1" onClick={searchNextSlot}>
-                          <ChevronRight className="inline h-3 w-3" aria-hidden />
-                          Buscar siguiente hueco
-                        </button>
-                      </>
+                      scheduleSlots.length ? (
+                        <ClinicColorScheduleCalendar
+                          date={date}
+                          onDateChange={(d) => {
+                            setDate(d);
+                            setTime('');
+                          }}
+                          slots={scheduleSlots}
+                          professionals={scheduleProfessionals}
+                          selectedSlotId={time ? `${resolvedDentist ?? dentistId}-${time}` : undefined}
+                          onSelectSlot={(slot) => {
+                            const pickedTime = slot.startsAt.slice(11, 16);
+                            setTime(pickedTime);
+                            if (dentistId === ANY_DENTIST_ID) {
+                              setDentistId(slot.professionalId);
+                            }
+                            setErrors((e) => {
+                              const next = { ...e };
+                              delete next.time;
+                              delete next.date;
+                              return next;
+                            });
+                          }}
+                          confirmLabel="Elegir este hueco"
+                          title="Agenda del profesional"
+                          subtitle="Toca un hueco en color para reservar"
+                        />
+                      ) : (
+                        <div className="pb-empty-slots mt-2">
+                          <h4 className="m-0 text-sm font-extrabold">No hay horarios disponibles</h4>
+                          <p className="text-xs text-slate-500 mt-1">Prueba con otro día, profesional o tratamiento.</p>
+                          <button type="button" className="pb-btn pb-btn--outline mt-3" onClick={searchNextSlot}>
+                            Buscar siguiente hueco
+                          </button>
+                        </div>
+                      )
                     ) : (
                       <p className="text-sm text-slate-500">Selecciona un día disponible en el calendario.</p>
                     )}
+                    {nextHint ? (
+                      <p className="pb-slot-hint">
+                        <Clock className="h-4 w-4" aria-hidden />
+                        Próximo hueco disponible: {nextHint}
+                      </p>
+                    ) : null}
+                    <button type="button" className="pb-link-btn mt-1" onClick={searchNextSlot}>
+                      <ChevronRight className="inline h-3 w-3" aria-hidden />
+                      Buscar siguiente hueco
+                    </button>
                   </div>
                 </div>
               )}

@@ -639,6 +639,12 @@ export const aiAssistantStateSchema = z.object({
   assistantContext: aiAssistantContextSchema.default({})
 });
 
+export const aiChatSelectionSchema = z.object({
+  clinicId: z.string().uuid().optional(),
+  treatmentId: z.string().uuid().optional(),
+  professionalId: z.string().uuid().optional()
+})
+
 export const aiAppointmentsChatSchema = z.object({
   message: z.string().min(1).max(2000),
   conversation: z
@@ -650,7 +656,8 @@ export const aiAppointmentsChatSchema = z.object({
     )
     .max(40)
     .default([]),
-  assistantState: aiAssistantStateSchema.default({})
+  assistantState: aiAssistantStateSchema.default({}),
+  selection: aiChatSelectionSchema.optional()
 });
 
 export const publicAppointmentLookupSchema = z.object({

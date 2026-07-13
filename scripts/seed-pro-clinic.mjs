@@ -2,7 +2,7 @@
 /**
  * Semilla PRO: clínica ficticia operativa + admin@dentista.app + pacientes.
  *
- * Requiere: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+ * Requiere: DATABASE_URL
  * Opcional: SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, CLINIC_DEFAULT_PASSWORD
  *
  * Uso: npm run seed:clinic

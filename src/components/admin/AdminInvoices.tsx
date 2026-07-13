@@ -66,6 +66,7 @@ import { useNotice } from '@/hooks/useNotice';
 import { useTenant } from '@/hooks/useTenant';
 import type { Invoice, InvoiceLine, InvoiceStatus, Patient } from '@/types/demo';
 import { Field, Input, Modal, Select } from '@/components/ui';
+import { AdminFilterBar } from './ui';
 
 const PAGE_SIZE = 10;
 const MAX_PDF = 10_000_000;
@@ -775,18 +776,7 @@ export function AdminInvoices() {
           />
         </div>
         <div className="inv-toolbar__row">
-          <div className="inv-chips inv-chips--scroll">
-            {FILTER_CHIPS.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                className={`inv-chip${filter === c.id ? ' inv-chip--active' : ''}${c.danger ? ' inv-chip--danger' : ''}`}
-                onClick={() => setFilter(c.id)}
-              >
-                {c.label}
-              </button>
-            ))}
-          </div>
+          <AdminFilterBar options={FILTER_CHIPS} value={filter} onChange={setFilter} ariaLabel="Filtrar facturas" />
           <div className="inv-sort">
             <select value={sort} onChange={(e) => setSort(e.target.value as InvoiceSort)}>
               <option value="vencimiento">Ordenar por: vencimiento</option>

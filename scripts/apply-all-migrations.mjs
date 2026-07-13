@@ -77,17 +77,15 @@ try {
   )
   console.log(`Tablas public antes: ${before.rows[0]?.n ?? 0}`)
 
-  if (process.env.LOCAL_POSTGRES === 'true') {
-    try {
-      await runFile(client, '0000_local_bootstrap.sql', 'local/postgres')
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      if (!/already exists|duplicate/i.test(msg)) {
-        console.error('✗ bootstrap local:', msg)
-        process.exit(1)
-      }
-      console.log('⊘ bootstrap local (ya aplicado)')
+  try {
+    await runFile(client, '0000_local_bootstrap.sql', 'local/postgres')
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    if (!/already exists|duplicate/i.test(msg)) {
+      console.error('✗ bootstrap local:', msg)
+      process.exit(1)
     }
+    console.log('⊘ bootstrap local (ya aplicado)')
   }
 
   for (const file of queue) {
