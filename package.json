@@ -43,6 +43,7 @@
     "db:split-clinics": "node scripts/migrate-independent-clinics.mjs",
     "test:pdp-audit": "node scripts/test-pdp-audit.mjs",
     "codex:bootstrap": "bash scripts/codex-bootstrap.sh",
+    "deploy:vercel": "bash scripts/deploy-vercel.sh",
     "git:save": "bash scripts/git-save.sh",
     "github:save": "bash scripts/git-save.sh",
     "guides:capture": "node scripts/capture-guide-screenshots.mjs"
