@@ -1,6 +1,8 @@
 import { useAsync } from '@/frontend/hooks/useAsync'
 import { Alert, Card, DataTable, PageState, Skeleton } from '@/frontend/ds'
 import type { DataColumn } from '@/frontend/ds/DataTable'
+import { MetricCard } from '@/frontend/platform/components/ui/MetricCard'
+import { Activity, Database, ShieldCheck, Sparkles } from 'lucide-react'
 import {
   inferColumns,
   platformColumns
@@ -25,14 +27,17 @@ const renderObjectPayload = (payload: Record<string, unknown>) => {
   return (
     <div className="space-y-6">
       {scalarEntries.length ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {scalarEntries.map(([key, value]) => (
-            <Card key={key} className="p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                {key.replace(/_/g, ' ')}
-              </p>
-              <p className="mt-2 text-lg font-semibold text-ink">{String(value)}</p>
-            </Card>
+        <div className="pf-stagger grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {scalarEntries.slice(0, 4).map(([key, value], idx) => (
+            <MetricCard
+              key={key}
+              label={key.replace(/_/g, ' ')}
+              value={String(value)}
+              hint="métrica"
+              trend="neutral"
+              icon={[Sparkles, Activity, Database, ShieldCheck][idx] ?? Sparkles}
+              tone={(['brand', 'emerald', 'amber', 'sky'] as const)[idx] ?? 'brand'}
+            />
           ))}
         </div>
       ) : null}
@@ -100,7 +105,7 @@ export const AdminGenericModuleView = ({
     return (
       <div className="space-y-4">
         {description ? <Alert tone="info">{description}</Alert> : null}
-        <DataTable rows={rows} columns={tableColumns} caption={title} />
+        <DataTable rows={rows} columns={tableColumns} caption={title} className="pf-animate-in" />
       </div>
     )
   }

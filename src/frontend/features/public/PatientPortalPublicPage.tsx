@@ -27,7 +27,7 @@ export const PatientPortalPublicPage = () => (
           ))}
         </div>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Button size="lg" onClick={() => (window.location.href = '/login/paciente')}>
+          <Button size="lg" onClick={() => (window.location.href = '/login/paciente?next=/paciente')}>
             Acceder al portal
           </Button>
           <Button variant="outline" size="lg" onClick={() => (window.location.href = '/registro-paciente')}>

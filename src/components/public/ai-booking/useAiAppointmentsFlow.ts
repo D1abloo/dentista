@@ -1,3 +1,4 @@
+import type { BookingCalendarAction } from '@/lib/booking/types'
 import { buildSuggestedOptions, type SuggestedOption } from '@/lib/ai/suggestedOptions'
 import type {
   PublicBookingClinic,
@@ -78,6 +79,7 @@ export function useAiAppointmentsFlow(options: Options = {}) {
     professionals: PublicBookingProfessional[]
   }>({ clinics: [], treatments: [], professionals: [] })
   const [suggestedOptions, setSuggestedOptions] = useState<SuggestedOption[]>([])
+  const [calendarAction, setCalendarAction] = useState<BookingCalendarAction | null>(null)
 
   const identityVerified = Boolean(assistantContext.verificationToken)
   const hasFullVerification = assistantContext.verificationScope === 'full'
@@ -142,6 +144,7 @@ export function useAiAppointmentsFlow(options: Options = {}) {
         setNextAppointment(payload?.nextAppointment ?? null)
         if (payload?.catalog) setCatalog(payload.catalog)
         setSuggestedOptions((payload?.suggestedOptions ?? []) as SuggestedOption[])
+        setCalendarAction((payload?.calendarAction as BookingCalendarAction | null | undefined) ?? null)
 
         if (payload?.requiresStrongVerification) {
           setNeedsStrongVerification(true)
@@ -649,6 +652,8 @@ export function useAiAppointmentsFlow(options: Options = {}) {
     showHelpCard,
     catalog,
     suggestedOptions,
+    calendarAction,
+    clearCalendarAction: () => setCalendarAction(null),
     handleSendMessage,
     handleSelectOption,
     handleVerifyIdentity,

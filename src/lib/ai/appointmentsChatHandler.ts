@@ -18,6 +18,8 @@ import {
   getPublicProfessionals,
   getPublicTreatments
 } from '@/lib/services/publicAiBooking'
+import type { BookingCalendarAction } from '@/lib/booking/types'
+import { matchesBookingPhrase } from '@/lib/booking/phrases'
 import type { z } from 'zod'
 import { aiAssistantStateSchema } from '@/lib/validators'
 
@@ -44,6 +46,7 @@ export type AppointmentsChatResult = {
   }
   suggestedOptions: SuggestedOption[]
   usedGemini?: boolean
+  calendarAction?: BookingCalendarAction | null
 }
 
 function intentToTab(intent: string): AppointmentsChatResult['activeTab'] {
@@ -112,9 +115,7 @@ export async function handleAppointmentsChat(input: {
     const message = error instanceof Error ? error.message : String(error)
     const isConnection =
       /fetch failed|ENOTFOUND|ECONNREFUSED|Tenant\/user|not found/i.test(message)
-    const hint = isConnection
-      ? ' La base de datos no responde (revisa DATABASE_URL en .env).'
-      : ''
+    const hint = isConnection ? ' El servicio de datos no responde en este momento.' : ''
     return {
       assistantMessage: `No puedo consultar la agenda en este momento.${hint} Puedes llamar a la clínica o usar el formulario de contacto.`,
       intent: {
@@ -371,6 +372,37 @@ export async function handleAppointmentsChat(input: {
     selectedSlot: bookingState.selectedSlot
   }
 
+  const wantsCalendar =
+    intent.intent === 'book_appointment' ||
+    intent.intent === 'urgency_warning' ||
+    matchesBookingPhrase(input.message)
+
+  if (wantsCalendar) {
+    const targetClinicId = nextBookingState.clinicId ?? clinicId ?? clinics[0]?.id ?? null
+    const clinicLabel =
+      nextBookingState.clinicName ?? clinics.find((c) => c.id === targetClinicId)?.name ?? 'Tu clínica'
+    return {
+      assistantMessage: `Perfecto. Abre el calendario para ver huecos reales en ${clinicLabel} y completar tu reserva.`,
+      intent,
+      mode: 'book',
+      activeTab: 'book',
+      bookingState: nextBookingState,
+      assistantContext: { ...nextContext, mode: 'book' },
+      slots: [],
+      appointments,
+      nextAppointment,
+      readyForSummary: false,
+      requiresVerification: false,
+      catalog: { clinics, treatments, professionals },
+      suggestedOptions: [],
+      usedGemini,
+      calendarAction: {
+        clinicId: targetClinicId,
+        clinicName: clinicLabel
+      }
+    }
+  }
+
   const readyForSlots =
     (intent.intent === 'book_appointment' || intent.intent === 'reschedule_appointment') &&
     bookingFieldsReady(resolved) &&
@@ -440,7 +472,8 @@ export async function handleAppointmentsChat(input: {
     requiresVerification: false,
     catalog: { clinics, treatments, professionals },
     suggestedOptions,
-    usedGemini
+    usedGemini,
+    calendarAction: null
   }
 }
 

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, Search } from 'lucide-react'
 import { Button } from '@/frontend/ds'
 import { PortalSwitcherV2 } from '@/frontend/features/shared/PortalSwitcherV2'

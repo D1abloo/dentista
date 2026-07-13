@@ -1,6 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { Bot, Send } from 'lucide-react'
 import { useAiAppointmentsFlow } from '@/components/public/ai-booking/useAiAppointmentsFlow'
+import { BookingCalendarProvider, ReserveAppointmentButton, useBookingCalendar } from '@/components/booking'
 import { Alert, Button, Card, Input, Spinner } from '@/frontend/ds'
 import { cn } from '@/frontend/lib/cn'
 
@@ -14,8 +15,9 @@ const busy = (status: string) =>
     status
   )
 
-export const AiBookingExperience = ({ initialQuery }: { initialQuery?: string }) => {
+const AiBookingExperienceInner = ({ initialQuery }: { initialQuery?: string }) => {
   const flow = useAiAppointmentsFlow({ initialQuery })
+  const { openCalendar } = useBookingCalendar()
   const [draft, setDraft] = useState('')
 
   const handleSubmit = (e: FormEvent) => {
@@ -27,6 +29,14 @@ export const AiBookingExperience = ({ initialQuery }: { initialQuery?: string })
   }
 
   const slotPreview = useMemo(() => flow.slots.slice(0, flow.showAllSlots ? 20 : 6), [flow.slots, flow.showAllSlots])
+
+  const handleOpenCalendar = () => {
+    if (!flow.calendarAction) return
+    openCalendar({
+      clinicId: flow.calendarAction.clinicId,
+      source: 'ai_assistant'
+    })
+  }
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
@@ -62,7 +72,14 @@ export const AiBookingExperience = ({ initialQuery }: { initialQuery?: string })
           {busy(flow.status) ? <Spinner label="Procesando…" className="py-4" /> : null}
         </div>
 
-        {flow.suggestedOptions.length ? (
+        {flow.calendarAction ? (
+          <div className="border-t border-slate-100 px-1 py-3">
+            <p className="mb-2 text-xs text-slate-600">{flow.calendarAction.clinicName}</p>
+            <ReserveAppointmentButton label="Ver calendario y reservar" onClick={handleOpenCalendar} />
+          </div>
+        ) : null}
+
+        {flow.suggestedOptions.length && !flow.calendarAction ? (
           <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-3">
             {flow.suggestedOptions.map((opt) => (
               <button
@@ -101,12 +118,20 @@ export const AiBookingExperience = ({ initialQuery }: { initialQuery?: string })
             <Bot className="h-4 w-4" aria-hidden />
             Disponibilidad real
           </div>
-          <p className="mt-2 text-xs text-slate-600">Huecos verificados en PostgreSQL. Sin inventar citas.</p>
+          <p className="mt-2 text-xs text-slate-600">Huecos verificados en la agenda de la clínica.</p>
         </Card>
 
-        {slotPreview.length ? (
+        {flow.calendarAction ? (
           <Card padding="sm">
-            <h3 className="text-sm font-semibold text-ink">Huecos disponibles</h3>
+            <h3 className="text-sm font-semibold text-ink">Calendario de reserva</h3>
+            <p className="mt-2 text-xs text-slate-600">{flow.calendarAction.clinicName}</p>
+            <ReserveAppointmentButton className="mt-3 w-full" label="Ver calendario y reservar" onClick={handleOpenCalendar} />
+          </Card>
+        ) : null}
+
+        {!flow.calendarAction && slotPreview.length ? (
+          <Card padding="sm">
+            <h3 className="text-sm font-semibold text-ink">Gestión de citas</h3>
             <ul className="mt-3 space-y-2">
               {slotPreview.map((slot) => (
                 <li key={slot.id}>
@@ -121,15 +146,10 @@ export const AiBookingExperience = ({ initialQuery }: { initialQuery?: string })
                 </li>
               ))}
             </ul>
-            {flow.slots.length > 6 ? (
-              <Button variant="ghost" size="sm" className="mt-2 w-full" onClick={() => flow.setShowAllSlots(true)}>
-                Ver más
-              </Button>
-            ) : null}
           </Card>
         ) : null}
 
-        {flow.selectedSlot ? (
+        {!flow.calendarAction && flow.selectedSlot ? (
           <Card>
             <h3 className="text-sm font-semibold">Resumen</h3>
             <p className="mt-2 text-sm text-slate-600">
@@ -144,3 +164,9 @@ export const AiBookingExperience = ({ initialQuery }: { initialQuery?: string })
     </div>
   )
 }
+
+export const AiBookingExperience = ({ initialQuery }: { initialQuery?: string }) => (
+  <BookingCalendarProvider>
+    <AiBookingExperienceInner initialQuery={initialQuery} />
+  </BookingCalendarProvider>
+)

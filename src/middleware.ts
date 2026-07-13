@@ -44,8 +44,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
     if (hasPatientPortalHtmlAccess(context.cookies)) {
       return next();
     }
-    const nextTarget = encodeURIComponent(`${pathname}${search}`);
-    return context.redirect(`/portal-paciente?next=${nextTarget}`);
+    // ponytail: renderiza el contenedor del portal y deja que el gate cliente muestre Restricted/login
+    // Evita pantallas “en blanco” y mantiene /portal-paciente como landing pública.
+    return next()
   }
 
   return next();

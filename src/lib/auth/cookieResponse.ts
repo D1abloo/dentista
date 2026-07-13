@@ -4,7 +4,9 @@ const NO_STORE = 'private, no-store, no-cache, must-revalidate';
 
 /** Cookies seguras en Vercel/producción (HTTPS). */
 export function isCookieSecure(): boolean {
-  return import.meta.env.PROD === true || import.meta.env.VERCEL === '1';
+  // ponytail: en local dev siempre HTTP; secure=true rompe la sesión (cookie no se guarda)
+  if (import.meta.env.DEV === true) return false
+  return import.meta.env.PROD === true || import.meta.env.VERCEL === '1'
 }
 
 export function applySetCookies(headers: Headers, cookies: AstroCookies) {

@@ -69,9 +69,13 @@ export function PatientPortalGate({ children }: { children: ReactNode }) {
     void sync();
     const onFocus = () => void sync();
     window.addEventListener('focus', onFocus);
+    const timeout = window.setTimeout(() => {
+      if (!cancelled) setReady(true);
+    }, 3500);
     return () => {
       cancelled = true;
       window.removeEventListener('focus', onFocus);
+      window.clearTimeout(timeout);
     };
   }, []);
 

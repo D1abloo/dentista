@@ -26,7 +26,9 @@ import { Card, PageState } from '@/frontend/ds'
 import { useDemoStore } from '@/hooks/useDemoStore'
 import { AdminGenericModuleView } from '@/frontend/features/admin/views/AdminGenericModuleView'
 import { ShellPageHeader } from '@/frontend/shell/components/ShellPageHeader'
-import { buildPatientNavGroups } from '@/frontend/shell/nav/patientNavGroups'
+import { BookingCalendarProvider, PatientBookingSection } from '@/components/booking'
+import { PatientAppointmentsView } from '@/frontend/features/patient/PatientAppointmentsView'
+import { PatientReservarView } from '@/frontend/features/patient/PatientReservarView'
 
 export type PatientView =
   | 'dashboard'
@@ -65,7 +67,7 @@ const titles: Record<PatientView, string> = {
 
 const descriptions: Partial<Record<PatientView, string>> = {
   dashboard: 'Resumen de tus citas y accesos rápidos a servicios de la clínica.',
-  reservar: 'Reserva una nueva cita con el asistente IA o contactando con tu clínica.',
+  reservar: 'Elige tratamiento, día y hora disponibles en el calendario.',
   citas: 'Consulta y gestiona tus próximas citas dentales.',
   informes: 'Informes clínicos compartidos por tu equipo dental.',
   documentos: 'Documentación y archivos de tu expediente.',
@@ -79,7 +81,7 @@ const descriptions: Partial<Record<PatientView, string>> = {
 
 const baseNav = [
   { href: '/paciente', label: 'Inicio', icon: Home, view: 'dashboard' as const },
-  { href: '/paciente/reservar', label: 'Reservar cita', icon: CalendarPlus, view: 'reservar' as const },
+  { href: '/paciente/reservar', label: 'Pedir cita', icon: CalendarPlus, view: 'reservar' as const },
   { href: '/paciente/citas', label: 'Mis citas', icon: Calendar, view: 'citas' as const },
   { href: '/paciente/citas-pasadas', label: 'Citas pasadas', icon: CalendarClock, view: 'citas-pasadas' as const },
   { href: '/paciente/citas-completadas', label: 'Completadas', icon: CalendarCheck, view: 'citas-completadas' as const },
@@ -99,6 +101,7 @@ const PatientHome = () => {
   const upcoming = state.appointments.filter((a) => a.status === 'confirmed').slice(0, 3)
   return (
     <div className="pf-stagger grid gap-4 lg:grid-cols-2">
+      <PatientBookingSection />
       <Card className="pf-card pf-card--lift pf-animate-in p-5">
         <h2 className="font-semibold text-ink">Próximas citas</h2>
         {upcoming.length ? (
@@ -113,25 +116,11 @@ const PatientHome = () => {
             ))}
           </ul>
         ) : (
-          <p className="mt-3 text-sm text-slate-600">No tienes citas confirmadas.</p>
+          <div className="mt-3 space-y-3">
+            <p className="text-sm text-slate-600">No tienes citas confirmadas.</p>
+            <PatientBookingSection compact />
+          </div>
         )}
-      </Card>
-      <Card className="pf-card pf-card--lift pf-animate-in p-5">
-        <h2 className="font-semibold text-ink">Acciones rápidas</h2>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <a
-            href="/paciente/reservar"
-            className="rounded-xl bg-gradient-to-b from-brand-500 to-brand-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98]"
-          >
-            Reservar
-          </a>
-          <a
-            href="/citas-con-ia"
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 transition-colors hover:border-brand-300 hover:bg-brand-50/50"
-          >
-            Asistente IA
-          </a>
-        </div>
       </Card>
     </div>
   )
@@ -139,23 +128,7 @@ const PatientHome = () => {
 
 const Body = ({ view }: { view: PatientView }) => {
   if (view === 'dashboard') return <PatientHome />
-  if (view === 'reservar') {
-    return (
-      <PageState
-        variant="empty"
-        title="Reservar cita"
-        description="Usa el asistente IA o contacta con tu clínica para reservar."
-        action={
-          <a
-            href="/citas-con-ia"
-            className="rounded-xl bg-gradient-to-b from-brand-500 to-brand-700 px-4 py-2 text-sm font-semibold text-white"
-          >
-            Ir al asistente
-          </a>
-        }
-      />
-    )
-  }
+  if (view === 'reservar') return <PatientReservarView />
   if (view === 'gestion-clinica') {
     return (
       <PageState
@@ -174,12 +147,14 @@ const Body = ({ view }: { view: PatientView }) => {
     )
   }
   const apiMap: Partial<Record<PatientView, string>> = {
-    citas: '/api/patient-appointments/list',
     informes: '/api/patient/reports',
     documentos: '/api/patient/documents',
     facturas: '/api/patient/invoices',
     pagos: '/api/patient/payments',
     mensajes: '/api/patient/messages'
+  }
+  if (view === 'citas') {
+    return <PatientAppointmentsView endpoint="/api/patient-appointments/list" />
   }
   const endpoint = apiMap[view]
   if (endpoint) {
@@ -258,7 +233,9 @@ export const PatientApp = ({ view = 'dashboard' }: { view?: PatientView }) => (
     <PasswordChangeGate>
       <DemoStoreProvider>
         <NoticeProvider>
-          <PatientInner view={view} />
+          <BookingCalendarProvider>
+            <PatientInner view={view} />
+          </BookingCalendarProvider>
         </NoticeProvider>
       </DemoStoreProvider>
     </PasswordChangeGate>
